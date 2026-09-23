@@ -1,20 +1,68 @@
 #!/usr/bin/env sh
 # Pi Dash runner installer.
 #
-# Wraps the cargo-dist-generated `pidash-installer.sh` and then
-# launches `pidash auth login` so the user lands in the device-code
-# flow on the same install one-liner. The runner is a "set up once,
-# forget" daemon driven by Pi Dash cloud, so the natural moment to
-# authenticate is right now while the user is at the terminal — not
-# the first time they happen to type `pidash` themselves (which may
-# be never).
+# Installs the local runner binary and then launches `pidash auth login` so
+# the user lands in the device-code flow on the same command. A checked-out
+# source tree is enough to install the runner: an existing local binary is
+# reused, and a release binary is built from `runner/Cargo.toml` when needed.
 #
 # Usage:
-#   curl --proto '=https' --tlsv1.2 -LsSf \
-#     https://github.com/The-AI-Republic/pi-dash/releases/latest/download/install.sh | sh
+#   bash ./runner/install.sh
 set -eu
 
-INSTALLER_URL="https://github.com/The-AI-Republic/pi-dash/releases/latest/download/pidash-installer.sh"
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+INSTALL_DIR=${PIDASH_INSTALL_DIR:-"$HOME/.local/bin"}
+
+# A caller can point at a locally built binary explicitly. Relative paths are
+# resolved from the repository root so `PIDASH_LOCAL_BIN=target/debug/pidash`
+# works regardless of the caller's current directory.
+LOCAL_BIN=${PIDASH_LOCAL_BIN:-}
+if [ -n "$LOCAL_BIN" ]; then
+  case "$LOCAL_BIN" in
+    /*) ;;
+    *) LOCAL_BIN="$REPO_ROOT/$LOCAL_BIN" ;;
+  esac
+fi
+
+TARGET_DIR=${CARGO_TARGET_DIR:-"$REPO_ROOT/target"}
+case "$TARGET_DIR" in
+  /*) ;;
+  *) TARGET_DIR="$REPO_ROOT/$TARGET_DIR" ;;
+esac
+
+is_executable_file() {
+  [ -f "$1" ] && [ -x "$1" ]
+}
+
+# Return the first usable local binary. Cargo's workspace target directory is
+# normally at the repository root, but include runner/target as well for users
+# who built the package from inside `runner/`.
+find_local_binary() {
+  if [ -n "$LOCAL_BIN" ] && is_executable_file "$LOCAL_BIN"; then
+    printf '%s\n' "$LOCAL_BIN"
+    return 0
+  fi
+
+  for candidate in \
+    "$TARGET_DIR/release/pidash" \
+    "$TARGET_DIR/release/pidash.exe" \
+    "$TARGET_DIR/debug/pidash" \
+    "$TARGET_DIR/debug/pidash.exe" \
+    "$SCRIPT_DIR/target/release/pidash" \
+    "$SCRIPT_DIR/target/release/pidash.exe" \
+    "$SCRIPT_DIR/target/debug/pidash" \
+    "$SCRIPT_DIR/target/debug/pidash.exe" \
+    "$INSTALL_DIR/pidash" \
+    "$INSTALL_DIR/pidash.exe"; do
+    if is_executable_file "$candidate"; then
+      printf '%s\n' "$candidate"
+      return 0
+    fi
+  done
+
+  return 1
+}
 
 # Running under WSL installs the *Linux* build, which is usually not what a
 # Windows user wants: it cannot see the Windows filesystem the way they expect
@@ -28,13 +76,13 @@ if grep -qi microsoft /proc/version 2>/dev/null || [ -n "${WSL_DISTRO_NAME:-}" ]
   echo "on Windows. If your agents live on the Windows side, cancel and run this"
   echo "from PowerShell instead:"
   echo ""
-  echo "  irm https://github.com/The-AI-Republic/pi-dash/releases/latest/download/install.ps1 | iex"
+  echo "  Run the Windows installer from a Windows checkout instead."
   echo ""
 
   # Actually stop and ask, rather than printing advice the user cannot act on:
   # install and `auth login` follow immediately, so a bare warning would need
-  # to be read and Ctrl-C'd faster than the download completes. stdin is the
-  # `curl | sh` pipe, so read from /dev/tty — probed for openability because
+  # to be read and Ctrl-C'd before the command continues. stdin may be a pipe,
+  # so read from /dev/tty — probed for openability because
   # the device node exists even where it cannot be opened (Docker without -t,
   # cron, systemd, SSH without -t).
   if (: </dev/tty) 2>/dev/null; then
@@ -56,37 +104,65 @@ if grep -qi microsoft /proc/version 2>/dev/null || [ -n "${WSL_DISTRO_NAME:-}" ]
   fi
 fi
 
-echo "==> Downloading pidash..."
-curl --proto '=https' --tlsv1.2 -LsSf "$INSTALLER_URL" | sh
+echo "==> Looking for a local pidash binary..."
+SOURCE_BIN=$(find_local_binary || true)
 
-# cargo-dist drops the binary into $HOME/.local/bin (install-path in
-# dist-workspace.toml). If a future release moves it, surface a clear
-# error instead of silently continuing.
-#
-# Under Git Bash / MSYS2 / Cygwin the installed file is `pidash.exe`: the
-# cargo-dist installer maps MINGW*/MSYS*/CYGWIN* to a Windows target and
-# unpacks the Windows archive. Those runtimes usually resolve a bare
-# `pidash` to `pidash.exe` transparently, but that is a property of the
-# emulation layer rather than something to rely on — check both names.
-PIDASH_BIN="$HOME/.local/bin/pidash"
-if [ ! -x "$PIDASH_BIN" ] && [ -x "$PIDASH_BIN.exe" ]; then
-  PIDASH_BIN="$PIDASH_BIN.exe"
+if [ -z "$SOURCE_BIN" ]; then
+  if ! command -v cargo >/dev/null 2>&1; then
+    echo ""
+    echo "No local pidash binary was found, and cargo is not installed."
+    echo "Install Rust 1.93 or newer, then rerun: bash ./runner/install.sh"
+    exit 1
+  fi
+
+  echo "==> Building pidash from local source..."
+  (
+    cd "$REPO_ROOT"
+    CARGO_TARGET_DIR="$TARGET_DIR" cargo build \
+      --manifest-path "$SCRIPT_DIR/Cargo.toml" \
+      --locked \
+      --bin pidash \
+      --release
+  )
+  SOURCE_BIN="$TARGET_DIR/release/pidash"
+  if [ ! -x "$SOURCE_BIN" ] && [ -x "$TARGET_DIR/release/pidash.exe" ]; then
+    SOURCE_BIN="$TARGET_DIR/release/pidash.exe"
+  fi
+  if [ ! -x "$SOURCE_BIN" ]; then
+    echo ""
+    echo "cargo completed, but the pidash binary was not found at:"
+    echo "  $SOURCE_BIN"
+    exit 1
+  fi
+else
+  echo "Using local binary: $SOURCE_BIN"
 fi
-if [ ! -x "$PIDASH_BIN" ]; then
-  echo ""
-  echo "pidash binary not found at $HOME/.local/bin/pidash after install."
-  echo "Run \`$INSTALLER_URL\` manually, then \`pidash auth login\`."
-  exit 1
+
+mkdir -p "$INSTALL_DIR"
+case "$SOURCE_BIN" in
+  *.exe) PIDASH_BIN="$INSTALL_DIR/pidash.exe" ;;
+  *) PIDASH_BIN="$INSTALL_DIR/pidash" ;;
+esac
+
+if [ "$SOURCE_BIN" != "$PIDASH_BIN" ]; then
+  # Stage first and replace atomically. A running pidash process keeps its
+  # existing inode open, so upgrades also work while the daemon is active.
+  STAGED_BIN="$PIDASH_BIN.tmp.$$"
+  cp "$SOURCE_BIN" "$STAGED_BIN"
+  chmod 0755 "$STAGED_BIN"
+  mv -f "$STAGED_BIN" "$PIDASH_BIN"
 fi
+chmod 0755 "$PIDASH_BIN"
+
+echo "Installed pidash at $PIDASH_BIN"
 
 echo ""
 echo "==> Starting authentication..."
 echo ""
 
-# When this script is invoked as `curl … | sh`, sh's stdin is the curl
-# pipe and an interactive prompt would see EOF. Reattach /dev/tty so
-# the device-code flow can read keystrokes for the workspace and
-# runner-add prompts.
+# When this script is invoked through a pipe, sh's stdin is the pipe and an
+# interactive prompt would see EOF. Reattach /dev/tty so the device-code flow
+# can read keystrokes for the workspace and runner-add prompts.
 #
 # `[ -e /dev/tty ]` is not enough: the device node exists on disk even
 # in headless contexts (Docker without -t, cron, systemd, SSH without

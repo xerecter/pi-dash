@@ -14,17 +14,18 @@ export const UserProvider = observer(function UserProvider({ children }: React.P
   // hooks
   const { isSidebarCollapsed, toggleSidebar } = useTheme();
   const { currentUser, fetchCurrentUser } = useUser();
-  const { fetchInstanceAdmins } = useInstance();
+  const { instance, fetchInstanceAdmins } = useInstance();
+  const isSetupDone = instance?.is_setup_done === true;
 
-  useSWR("CURRENT_USER", () => fetchCurrentUser(), {
+  useSWR(isSetupDone ? "CURRENT_USER" : null, () => fetchCurrentUser(), {
     shouldRetryOnError: false,
   });
 
-  useSWR("INSTANCE_ADMINS", () => fetchInstanceAdmins());
+  useSWR(isSetupDone ? "INSTANCE_ADMINS" : null, () => fetchInstanceAdmins());
 
   useEffect(() => {
     const localValue = localStorage && localStorage.getItem("god_mode_sidebar_collapsed");
-    const localBoolValue = localValue ? (localValue === "true" ? true : false) : false;
+    const localBoolValue = localValue === "true";
     if (isSidebarCollapsed === undefined && localBoolValue != isSidebarCollapsed) toggleSidebar(localBoolValue);
   }, [isSidebarCollapsed, currentUser, toggleSidebar]);
 

@@ -15,6 +15,7 @@ from datetime import timedelta
 from uuid import uuid4
 
 import pytest
+from django.test import override_settings
 from django.utils import timezone
 
 from pi_dash.authentication.services.cli_tokens import CLI_DEVICE_API_TOKEN_DESCRIPTION
@@ -27,13 +28,14 @@ from pi_dash.runner.services import tokens as runner_tokens
 
 
 @pytest.mark.unit
-def test_device_start_returns_user_code_and_device_code(db, api_client):
+@override_settings(WEB_URL="http://api.example.test:28000", APP_BASE_URL="http://app.example.test:3000")
+def test_device_start_returns_user_code_and_browser_verification_uri(db, api_client):
     resp = api_client.post("/api/v1/auth/device/start/", {}, format="json")
     assert resp.status_code == 200, resp.data
     assert resp.data["device_code"]
     assert resp.data["user_code"]
     assert "-" in resp.data["user_code"]
-    assert resp.data["verification_uri"].endswith("/auth/device/")
+    assert resp.data["verification_uri"] == "http://app.example.test:3000/auth/device/"
     assert resp.data["expires_in"] > 0
     assert resp.data["interval"] > 0
     # Row created.

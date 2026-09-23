@@ -158,7 +158,7 @@ export interface IGithubPullRequestLinkCreateRequest {
 
 // Provider-neutral Git integrations (.ai_design/git_support_generalization/design.md)
 
-export type TGitProvider = "github" | "gitlab";
+export type TGitProvider = "github" | "gitlab" | "generic";
 export type TGitCodeReviewState = "open" | "closed" | "merged";
 
 export interface IGitProviderDescriptor {
@@ -229,6 +229,7 @@ export interface IGitProjectBindingStatus {
   host_url?: string;
   repository?: IGitRepositorySummary;
   is_sync_enabled?: boolean;
+  sync_supported?: boolean;
   clone_auth_mode?: "public" | "runner_managed" | "managed_ephemeral";
   last_synced_at?: string | null;
   last_sync_error?: string;

@@ -23,7 +23,7 @@ const projectService = new ProjectService();
 const providerLabel = (provider?: string) => {
   if (provider === "github") return "GitHub";
   if (provider === "gitlab") return "GitLab";
-  return "Git provider";
+  return "Generic Git";
 };
 
 export function ProjectGithubSyncSection() {
@@ -92,6 +92,7 @@ export function ProjectGithubSyncSection() {
 
   if (binding.bound && binding.repository) {
     const label = providerLabel(binding.provider);
+    const syncSupported = binding.sync_supported !== false;
     return (
       <div className="flex flex-col gap-3 rounded-md border border-subtle bg-surface-1 p-4">
         <div className="flex items-start justify-between gap-2">
@@ -115,12 +116,18 @@ export function ProjectGithubSyncSection() {
           <ToggleSwitch
             value={!!binding.is_sync_enabled}
             onChange={() => handleToggle(!binding.is_sync_enabled)}
-            disabled={!isProjectAdmin || submitting}
+            disabled={!isProjectAdmin || submitting || !syncSupported}
           />
-          <span className="text-body-xs-regular">
-            Sync issues every 4 hours
-            {binding.last_synced_at ? ` — last sync ${new Date(binding.last_synced_at).toLocaleString()}` : ""}
-          </span>
+          {syncSupported ? (
+            <span className="text-body-xs-regular">
+              Sync issues every 4 hours
+              {binding.last_synced_at ? ` — last sync ${new Date(binding.last_synced_at).toLocaleString()}` : ""}
+            </span>
+          ) : (
+            <span className="text-body-xs-regular text-secondary">
+              Issue sync is unavailable for generic Git remotes; runner cloning remains enabled.
+            </span>
+          )}
         </div>
 
         {binding.last_sync_error ? (

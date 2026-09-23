@@ -11,6 +11,11 @@ from pi_dash.config import get_config
 
 DEBUG = True
 
+# The local stack is served over HTTP. Django's default COOP header is only
+# effective on a secure origin and causes browsers to log a misleading warning
+# during the form redirect, so leave it unset for local development.
+SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
 # Debug Toolbar settings
 INSTALLED_APPS += ("debug_toolbar",)  # noqa
 MIDDLEWARE += ("debug_toolbar.middleware.DebugToolbarMiddleware",)  # noqa

@@ -236,6 +236,15 @@ def sync_one_binding(self, binding_id: str) -> None:
     except GitRepositoryBinding.DoesNotExist:
         return
 
+    # Generic Git remotes can be bound for runner cloning, but they do not
+    # expose a common issue/comment API or provider credential. The bind
+    # endpoint prevents enabling sync for them; keep this guard for existing
+    # rows and direct task invocations as well.
+    if binding.provider_account is None:
+        binding.last_sync_error = "Issue sync is unavailable for generic Git remotes"
+        binding.save(update_fields=["last_sync_error"])
+        return
+
     adapter = get_adapter(binding.repository.provider)
     credential = account_credential(binding.provider_account)
     repository = _remote_repository(binding)

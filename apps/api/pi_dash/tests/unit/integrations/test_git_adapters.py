@@ -46,12 +46,38 @@ def test_parse_gitlab_nested_repository_and_merge_request(settings):
     assert review.external_iid == "17"
 
 
-def test_gitlab_rejects_unconfigured_hosts(settings):
+def test_gitlab_rejects_unconfigured_hosts_but_generic_repository_is_allowed(settings):
     settings.GITLAB_ALLOWED_HOSTS = []
     settings.GITLAB_HOST = "https://gitlab.com"
 
-    assert parse_repository_url("https://evil.example.com/acme/web") is None
+    repository = parse_repository_url("https://evil.example.com/acme/web")
+    assert repository.provider == "generic"
+    assert repository.host_url == "https://evil.example.com"
     assert parse_code_review_url("https://evil.example.com/acme/web/-/merge_requests/1") is None
+
+
+@pytest.mark.parametrize(
+    "url, host_url, namespace, name",
+    [
+        ("https://gitea.example.com/team/web.git", "https://gitea.example.com", "team", "web"),
+        ("http://10.0.0.8:3000/team/web", "http://10.0.0.8:3000", "team", "web"),
+        ("ssh://git@git.example.com/team/web.git", "ssh://git.example.com", "team", "web"),
+        ("git://git.example.com/team/web.git", "git://git.example.com", "team", "web"),
+        ("git@git.example.com:team/web.git", "ssh://git.example.com", "team", "web"),
+    ],
+)
+def test_parse_generic_git_repository_without_provider_allowlist(url, host_url, namespace, name):
+    repo = parse_repository_url(url)
+    assert repo.provider == "generic"
+    assert repo.host_url == host_url
+    assert repo.namespace == namespace
+    assert repo.name == name
+    assert repo.full_name == f"{namespace}/{name}"
+
+
+@pytest.mark.parametrize("url", ["", "--upload-pack=evil", "https://", "https://host/", "https://host/a\nrm -rf"])
+def test_parse_generic_git_repository_rejects_invalid_remote(url):
+    assert parse_repository_url(url) is None
 
 
 def test_gitlab_account_verify_allows_gitlab_com(settings, mocker):

@@ -239,7 +239,7 @@ export default {
   "Billing & Plans": "Billing & Plans",
   Bind: "Bind",
   "Bind verifies the URL with GitHub and links this project to that repository. Only github.com URLs are supported. The URL is saved only when you click Bind.":
-    "Bind verifies the URL with GitHub and links this project to that repository. Only github.com URLs are supported. The URL is saved only when you click Bind.",
+    "Bind accepts any valid Git remote URL and links this project to that repository. GitHub and GitLab URLs can also be verified for issue sync. The URL is saved only when you click Bind.",
   blocked: "blocked",
   Blocked: "Blocked",
   "Blocked by": "Blocked by",

@@ -24,12 +24,14 @@ const authService = new AuthService();
 
 // error codes
 enum EErrorCodes {
-  INSTANCE_NOT_CONFIGURED = "INSTANCE_NOT_CONFIGURED",
-  ADMIN_ALREADY_EXIST = "ADMIN_ALREADY_EXIST",
-  REQUIRED_EMAIL_PASSWORD_FIRST_NAME = "REQUIRED_EMAIL_PASSWORD_FIRST_NAME",
-  INVALID_EMAIL = "INVALID_EMAIL",
-  INVALID_PASSWORD = "INVALID_PASSWORD",
-  USER_ALREADY_EXISTS = "USER_ALREADY_EXISTS",
+  INSTANCE_NOT_CONFIGURED = "5000",
+  INVALID_EMAIL = "5005",
+  PASSWORD_TOO_WEAK = "5021",
+  ADMIN_ALREADY_EXIST = "5150",
+  REQUIRED_EMAIL_PASSWORD_FIRST_NAME = "5155",
+  INVALID_ADMIN_EMAIL = "5160",
+  INVALID_ADMIN_PASSWORD = "5165",
+  ADMIN_USER_ALREADY_EXIST = "5180",
 }
 
 type TError = {
@@ -54,7 +56,19 @@ const defaultFromData: TFormData = {
   email: "",
   company_name: "",
   password: "",
+  confirm_password: "",
   is_telemetry_enabled: true,
+};
+
+const errorMessages: Partial<Record<EErrorCodes, string>> = {
+  [EErrorCodes.INSTANCE_NOT_CONFIGURED]: "Instance not configured. Please contact your administrator.",
+  [EErrorCodes.PASSWORD_TOO_WEAK]: "Please use a stronger password.",
+  [EErrorCodes.ADMIN_ALREADY_EXIST]: "Admin already exists. Please try again.",
+  [EErrorCodes.REQUIRED_EMAIL_PASSWORD_FIRST_NAME]: "Email, password and first name are required. Please try again.",
+  [EErrorCodes.INVALID_EMAIL]: "Invalid email. Please try again.",
+  [EErrorCodes.INVALID_ADMIN_EMAIL]: "Invalid admin email. Please try again.",
+  [EErrorCodes.INVALID_ADMIN_PASSWORD]: "Invalid admin password. Please try again.",
+  [EErrorCodes.ADMIN_USER_ALREADY_EXIST]: "Admin user already exists. Please sign in.",
 };
 
 export function InstanceSetupForm() {
@@ -62,7 +76,7 @@ export function InstanceSetupForm() {
   const searchParams = useSearchParams();
   const firstNameParam = searchParams?.get("first_name") || undefined;
   const lastNameParam = searchParams?.get("last_name") || undefined;
-  const companyParam = searchParams?.get("company") || undefined;
+  const companyParam = searchParams?.get("company_name") || searchParams?.get("company") || undefined;
   const emailParam = searchParams?.get("email") || undefined;
   // Honor the URL param; defaults to true when the param is absent so the
   // setup form shows telemetry enabled by default.
@@ -104,24 +118,10 @@ export function InstanceSetupForm() {
 
   // derived values
   const errorData: TError = useMemo(() => {
-    if (errorCode && errorMessage) {
-      switch (errorCode) {
-        case EErrorCodes.INSTANCE_NOT_CONFIGURED:
-          return { type: EErrorCodes.INSTANCE_NOT_CONFIGURED, message: errorMessage };
-        case EErrorCodes.ADMIN_ALREADY_EXIST:
-          return { type: EErrorCodes.ADMIN_ALREADY_EXIST, message: errorMessage };
-        case EErrorCodes.REQUIRED_EMAIL_PASSWORD_FIRST_NAME:
-          return { type: EErrorCodes.REQUIRED_EMAIL_PASSWORD_FIRST_NAME, message: errorMessage };
-        case EErrorCodes.INVALID_EMAIL:
-          return { type: EErrorCodes.INVALID_EMAIL, message: errorMessage };
-        case EErrorCodes.INVALID_PASSWORD:
-          return { type: EErrorCodes.INVALID_PASSWORD, message: errorMessage };
-        case EErrorCodes.USER_ALREADY_EXISTS:
-          return { type: EErrorCodes.USER_ALREADY_EXISTS, message: errorMessage };
-        default:
-          return { type: undefined, message: undefined };
-      }
-    } else return { type: undefined, message: undefined };
+    if (!errorCode || !errorMessage) return { type: undefined, message: undefined };
+
+    const type = errorCode as EErrorCodes;
+    return { type, message: errorMessages[type] ?? errorMessage };
   }, [errorCode, errorMessage]);
 
   const isButtonDisabled = useMemo(
@@ -152,7 +152,7 @@ export function InstanceSetupForm() {
           />
           {errorData.type &&
             errorData?.message &&
-            ![EErrorCodes.INVALID_EMAIL, EErrorCodes.INVALID_PASSWORD].includes(errorData.type) && (
+            ![EErrorCodes.INVALID_EMAIL, EErrorCodes.INVALID_ADMIN_PASSWORD].includes(errorData.type) && (
               <Banner type="error" message={errorData?.message} />
             )}
           <form
@@ -162,7 +162,7 @@ export function InstanceSetupForm() {
             onSubmit={() => setIsSubmitting(true)}
             onError={() => setIsSubmitting(false)}
           >
-            <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken} />
+            <input type="hidden" name="csrfmiddlewaretoken" value={csrfToken ?? ""} />
             <input type="hidden" name="is_telemetry_enabled" value={formData.is_telemetry_enabled ? "True" : "False"} />
 
             <div className="flex flex-col items-center gap-4 sm:flex-row">
@@ -273,7 +273,7 @@ export function InstanceSetupForm() {
                   placeholder="New password"
                   value={formData.password}
                   onChange={(e) => handleFormChange("password", e.target.value)}
-                  hasError={Boolean(errorData.type && errorData.type === EErrorCodes.INVALID_PASSWORD)}
+                  hasError={Boolean(errorData.type && errorData.type === EErrorCodes.INVALID_ADMIN_PASSWORD)}
                   onFocus={() => setIsPasswordInputFocused(true)}
                   onBlur={() => setIsPasswordInputFocused(false)}
                   autoComplete="new-password"
@@ -298,7 +298,7 @@ export function InstanceSetupForm() {
                   </button>
                 )}
               </div>
-              {errorData.type && errorData.type === EErrorCodes.INVALID_PASSWORD && errorData.message && (
+              {errorData.type && errorData.type === EErrorCodes.INVALID_ADMIN_PASSWORD && errorData.message && (
                 <p className="px-1 text-11 text-danger-primary">{errorData.message}</p>
               )}
               <PasswordStrengthIndicator password={formData.password} isFocused={isPasswordInputFocused} />

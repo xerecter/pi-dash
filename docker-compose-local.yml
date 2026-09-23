@@ -1,16 +1,16 @@
 services:
   pi-dash-redis:
-    image: valkey/valkey:7.2.11-alpine
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/valkey/valkey:7.2.11-alpine
     restart: unless-stopped
     networks:
       - dev_env
     volumes:
       - redisdata:/data
     ports:
-      - "6379:6379"
+      - "${REDIS_HOST_PORT:-6379}:6379"
 
   pi-dash-mq:
-    image: rabbitmq:3.13.6-management-alpine
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/rabbitmq:3.13.6-management-alpine
     restart: unless-stopped
     networks:
       - dev_env
@@ -24,7 +24,7 @@ services:
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
 
   pi-dash-minio:
-    image: minio/minio
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/minio/minio:RELEASE.2025-05-24T17-08-30Z
     restart: unless-stopped
     networks:
       - dev_env
@@ -45,11 +45,11 @@ services:
       MINIO_ROOT_USER: ${AWS_ACCESS_KEY_ID}
       MINIO_ROOT_PASSWORD: ${AWS_SECRET_ACCESS_KEY}
     ports:
-      - "9000:9000"
+      - "${MINIO_HOST_PORT:-9000}:9000"
       - "9090:9090"
 
   pi-dash-db:
-    image: postgres:15.7-alpine
+    image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/postgres:15.7-alpine
     restart: unless-stopped
     networks:
       - dev_env
@@ -82,7 +82,7 @@ services:
       - pi-dash-redis
       - pi-dash-mq
     ports:
-      - "8000:8000"
+      - "${API_HOST_PORT:-8000}:8000"
 
   worker:
     build:

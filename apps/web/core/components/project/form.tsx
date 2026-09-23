@@ -186,7 +186,9 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
       setToast({
         type: TOAST_TYPE.SUCCESS,
         title: "Repository bound",
-        message: "Toggle sync on in repository settings to start mirroring issues.",
+        message: res.sync_supported
+          ? "Toggle sync on in repository settings to start mirroring issues."
+          : "Repository is ready for runner cloning. Issue sync requires a connected GitHub or GitLab provider.",
       });
     } catch (e: any) {
       setToast({
@@ -400,7 +402,7 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
                     value={value ?? ""}
                     onChange={onChange}
                     hasError={Boolean(errors?.repo_url)}
-                    placeholder={t("e.g. https://github.com/org/repo or https://gitlab.com/group/repo")}
+                    placeholder={t("e.g. https://git.example.com/org/repo.git or git@code.example.com:org/repo.git")}
                     className="w-full font-medium"
                     disabled={!isAdmin}
                   />
@@ -420,9 +422,9 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
             <span className="text-11 text-danger-primary">{errors?.repo_url?.message}</span>
             <p className="text-11 text-tertiary">
               {t(
-                "Bind verifies the URL with the connected Git provider and links this project to that repository. GitHub and GitLab URLs are supported. The URL is saved only when you click Bind."
+                "Bind accepts any valid Git remote URL and links this project to that repository. GitHub and GitLab URLs can also be verified for issue sync. The URL is saved only when you click Bind."
               ) ||
-                "Bind verifies the URL with the connected Git provider and links this project to that repository. GitHub and GitLab URLs are supported. The URL is saved only when you click Bind."}
+                "Bind accepts any valid Git remote URL and links this project to that repository. GitHub and GitLab URLs can also be verified for issue sync. The URL is saved only when you click Bind."}
             </p>
           </div>
           <div className="flex flex-col gap-1">

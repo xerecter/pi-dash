@@ -25,7 +25,8 @@ const REVOKE_TRANSPORT_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Debug, ClapArgs)]
 pub struct Args {
-    /// Pi Dash cloud base URL (e.g. ``https://pidash.example.com``).
+    /// Pi Dash cloud base URL (e.g. ``https://pidash.example.com`` or
+    /// ``http://localhost:8000`` for a local instance).
     #[arg(long)]
     pub url: String,
 
@@ -393,23 +394,24 @@ fn assert_no_workspace_collision(
     Ok(())
 }
 
-/// Refuse cleartext http:// to non-localhost hosts (token leak surface).
+/// Validate a Pi Dash base URL.
+///
+/// Self-hosted development instances commonly run on a private network without
+/// TLS, so HTTP is supported alongside HTTPS. Use HTTPS on untrusted networks
+/// because runner credentials and API traffic are otherwise sent in cleartext.
 pub(crate) fn validate_cloud_url(url: &str) -> Result<()> {
-    let lower = url.to_ascii_lowercase();
-    if lower.starts_with("https://") {
-        return Ok(());
-    }
-    if let Some(rest) = lower.strip_prefix("http://") {
-        let host = rest.split(['/', ':']).next().unwrap_or("");
-        if host == "localhost" || host == "127.0.0.1" || host == "::1" {
-            tracing::warn!("using cleartext http:// to {host} — only suitable for development");
-            return Ok(());
+    let parsed = reqwest::Url::parse(url).with_context(|| format!("invalid cloud URL: {url}"))?;
+    match parsed.scheme() {
+        "https" => Ok(()),
+        "http" => {
+            tracing::warn!(
+                "using cleartext http:// to {} — only suitable for trusted networks",
+                parsed.host_str().unwrap_or("unknown host")
+            );
+            Ok(())
         }
-        anyhow::bail!(
-            "refusing to enroll over cleartext http:// to non-localhost ({host}); use https://"
-        );
+        _ => anyhow::bail!("cloud URL must use http:// or https://, got {url}"),
     }
-    anyhow::bail!("cloud URL must start with https:// (or http:// for localhost), got {url}")
 }
 
 /// Friendly error surface for the TUI add-runner modal. Each variant
@@ -635,24 +637,20 @@ fn read_line() -> Option<String> {
 mod tests {
     use super::*;
     use crate::config::schema::{
-        AgentSection, ApprovalPolicySection, ClaudeCodeSection, CursorAgentSection, CodexSection, RunnerConfig,
-        WorkspaceSection,
+        AgentSection, ApprovalPolicySection, ClaudeCodeSection, CodexSection, CursorAgentSection,
+        RunnerConfig, WorkspaceSection,
     };
     use std::path::PathBuf;
 
     #[test]
-    fn validate_cloud_url_rejects_non_localhost_http() {
-        let err = validate_cloud_url("http://evil.example.com")
-            .unwrap_err()
-            .to_string();
-        assert!(err.contains("cleartext"));
-    }
-
-    #[test]
-    fn validate_cloud_url_allows_https_and_localhost_http() {
+    fn validate_cloud_url_allows_http_and_https() {
         assert!(validate_cloud_url("http://localhost").is_ok());
         assert!(validate_cloud_url("http://localhost:3000").is_ok());
+        assert!(validate_cloud_url("http://172.16.13.81:3000/").is_ok());
+        assert!(validate_cloud_url("http://[::1]:3000").is_ok());
         assert!(validate_cloud_url("https://pi-dash.example").is_ok());
+        assert!(validate_cloud_url("ftp://pi-dash.example").is_err());
+        assert!(validate_cloud_url("not a URL").is_err());
     }
 
     fn runner_with_wd(name: &str, wd: PathBuf) -> RunnerConfig {

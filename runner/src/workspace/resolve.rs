@@ -61,9 +61,32 @@ fn is_supported_clone_url(url: &str) -> bool {
     let lower = url.to_ascii_lowercase();
     lower.starts_with("https://")
         || lower.starts_with("http://")
-        || lower.starts_with("git@")
         || lower.starts_with("ssh://")
         || lower.starts_with("git://")
+        || is_scp_clone_url(url)
+}
+
+/// Git's scp-like transport accepts any user name (`git@host:path` is only
+/// the common convention). Keep the shape narrow enough that a value cannot
+/// be interpreted as a command-line option or a local path.
+fn is_scp_clone_url(url: &str) -> bool {
+    let Some((user_host, path)) = url.split_once(':') else {
+        return false;
+    };
+    let Some((user, host)) = user_host.rsplit_once('@') else {
+        return false;
+    };
+    !user.is_empty()
+        && !host.is_empty()
+        && !path.is_empty()
+        && !host.contains('/')
+        && !host.contains('\\')
+        && user
+            .chars()
+            .all(|char| char.is_ascii_alphanumeric() || "._-".contains(char))
+        && host
+            .chars()
+            .all(|char| char.is_ascii_alphanumeric() || "._-".contains(char))
 }
 
 #[cfg(test)]
@@ -153,5 +176,12 @@ mod tests {
             .await
             .unwrap_err();
         assert!(matches!(err, ResolveError::UnsupportedScheme(_)));
+    }
+
+    #[test]
+    fn accepts_scp_style_urls_with_non_git_users() {
+        assert!(is_scp_clone_url("deploy@git.example.com:team/repo.git"));
+        assert!(!is_scp_clone_url("--upload-pack=evil"));
+        assert!(!is_scp_clone_url("/tmp/repo"));
     }
 }

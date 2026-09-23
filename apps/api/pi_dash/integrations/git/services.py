@@ -46,6 +46,33 @@ class ProviderAccountNotFound(GitIntegrationError):
     status_code = 404
 
 
+GENERIC_PROVIDER = "generic"
+
+
+def _generic_remote_repository(parsed) -> RemoteRepository:
+    """Build clone metadata for a provider-neutral Git remote.
+
+    The API cannot verify credentials or issue capabilities for an arbitrary
+    Git host, so this path intentionally records the URL and leaves cloning to
+    the runner's configured Git credentials.
+    """
+
+    is_http = parsed.clone_url.lower().startswith(("http://", "https://"))
+    is_ssh = parsed.clone_url.lower().startswith(("ssh://", "git@"))
+    return RemoteRepository(
+        provider=GENERIC_PROVIDER,
+        external_id="",
+        namespace=parsed.namespace,
+        name=parsed.name,
+        full_name=parsed.full_name,
+        web_url=parsed.clone_url if is_http else "",
+        clone_url_http=parsed.clone_url if is_http else "",
+        clone_url_ssh=parsed.clone_url if is_ssh else "",
+        is_private=True,
+        metadata={"verified": False, "source": "generic_git_url"},
+    )
+
+
 def normalize_host_url(host_url: str) -> str:
     host_url = (host_url or "").strip().rstrip("/")
     if host_url and not host_url.startswith(("http://", "https://")):
@@ -278,19 +305,22 @@ def serialize_provider_account(account: GitProviderAccount) -> dict:
 
 
 def serialize_binding(binding: GitRepositoryBinding) -> dict:
+    provider_account = binding.provider_account
+    sync_supported = binding.repository.provider in {"github", "gitlab"} and provider_account is not None
     return {
         "bound": True,
         "id": str(binding.id),
         "provider": binding.repository.provider,
-        "provider_account_id": str(binding.provider_account_id),
+        "provider_account_id": str(binding.provider_account_id) if binding.provider_account_id else None,
         "host_url": binding.repository.host_url,
         "repository": serialize_repository(binding.repository),
         "is_sync_enabled": binding.is_sync_enabled,
+        "sync_supported": sync_supported,
         "clone_auth_mode": binding.clone_auth_mode,
         "last_synced_at": binding.last_synced_at.isoformat() if binding.last_synced_at else None,
         "last_sync_error": binding.last_sync_error,
-        "degraded": binding.provider_account.status != GitProviderAccount.Status.CONNECTED,
-        "degraded_reason": binding.provider_account.last_check_error,
+        "degraded": provider_account is not None and provider_account.status != GitProviderAccount.Status.CONNECTED,
+        "degraded_reason": provider_account.last_check_error if provider_account is not None else "",
     }
 
 
@@ -304,15 +334,21 @@ def bind_repository(
 ) -> tuple[GitRepositoryBinding, str]:
     parsed = parse_repository_url(raw_url)
     if parsed is None:
-        raise UnsupportedRepositoryURL("A supported GitHub or GitLab repository URL is required")
+        raise UnsupportedRepositoryURL("A valid Git remote URL is required")
 
     workspace = get_object_or_404(Workspace, slug=workspace_slug)
     project = get_object_or_404(Project, pk=project_id, workspace=workspace)
-    account, remote = resolve_provider_account_repository(
-        workspace=workspace,
-        provider_account_id=provider_account_id,
-        parsed=parsed,
-    )
+    if parsed.provider == GENERIC_PROVIDER:
+        # Arbitrary Git hosts do not expose a common API or account model. The
+        # runner can still clone them with its own SSH/HTTPS credentials.
+        account = None
+        remote = _generic_remote_repository(parsed)
+    else:
+        account, remote = resolve_provider_account_repository(
+            workspace=workspace,
+            provider_account_id=provider_account_id,
+            parsed=parsed,
+        )
     repo = upsert_repository(remote, host_url=parsed.host_url)
     clone_url = canonical_clone_url(remote, parsed.clone_url)
     clone_auth_mode = (
@@ -362,6 +398,10 @@ def set_binding_sync_enabled(*, workspace_slug: str, project_id, enabled: bool) 
     binding = get_binding(workspace_slug=workspace_slug, project_id=project_id)
     if binding is None:
         raise ProviderAccountNotFound("Repository is not bound")
+    if enabled and (binding.repository.provider == GENERIC_PROVIDER or binding.provider_account is None):
+        raise GitIntegrationError(
+            "Issue sync is unavailable for generic Git remotes; the repository remains available for runner cloning"
+        )
     binding.is_sync_enabled = enabled
     binding.save(update_fields=["is_sync_enabled", "updated_at"])
     if binding.repository.provider == "github":

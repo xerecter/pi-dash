@@ -9,7 +9,12 @@ import pytest
 from pi_dash.db.models import GitProviderAccount, GitRepositoryBinding
 from pi_dash.integrations.git.adapters.base import GitProviderNotFoundError
 from pi_dash.integrations.git.dtos import RemoteRepository
-from pi_dash.integrations.git.services import ProviderAccountAmbiguous, bind_repository
+from pi_dash.integrations.git.services import (
+    GitIntegrationError,
+    ProviderAccountAmbiguous,
+    bind_repository,
+    set_binding_sync_enabled,
+)
 
 
 pytestmark = [pytest.mark.unit, pytest.mark.django_db]
@@ -192,3 +197,38 @@ def test_bind_repository_honors_explicit_provider_account_id(
 
     assert binding.provider_account_id == app.id
     assert adapter.calls == [GitProviderAccount.AuthType.GITHUB_APP]
+
+
+def test_bind_repository_accepts_generic_git_remote_without_provider_account(project, create_user):
+    binding, clone_url = bind_repository(
+        workspace_slug=project.workspace.slug,
+        project_id=project.id,
+        actor=create_user,
+        raw_url="https://gitea.example.com/team/web.git",
+    )
+
+    assert binding.repository.provider == "generic"
+    assert binding.provider_account is None
+    assert clone_url == "https://gitea.example.com/team/web.git"
+    project.refresh_from_db()
+    assert project.repo_url == clone_url
+    assert binding.is_sync_enabled is False
+
+
+def test_generic_git_binding_cannot_enable_provider_issue_sync(project, create_user):
+    binding, _ = bind_repository(
+        workspace_slug=project.workspace.slug,
+        project_id=project.id,
+        actor=create_user,
+        raw_url="git@git.example.com:team/web.git",
+    )
+
+    with pytest.raises(GitIntegrationError, match="unavailable for generic Git remotes"):
+        set_binding_sync_enabled(
+            workspace_slug=project.workspace.slug,
+            project_id=project.id,
+            enabled=True,
+        )
+
+    binding.refresh_from_db()
+    assert binding.is_sync_enabled is False

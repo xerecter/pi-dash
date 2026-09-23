@@ -66,6 +66,7 @@ class GitRepository(BaseModel):
     class Provider(models.TextChoices):
         GITHUB = "github", "GitHub"
         GITLAB = "gitlab", "GitLab"
+        GENERIC = "generic", "Generic Git"
 
     provider = models.CharField(max_length=32, choices=Provider.choices)
     host_url = models.URLField(max_length=500)
@@ -115,7 +116,9 @@ class GitRepositoryBinding(ProjectBaseModel):
     provider_account = models.ForeignKey(
         "db.GitProviderAccount",
         related_name="repository_bindings",
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
     actor = models.ForeignKey("db.User", related_name="git_repository_bindings", on_delete=models.CASCADE)
     is_sync_enabled = models.BooleanField(default=False)

@@ -139,7 +139,10 @@ class DeviceCodeStartThrottle(AnonRateThrottle):
 
 
 def _verification_uri(request) -> str:
-    return f"{base_host(request=request).rstrip('/')}/auth/device/"
+    # The device-code API is served by Django, while the approval page is
+    # served by the web application. Keep the CLI's API base URL for the
+    # token requests, but send the operator to the browser-facing origin.
+    return f"{base_host(request=request, is_app=True).rstrip('/')}/auth/device/"
 
 
 class DeviceCodeStartEndpoint(APIView):

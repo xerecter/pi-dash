@@ -44,7 +44,15 @@ export default defineConfig(() => ({
     dedupe: ["react", "react-dom", "@headlessui/react"],
   },
   server: {
-    host: "127.0.0.1",
+    host: "0.0.0.0",
+    // Allow the Runner CLI to use the same origin as the local web app. The
+    // API lives on a separate host port in docker-compose-local.yml.
+    proxy: {
+      "/api": {
+        target: process.env.VITE_API_BASE_URL || "http://localhost:8000",
+        changeOrigin: true,
+      },
+    },
   },
   // No SSR-specific overrides needed; alias resolves to ESM build
 }));

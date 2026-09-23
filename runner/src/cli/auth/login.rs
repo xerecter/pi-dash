@@ -26,7 +26,8 @@ use crate::util::paths::Paths;
 
 #[derive(Debug, ClapArgs)]
 pub struct Args {
-    /// Pi Dash cloud base URL (e.g. `https://pidash.example.com`).
+    /// Pi Dash cloud base URL (e.g. `https://pidash.example.com` or
+    /// `http://localhost:8000` for a local instance).
     /// Optional if this host already has a `config.toml`; we reuse the
     /// existing `[daemon].cloud_url` in that case.
     #[arg(long)]
@@ -197,7 +198,7 @@ fn resolve_cloud_url(args: &Args, paths: &Paths) -> Result<String> {
     if std::io::stdin().is_terminal() {
         return prompt_for_cloud_url();
     }
-    anyhow::bail!("no cloud URL configured — pass --url https://your-pi-dash-instance.example.com");
+    anyhow::bail!("no cloud URL configured — pass --url <http-or-https-url>");
 }
 
 fn prompt_for_cloud_url() -> Result<String> {
