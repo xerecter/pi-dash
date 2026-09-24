@@ -70,6 +70,7 @@ fn envelope_roundtrips_all_server_variants() {
         ServerMsg::Assign {
             run_id: Uuid::new_v4(),
             work_item_id: None,
+            work_item_identifier: None,
             prompt: "x".into(),
             repo_url: None,
             repo_ref: None,
@@ -81,6 +82,7 @@ fn envelope_roundtrips_all_server_variants() {
         ServerMsg::Assign {
             run_id: Uuid::new_v4(),
             work_item_id: None,
+            work_item_identifier: None,
             prompt: "y".into(),
             repo_url: Some("https://example.invalid/x.git".into()),
             repo_ref: Some("develop".into()),

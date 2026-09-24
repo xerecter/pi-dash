@@ -231,6 +231,13 @@ class AgentRunStatus(models.TextChoices):
     REFUSED = "refused", "Refused"
 
 
+#: ``AgentRun.error_code`` for a FAILED run the runner stopped because the
+#: agent kept asking a human a question nobody was attached to answer. Mirrors
+#: the runner's ``FailureReason::AwaitingHumanInput`` wire name. The ticker
+#: reads it as "waiting on human" so it doesn't re-dispatch into the same loop.
+AWAITING_HUMAN_INPUT_ERROR_CODE = "awaiting_human_input"
+
+
 class AgentRunTrigger(models.TextChoices):
     """How a run came to be created.
 

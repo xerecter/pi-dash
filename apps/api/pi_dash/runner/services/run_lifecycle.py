@@ -423,6 +423,7 @@ def finalize_run_terminal(
     *,
     done_payload: Any = None,
     error_detail: str = "",
+    error_code: str = "",
     refusal_category: Any = None,
     tokens: Any = None,
     model: Any = None,
@@ -453,6 +454,8 @@ def finalize_run_terminal(
     if new_status == AgentRunStatus.FAILED and error_detail:
         error_detail = enrich_run_error(error_detail, runner=runner, model=model)
         updates["error"] = error_detail[:16000]
+    if new_status == AgentRunStatus.FAILED and error_code:
+        updates["error_code"] = error_code[:64]
     if new_status == AgentRunStatus.REFUSED:
         # A safety-classifier decline. Record the category (always set, so the
         # column is queryable) and surface the explanation, if any, in `error`.

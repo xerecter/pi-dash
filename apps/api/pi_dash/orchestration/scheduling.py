@@ -39,7 +39,12 @@ from pi_dash.db.models.issue_agent_ticker import (
     jitter_seconds,
 )
 from pi_dash.orchestration.agent_phases import is_ticking_state
-from pi_dash.runner.models import AgentRun, AgentRunStatus, AgentRunTrigger
+from pi_dash.runner.models import (
+    AWAITING_HUMAN_INPUT_ERROR_CODE,
+    AgentRun,
+    AgentRunStatus,
+    AgentRunTrigger,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -492,6 +497,10 @@ def _on_run_ended(issue: Issue, event: TickerEvent) -> TickerDecision:
         if run.status == AgentRunStatus.COMPLETED:
             outcome = default_outcome_for_kind(run_kind or current_kind)
         elif run.status == AgentRunStatus.PAUSED_AWAITING_INPUT:
+            outcome = OUTCOME_WAITING_ON_HUMAN
+        elif run.status == AgentRunStatus.FAILED and run.error_code == AWAITING_HUMAN_INPUT_ERROR_CODE:
+            # The runner stopped an agent that kept asking a question; the
+            # question is on the issue. Re-ticking would only re-ask it.
             outcome = OUTCOME_WAITING_ON_HUMAN
         else:
             outcome = OUTCOME_PROGRESSED

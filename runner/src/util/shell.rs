@@ -67,15 +67,25 @@ tokio::task_local! {
 #[derive(Debug, Clone)]
 pub struct RunEnv {
     pub run_id: uuid::Uuid,
+    /// Work-item key (e.g. `ENG-42`) the run is bound to. `None` for runs
+    /// without an issue, or when an older cloud omits it from `Assign`.
+    pub issue_identifier: Option<String>,
 }
 
 /// Environment variable name the agent reads for its run id.
 pub const RUN_ID_ENV: &str = "PIDASH_RUN_ID";
 
+/// Environment variable the agent's `pidash state list` / `pidash workpad`
+/// calls fall back to when no issue identifier is passed explicitly.
+pub const ISSUE_IDENTIFIER_ENV: &str = "PIDASH_ISSUE_IDENTIFIER";
+
 /// Apply the task-scoped per-run environment, when there is one.
 fn apply_run_env(cmd: &mut Command) {
     if let Ok(env) = RUN_ENV.try_with(|e| e.clone()) {
         cmd.env(RUN_ID_ENV, env.run_id.to_string());
+        if let Some(identifier) = env.issue_identifier.filter(|s| !s.trim().is_empty()) {
+            cmd.env(ISSUE_IDENTIFIER_ENV, identifier);
+        }
     }
 }
 
@@ -374,7 +384,7 @@ mod tests {
     async fn run_env_scope_puts_run_id_on_the_child() {
         let run_id = uuid::Uuid::new_v4();
         let cmd = RUN_ENV
-            .scope(RunEnv { run_id }, async {
+            .scope(RunEnv { run_id, issue_identifier: None }, async {
                 login_shell_command("claude", &[], None)
             })
             .await;

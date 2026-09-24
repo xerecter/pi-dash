@@ -290,6 +290,20 @@ struct PendingCommand {
 }
 
 impl BridgeCursor {
+    /// True when a frame is tagged with a thread other than this run's own.
+    ///
+    /// Codex's multi-agent mode spawns sub-agent threads on the same
+    /// app-server, and their `turn/completed` / `error` frames arrive on the
+    /// same stream. A sub-agent finishing (or being interrupted by its
+    /// parent) is not the end of the run; treating it as terminal killed runs
+    /// mid-task. Frames without a `threadId` are attributed to this thread.
+    fn is_foreign_thread(&self, params: &serde_json::Value) -> bool {
+        params
+            .get("threadId")
+            .and_then(|v| v.as_str())
+            .is_some_and(|t| t != self.thread_id)
+    }
+
     fn synthesize_pending_command_approval(&mut self) -> Option<BridgeEvent> {
         let pending = self.pending_command.clone()?;
         if self.pending_command_approval_id.is_some() {
@@ -356,6 +370,15 @@ impl BridgeCursor {
                             .get("detail")
                             .and_then(|v| v.as_str())
                             .map(|s| s.to_string()),
+                    }]
+                } else if (matches!(kind, NotificationKind::TurnCompleted) || method == "error")
+                    && self.is_foreign_thread(&params)
+                {
+                    // A sub-agent's turn ended or failed; the run goes on.
+                    vec![BridgeEvent::Raw {
+                        run_id: self.run_id,
+                        method,
+                        params,
                     }]
                 } else if matches!(kind, NotificationKind::TurnCompleted) {
                     // Treat success only when codex explicitly says so. Any

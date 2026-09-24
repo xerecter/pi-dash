@@ -290,6 +290,12 @@ pub enum ServerMsg {
     Assign {
         run_id: Uuid,
         work_item_id: Option<Uuid>,
+        /// Human-readable work-item key (e.g. `ENG-42`). Exported to the
+        /// agent as `PIDASH_ISSUE_IDENTIFIER` so its `pidash state list` /
+        /// `pidash workpad` calls resolve the current issue without an
+        /// explicit argument. Absent from older clouds.
+        #[serde(default)]
+        work_item_identifier: Option<String>,
         prompt: String,
         repo_url: Option<String>,
         repo_ref: Option<String>,
@@ -498,6 +504,11 @@ pub enum FailureReason {
     /// re-queue the run for a fresh dispatch; older clouds fail it — either
     /// way it is not silently stuck.
     AssignRejectedBusy,
+    /// The agent stopped to ask a human a question during an unattended
+    /// issue run. Nobody is attached to answer, so rather than let it spin
+    /// re-asking (burning tokens and holding the runner busy) the runner
+    /// ends the run and surfaces the question in the failure detail.
+    AwaitingHumanInput,
 }
 
 #[cfg(test)]
@@ -615,6 +626,7 @@ mod tests {
         let msg = ServerMsg::Assign {
             run_id: Uuid::new_v4(),
             work_item_id: Some(Uuid::new_v4()),
+            work_item_identifier: None,
             prompt: "do the thing".into(),
             repo_url: Some("https://example.invalid/x.git".into()),
             repo_ref: Some("main".into()),

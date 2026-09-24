@@ -1056,6 +1056,7 @@ impl RunnerLoop {
                 }
                 ServerMsg::Assign {
                     run_id,
+                    work_item_identifier,
                     prompt,
                     repo_url,
                     expected_codex_model,
@@ -1160,7 +1161,13 @@ impl RunnerLoop {
                             cancel,
                         };
                         if let Err(e) = worker
-                            .run(run_id, prompt, repo_url, expected_codex_model)
+                            .run(
+                                run_id,
+                                work_item_identifier,
+                                prompt,
+                                repo_url,
+                                expected_codex_model,
+                            )
                             .await
                         {
                             tracing::error!("run {run_id} failed: {e:#}");
@@ -2673,27 +2680,39 @@ impl AssignWorker {
     async fn run(
         &mut self,
         run_id: uuid::Uuid,
+        issue_identifier: Option<String>,
         prompt: String,
         repo_url: Option<String>,
         expected_codex_model: Option<String>,
     ) -> Result<()> {
-        self.handle_assign(run_id, prompt, repo_url, expected_codex_model)
-            .await
+        self.handle_assign(
+            run_id,
+            issue_identifier,
+            prompt,
+            repo_url,
+            expected_codex_model,
+        )
+        .await
     }
 
     async fn handle_assign(
         &mut self,
         run_id: uuid::Uuid,
+        issue_identifier: Option<String>,
         prompt: String,
         repo_url: Option<String>,
         expected_codex_model: Option<String>,
     ) -> Result<()> {
-        // Scope the run id over everything this run does so every agent
-        // subprocess the bridges spawn (and re-spawn per turn) inherits
-        // `PIDASH_RUN_ID` — see `util::shell::RUN_ENV`.
+        // Scope the run id (and issue key) over everything this run does so
+        // every agent subprocess the bridges spawn (and re-spawn per turn)
+        // inherits `PIDASH_RUN_ID` / `PIDASH_ISSUE_IDENTIFIER` — see
+        // `util::shell::RUN_ENV`.
         crate::util::shell::RUN_ENV
             .scope(
-                crate::util::shell::RunEnv { run_id },
+                crate::util::shell::RunEnv {
+                    run_id,
+                    issue_identifier,
+                },
                 self.handle_assign_inner(run_id, prompt, repo_url, expected_codex_model),
             )
             .await
@@ -2952,6 +2971,9 @@ impl AssignWorker {
         let cancel = self.cancel.clone();
         let mut cancelled = false;
         let mut run_events = RunEventMirror::new(cursor.run_id());
+        // Nobody can answer an issue run's questions; stop the run instead of
+        // letting the agent re-ask forever. See `daemon::question_guard`.
+        let mut questions = crate::daemon::question_guard::UnansweredQuestionGuard::default();
         loop {
             // Re-evaluate at every loop entry: an approval that opened on
             // the previous iteration disarms the watchdog; one that just
@@ -3018,11 +3040,43 @@ impl AssignWorker {
                         return Ok(Outcome { status_label: "failed".into() });
                     };
                     for ev in events {
+                        let trip = match &ev {
+                            BridgeEvent::Raw { method, params, .. } => {
+                                questions.observe(method, params)
+                            }
+                            _ => None,
+                        };
                         if let Some(out) = self
                             .handle_bridge_event(ev, bridge, hist, workspace_root, &mut run_events)
                             .await?
                         {
                             return Ok(out);
+                        }
+                        if let Some(trip) = trip {
+                            tracing::warn!(
+                                run_id = %cursor.run_id(),
+                                asked = trip.asked,
+                                "agent keeps asking for human input in an unattended run; stopping it",
+                            );
+                            bridge.interrupt().await.ok();
+                            let detail = trip.failure_detail();
+                            run_events.flush_before_lifecycle(&self.out).await;
+                            let metadata = self.run_metadata().await;
+                            self.send(ClientMsg::RunFailed {
+                                run_id: cursor.run_id(),
+                                reason: FailureReason::AwaitingHumanInput,
+                                detail: Some(detail.clone()),
+                                ended_at: Utc::now(),
+                                tokens: metadata.tokens,
+                                model: metadata.model,
+                            }).await;
+                            hist.append(&HistoryEntry::Footer {
+                                ts: Utc::now(),
+                                final_status: "failed".into(),
+                                done_payload: None,
+                                error: Some(detail),
+                            }).await?;
+                            return Ok(Outcome { status_label: "failed".into() });
                         }
                     }
                 }
@@ -3407,6 +3461,12 @@ fn uuid_or(s: &str) -> uuid::Uuid {
     uuid::Uuid::new_v5(&uuid::Uuid::NAMESPACE_OID, s.as_bytes())
 }
 
+// End-to-end issue-run tests that drive a real `AssignWorker` against a
+// fake agent binary. Kept in their own file under `daemon/tests/`.
+#[cfg(test)]
+#[path = "tests/issue_run_agent_env.rs"]
+mod issue_run_agent_env_tests;
+
 #[cfg(test)]
 mod tests {
     //! In-module tests: cover the Supervisor's *internal* helpers that
@@ -3425,7 +3485,7 @@ mod tests {
     use std::path::PathBuf;
     use tokio::sync::Notify;
 
-    fn paths_for(root: &std::path::Path) -> Paths {
+    pub(super) fn paths_for(root: &std::path::Path) -> Paths {
         Paths {
             config_dir: root.join("config"),
             data_dir: root.join("data"),
@@ -3433,7 +3493,11 @@ mod tests {
         }
     }
 
-    fn runner_config(name: &str, project_slug: &str, working_dir: PathBuf) -> RunnerConfig {
+    pub(super) fn runner_config(
+        name: &str,
+        project_slug: &str,
+        working_dir: PathBuf,
+    ) -> RunnerConfig {
         RunnerConfig {
             name: name.into(),
             runner_id: uuid::Uuid::new_v4(),
@@ -3499,6 +3563,7 @@ mod tests {
             worker
                 .run(
                     uuid::Uuid::new_v4(),
+                    None,
                     "Summarize these notes".into(),
                     None,
                     None,

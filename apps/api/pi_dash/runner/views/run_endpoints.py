@@ -30,6 +30,7 @@ from pi_dash.runner.authentication import (
     resolve_runner_for_run,
 )
 from pi_dash.runner.models import (
+    AWAITING_HUMAN_INPUT_ERROR_CODE,
     AgentRun,
     AgentRunEvent,
     AgentRunStatus,
@@ -411,11 +412,16 @@ class RunFailedEndpoint(_RunEndpointBase):
                     model=request.data.get("model"),
                 )
                 return Response({"ok": True, "refused": True})
+            # The runner stopped an agent that kept asking a question no one
+            # could answer. Still a FAILED run, but tagged so the ticker waits
+            # for a human instead of re-dispatching into the same loop.
+            reason = request.data.get("reason") or ""
             run_lifecycle.finalize_run_terminal(
                 runner,
                 run.id,
                 AgentRunStatus.FAILED,
                 error_detail=request.data.get("detail") or "",
+                error_code=reason if reason == AWAITING_HUMAN_INPUT_ERROR_CODE else "",
                 tokens=request.data.get("tokens") or request.data.get("usage"),
                 model=request.data.get("model"),
             )

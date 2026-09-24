@@ -303,6 +303,14 @@ def drain_for_runner_by_id(runner_id) -> bool:
     return drain_for_runner(runner)
 
 
+def _work_item_identifier(run: AgentRun) -> Optional[str]:
+    """``PROJ-123`` key for the run's work item, or ``None`` when unbound."""
+    issue = run.work_item
+    if issue is None or issue.project is None:
+        return None
+    return f"{issue.project.identifier}-{issue.sequence_id}"
+
+
 def _build_assign_msg(run: AgentRun) -> dict:
     """Compose the WS ``assign`` envelope sent to a runner daemon.
 
@@ -320,6 +328,9 @@ def _build_assign_msg(run: AgentRun) -> dict:
         "type": "assign",
         "run_id": str(run.id),
         "work_item_id": str(run.work_item_id) if run.work_item_id else None,
+        # Exported to the agent as PIDASH_ISSUE_IDENTIFIER so its `pidash`
+        # calls resolve the current issue without an explicit argument.
+        "work_item_identifier": _work_item_identifier(run),
         "prompt": run.prompt,
         "repo_url": run.run_config.get("repo_url"),
         "repo_ref": run.run_config.get("repo_ref"),
