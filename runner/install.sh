@@ -5,14 +5,32 @@
 # the user lands in the device-code flow on the same command. A checked-out
 # source tree is enough to install the runner: an existing local binary is
 # reused, and a release binary is built from `runner/Cargo.toml` when needed.
+# Set KARMA_TEAM_BIN_URL to download a raw binary from a custom HTTP(S) URL,
+# or KARMA_TEAM_LOCAL_BIN to install a specific local executable instead.
 #
 # Usage:
 #   bash ./runner/install.sh
+#   KARMA_TEAM_BIN_URL=https://example.com/karma-team bash ./runner/install.sh
+#   KARMA_TEAM_LOCAL_BIN=/path/to/karma-team bash ./runner/install.sh
 set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
 INSTALL_DIR=${KARMA_TEAM_INSTALL_DIR:-"$HOME/.local/bin"}
+BIN_URL=${KARMA_TEAM_BIN_URL:-}
+DOWNLOAD_DIR=""
+STAGED_BIN=""
+
+cleanup() {
+  if [ -n "$STAGED_BIN" ]; then
+    rm -f -- "$STAGED_BIN"
+  fi
+  if [ -n "$DOWNLOAD_DIR" ]; then
+    rm -rf -- "$DOWNLOAD_DIR"
+  fi
+}
+trap cleanup EXIT
+trap 'exit 1' HUP INT TERM
 
 # A caller can point at a locally built binary explicitly. Relative paths are
 # resolved from the repository root so `KARMA_TEAM_LOCAL_BIN=target/debug/karma-team`
@@ -35,15 +53,53 @@ is_executable_file() {
   [ -f "$1" ] && [ -x "$1" ]
 }
 
+if [ -n "$LOCAL_BIN" ] && [ -n "$BIN_URL" ]; then
+  echo "Set only one of KARMA_TEAM_LOCAL_BIN and KARMA_TEAM_BIN_URL." >&2
+  exit 1
+fi
+if [ -n "$LOCAL_BIN" ] && ! is_executable_file "$LOCAL_BIN"; then
+  echo "KARMA_TEAM_LOCAL_BIN must point to an existing executable: $LOCAL_BIN" >&2
+  exit 1
+fi
+if [ -n "$BIN_URL" ]; then
+  case "$BIN_URL" in
+    http://* | https://*) ;;
+    *)
+      echo "KARMA_TEAM_BIN_URL must be an HTTP or HTTPS URL." >&2
+      exit 1
+      ;;
+  esac
+fi
+
+download_binary() {
+  DOWNLOAD_DIR=$(mktemp -d "${TMPDIR:-/tmp}/karma-team-install.XXXXXX")
+  SOURCE_BIN="$DOWNLOAD_DIR/karma-team"
+  URL_PATH=${BIN_URL%%\?*}
+  URL_PATH=${URL_PATH%%\#*}
+  case "$URL_PATH" in
+    *.exe) SOURCE_BIN="$SOURCE_BIN.exe" ;;
+  esac
+
+  echo "==> Downloading karma-team from KARMA_TEAM_BIN_URL..."
+  if command -v curl >/dev/null 2>&1; then
+    curl --fail --location --silent --show-error --output "$SOURCE_BIN" "$BIN_URL"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -O "$SOURCE_BIN" "$BIN_URL"
+  else
+    echo "Downloading a binary requires curl or wget." >&2
+    exit 1
+  fi
+  if [ ! -s "$SOURCE_BIN" ]; then
+    echo "KARMA_TEAM_BIN_URL returned an empty file." >&2
+    exit 1
+  fi
+  chmod 0755 "$SOURCE_BIN"
+}
+
 # Return the first usable local binary. Cargo's workspace target directory is
 # normally at the repository root, but include runner/target as well for users
 # who built the package from inside `runner/`.
 find_local_binary() {
-  if [ -n "$LOCAL_BIN" ] && is_executable_file "$LOCAL_BIN"; then
-    printf '%s\n' "$LOCAL_BIN"
-    return 0
-  fi
-
   for candidate in \
     "$TARGET_DIR/release/karma-team" \
     "$TARGET_DIR/release/karma-team.exe" \
@@ -104,8 +160,15 @@ if grep -qi microsoft /proc/version 2>/dev/null || [ -n "${WSL_DISTRO_NAME:-}" ]
   fi
 fi
 
-echo "==> Looking for a local karma-team binary..."
-SOURCE_BIN=$(find_local_binary || true)
+if [ -n "$BIN_URL" ]; then
+  download_binary
+elif [ -n "$LOCAL_BIN" ]; then
+  SOURCE_BIN="$LOCAL_BIN"
+  echo "Using KARMA_TEAM_LOCAL_BIN: $SOURCE_BIN"
+else
+  echo "==> Looking for a local karma-team binary..."
+  SOURCE_BIN=$(find_local_binary || true)
+fi
 
 if [ -z "$SOURCE_BIN" ]; then
   if ! command -v cargo >/dev/null 2>&1; then
@@ -135,7 +198,7 @@ if [ -z "$SOURCE_BIN" ]; then
     exit 1
   fi
 else
-  echo "Using local binary: $SOURCE_BIN"
+  echo "Installing binary: $SOURCE_BIN"
 fi
 
 mkdir -p "$INSTALL_DIR"
@@ -151,8 +214,11 @@ if [ "$SOURCE_BIN" != "$KARMA_TEAM_BIN" ]; then
   cp "$SOURCE_BIN" "$STAGED_BIN"
   chmod 0755 "$STAGED_BIN"
   mv -f "$STAGED_BIN" "$KARMA_TEAM_BIN"
+  STAGED_BIN=""
 fi
 chmod 0755 "$KARMA_TEAM_BIN"
+cleanup
+trap - EXIT HUP INT TERM
 
 echo "Installed karma-team at $KARMA_TEAM_BIN"
 

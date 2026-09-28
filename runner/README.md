@@ -18,13 +18,47 @@ idle. Ordinary task folders do not require Git.
 
 ## Install
 
-Prebuilt binaries for macOS (arm64, x86_64), Linux (arm64, x86_64 — glibc and musl), and Windows (x86_64) are published to GitHub Releases. The one-liners below download the installer, verify checksums, drop `karma-team` into the standard install path, and immediately start the device-code login so the host is registered with your karma-team cloud before you leave the terminal.
+### From a source checkout or a custom binary
+
+`runner/install.sh` defaults to installing an existing local executable. It checks the workspace's release/debug builds, `runner/target`, and the installation directory. If none exists, it builds the release binary from source with Cargo. It does not download a prebuilt binary by default.
+
+```bash
+# Run from the repository root; install a local build or build from source.
+bash ./runner/install.sh
+
+# Select a local executable explicitly. Relative paths use the repository root.
+KARMA_TEAM_LOCAL_BIN=/path/to/karma-team bash ./runner/install.sh
+
+# Download a raw executable from your own server.
+KARMA_TEAM_BIN_URL=https://downloads.example.com/linux-amd64/karma-team \
+  bash ./runner/install.sh
+
+# Select the installation directory as well.
+KARMA_TEAM_BIN_URL=https://downloads.example.com/linux-amd64/karma-team \
+  KARMA_TEAM_INSTALL_DIR="$HOME/.local/bin" \
+  bash ./runner/install.sh
+```
+
+| Variable                 | Meaning                                                                                                                           |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `KARMA_TEAM_LOCAL_BIN`   | Existing executable to install; takes precedence over automatic local discovery.                                                  |
+| `KARMA_TEAM_BIN_URL`     | HTTP(S) URL of a raw executable for the target OS and CPU; uses `curl` or `wget`. No Cargo build is needed.                       |
+| `KARMA_TEAM_INSTALL_DIR` | Destination directory; defaults to `~/.local/bin`. The installed command is `karma-team` (`karma-team.exe` for an `.exe` source). |
+
+Set only one source variable. An invalid explicit path, failed download, or empty download fails the installation and preserves the previously installed binary. Temporary download files are removed. Archive URLs (`.tar.gz`, `.tar.xz`, `.zip`) must be unpacked first and installed using `KARMA_TEAM_LOCAL_BIN`.
+
+Custom URLs control this installation only. The shell installer starts `karma-team auth login` when a terminal is available and skips authentication in headless environments. These source variables apply to `install.sh`; the Windows PowerShell wrapper below uses GitHub Releases.
+
+### GitHub Releases
+
+Once release artifacts have been published, prebuilt binaries for macOS (arm64, x86_64), Linux (arm64, x86_64 — glibc and musl), and Windows (x86_64) can be installed from GitHub Releases. The generated cargo-dist installers choose the platform artifact. They are separate from the local-first `runner/install.sh` above.
 
 **macOS and Linux:**
 
 ```bash
 curl --proto '=https' --tlsv1.2 -LsSf \
-  https://github.com/xerecter/karma-team/releases/latest/download/install.sh | sh
+  https://github.com/xerecter/karma-team/releases/latest/download/karma-team-installer.sh | sh
+karma-team auth login
 ```
 
 **Windows (PowerShell):**
@@ -55,22 +89,15 @@ The installer will prompt for your karma-team cloud URL, walk you through device
 
 ### Installing a specific version (pinning / prereleases)
 
-Both the wrapper (`install.sh` / `install.ps1`) and the underlying cargo-dist installer (`karma-team-installer.sh` / `karma-team-installer.ps1`) select a release purely by URL path — swap `latest` for the tag you want:
+To select a specific release, use the generated cargo-dist installer (`karma-team-installer.sh` / `karma-team-installer.ps1`) and swap `latest` for the tag you want. The PowerShell wrapper uses the latest release regardless of the URL used to fetch the wrapper; the source-checkout shell installer selects local files or `KARMA_TEAM_BIN_URL`.
 
 ```bash
-# macOS / Linux — wrapper (with auto-auth)
-curl --proto '=https' --tlsv1.2 -LsSf \
-  https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.0/install.sh | sh
-
 # macOS / Linux — bare installer (no auto-auth)
 curl --proto '=https' --tlsv1.2 -LsSf \
   https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.0/karma-team-installer.sh | sh
 ```
 
 ```powershell
-# Windows — wrapper
-irm https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.0/install.ps1 | iex
-
 # Windows — bare installer
 irm https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.0/karma-team-installer.ps1 | iex
 ```
@@ -79,7 +106,7 @@ irm https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.0/k
 
 ```bash
 curl --proto '=https' --tlsv1.2 -LsSf \
-  https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.5/install.sh | sh
+  https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.5-rc.1/karma-team-installer.sh | sh
 ```
 
 **Prerequisite:** the runner shells out to [Codex](https://github.com/openai/codex) — install it and make sure `codex --version` works before running `karma-team configure`. `karma-team doctor` checks this.
