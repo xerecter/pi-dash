@@ -5,7 +5,7 @@
  */
 
 import { observer } from "mobx-react";
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 import { IssueDetailRoot } from "@/components/issues/issue-detail/root";
 
 export type TWorkItemDetailRoot = {

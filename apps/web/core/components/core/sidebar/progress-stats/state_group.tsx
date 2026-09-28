@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { StateGroupIcon } from "@pi-dash/propel/icons";
-import type { TStateGroups } from "@pi-dash/types";
+// karma-team imports
+import { StateGroupIcon } from "@karma-team/propel/icons";
+import type { TStateGroups } from "@karma-team/types";
 // components
 import { SingleProgressStats } from "@/components/core/sidebar/single-progress-stats";
 

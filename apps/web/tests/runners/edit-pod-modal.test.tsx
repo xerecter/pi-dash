@@ -15,24 +15,24 @@ const { podUpdate, setToast } = vi.hoisted(() => ({
   setToast: vi.fn(),
 }));
 
-vi.mock("@pi-dash/services", () => ({
+vi.mock("@karma-team/services", () => ({
   PodService: class {
     update = podUpdate;
   },
 }));
 
-vi.mock("@pi-dash/i18n", () => ({
+vi.mock("@karma-team/i18n", () => ({
   useTranslation: () => ({
     t: (key: string, vars?: Record<string, unknown>) => (vars ? `${key}:${JSON.stringify(vars)}` : key),
   }),
 }));
 
-vi.mock("@pi-dash/propel/toast", () => ({
+vi.mock("@karma-team/propel/toast", () => ({
   TOAST_TYPE: { ERROR: "ERROR", SUCCESS: "SUCCESS" },
   setToast,
 }));
 
-vi.mock("@pi-dash/propel/button", () => ({
+vi.mock("@karma-team/propel/button", () => ({
   Button: ({
     children,
     loading: _loading,
@@ -48,7 +48,7 @@ vi.mock("@pi-dash/propel/button", () => ({
 // Replace the heavy UI lib with plain DOM equivalents so the modal can be
 // driven with userEvent without dragging in headlessui machinery. The
 // ToggleSwitch stands in as a checkbox.
-vi.mock("@pi-dash/ui", async () => {
+vi.mock("@karma-team/ui", async () => {
   const { forwardRef: fwd } = await import("react");
   return {
     ModalCore: ({ isOpen, children }: { isOpen: boolean; children: React.ReactNode }) =>

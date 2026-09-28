@@ -20,8 +20,8 @@
 //! `Bridge::run_with_command`. Muse takes its prompt from a file rather than
 //! argv, so the injected command carries no real prompt file (`None`).
 
-use pidash::agent::BridgeEvent;
-use pidash::muse_code::bridge::{Bridge, BridgeCursor};
+use karma_team::agent::BridgeEvent;
+use karma_team::muse_code::bridge::{Bridge, BridgeCursor};
 use std::path::PathBuf;
 use std::time::Duration;
 use tokio::process::Command;

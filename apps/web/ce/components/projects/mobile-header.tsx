@@ -8,11 +8,11 @@ import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { ListFilter } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { TProjectFilters } from "@pi-dash/types";
-import { calculateTotalFilters } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+import type { TProjectFilters } from "@karma-team/types";
+import { calculateTotalFilters } from "@karma-team/utils";
 // components
 import { FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 import { ProjectFiltersSelection } from "@/components/project/dropdowns/filters";

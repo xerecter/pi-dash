@@ -7,18 +7,18 @@
 import type { ChangeEvent } from "react";
 import type { UseFormSetValue } from "react-hook-form";
 import { Controller, useFormContext } from "react-hook-form";
-import { InfoIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { ETabIndices } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+import { InfoIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { ETabIndices } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { Input, TextArea } from "@pi-dash/ui";
-import { cn, projectIdentifierSanitizer, getTabIndex } from "@pi-dash/utils";
-// pi dash utils
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { Input, TextArea } from "@karma-team/ui";
+import { cn, projectIdentifierSanitizer, getTabIndex } from "@karma-team/utils";
+// karma-team utils
 // helpers
-// pi-dash-web types
-import type { TProject } from "@/pi-dash-web/types/projects";
+// karma-team-web types
+import type { TProject } from "@/karma-team-web/types/projects";
 
 type Props = {
   setValue: UseFormSetValue<TProject>;
@@ -94,7 +94,8 @@ function ProjectCommonAttributes(props: Props) {
             required: t("Project ID is required"),
             // allow only alphanumeric & non-latin characters
             validate: (value) =>
-              /^[ÇŞĞIİÖÜA-Z0-9]+$/.test(value.toUpperCase()) || t("Only Alphanumeric & Non-latin characters are allowed."),
+              /^[ÇŞĞIİÖÜA-Z0-9]+$/.test(value.toUpperCase()) ||
+              t("Only Alphanumeric & Non-latin characters are allowed."),
             minLength: {
               value: 1,
               message: t("Project ID must at least be of 1 character"),
@@ -172,9 +173,7 @@ function ProjectCommonAttributes(props: Props) {
                 handleFormOnChange?.();
               }}
               hasError={Boolean(errors?.repo_url)}
-              placeholder={
-                t("Git repository URL (e.g. git@github.com:org/repo.git)")
-              }
+              placeholder={t("Git repository URL (e.g. git@github.com:org/repo.git)")}
               className="focus:border-blue-400 w-full"
               tabIndex={getIndex("repo_url")}
             />

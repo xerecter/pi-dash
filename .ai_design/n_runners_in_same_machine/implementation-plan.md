@@ -71,8 +71,8 @@ The wire is single-runner at this point — the daemon sends one `Hello` and beh
 
 - Allow `Vec<RunnerConfig>` of arbitrary length; supervisor spawns N `RunnerLoop`s.
 - IPC commands gain `--runner <name|id>` selector. Default to single instance when N = 1; require selector when N > 1.
-- `pidash configure` splits into `configure token` (one-shot per host) and `configure runner --name` (per instance).
-- `pidash status`, `pidash issue`, `pidash comment`, `pidash remove`, `pidash doctor` all gain `--runner`.
+- `karma-team configure` splits into `configure token` (one-shot per host) and `configure runner --name` (per instance).
+- `karma-team status`, `karma-team issue`, `karma-team comment`, `karma-team remove`, `karma-team doctor` all gain `--runner`.
 - TUI gains an instance picker / multi-pane view. Status panel shows per-instance current_run + approvals_pending.
 - Validation at daemon startup (hard errors with detailed messages): duplicate `runner_id`, duplicate `name`, exact-match or nested `working_dir`, instance count > 50. See `design.md` §9.
 
@@ -82,8 +82,8 @@ The wire is single-runner at this point — the daemon sends one `Hello` and beh
 
 **Goal**: instances can be added or removed without restarting; cloud can remove one runner without dropping the connection; cloud can revoke the whole token.
 
-- IPC verb `pidash configure runner --name foo` registers via REST under the active token and tells the daemon "load instance foo". Supervisor inserts into `instances`, sends `Hello`, spawns `RunnerLoop`. No reconnect.
-- IPC verb `pidash remove --runner foo`: the CLI calls REST `POST /api/v1/runner/<runner_id>/deregister/` (authenticated with the token) to deregister cloud-side, then asks the daemon over IPC to drop the mailbox, remove from `instances`, and delete `data_dir/runners/<runner_id>/`. **No WS frame is sent** — `Bye` is reserved for connection teardown.
+- IPC verb `karma-team configure runner --name foo` registers via REST under the active token and tells the daemon "load instance foo". Supervisor inserts into `instances`, sends `Hello`, spawns `RunnerLoop`. No reconnect.
+- IPC verb `karma-team remove --runner foo`: the CLI calls REST `POST /api/v1/runner/<runner_id>/deregister/` (authenticated with the token) to deregister cloud-side, then asks the daemon over IPC to drop the mailbox, remove from `instances`, and delete `data_dir/runners/<runner_id>/`. **No WS frame is sent** — `Bye` is reserved for connection teardown.
 - Cloud-originated `RemoveRunner { runner_id, reason }` (new wire variant) handled in supervisor: cancel in-flight run for that runner, remove instance, leave connection up. Same end state as the local IPC remove.
 - Connection-scoped `Revoke { reason }` (token revocation; no `runner_id`) tears down the connection and shuts down the daemon — see `design.md` §11.5.
 
@@ -97,33 +97,33 @@ These don't fit neatly into a single phase but should land alongside the appropr
 
 - **Logging**: every log line in the runner gains `runner_id` (or `runner_name`) in its tracing span. Add `tracing::Span` per-instance scoped to `RunnerLoop`.
 - **Metrics**: every metric label set gains `runner_id`. The `instances_count` gauge on the daemon side is new.
-- **Doctor**: `pidash doctor` walks each instance — checks each runner's working_dir, agent installation, and credentials independently.
-- **Backwards compat shim**: `pidash status` (no `--runner`) on a multi-instance daemon prints a friendly error directing the user to `--runner <name>` or `pidash status --all`.
+- **Doctor**: `karma-team doctor` walks each instance — checks each runner's working_dir, agent installation, and credentials independently.
+- **Backwards compat shim**: `karma-team status` (no `--runner`) on a multi-instance daemon prints a friendly error directing the user to `--runner <name>` or `karma-team status --all`.
 - **Tests**: extend `protocol_roundtrip.rs` for the new envelope shape and the new ServerMsg/ClientMsg variants. `cloud_ws_fake.rs` updated to speak the new protocol. New integration test: two-instance daemon, fake cloud, simultaneous assignments.
 
 ---
 
 ## Risk register
 
-| Risk | Likelihood | Mitigation |
-|---|---|---|
-| Demux/Mux concurrency bugs (lost frames, wrong-instance routing) | Medium | Phase 5 is the riskiest single PR. Add property-based tests for the demux. Run with `RUST_LOG=trace` against the fake cloud during PR review. |
-| One runner's slow agent backs up the shared `out_tx` and stalls others | Medium | Buffer size 512 (was 128). If still observed, give each instance its own bounded mpsc and `select!` across them at the mux. |
-| User configures > 50 runners and is confused why the daemon won't start | Low | Daemon-side validation message explicitly states the cap and points to `design.md` §16. |
-| Stale dev install on a developer's machine fails to start after upgrade | Low | The "no [token] block" error message names the exact recovery path (delete `credentials.toml` + `data_dir/runners/`, run setup script). Cheap to diagnose. |
+| Risk                                                                    | Likelihood | Mitigation                                                                                                                                                 |
+| ----------------------------------------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Demux/Mux concurrency bugs (lost frames, wrong-instance routing)        | Medium     | Phase 5 is the riskiest single PR. Add property-based tests for the demux. Run with `RUST_LOG=trace` against the fake cloud during PR review.              |
+| One runner's slow agent backs up the shared `out_tx` and stalls others  | Medium     | Buffer size 512 (was 128). If still observed, give each instance its own bounded mpsc and `select!` across them at the mux.                                |
+| User configures > 50 runners and is confused why the daemon won't start | Low        | Daemon-side validation message explicitly states the cap and points to `design.md` §16.                                                                    |
+| Stale dev install on a developer's machine fails to start after upgrade | Low        | The "no [token] block" error message names the exact recovery path (delete `credentials.toml` + `data_dir/runners/`, run setup script). Cheap to diagnose. |
 
 ## Estimated scope
 
 Rough order of magnitude per phase, in PRs:
 
-| Phase | PRs | Notes |
-|---|---|---|
-| 1 | 1–2 | Cloud-side, focused. |
-| 2 | 2–3 | New cloud entity + UI changes are the long pole. |
-| 3 | 1 | Runner-side, mechanical. |
-| 4 | 1–2 | Mostly type-shuffling; IPC change is the wide one. |
-| 5 | 1 | The risky one. |
-| 6 | 1–2 | CLI/TUI changes are the bulk. |
-| 7 | 1 | Runtime mutation; small but needs care around concurrency. |
+| Phase | PRs | Notes                                                      |
+| ----- | --- | ---------------------------------------------------------- |
+| 1     | 1–2 | Cloud-side, focused.                                       |
+| 2     | 2–3 | New cloud entity + UI changes are the long pole.           |
+| 3     | 1   | Runner-side, mechanical.                                   |
+| 4     | 1–2 | Mostly type-shuffling; IPC change is the wide one.         |
+| 5     | 1   | The risky one.                                             |
+| 6     | 1–2 | CLI/TUI changes are the bulk.                              |
+| 7     | 1   | Runtime mutation; small but needs care around concurrency. |
 
 Total: ~9–13 PRs across two repos. Phases 3–7 are runner-side and can pipeline once phase 1 lands cloud-side.

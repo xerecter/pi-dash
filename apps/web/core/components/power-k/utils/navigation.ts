@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { joinUrlPath } from "@pi-dash/utils";
+// karma-team imports
+import { joinUrlPath } from "@karma-team/utils";
 // local imports
 import type { TPowerKContext } from "../core/types";
 

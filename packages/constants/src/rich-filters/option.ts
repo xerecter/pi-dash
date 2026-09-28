@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TExternalFilter } from "@pi-dash/types";
+import type { TExternalFilter } from "@karma-team/types";
 
 /**
  * Filter config options.

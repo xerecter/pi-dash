@@ -7,9 +7,9 @@
 import React from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
-import { AUTH_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { PiSymbol } from "@pi-dash/propel/icons";
+import { AUTH_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { KarmaTeamSymbol } from "@karma-team/propel/icons";
 import { PageHead } from "@/components/core/page-title";
 import { EAuthModes } from "@/helpers/authentication.helper";
 import { useInstance } from "@/hooks/store/use-instance";
@@ -17,7 +17,7 @@ import { useInstance } from "@/hooks/store/use-instance";
 const authContentMap = {
   [EAuthModes.SIGN_IN]: {
     i18n_pageTitle: "Sign up",
-    i18n_text: "New to Pi Dash?",
+    i18n_text: "New to karma-team?",
     i18n_linkText: "Sign up",
     linkHref: "/sign-up",
   },
@@ -70,10 +70,10 @@ export function AuthHeaderBase(props: TAuthHeaderBase) {
   const { pageTitle, additionalAction } = props;
   return (
     <>
-      <PageHead title={pageTitle + " - Pi Dash"} />
+      <PageHead title={pageTitle + " - karma-team"} />
       <div className="sticky top-0 flex w-full flex-shrink-0 items-center justify-between gap-6">
         <Link href="/">
-          <PiSymbol height={28} width={52} className="text-primary" />
+          <KarmaTeamSymbol height={28} width={52} className="text-primary" />
         </Link>
         {additionalAction}
       </div>

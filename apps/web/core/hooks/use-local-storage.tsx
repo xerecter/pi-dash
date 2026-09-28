@@ -27,7 +27,7 @@ export const setValueIntoLocalStorage = (key: string, value: any) => {
   }
 };
 
-// TODO: Remove this once we migrate to the new hooks from pi_dash/helpers
+// TODO: Remove this once we migrate to the new hooks from karma_team/helpers
 const useLocalStorage = <T,>(key: string, initialValue: T) => {
   const [storedValue, setStoredValue] = useState<T | null>(() => getValueFromLocalStorage(key, initialValue));
 

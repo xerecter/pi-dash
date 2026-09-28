@@ -4,13 +4,13 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
+// karma-team imports
 import type {
   TAllAvailableOperatorsForDisplay,
   TFilterExpression,
   TFilterProperty,
   TSupportedOperators,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 
 /**
  * Helper function to get the display operator for a condition.

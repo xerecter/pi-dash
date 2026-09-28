@@ -7,19 +7,19 @@
 import { useState, useMemo, useCallback } from "react";
 import { observer } from "mobx-react";
 import { usePathname } from "next/navigation";
-// Pi Dash imports
+// karma-team imports
 import useSWR from "swr";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setPromiseToast, setToast } from "@pi-dash/propel/toast";
-import type { IWorkItemPeekOverview, TIssue } from "@pi-dash/types";
-import { EIssueServiceType, EIssuesStoreType } from "@pi-dash/types";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setPromiseToast, setToast } from "@karma-team/propel/toast";
+import type { IWorkItemPeekOverview, TIssue } from "@karma-team/types";
+import { EIssueServiceType, EIssuesStoreType } from "@karma-team/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
-import { useWorkItemProperties } from "@/pi-dash-web/hooks/use-issue-properties";
+import { useWorkItemProperties } from "@/karma-team-web/hooks/use-issue-properties";
 // local imports
 import type { TIssueOperations } from "../issue-detail";
 import { IssueView } from "./view";
@@ -87,7 +87,9 @@ export const IssuePeekOverview = observer(function IssuePeekOverview(props: IWor
               setToast({
                 title: t("Error!"),
                 type: TOAST_TYPE.ERROR,
-                message: t("{entity} update failed", { entity: t("{count, plural, one {Work item} other {Work items}}", { count: 1 }) }),
+                message: t("{entity} update failed", {
+                  entity: t("{count, plural, one {Work item} other {Work items}}", { count: 1 }),
+                }),
               });
             });
         }
@@ -102,7 +104,9 @@ export const IssuePeekOverview = observer(function IssuePeekOverview(props: IWor
           setToast({
             title: t("Error!"),
             type: TOAST_TYPE.ERROR,
-            message: t("{entity} delete failed", { entity: t("{count, plural, one {Work item} other {Work items}}", { count: 1 }) }),
+            message: t("{entity} delete failed", {
+              entity: t("{count, plural, one {Work item} other {Work items}}", { count: 1 }),
+            }),
           });
         }
       },

@@ -4,11 +4,11 @@
  * See the LICENSE file for details.
  */
 
-// pi dash package imports
+// karma-team package imports
 import React from "react";
 import { TrendingDown, TrendingUp } from "lucide-react";
-import { cn } from "@pi-dash/utils";
-// pi dash web components
+import { cn } from "@karma-team/utils";
+// karma-team web components
 
 type Props = {
   percentage: number;

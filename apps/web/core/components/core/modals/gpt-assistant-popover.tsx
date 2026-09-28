@@ -11,11 +11,11 @@ import { Controller, useForm } from "react-hook-form"; // services
 import { usePopper } from "react-popper";
 import { AlertCircle } from "lucide-react";
 import { Popover, Transition } from "@headlessui/react";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Input } from "@pi-dash/ui";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Input } from "@karma-team/ui";
 // components
 import { RichTextEditor } from "@/components/editor/rich-text";
 // services

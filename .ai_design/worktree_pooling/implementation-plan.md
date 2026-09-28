@@ -34,13 +34,13 @@ today — this phase is config plumbing only.
     Until the pool exists, two runners sharing a canonical clone is exactly
     the corruption hazard the old validation prevented. The error message
     says the cap lifts with pooling.
-- `pidash configure --migrate-workdirs` (`runner/src/cli/configure.rs`):
+- `karma-team configure --migrate-workdirs` (`runner/src/cli/configure.rs`):
   rewrites an old-shape config — each distinct `working_dir` becomes a
   `[[workdir]]` (named after the runner or dir basename), runners get
   `workdir = <name>`. A config containing `[runner.workspace]` refuses to
   start with a message naming this command.
-- CLI: `pidash workdir add|list|remove` (config-file writes + IPC reload);
-  `pidash runner add --workdir <name>` replaces `--working-dir`. `workdir
+- CLI: `karma-team workdir add|list|remove` (config-file writes + IPC reload);
+  `karma-team runner add --workdir <name>` replaces `--working-dir`. `workdir
 remove` refuses while any runner references it.
 - `runner/src/daemon/supervisor.rs` `handle_assign` (~`:2272`): resolve
   `runner.workdir → workdir.path` and proceed exactly as today
@@ -139,7 +139,7 @@ dirty tree salvaged to the run's branch; cancel of a parked run reports
 
 **Goal**: the waiting state is first-class on the boss's books.
 
-- `apps/api/pi_dash/runner/models.py`: `AgentRunStatus.WAITING_FOR_WORKTREE`;
+- `apps/api/karma_team/runner/models.py`: `AgentRunStatus.WAITING_FOR_WORKTREE`;
   nullable `queue_position` small-int on `AgentRun` (display only) +
   migration.
 - `views/run_endpoints.py`: `RunQueuedEndpoint` (URL verb `queued`, wired in
@@ -231,20 +231,20 @@ assign goes to the runner whose pool has the free desk).
 - `runner/src/ipc/protocol.rs`: `StatusSnapshot` gains per-workdir
   `{ pool: [{worktree, lease_holder, branch}], queue: [run_id…], health }`
   from `pool.snapshot()`; bump IPC version.
-- `pidash status`: per-workdir occupancy line (`2/2 desks busy, 1 queued`),
+- `karma-team status`: per-workdir occupancy line (`2/2 desks busy, 1 queued`),
   unhealthy reason, canonical-clone branch warning.
-- `pidash workdir retry <name>`: clears `Unhealthy` and re-attempts setup.
+- `karma-team workdir retry <name>`: clears `Unhealthy` and re-attempts setup.
 - TUI: workdir view with pool panel (desks, lease holders, queue) and editing
   for `pool_size` (the user-requested knob), `clean_mode`, `setup_command`.
   `pool_size` up applies live; down drains on release (design §9).
-- `pidash doctor`: per-workdir checks — canonical clone resolvable, branch
+- `karma-team doctor`: per-workdir checks — canonical clone resolvable, branch
   parking advice, worktree dir writable, disk headroom, setup_command
   exit status.
 - Web: `agent-status.tsx:38` adds the status to `ACTIVE_RUN_STATUSES` with a
   "queued on machine (position N)" label; runs page filter/label maps;
   mobile vendored types mirrored.
 
-**Done when**: a user can watch a run wait and start from both `pidash tui`
+**Done when**: a user can watch a run wait and start from both `karma-team tui`
 and the web run view, and resize the pool from the TUI without a restart.
 
 ---
@@ -259,7 +259,7 @@ and the web run view, and resize the pool from the TUI without a restart.
   whether `pool_size` defaults are right).
 - **Contract tests**: the v4 wire contract suite gains the `queued` verb,
   the `redeliver` open-response field, and `free_worktrees` in poll status.
-- **Docs**: `pidash runner add` help text, README quick-start, and the
+- **Docs**: `karma-team runner add` help text, README quick-start, and the
   install-script template move from `--working-dir` to `--workdir`.
 
 ## Risk register
@@ -267,13 +267,13 @@ and the web run view, and resize the pool from the TUI without a restart.
 | Risk                                                                             | Likelihood | Mitigation                                                                                                                                                                                    |
 | -------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Reaper kills parked runs (runner forgets to report `in_flight_run` while queued) | Medium     | Reporting ships in phase 3, _before_ any cloud change; phase 4 adds the contract test that fails if either side regresses.                                                                    |
-| Branch-lock starvation: canonical clone permanently holds a branch runs need     | Medium     | Init warning + `pidash status` surfacing + doctor check (phases 3/8). The failure mode is a visible never-draining queue entry, not corruption.                                               |
+| Branch-lock starvation: canonical clone permanently holds a branch runs need     | Medium     | Init warning + `karma-team status` surfacing + doctor check (phases 3/8). The failure mode is a visible never-draining queue entry, not corruption.                                           |
 | Salvage push fails (auth, network) and the WIP commit never leaves the machine   | Medium     | The commit still exists on the local branch ref in the shared object database — `git log` in the canonical clone finds it. Push is best-effort by design; the log line names the commit hash. |
-| Flaky `setup_command` (network installs) trips workdir-unhealthy too eagerly     | Medium     | One retry with backoff before unhealthy; `pidash workdir retry` is one command; health is per-workdir, never daemon-wide.                                                                     |
+| Flaky `setup_command` (network installs) trips workdir-unhealthy too eagerly     | Medium     | One retry with backoff before unhealthy; `karma-team workdir retry` is one command; health is per-workdir, never daemon-wide.                                                                 |
 | Concurrent git ops against the shared object DB (fetch vs auto-gc vs checkout)   | Low        | Fetch mutex per workdir (phase 2); set `gc.auto = 0` on the canonical clone at pool init and let doctor recommend manual gc.                                                                  |
 | Cancel races lease grant (cancel arrives the instant the oneshot fires)          | Low        | All transitions happen inside the single pool owner task; a granted lease that races cancel follows the normal running-cancel path (design §6.2 note). Property test in phase 2.              |
 | Disk growth from N worktrees of a huge repo                                      | Low        | Lazy creation bounds at the concurrency high-water mark; `keep-ignored` reuses installs; eviction is the designed follow-up (design §13).                                                     |
-| Old-shape config on a dev machine fails to start after upgrade                   | Low        | Refusal message names `pidash configure --migrate-workdirs`; migration is lossless and tested in phase 1.                                                                                     |
+| Old-shape config on a dev machine fails to start after upgrade                   | Low        | Refusal message names `karma-team configure --migrate-workdirs`; migration is lossless and tested in phase 1.                                                                                 |
 
 ## Estimated scope
 

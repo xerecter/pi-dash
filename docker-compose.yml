@@ -1,3 +1,5 @@
+name: karma-team
+
 services:
   web:
     container_name: web
@@ -46,8 +48,8 @@ services:
     env_file:
       - ./apps/api/.env
     depends_on:
-      - pi-dash-db
-      - pi-dash-redis
+      - karma-team-db
+      - karma-team-redis
 
   worker:
     container_name: bgworker
@@ -62,8 +64,8 @@ services:
       - ./apps/api/.env
     depends_on:
       - api
-      - pi-dash-db
-      - pi-dash-redis
+      - karma-team-db
+      - karma-team-redis
 
   beat-worker:
     container_name: beatworker
@@ -78,11 +80,11 @@ services:
       - ./apps/api/.env
     depends_on:
       - api
-      - pi-dash-db
-      - pi-dash-redis
+      - karma-team-db
+      - karma-team-redis
 
   migrator:
-    container_name: pi-dash-migrator
+    container_name: karma-team-migrator
     build:
       context: ./apps/api
       dockerfile: Dockerfile.api
@@ -93,11 +95,11 @@ services:
     env_file:
       - ./apps/api/.env
     depends_on:
-      - pi-dash-db
-      - pi-dash-redis
+      - karma-team-db
+      - karma-team-redis
 
   live:
-    container_name: pi-dash-live
+    container_name: karma-team-live
     build:
       context: .
       dockerfile: ./apps/live/Dockerfile.live
@@ -110,23 +112,19 @@ services:
       - ./apps/live/.env
     # The .env at apps/live/.env points Redis at localhost (works for
     # `pnpm dev` on the host). Inside docker-compose the actual host is
-    # pi-dash-redis; the explicit environment entries below shadow the
+    # karma-team-redis; the explicit environment entries below shadow the
     # .env values so the container connects to the compose-network
     # service. API_BASE_URL gets the same docker-aware override so live
     # talks to the api container, not the host.
     environment:
-      REDIS_HOST: pi-dash-redis
+      REDIS_HOST: karma-team-redis
       REDIS_PORT: 6379
-      REDIS_URL: redis://pi-dash-redis:6379/
+      REDIS_URL: redis://karma-team-redis:6379/
       API_BASE_URL: http://api:8000
-    # pi-dash-redis lives on the dev_env network defined in
-    # docker-compose-local.yml; without joining it, live's getaddrinfo
-    # for pi-dash-redis fails (EAI_AGAIN).
-    networks:
-      - dev_env
+    # Shares the default Compose network with the API and Redis services.
 
-  pi-dash-db:
-    container_name: pi-dash-db
+  karma-team-db:
+    container_name: karma-team-db
     image: postgres:15.7-alpine
     restart: always
     command: postgres -c 'max_connections=1000'
@@ -140,15 +138,15 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGDATA: /var/lib/postgresql/data
 
-  pi-dash-redis:
-    container_name: pi-dash-redis
+  karma-team-redis:
+    container_name: karma-team-redis
     image: valkey/valkey:7.2.11-alpine
     restart: always
     volumes:
       - redisdata:/data
 
-  pi-dash-mq:
-    container_name: pi-dash-mq
+  karma-team-mq:
+    container_name: karma-team-mq
     image: rabbitmq:3.13.6-management-alpine
     restart: always
     env_file:
@@ -160,8 +158,8 @@ services:
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
 
-  pi-dash-minio:
-    container_name: pi-dash-minio
+  karma-team-minio:
+    container_name: karma-team-minio
     image: minio/minio
     restart: always
     command: server /export --console-address ":9090"

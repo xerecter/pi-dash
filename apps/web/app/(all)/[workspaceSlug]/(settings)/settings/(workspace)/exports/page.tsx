@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { cn } from "@pi-dash/utils";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { cn } from "@karma-team/utils";
 // components
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { PageHead } from "@/components/core/page-title";
@@ -31,9 +31,7 @@ function ExportsPage() {
     [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
     EUserPermissionsLevel.WORKSPACE
   );
-  const pageTitle = currentWorkspace?.name
-    ? `${currentWorkspace.name} - ${t("Exports")}`
-    : undefined;
+  const pageTitle = currentWorkspace?.name ? `${currentWorkspace.name} - ${t("Exports")}` : undefined;
 
   // if user is not authorized to view this page
   if (workspaceUserInfo && !canPerformWorkspaceMemberActions) {
@@ -50,7 +48,9 @@ function ExportsPage() {
       >
         <SettingsHeading
           title={t("Exports")}
-          description={t("Export your project data in various formats and access your export history with download links.")}
+          description={t(
+            "Export your project data in various formats and access your export history with download links."
+          )}
         />
         <ExportGuide />
       </div>

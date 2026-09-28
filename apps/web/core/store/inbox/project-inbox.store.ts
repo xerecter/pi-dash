@@ -7,7 +7,7 @@
 import { uniq, update, isEmpty, omit, set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-import type { EPastDurationFilters } from "@pi-dash/constants";
+import type { EPastDurationFilters } from "@karma-team/constants";
 // types
 import type {
   TInboxIssue,
@@ -16,9 +16,9 @@ import type {
   TInboxIssueSorting,
   TInboxIssuePaginationInfo,
   TInboxIssueSortingOrderByQueryParam,
-} from "@pi-dash/types";
-import { EInboxIssueCurrentTab, EInboxIssueStatus } from "@pi-dash/types";
-import { getCustomDates } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { EInboxIssueCurrentTab, EInboxIssueStatus } from "@karma-team/types";
+import { getCustomDates } from "@karma-team/utils";
 // helpers
 // services
 import { InboxIssueService } from "@/services/inbox";

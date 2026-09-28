@@ -6,8 +6,8 @@
 
 import * as React from "react";
 import { useState } from "react";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { ICustomSearchSelectOption } from "@pi-dash/types";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { ICustomSearchSelectOption } from "@karma-team/types";
 import { CustomSearchSelect } from "../dropdowns";
 import { cn } from "../utils";
 import { Breadcrumbs } from "./breadcrumbs";

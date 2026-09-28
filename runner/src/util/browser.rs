@@ -1,7 +1,7 @@
 //! Best-effort "open this URL in the operator's default browser".
 //!
-//! Shared by `pidash auth login` (device-code approval page) and
-//! `pidash runner add` (an agent's install page when the agent CLI is
+//! Shared by `karma-team auth login` (device-code approval page) and
+//! `karma-team runner add` (an agent's install page when the agent CLI is
 //! missing). Opening a browser is never load-bearing — every caller also
 //! prints the URL so a headless or locked-down box still gets a usable
 //! link. An `Err` only means we couldn't even launch the platform handler.

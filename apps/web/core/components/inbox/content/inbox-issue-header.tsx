@@ -7,11 +7,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { Clock, FileStack, MoreHorizontal, MoveRight } from "lucide-react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { IconButton, getIconButtonStyling } from "@pi-dash/propel/icon-button";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { IconButton, getIconButtonStyling } from "@karma-team/propel/icon-button";
 import {
   LinkIcon,
   CopyIcon,
@@ -21,12 +21,12 @@ import {
   ChevronUpIcon,
   CheckCircleFilledIcon,
   CloseCircleFilledIcon,
-} from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TNameDescriptionLoader } from "@pi-dash/types";
-import { EInboxIssueStatus } from "@pi-dash/types";
-import { ControlLink, CustomMenu, Row } from "@pi-dash/ui";
-import { copyUrlToClipboard, findHowManyDaysLeft, generateWorkItemLink } from "@pi-dash/utils";
+} from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TNameDescriptionLoader } from "@karma-team/types";
+import { EInboxIssueStatus } from "@karma-team/types";
+import { ControlLink, CustomMenu, Row } from "@karma-team/ui";
+import { copyUrlToClipboard, findHowManyDaysLeft, generateWorkItemLink } from "@karma-team/utils";
 // components
 import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
 import { NameDescriptionUpdateStatus } from "@/components/issues/issue-update-status";

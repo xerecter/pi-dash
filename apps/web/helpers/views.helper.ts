@@ -5,11 +5,11 @@
  */
 
 import type { LucideIcon } from "lucide-react";
-import { VIEW_ACCESS_SPECIFIERS as VIEW_ACCESS_SPECIFIERS_CONSTANTS } from "@pi-dash/constants";
-import { GlobeIcon, LockIcon } from "@pi-dash/propel/icons";
+import { VIEW_ACCESS_SPECIFIERS as VIEW_ACCESS_SPECIFIERS_CONSTANTS } from "@karma-team/constants";
+import { GlobeIcon, LockIcon } from "@karma-team/propel/icons";
 
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import { EViewAccess } from "@pi-dash/types";
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import { EViewAccess } from "@karma-team/types";
 
 const VIEW_ACCESS_ICONS = {
   [EViewAccess.PUBLIC]: GlobeIcon,

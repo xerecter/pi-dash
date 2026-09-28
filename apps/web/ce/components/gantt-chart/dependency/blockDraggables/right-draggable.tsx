@@ -5,7 +5,7 @@
  */
 
 import type { RefObject } from "react";
-import type { IGanttBlock } from "@pi-dash/types";
+import type { IGanttBlock } from "@karma-team/types";
 
 type RightDependencyDraggableProps = {
   block: IGanttBlock;

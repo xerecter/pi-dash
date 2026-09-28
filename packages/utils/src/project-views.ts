@@ -5,9 +5,9 @@
  */
 
 import { isNil, orderBy } from "lodash-es";
-// pi dash imports
-import { SPACE_BASE_PATH, SPACE_BASE_URL } from "@pi-dash/constants";
-import type { IProjectView, TViewFilterProps, TViewFiltersSortBy, TViewFiltersSortKey } from "@pi-dash/types";
+// karma-team imports
+import { SPACE_BASE_PATH, SPACE_BASE_URL } from "@karma-team/constants";
+import type { IProjectView, TViewFilterProps, TViewFiltersSortBy, TViewFiltersSortKey } from "@karma-team/types";
 // local imports
 import { getDate } from "./datetime";
 import { satisfiesDateFilter } from "./filter";

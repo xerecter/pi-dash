@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-// Pi Dash
-import { Row } from "@pi-dash/ui";
+// karma-team
+import { Row } from "@karma-team/ui";
 // components
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import { BLOCK_HEIGHT } from "@/components/gantt-chart/constants";
 import { ModuleGanttSidebarBlock } from "@/components/modules";
 // helpers

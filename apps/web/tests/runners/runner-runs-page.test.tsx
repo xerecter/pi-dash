@@ -6,7 +6,7 @@
 
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { IAgentRun, IAgentRunEvent, IAgentRunPage } from "@pi-dash/types";
+import type { IAgentRun, IAgentRunEvent, IAgentRunPage } from "@karma-team/types";
 
 const { useSWR, listRuns, getRun, cancelRun } = vi.hoisted(() => ({
   useSWR: vi.fn(),
@@ -29,19 +29,19 @@ vi.mock("mobx-react", () => ({
   observer: (component: unknown) => component,
 }));
 
-vi.mock("@pi-dash/i18n", () => ({
+vi.mock("@karma-team/i18n", () => ({
   useTranslation: () => ({
     t: (key: string, vars?: Record<string, unknown>) =>
       vars ? key.replace(/\{(\w+)\}/g, (_m, k) => String(vars[k] ?? "")) : key,
   }),
 }));
 
-vi.mock("@pi-dash/propel/toast", () => ({
+vi.mock("@karma-team/propel/toast", () => ({
   TOAST_TYPE: { ERROR: "error" },
   setToast: vi.fn(),
 }));
 
-vi.mock("@pi-dash/services", () => ({
+vi.mock("@karma-team/services", () => ({
   RunnerService: class {
     listRuns = listRuns;
     getRun = getRun;
@@ -49,7 +49,7 @@ vi.mock("@pi-dash/services", () => ({
   },
 }));
 
-vi.mock("@pi-dash/ui", () => ({
+vi.mock("@karma-team/ui", () => ({
   AlertModalCore: () => null,
   Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
   Button: ({ children }: { children: React.ReactNode }) => <button type="button">{children}</button>,

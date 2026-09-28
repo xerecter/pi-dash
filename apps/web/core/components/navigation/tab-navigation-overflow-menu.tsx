@@ -7,12 +7,12 @@
 import React from "react";
 import { Link } from "react-router";
 import { MoreHorizontal, Pin } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { SetAsDefaultIcon } from "@pi-dash/propel/icons";
-import { Menu } from "@pi-dash/propel/menu";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { SetAsDefaultIcon } from "@karma-team/propel/icons";
+import { Menu } from "@karma-team/propel/menu";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { cn } from "@karma-team/utils";
 // local imports
 import type { TNavigationItem } from "./tab-navigation-root";
 import type { TTabPreferences } from "./tab-navigation-utils";

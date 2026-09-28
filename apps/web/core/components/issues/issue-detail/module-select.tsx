@@ -7,10 +7,10 @@
 import React, { useState } from "react";
 import { xor } from "lodash-es";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // hooks
 // components
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import { ModuleDropdown } from "@/components/dropdowns/module/dropdown";
 // ui
 // helpers

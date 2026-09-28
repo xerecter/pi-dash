@@ -7,16 +7,16 @@
 import React, { useEffect } from "react";
 import { observer } from "mobx-react";
 import { useParams, useLocation, Link, useNavigate } from "react-router";
-import { EUserPermissionsLevel, EUserPermissions } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { TabNavigationList, TabNavigationItem } from "@pi-dash/propel/tab-navigation";
-import type { EUserProjectRoles } from "@pi-dash/types";
+import { EUserPermissionsLevel, EUserPermissions } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { TabNavigationList, TabNavigationItem } from "@karma-team/propel/tab-navigation";
+import type { EUserProjectRoles } from "@karma-team/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
-// pi dash web imports
-import { useNavigationItems } from "@/pi-dash-web/components/navigations";
+// karma-team web imports
+import { useNavigationItems } from "@/karma-team-web/components/navigations";
 // local imports
 import { LeaveProjectModal } from "../project/leave-project-modal";
 import { PublishProjectModal } from "../project/publish-project/modal";

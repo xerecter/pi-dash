@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { IProject, TAgentExecutorKind } from "@pi-dash/types";
+import type { IProject, TAgentExecutorKind } from "@karma-team/types";
 
 /**
  * Execution target = where an issue's agent runs execute.

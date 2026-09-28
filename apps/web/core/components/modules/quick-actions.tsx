@@ -7,13 +7,13 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { MoreHorizontal } from "lucide-react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TContextMenuItem } from "@pi-dash/ui";
-import { ContextMenu, CustomMenu } from "@pi-dash/ui";
-import { copyUrlToClipboard, cn } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TContextMenuItem } from "@karma-team/ui";
+import { ContextMenu, CustomMenu } from "@karma-team/ui";
+import { copyUrlToClipboard, cn } from "@karma-team/utils";
 // components
 import { useModuleMenuItems } from "@/components/common/quick-actions-helper";
 import { ArchiveModuleModal, CreateUpdateModuleModal, DeleteModuleModal } from "@/components/modules";
@@ -82,7 +82,7 @@ export const ModuleQuickActions = observer(function ModuleQuickActions(props: Pr
     }
   };
 
-  // Use unified menu hook from pi-dash-web (resolves to CE or EE)
+  // Use unified menu hook from karma-team-web (resolves to CE or EE)
   const menuResult = useModuleMenuItems({
     moduleDetails: moduleDetails ?? undefined,
     workspaceSlug,

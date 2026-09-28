@@ -5,11 +5,11 @@
  */
 
 import { useMemo } from "react";
-// pi dash imports
-import { IS_FAVORITE_MENU_OPEN } from "@pi-dash/constants";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { EPageAccess } from "@pi-dash/types";
-import { copyUrlToClipboard } from "@pi-dash/utils";
+// karma-team imports
+import { IS_FAVORITE_MENU_OPEN } from "@karma-team/constants";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { EPageAccess } from "@karma-team/types";
+import { copyUrlToClipboard } from "@karma-team/utils";
 // hooks
 import { useCollaborativePageActions } from "@/hooks/use-collaborative-page-actions";
 // store types

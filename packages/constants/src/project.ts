@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TProjectAppliedDisplayFilterKeys, TProjectOrderByOptions } from "@pi-dash/types";
+// karma-team imports
+import type { TProjectAppliedDisplayFilterKeys, TProjectOrderByOptions } from "@karma-team/types";
 // local imports
 
 export type TNetworkChoiceIconKey = "Lock" | "Globe2";

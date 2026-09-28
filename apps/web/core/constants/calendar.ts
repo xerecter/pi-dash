@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { TCalendarLayouts } from "@pi-dash/types";
-import { EStartOfTheWeek } from "@pi-dash/types";
+import type { TCalendarLayouts } from "@karma-team/types";
+import { EStartOfTheWeek } from "@karma-team/types";
 
 export const MONTHS_LIST: {
   [monthNumber: number]: {

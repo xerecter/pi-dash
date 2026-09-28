@@ -6,9 +6,9 @@
 
 import { memo } from "react";
 import { ArrowUpWideNarrow, ArrowDownWideNarrow } from "lucide-react";
-// pi dash package imports
-import { E_SORT_ORDER } from "@pi-dash/constants";
-import { IconButton } from "@pi-dash/propel/icon-button";
+// karma-team package imports
+import { E_SORT_ORDER } from "@karma-team/constants";
+import { IconButton } from "@karma-team/propel/icon-button";
 
 export type TActivitySortRoot = {
   sortOrder: E_SORT_ORDER;

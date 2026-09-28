@@ -1,7 +1,7 @@
-import { WEB_BASE_URL } from "@pi-dash/constants";
+import { WEB_BASE_URL } from "@karma-team/constants";
 
 /**
- * Resolve an in-app path to the hosted Pi Dash frontend.
+ * Resolve an in-app path to the hosted karma-team frontend.
  *
  * Bundled desktop pages run on a Tauri-owned origin, so browser-relative
  * sharing helpers otherwise expose `tauri://localhost` (or Tauri's Windows

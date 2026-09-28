@@ -5,8 +5,8 @@
  */
 
 import { useState } from "react";
-// pi dash imports
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+// karma-team imports
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // hooks
 import useKeypress from "@/hooks/use-keypress";
 // local imports

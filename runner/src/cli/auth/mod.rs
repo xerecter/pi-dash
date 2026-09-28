@@ -1,9 +1,9 @@
-//! `pidash auth <login|status|logout>` — user-identity flow.
+//! `karma-team auth <login|status|logout>` — user-identity flow.
 //!
 //! Mints, inspects, and revokes the `[cli].token` written to
-//! `~/.config/pidash/config.toml`. Strictly the user-identity side: it
+//! `~/.config/karma-team/config.toml`. Strictly the user-identity side: it
 //! does not touch `[[runner]]` blocks or `credentials.toml`. Runner
-//! credentials are minted separately by `pidash runner add`, which uses
+//! credentials are minted separately by `karma-team runner add`, which uses
 //! the CLI token populated here to authorise itself to the cloud.
 
 use anyhow::Result;
@@ -23,8 +23,8 @@ pub struct AuthArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum AuthCommand {
-    /// Authenticate this host with Pi Dash cloud via device-code OAuth.
-    /// Stores a user-scoped CLI token in `~/.config/pidash/config.toml`.
+    /// Authenticate this host with karma-team cloud via device-code OAuth.
+    /// Stores a user-scoped CLI token in `~/.config/karma-team/config.toml`.
     Login(login::Args),
     /// Show who this host is logged in as and which runners are
     /// registered here.

@@ -7,11 +7,11 @@
 import { observer } from "mobx-react";
 
 // components
-import type { TSupportedFilterTypeForUpdate } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronLeftIcon, ChevronRightIcon } from "@pi-dash/propel/icons";
-import type { TSupportedFilterForUpdate } from "@pi-dash/types";
-import { Row } from "@pi-dash/ui";
+import type { TSupportedFilterTypeForUpdate } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronLeftIcon, ChevronRightIcon } from "@karma-team/propel/icons";
+import type { TSupportedFilterForUpdate } from "@karma-team/types";
+import { Row } from "@karma-team/ui";
 // icons
 import { useCalendarView } from "@/hooks/store/use-calendar-view";
 import type { ICycleIssuesFilter } from "@/store/issue/cycle";

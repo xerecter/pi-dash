@@ -5,10 +5,10 @@
  */
 
 import { useMemo } from "react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TIssueLink, TIssueServiceType } from "@pi-dash/types";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TIssueLink, TIssueServiceType } from "@karma-team/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports

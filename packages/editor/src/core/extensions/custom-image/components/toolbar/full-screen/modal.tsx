@@ -7,9 +7,9 @@
 import { Download, Minus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import ReactDOM from "react-dom";
-import { NewTabIcon, PlusIcon, CloseIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+import { NewTabIcon, PlusIcon, CloseIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 
 const MIN_ZOOM = 0.5;
 const MAX_ZOOM = 2;

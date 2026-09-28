@@ -8,10 +8,10 @@ import React, { useMemo, useState } from "react";
 import { sortBy } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { CycleGroupIcon } from "@pi-dash/propel/icons";
-import type { TCycleGroups } from "@pi-dash/types";
+import { CycleGroupIcon } from "@karma-team/propel/icons";
+import type { TCycleGroups } from "@karma-team/types";
 // components
-import { Loader } from "@pi-dash/ui";
+import { Loader } from "@karma-team/ui";
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 import { useCycle } from "@/hooks/store/use-cycle";
 // ui

@@ -6,18 +6,18 @@
 
 import { ArrowLeft } from "lucide-react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { ROLE_DETAILS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { IconButton } from "@pi-dash/propel/icon-button";
+// karma-team imports
+import { ROLE_DETAILS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { IconButton } from "@karma-team/propel/icon-button";
 // components
 import { WorkspaceLogo } from "@/components/workspace/logo";
 // hooks
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useWorkspace } from "@/hooks/store/use-workspace";
-// pi dash web imports
-import { SubscriptionPill } from "@/pi-dash-web/components/common/subscription/subscription-pill";
+// karma-team web imports
+import { SubscriptionPill } from "@/karma-team-web/components/common/subscription/subscription-pill";
 
 export const WorkspaceSettingsSidebarHeader = observer(function WorkspaceSettingsSidebarHeader() {
   // router

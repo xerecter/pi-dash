@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useMemo } from "react";
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 import type { TNavigationItem } from "@/components/navigation/tab-navigation-root";
 
 type UseActiveTabProps = {

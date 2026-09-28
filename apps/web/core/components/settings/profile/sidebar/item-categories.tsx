@@ -6,14 +6,14 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "react-router";
-// pi dash imports
+// karma-team imports
 import {
   GROUPED_PROFILE_SETTINGS,
   PROFILE_SETTINGS_CATEGORIES,
   PROFILE_SETTINGS_CATEGORY_I18N_LABELS,
-} from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TProfileSettingsTabs } from "@pi-dash/types";
+} from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { TProfileSettingsTabs } from "@karma-team/types";
 // local imports
 import { SettingsSidebarItem } from "../../sidebar/item";
 import { ProfileSettingsSidebarWorkspaceOptions } from "./workspace-options";

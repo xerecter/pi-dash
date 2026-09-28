@@ -4,4 +4,4 @@
  * See the LICENSE file for details.
  */
 
-export { cn } from "@pi-dash/utils";
+export { cn } from "@karma-team/utils";

@@ -7,8 +7,8 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import { setPromiseToast } from "@pi-dash/propel/toast";
-import { Loader, ToggleSwitch } from "@pi-dash/ui";
+import { setPromiseToast } from "@karma-team/propel/toast";
+import { Loader, ToggleSwitch } from "@karma-team/ui";
 // assets
 import GoogleLogo from "@/app/assets/logos/google-logo.svg?url";
 // components
@@ -68,7 +68,7 @@ const InstanceGoogleAuthenticationPage = observer(function InstanceGoogleAuthent
       customHeader={
         <AuthenticationMethodCard
           name="Google"
-          description="Allow members to login or sign up to pi dash with their Google
+          description="Allow members to login or sign up to karma-team with their Google
             accounts."
           icon={<img src={GoogleLogo} height={24} width={24} alt="Google Logo" />}
           config={

@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TIssueServiceType } from "@pi-dash/types";
+import type { TIssueServiceType } from "@karma-team/types";
 
 export const useWorkItemProperties = (
   projectId: string | null | undefined,

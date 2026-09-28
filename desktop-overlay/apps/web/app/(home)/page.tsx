@@ -15,7 +15,7 @@
  * AuthenticationWrapper.
  *
  * The card comes from the edition seam
- * `@/pi-dash-web/components/desktop/sign-in-card`. It must never start
+ * `@/karma-team-web/components/desktop/sign-in-card`. It must never start
  * sign-in on its own: on desktop that can mean opening the system browser,
  * which must stay a click.
  *
@@ -29,9 +29,9 @@ import { useSearchParams } from "next/navigation";
 import { EPageTypes } from "@/helpers/authentication.helper";
 import DefaultLayout from "@/layouts/default-layout";
 import { AuthenticationWrapper } from "@/lib/wrappers/authentication-wrapper";
-import { DesktopSignInCard } from "@/pi-dash-web/components/desktop/sign-in-card";
+import { DesktopSignInCard } from "@/karma-team-web/components/desktop/sign-in-card";
 
-export const meta = () => [{ title: "Sign in — Pi Dash" }];
+export const meta = () => [{ title: "Sign in — karma-team" }];
 
 function SignInError() {
   const searchParams = useSearchParams();

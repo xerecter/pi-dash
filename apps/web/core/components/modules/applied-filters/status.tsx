@@ -6,9 +6,9 @@
 
 import { observer } from "mobx-react";
 // ui
-import { MODULE_STATUS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { CloseIcon, ModuleStatusIcon } from "@pi-dash/propel/icons";
+import { MODULE_STATUS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { CloseIcon, ModuleStatusIcon } from "@karma-team/propel/icons";
 // constants
 
 type Props = {

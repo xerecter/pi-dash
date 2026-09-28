@@ -7,10 +7,10 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-import { WORKSPACE_SETTINGS_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { IWebhook, TWebhookEventTypes } from "@pi-dash/types";
+import { WORKSPACE_SETTINGS_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { IWebhook, TWebhookEventTypes } from "@karma-team/types";
 // hooks
 import {
   WebhookIndividualEventOptions,
@@ -69,11 +69,7 @@ export const WebhookForm = observer(function WebhookForm(props: Props) {
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <div className="space-y-5">
-        <div className="text-18 font-medium text-secondary">
-          {data
-            ? t("Webhook details")
-            : t("Create webhook")}
-        </div>
+        <div className="text-18 font-medium text-secondary">{data ? t("Webhook details") : t("Create webhook")}</div>
         <div className="space-y-3">
           <div className="space-y-1">
             <Controller

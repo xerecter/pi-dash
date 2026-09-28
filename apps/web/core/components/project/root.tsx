@@ -7,10 +7,10 @@
 import { useCallback, useEffect } from "react";
 import { observer } from "mobx-react";
 import { useParams, usePathname } from "next/navigation";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { TProjectAppliedDisplayFilterKeys, TProjectFilters } from "@pi-dash/types";
-import { calculateTotalFilters } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { TProjectAppliedDisplayFilterKeys, TProjectFilters } from "@karma-team/types";
+import { calculateTotalFilters } from "@karma-team/utils";
 // components
 import { PageHead } from "@/components/core/page-title";
 // hooks

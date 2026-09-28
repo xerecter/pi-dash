@@ -6,11 +6,11 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { PlusIcon, WorkItemsIcon } from "@pi-dash/propel/icons";
-import type { TIssue, TIssueServiceType } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { PlusIcon, WorkItemsIcon } from "@karma-team/propel/icons";
+import type { TIssue, TIssueServiceType } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 

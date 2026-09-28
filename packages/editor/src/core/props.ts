@@ -5,8 +5,8 @@
  */
 
 import type { EditorProps } from "@tiptap/pm/view";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // helpers
 import { processAssetDuplication } from "@/helpers/paste-asset";
 
@@ -38,7 +38,7 @@ export const CoreEditorProps = (props: TArgs): EditorProps => {
     handlePaste: (view, event) => {
       if (!event.clipboardData) return false;
 
-      const htmlContent = event.clipboardData.getData("text/pi-dash-editor-html");
+      const htmlContent = event.clipboardData.getData("text/karma-team-editor-html");
       if (!htmlContent) return false;
 
       const { processedHtml } = processAssetDuplication(htmlContent);

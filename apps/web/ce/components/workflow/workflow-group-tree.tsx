@@ -5,7 +5,7 @@
  */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import type { TIssueGroupByOptions } from "@pi-dash/types";
+import type { TIssueGroupByOptions } from "@karma-team/types";
 
 type Props = {
   groupBy?: TIssueGroupByOptions;

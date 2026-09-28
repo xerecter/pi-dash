@@ -6,7 +6,7 @@
 
 // store
 import { BaseWorkspaceRootStore } from "@/store/workspace";
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import type { RootStore } from "@/karma-team-web/store/root.store";
 
 export class WorkspaceRootStore extends BaseWorkspaceRootStore {
   constructor(_rootStore: RootStore) {

@@ -6,11 +6,11 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import { StartDatePropertyIcon } from "@pi-dash/propel/icons";
+import { StartDatePropertyIcon } from "@karma-team/propel/icons";
 // types
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 // components
-import { getDate, renderFormattedPayloadDate } from "@pi-dash/utils";
+import { getDate, renderFormattedPayloadDate } from "@karma-team/utils";
 import { DateDropdown } from "@/components/dropdowns/date";
 // helpers
 

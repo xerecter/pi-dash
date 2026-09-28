@@ -8,12 +8,12 @@ import { useRef, useState } from "react";
 import { usePopper } from "react-popper";
 import { Combobox } from "@headlessui/react";
 import { Check, Cloud, Container, Monitor } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { SearchIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { IPod } from "@pi-dash/types";
-import { ComboDropDown, Spinner } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { SearchIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import type { IPod } from "@karma-team/types";
+import { ComboDropDown, Spinner } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { DropdownButton } from "@/components/dropdowns/buttons";
 import { BUTTON_VARIANTS_WITH_TEXT } from "@/components/dropdowns/constants";
@@ -102,19 +102,19 @@ export function PodDropdownBase(props: TPodDropdownBaseProps) {
   // "Pod" would be a category error (the Cloud Agent has no pod).
   const fieldLabel = cloudAgent ? t("Runs on") : t("Pod");
   const selectedLabel = isManagedSelected
-    ? t("Pi Dash Agent (desktop)")
+    ? t("karma-team Agent (desktop)")
     : isCloudSelected
-      ? t("Pi Dash Cloud Agent")
+      ? t("karma-team Cloud Agent")
       : selectedPod?.name;
   const managedUnavailableReason =
     managedAgent?.reasonCode === "byok_not_supported_on_desktop"
       ? t("Select OpenHub in AI Assistant settings to run on your desktop.")
       : managedAgent?.reasonCode === "managed_runner_disabled"
-        ? t("Pi Dash Agent is not enabled on this server.")
-        : t("Open this project in Pi Dash Desktop to connect its agent.");
+        ? t("karma-team Agent is not enabled on this server.")
+        : t("Open this project in karma-team Desktop to connect its agent.");
   const cloudUnavailableReason =
     cloudAgent?.reasonCode === "llm_config_missing"
-      ? t("Configure your AI provider in Pi Dash AI settings to use the Cloud Agent.")
+      ? t("Configure your AI provider in karma-team AI settings to use the Cloud Agent.")
       : t("Unavailable on this instance. Ask an administrator to enable the Cloud Agent.");
   const filteredPods = query === "" ? pods : pods.filter((pod) => pod.name.toLowerCase().includes(query.toLowerCase()));
 
@@ -206,7 +206,7 @@ export function PodDropdownBase(props: TPodDropdownBaseProps) {
               />
             </div>
             <div className="mt-2 max-h-48 space-y-1 overflow-y-scroll">
-              {cloudAgent && matchesQuery(t("Pi Dash Cloud Agent"), query) && (
+              {cloudAgent && matchesQuery(t("karma-team Cloud Agent"), query) && (
                 <Combobox.Option
                   value={CLOUD_AGENT_VALUE}
                   disabled={!cloudAgent.available}
@@ -223,7 +223,7 @@ export function PodDropdownBase(props: TPodDropdownBaseProps) {
                       <div className="flex min-w-0 items-center gap-2">
                         <Cloud className="size-3.5 flex-shrink-0" />
                         <div className="min-w-0">
-                          <p className="truncate">{t("Pi Dash Cloud Agent")}</p>
+                          <p className="truncate">{t("karma-team Cloud Agent")}</p>
                           {!cloudAgent.available && (
                             <p className="truncate text-9 text-placeholder">{cloudUnavailableReason}</p>
                           )}
@@ -234,7 +234,7 @@ export function PodDropdownBase(props: TPodDropdownBaseProps) {
                   )}
                 </Combobox.Option>
               )}
-              {managedAgent && matchesQuery(t("Pi Dash Agent (desktop)"), query) && (
+              {managedAgent && matchesQuery(t("karma-team Agent (desktop)"), query) && (
                 <Combobox.Option
                   value={MANAGED_AGENT_VALUE}
                   disabled={!managedAgent.available}
@@ -249,7 +249,7 @@ export function PodDropdownBase(props: TPodDropdownBaseProps) {
                   <div className="flex items-center gap-2">
                     <Monitor className="size-3.5 flex-shrink-0" />
                     <div>
-                      <p>{t("Pi Dash Agent (desktop)")}</p>
+                      <p>{t("karma-team Agent (desktop)")}</p>
                       {!managedAgent.available && <p className="text-9">{managedUnavailableReason}</p>}
                     </div>
                   </div>

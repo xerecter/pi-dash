@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TActivityFilters, TActivityFilterOption } from "@pi-dash/constants";
-import { ACTIVITY_FILTER_TYPE_OPTIONS } from "@pi-dash/constants";
+// karma-team imports
+import type { TActivityFilters, TActivityFilterOption } from "@karma-team/constants";
+import { ACTIVITY_FILTER_TYPE_OPTIONS } from "@karma-team/constants";
 // components
 import { ActivityFilter } from "@/components/issues/issue-detail/issue-activity";
 

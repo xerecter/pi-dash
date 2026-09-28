@@ -5,8 +5,8 @@
  */
 
 import { useTheme } from "next-themes";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
 // assets
 import maintenanceModeDarkModeImage from "@/app/assets/instance/maintenance-mode-dark.svg?url";
 import maintenanceModeLightModeImage from "@/app/assets/instance/maintenance-mode-light.svg?url";

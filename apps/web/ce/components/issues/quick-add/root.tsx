@@ -8,12 +8,12 @@ import type { FC } from "react";
 import { useEffect, useRef } from "react";
 import { observer } from "mobx-react";
 import type { UseFormRegister, UseFormSetFocus } from "react-hook-form";
-// pi dash constants
-// pi dash helpers
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+// karma-team constants
+// karma-team helpers
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // types
-import type { TIssue } from "@pi-dash/types";
-import { EIssueLayoutTypes } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
+import { EIssueLayoutTypes } from "@karma-team/types";
 // components
 import type { TQuickAddIssueForm } from "@/components/issues/issue-layouts/quick-add";
 import {

@@ -6,9 +6,9 @@
 
 import { useMemo } from "react";
 import { X as CloseIcon } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { ISchedulerBinding, ISchedulerOccurrence } from "@pi-dash/services";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { ISchedulerBinding, ISchedulerOccurrence } from "@karma-team/services";
 import { DEFAULT_SCHEDULER_COLOR } from "../constants";
 import { humanizeRrule } from "../rrule-text";
 
@@ -58,23 +58,17 @@ export function OccurrenceDrawer({ occurrence, binding, canManage, onClose, onEd
 
       <div className="flex-1 overflow-y-auto p-4">
         <div className="mb-4 text-12 tracking-wide text-tertiary uppercase">
-          {isPast
-            ? t("Past run")
-            : t("Scheduled")}
+          {isPast ? t("Past run") : t("Scheduled")}
         </div>
 
         <Row label={t("When")} value={dt.toLocaleString()} />
         <Row label={t("Time zone")} value={occurrence.tzid} />
-        {isPast && occurrence.status && (
-          <Row label={t("Status")} value={occurrence.status} />
-        )}
+        {isPast && occurrence.status && <Row label={t("Status")} value={occurrence.status} />}
 
         {!isPast && binding && (
           <>
             {friendlyRule && <Row label={t("Recurrence")} value={friendlyRule} />}
-            {binding.extra_context && (
-              <Row label={t("Project context")} value={binding.extra_context} multiline />
-            )}
+            {binding.extra_context && <Row label={t("Project context")} value={binding.extra_context} multiline />}
           </>
         )}
 

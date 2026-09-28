@@ -6,8 +6,8 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { Loader } from "@pi-dash/ui";
+// karma-team imports
+import { Loader } from "@karma-team/ui";
 // local imports
 import useCyclesDetails from "../active-cycle/use-cycles-details";
 import { CycleAnalyticsProgress } from "./issue-progress";

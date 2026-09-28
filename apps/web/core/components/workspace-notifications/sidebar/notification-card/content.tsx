@@ -5,14 +5,14 @@
  */
 
 import type { ReactNode } from "react";
-// pi dash imports
-import type { TNotification } from "@pi-dash/types";
+// karma-team imports
+import type { TNotification } from "@karma-team/types";
 import {
   convertMinutesToHoursMinutesString,
   renderFormattedDate,
   sanitizeCommentForNotification,
   stripAndTruncateHTML,
-} from "@pi-dash/utils";
+} from "@karma-team/utils";
 // components
 import { LiteTextEditor } from "@/components/editor/lite-text";
 import {
@@ -20,7 +20,7 @@ import {
   renderAdditionalAction,
   renderAdditionalValue,
   shouldShowConnector,
-} from "@/pi-dash-web/components/workspace-notifications/notification-card/content";
+} from "@/karma-team-web/components/workspace-notifications/notification-card/content";
 
 // Types
 export type TNotificationFieldData = {
@@ -137,7 +137,7 @@ const getNotificationContentDetails = (
     return baseHandler(fieldData);
   }
 
-  // Check additional map from pi-dash-web (EE extensions)
+  // Check additional map from karma-team-web (EE extensions)
   const additionalHandler = ADDITIONAL_NOTIFICATION_CONTENT_MAP[field];
   if (additionalHandler) {
     return additionalHandler(fieldData);

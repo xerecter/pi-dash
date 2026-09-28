@@ -16,4 +16,4 @@ export * from "./mention";
 export * from "./slash-commands-suggestion";
 export * from "./document-collaborative-events";
 
-export * from "@/pi-dash-editor/types";
+export * from "@/karma-team-editor/types";

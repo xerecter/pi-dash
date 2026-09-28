@@ -6,12 +6,12 @@
 
 import { observer } from "mobx-react";
 // types
-import type { TPageNavigationTabs } from "@pi-dash/types";
+import type { TPageNavigationTabs } from "@karma-team/types";
 // components
 import { ListLayout } from "@/components/core/list";
-// pi dash web hooks
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
-import { usePageStore } from "@/pi-dash-web/hooks/store";
+// karma-team web hooks
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
+import { usePageStore } from "@/karma-team-web/hooks/store";
 // local imports
 import { PageListBlock } from "./block";
 

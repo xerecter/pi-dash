@@ -8,12 +8,12 @@ import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR, { mutate } from "swr";
 import { MoveLeft, MoveRight, RefreshCw } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
-import type { IExportData } from "@pi-dash/types";
-import { Table } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
+import type { IExportData } from "@karma-team/types";
+import { Table } from "@karma-team/ui";
 // components
 import { ImportExportSettingsLoader } from "@/components/ui/loader/settings/import-and-export";
 // constants
@@ -118,7 +118,9 @@ export const PrevExports = observer(function PrevExports(props: Props) {
               <EmptyStateCompact
                 assetKey="export"
                 title={t("No exports yet")}
-                description={t("You don't have any export records right now. Once you export data, all records will appear here.")}
+                description={t(
+                  "You don't have any export records right now. Once you export data, all records will appear here."
+                )}
                 align="start"
                 rootClassName="py-20"
               />

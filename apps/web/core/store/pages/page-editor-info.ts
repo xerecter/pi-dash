@@ -5,8 +5,8 @@
  */
 
 import { action, makeObservable, observable, runInAction } from "mobx";
-// pi dash imports
-import type { EditorRefApi, TEditorAsset } from "@pi-dash/editor";
+// karma-team imports
+import type { EditorRefApi, TEditorAsset } from "@karma-team/editor";
 
 export type TPageEditorInstance = {
   // observables

@@ -6,11 +6,11 @@
 
 // components
 import type { TPowerKCommandConfig, TPowerKContextType, TPowerKPageType } from "@/components/power-k/core/types";
-// pi dash web imports
+// karma-team web imports
 import {
   PowerKContextBasedActionsExtended,
   usePowerKContextBasedExtendedActions,
-} from "@/pi-dash-web/components/command-palette/power-k/pages/context-based";
+} from "@/karma-team-web/components/command-palette/power-k/pages/context-based";
 // local imports
 import { usePowerKCycleContextBasedActions } from "./cycle/commands";
 import { PowerKModuleContextBasedPages } from "./module";

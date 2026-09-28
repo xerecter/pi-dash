@@ -5,11 +5,11 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IProject } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IProject } from "@karma-team/types";
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { AutoArchiveAutomation, AutoCloseAutomation } from "@/components/automation";
 import { PageHead } from "@/components/core/page-title";
@@ -18,8 +18,8 @@ import { SettingsHeading } from "@/components/settings/heading";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
-// pi dash web imports
-import { CustomAutomationsRoot } from "@/pi-dash-web/components/automations/root";
+// karma-team web imports
+import { CustomAutomationsRoot } from "@/karma-team-web/components/automations/root";
 // local imports
 import type { Route } from "./+types/page";
 import { AutomationsProjectSettingsHeader } from "./header";
@@ -63,7 +63,9 @@ function AutomationSettingsPage({ params }: Route.ComponentProps) {
       <section className={`w-full ${canPerformProjectAdminActions ? "" : "opacity-60"}`}>
         <SettingsHeading
           title={t("Automations")}
-          description={t("Configure automated actions to streamline your project management workflow and reduce manual tasks.")}
+          description={t(
+            "Configure automated actions to streamline your project management workflow and reduce manual tasks."
+          )}
         />
         <div className="mt-6">
           <AutoArchiveAutomation handleChange={handleChange} />

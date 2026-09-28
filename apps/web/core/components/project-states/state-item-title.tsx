@@ -7,10 +7,10 @@
 import type { SetStateAction } from "react";
 import { observer } from "mobx-react";
 import { GripVertical } from "lucide-react";
-import { EIconSize, STATE_TRACKER_ELEMENTS } from "@pi-dash/constants";
-// pi dash imports
-import { EditIcon, StateGroupIcon } from "@pi-dash/propel/icons";
-import type { IState, TStateOperationsCallbacks } from "@pi-dash/types";
+import { EIconSize, STATE_TRACKER_ELEMENTS } from "@karma-team/constants";
+// karma-team imports
+import { EditIcon, StateGroupIcon } from "@karma-team/propel/icons";
+import type { IState, TStateOperationsCallbacks } from "@karma-team/types";
 // local imports
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { StateDelete, StateMarksAsDefault } from "./options";

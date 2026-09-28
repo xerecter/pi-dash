@@ -4,9 +4,12 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
-import { APIService } from "@pi-dash/services";
-import { AGENT_RUNTIME_REASON_MESSAGES, CSRF_TOKEN_PATH } from "@/pi-dash-web/components/desktop/agent-runtime-edition";
+import { API_BASE_URL } from "@karma-team/constants";
+import { APIService } from "@karma-team/services";
+import {
+  AGENT_RUNTIME_REASON_MESSAGES,
+  CSRF_TOKEN_PATH,
+} from "@/karma-team-web/components/desktop/agent-runtime-edition";
 
 // Shares the SPA's axios setup — including any edition 401 -> refresh ->
 // retry interceptor — so a normal access-cookie expiry does not revoke the
@@ -54,7 +57,7 @@ async function api<T>(path: string, method = "GET", body?: unknown): Promise<T> 
       tokenExpiresAt = 0;
       await invoke("managed_sign_out");
     }
-    const reason = response?.data?.error ?? response?.data?.detail ?? "Could not connect Pi Dash Agent.";
+    const reason = response?.data?.error ?? response?.data?.detail ?? "Could not connect karma-team Agent.";
     throw new Error(AGENT_RUNTIME_REASON_MESSAGES[reason] ?? reason, { cause: error });
   }
 }
@@ -69,7 +72,7 @@ let hostLabel = "";
 let activeUserId = "";
 
 function enrollmentKey() {
-  return `pidash-managed-workspaces:${activeUserId}`;
+  return `karma-team-managed-workspaces:${activeUserId}`;
 }
 
 function saveEnrollmentCache() {
@@ -128,7 +131,7 @@ async function configure() {
     );
     const expiresAt = Date.parse(credential.expires_at);
     if (!credential.token || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
-      throw new Error("Pi Dash returned an expired model credential. Sign in again.");
+      throw new Error("karma-team returned an expired model credential. Sign in again.");
     }
     await invoke("managed_write_model_token", { token: credential.token });
     tokenExpiresAt = expiresAt;
@@ -139,14 +142,14 @@ export async function connectAgentProject(workspaceSlug: string, projectId: stri
   if (!isDesktop()) return;
   const current = generation;
   return enqueue(async () => {
-    if (stopped || current !== generation) throw new Error("Pi Dash Agent is signed out.");
+    if (stopped || current !== generation) throw new Error("karma-team Agent is signed out.");
     const doctor = await invoke<{
       runner_present: boolean;
       engine_present: boolean;
       host_label: string;
     }>("managed_doctor");
     if (!doctor.runner_present || !doctor.engine_present)
-      throw new Error("Pi Dash Agent needs repair. Reinstall the desktop app to restore its bundled engine.");
+      throw new Error("karma-team Agent needs repair. Reinstall the desktop app to restore its bundled engine.");
     if (hostLabel && hostLabel !== doctor.host_label) {
       workspaces.clear();
       clearEnrollmentCache();
@@ -224,14 +227,14 @@ export async function ensureChatRuntime(workspaceSlug: string): Promise<void> {
   if (!isDesktop()) return;
   const current = generation;
   return enqueue(async () => {
-    if (stopped || current !== generation) throw new Error("Pi Dash Agent is signed out.");
+    if (stopped || current !== generation) throw new Error("karma-team Agent is signed out.");
     const doctor = await invoke<{
       runner_present: boolean;
       engine_present: boolean;
       host_label: string;
     }>("managed_doctor");
     if (!doctor.runner_present || !doctor.engine_present)
-      throw new Error("Pi Dash Agent needs repair. Reinstall the desktop app to restore its bundled engine.");
+      throw new Error("karma-team Agent needs repair. Reinstall the desktop app to restore its bundled engine.");
     if (hostLabel && hostLabel !== doctor.host_label) {
       workspaces.clear();
       clearEnrollmentCache();
@@ -285,7 +288,7 @@ export async function prepareAgentRun(target: AgentRunTarget): Promise<void> {
   // Enrollment precedes the first heartbeat. Wait for the server to observe
   // the daemon before attempting to create a run.
   for (let attempt = 0; attempt < 30; attempt++) {
-    if (stopped) throw new Error("Pi Dash Agent is signed out.");
+    if (stopped) throw new Error("karma-team Agent is signed out.");
     // eslint-disable-next-line no-await-in-loop -- Poll until enrollment's first heartbeat arrives.
     const project = await api<{ agent_executor_options: { kind: string; available: boolean }[] }>(projectPath);
     if (project.agent_executor_options?.some((option) => option.kind === "managed_runner" && option.available)) {
@@ -294,7 +297,7 @@ export async function prepareAgentRun(target: AgentRunTarget): Promise<void> {
     // eslint-disable-next-line no-await-in-loop -- Delay between heartbeat availability polls.
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
-  throw new Error("Pi Dash Agent has not connected yet. Try Run again shortly.");
+  throw new Error("karma-team Agent has not connected yet. Try Run again shortly.");
 }
 
 export async function refreshAgentRuntime() {
@@ -329,7 +332,7 @@ export async function disposeAgentRuntime(): Promise<void> {
       // An expired desktop session or unreachable server must not trap the
       // user in the app. Local credentials are removed below; the caller
       // must still clear the web session through the regular logout endpoint.
-      console.warn("Pi Dash Agent server enrollment cleanup failed; continuing local sign-out.");
+      console.warn("karma-team Agent server enrollment cleanup failed; continuing local sign-out.");
     } finally {
       await invoke("managed_sign_out");
       workspaces.clear();

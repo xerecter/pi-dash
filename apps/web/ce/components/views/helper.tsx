@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { EIssueLayoutTypes, IProjectView } from "@pi-dash/types";
+import type { EIssueLayoutTypes, IProjectView } from "@karma-team/types";
 import type { TWorkspaceLayoutProps } from "@/components/views/helper";
 
 export type TLayoutSelectionProps = {

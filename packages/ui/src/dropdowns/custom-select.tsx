@@ -9,9 +9,9 @@ import { Combobox } from "@headlessui/react";
 import React, { createContext, useCallback, useContext, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePopper } from "react-popper";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { CheckIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-// pi dash helpers
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { CheckIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+// karma-team helpers
 // hooks
 import { useDropdownKeyDown } from "../hooks/use-dropdown-key-down";
 // helpers

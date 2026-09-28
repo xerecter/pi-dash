@@ -11,7 +11,7 @@ import type {
   IIssueFilterOptions,
   TIssue,
   EIssuesStoreType,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 
 export const ALL_ISSUES = "All Issues";
 

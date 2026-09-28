@@ -8,9 +8,9 @@ import { observer } from "mobx-react";
 import { MessageSquare, SquarePen, Sparkles } from "lucide-react";
 import { NavLink, Outlet, useParams } from "react-router";
 import useSWR from "swr";
-import { AssistantService } from "@pi-dash/services";
-import type { IAssistantThread } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import { AssistantService } from "@karma-team/services";
+import type { IAssistantThread } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 
 const service = new AssistantService();
 
@@ -36,7 +36,7 @@ const AssistantLayout = observer(function AssistantLayout() {
       <aside className="flex w-[280px] shrink-0 flex-col border-r border-subtle bg-surface-1">
         <div className="flex h-12 shrink-0 items-center gap-2 border-b border-subtle px-4 text-14 font-semibold text-primary">
           <Sparkles className="size-4 text-accent-primary" />
-          Pi Dash AI
+          karma-team AI
         </div>
         <div className="shrink-0 p-2">
           <NavLink to={base} end className={({ isActive }) => navItemClass(isActive, "h-9")}>

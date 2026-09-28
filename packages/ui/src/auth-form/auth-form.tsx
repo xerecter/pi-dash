@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useMemo } from "react";
-import { E_PASSWORD_STRENGTH } from "@pi-dash/constants";
+import { E_PASSWORD_STRENGTH } from "@karma-team/constants";
 import { Button } from "../button/button";
 import { Spinner } from "../spinners/circular-spinner";
 import { cn } from "../utils";

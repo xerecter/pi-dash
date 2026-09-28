@@ -1,7 +1,7 @@
 //! Unit coverage for `daemon::question_guard`: which Codex frames count as
 //! a question, when the guard trips, and what lands in the failure detail.
 
-use pidash::daemon::question_guard::{
+use karma_team::daemon::question_guard::{
     MAX_UNANSWERED_QUESTIONS, UnansweredQuestionGuard, question_from_frame,
 };
 use serde_json::{Value, json};

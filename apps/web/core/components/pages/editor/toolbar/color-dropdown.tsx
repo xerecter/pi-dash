@@ -7,11 +7,11 @@
 import { memo } from "react";
 import { ALargeSmall, Ban } from "lucide-react";
 import { Popover } from "@headlessui/react";
-// pi dash editor
-import { COLORS_LIST } from "@pi-dash/editor";
-import type { TEditorCommands } from "@pi-dash/editor";
+// karma-team editor
+import { COLORS_LIST } from "@karma-team/editor";
+import type { TEditorCommands } from "@karma-team/editor";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   handleColorSelect: (

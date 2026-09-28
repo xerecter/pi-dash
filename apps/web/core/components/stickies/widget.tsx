@@ -7,9 +7,9 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { PlusIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { PlusIcon } from "@karma-team/propel/icons";
 // hooks
 import { useSticky } from "@/hooks/use-stickies";
 // local imports

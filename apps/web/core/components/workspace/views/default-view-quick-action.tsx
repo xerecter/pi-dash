@@ -6,15 +6,15 @@
 
 import { observer } from "mobx-react";
 
-import { useTranslation } from "@pi-dash/i18n";
-// pi dash imports
-import { LinkIcon, NewTabIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
+import { useTranslation } from "@karma-team/i18n";
+// karma-team imports
+import { LinkIcon, NewTabIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 // ui
-import type { TStaticViewTypes } from "@pi-dash/types";
-import type { TContextMenuItem } from "@pi-dash/ui";
-import { CustomMenu } from "@pi-dash/ui";
-import { copyUrlToClipboard, cn } from "@pi-dash/utils";
+import type { TStaticViewTypes } from "@karma-team/types";
+import type { TContextMenuItem } from "@karma-team/ui";
+import { CustomMenu } from "@karma-team/ui";
+import { copyUrlToClipboard, cn } from "@karma-team/utils";
 // helpers
 type Props = {
   workspaceSlug: string;

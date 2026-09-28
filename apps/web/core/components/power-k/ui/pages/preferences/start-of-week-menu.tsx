@@ -6,9 +6,9 @@
 
 import React from "react";
 import { Command } from "cmdk";
-// pi dash imports
-import { START_OF_THE_WEEK_OPTIONS } from "@pi-dash/constants";
-import type { EStartOfTheWeek } from "@pi-dash/types";
+// karma-team imports
+import { START_OF_THE_WEEK_OPTIONS } from "@karma-team/constants";
+import type { EStartOfTheWeek } from "@karma-team/types";
 // local imports
 import { PowerKModalCommandItem } from "../../modal/command-item";
 

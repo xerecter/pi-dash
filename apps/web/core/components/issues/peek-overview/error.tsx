@@ -5,7 +5,7 @@
  */
 
 import { MoveRight } from "lucide-react";
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import { Tooltip } from "@karma-team/propel/tooltip";
 // assets
 import emptyIssue from "@/app/assets/empty-state/issue.svg?url";
 // components

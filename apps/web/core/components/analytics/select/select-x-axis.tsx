@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash package imports
-import type { ChartXAxisProperty } from "@pi-dash/types";
-import { CustomSelect } from "@pi-dash/ui";
+// karma-team package imports
+import type { ChartXAxisProperty } from "@karma-team/types";
+import { CustomSelect } from "@karma-team/ui";
 
 type Props = {
   value?: ChartXAxisProperty;

@@ -8,16 +8,16 @@ import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRightCircle } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Tabs } from "@pi-dash/propel/tabs";
-import { Tooltip } from "@pi-dash/propel/tooltip";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Tabs } from "@karma-team/propel/tabs";
+import { Tooltip } from "@karma-team/propel/tooltip";
 // hooks
 import { useQueryParams } from "@/hooks/use-query-params";
-// pi dash web components
-import type { TPageNavigationPaneTab } from "@/pi-dash-web/components/pages/navigation-pane";
+// karma-team web components
+import type { TPageNavigationPaneTab } from "@/karma-team-web/components/pages/navigation-pane";
 // store
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
 import type { TPageRootHandlers } from "../editor/page-root";

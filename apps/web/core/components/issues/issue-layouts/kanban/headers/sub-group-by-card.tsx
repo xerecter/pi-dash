@@ -7,11 +7,11 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { Circle } from "lucide-react";
-import { ChevronDownIcon, ChevronUpIcon } from "@pi-dash/propel/icons";
-// Pi Dash
-import type { TIssueGroupByOptions, TIssueKanbanFilters } from "@pi-dash/types";
-// Pi Dash-web
-import { WorkFlowGroupTree } from "@/pi-dash-web/components/workflow";
+import { ChevronDownIcon, ChevronUpIcon } from "@karma-team/propel/icons";
+// karma-team
+import type { TIssueGroupByOptions, TIssueKanbanFilters } from "@karma-team/types";
+// karma-team-web
+import { WorkFlowGroupTree } from "@/karma-team-web/components/workflow";
 // mobx
 
 interface IHeaderSubGroupByCard {

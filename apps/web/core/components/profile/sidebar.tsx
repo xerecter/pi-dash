@@ -8,16 +8,16 @@ import { useEffect, useRef } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { Disclosure, Transition } from "@headlessui/react";
-// pi dash imports
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { useTranslation } from "@pi-dash/i18n";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { EditIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IUserProfileProjectSegregation } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
-import { cn, renderFormattedDate, getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { useTranslation } from "@karma-team/i18n";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { EditIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IUserProfileProjectSegregation } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
+import { cn, renderFormattedDate, getFileURL } from "@karma-team/utils";
 // components
 import { CoverImage } from "@/components/common/cover-image";
 // hooks

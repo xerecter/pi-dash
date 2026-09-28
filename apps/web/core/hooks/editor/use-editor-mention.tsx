@@ -5,21 +5,21 @@
  */
 
 import { useCallback } from "react";
-// pi dash editor
-import type { TMentionSection, TMentionSuggestion } from "@pi-dash/editor";
-// pi dash types
+// karma-team editor
+import type { TMentionSection, TMentionSuggestion } from "@karma-team/editor";
+// karma-team types
 import type {
   TSearchEntities,
   TSearchEntityRequestPayload,
   TSearchResponse,
   TUserSearchResponse,
-} from "@pi-dash/types";
-// pi dash ui
-import { Avatar } from "@pi-dash/ui";
+} from "@karma-team/types";
+// karma-team ui
+import { Avatar } from "@karma-team/ui";
 // helpers
-import { getFileURL } from "@pi-dash/utils";
-// pi dash web hooks
-import { useAdditionalEditorMention } from "@/pi-dash-web/hooks/use-additional-editor-mention";
+import { getFileURL } from "@karma-team/utils";
+// karma-team web hooks
+import { useAdditionalEditorMention } from "@/karma-team-web/hooks/use-additional-editor-mention";
 
 type TArgs = {
   enableAdvancedMentions?: boolean;

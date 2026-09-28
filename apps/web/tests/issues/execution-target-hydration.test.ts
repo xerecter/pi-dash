@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { EIssueServiceType } from "@pi-dash/types";
-import type { TIssue } from "@pi-dash/types";
+import { EIssueServiceType } from "@karma-team/types";
+import type { TIssue } from "@karma-team/types";
 import { IssueStore } from "@/store/issue/issue-details/issue.store";
 import type { IIssueDetail } from "@/store/issue/issue-details/root.store";
 

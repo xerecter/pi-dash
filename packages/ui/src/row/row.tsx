@@ -27,6 +27,6 @@ const Row = React.forwardRef(function Row(props: RowProps, ref: React.ForwardedR
   );
 });
 
-Row.displayName = "pi-dash-ui-row";
+Row.displayName = "karma-team-ui-row";
 
 export { Row, ERowVariant };

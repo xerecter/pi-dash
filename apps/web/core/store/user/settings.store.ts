@@ -5,8 +5,8 @@
  */
 
 import { action, makeObservable, observable, runInAction } from "mobx";
-// pi dash imports
-import type { IUserSettings } from "@pi-dash/types";
+// karma-team imports
+import type { IUserSettings } from "@karma-team/types";
 // services
 import { UserService } from "@/services/user.service";
 

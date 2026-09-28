@@ -6,13 +6,13 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import { Button } from "@pi-dash/propel/button";
-import { DraftIcon } from "@pi-dash/propel/icons";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { Breadcrumbs, Header } from "@pi-dash/ui";
+import { Button } from "@karma-team/propel/button";
+import { DraftIcon } from "@karma-team/propel/icons";
+import { EIssuesStoreType } from "@karma-team/types";
+import { Breadcrumbs, Header } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { CountChip } from "@/components/common/count-chip";

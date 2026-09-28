@@ -7,18 +7,18 @@
 import { observer } from "mobx-react";
 import { usePathname } from "next/navigation";
 // i18n
-import { EUserPermissions, EUserPermissionsLevel, PROJECT_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+import { EUserPermissions, EUserPermissionsLevel, PROJECT_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import { Button } from "@pi-dash/propel/button";
-import { ProjectIcon } from "@pi-dash/propel/icons";
-import { Breadcrumbs, Header } from "@pi-dash/ui";
+import { Button } from "@karma-team/propel/button";
+import { ProjectIcon } from "@karma-team/propel/icons";
+import { Breadcrumbs, Header } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useUserPermissions } from "@/hooks/store/user";
-// pi dash web constants
+// karma-team web constants
 // components
 import HeaderFilters from "./filters";
 import { ProjectSearch } from "./search-projects";
@@ -69,7 +69,9 @@ export const ProjectsBaseHeader = observer(function ProjectsBaseHeader() {
             className="items-center gap-1"
           >
             <span className="hidden sm:inline-block">{t("Add Project")}</span>
-            <span className="inline-block sm:hidden">{t("{count, plural, one {Project} other {Projects}}", { count: 1 })}</span>
+            <span className="inline-block sm:hidden">
+              {t("{count, plural, one {Project} other {Projects}}", { count: 1 })}
+            </span>
           </Button>
         ) : (
           <></>

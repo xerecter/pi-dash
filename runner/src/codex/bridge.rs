@@ -12,12 +12,12 @@ pub use crate::agent::{BridgeEvent, RunPayload};
 use crate::approval::EngineThreadSettings;
 use crate::cloud::protocol::{ApprovalDecision, ApprovalKind, FailureReason};
 use crate::codex::app_server::AppServer;
-use crate::util::shell::AgentEnv;
 use crate::codex::jsonrpc::{self, Incoming};
 use crate::codex::schema::{
     ApprovalResponseParams, ClientInfo, InitializeParams, NotificationKind, ThreadStartParams,
     TurnInputItem, TurnStartParams,
 };
+use crate::util::shell::AgentEnv;
 
 pub struct Bridge {
     pub server: AppServer,
@@ -57,7 +57,7 @@ impl Bridge {
         .await
     }
 
-    /// [`Bridge::spawn`] with a Pi Dash-controlled agent environment and the
+    /// [`Bridge::spawn`] with a karma-team-controlled agent environment and the
     /// per-thread engine posture derived from the caller's approval mode.
     pub async fn spawn_with_env(
         binary: &str,
@@ -141,7 +141,7 @@ impl Bridge {
             "initialize",
             &InitializeParams {
                 client_info: ClientInfo {
-                    name: "pidash".to_string(),
+                    name: "karma-team".to_string(),
                     version: crate::RUNNER_VERSION.to_string(),
                 },
             },
@@ -812,7 +812,7 @@ mod translate_tests {
                     "id": "it_1",
                     "type": "commandExecution",
                     "status": "inProgress",
-                    "command": "pidash workspace me",
+                    "command": "karma-team workspace me",
                     "cwd": "/work",
                     "processId": null,
                     "source": "agent"
@@ -832,7 +832,7 @@ mod translate_tests {
                 assert!(matches!(kind, ApprovalKind::CommandExecution));
                 assert_eq!(
                     payload.get("command").and_then(|v| v.as_str()),
-                    Some("pidash workspace me")
+                    Some("karma-team workspace me")
                 );
                 assert_eq!(
                     payload.get("synthesized").and_then(|v| v.as_bool()),
@@ -842,7 +842,7 @@ mod translate_tests {
                     reason
                         .as_deref()
                         .unwrap_or("")
-                        .contains("pidash workspace me")
+                        .contains("karma-team workspace me")
                 );
             }
             other => panic!("expected Raw + ApprovalRequest, got {other:?}"),

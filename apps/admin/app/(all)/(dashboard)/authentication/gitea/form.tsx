@@ -8,11 +8,11 @@ import { useState } from "react";
 import { isEmpty } from "lodash-es";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
-// pi dash internal packages
-import { API_BASE_URL } from "@pi-dash/constants";
-import { Button, getButtonStyling } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IFormattedInstanceConfiguration, TInstanceGiteaAuthenticationConfigurationKeys } from "@pi-dash/types";
+// karma-team internal packages
+import { API_BASE_URL } from "@karma-team/constants";
+import { Button, getButtonStyling } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IFormattedInstanceConfiguration, TInstanceGiteaAuthenticationConfigurationKeys } from "@karma-team/types";
 // components
 import { CodeBlock } from "@/components/common/code-block";
 import { ConfirmDiscardModal } from "@/components/common/confirm-discard-modal";
@@ -178,7 +178,7 @@ export function InstanceGiteaConfigForm(props: Props) {
       <div className="flex flex-col gap-8">
         <div className="grid w-full grid-cols-2 gap-x-12 gap-y-8">
           <div className="col-span-2 flex flex-col gap-y-4 pt-1 md:col-span-1">
-            <div className="pt-2.5 text-18 font-medium">Gitea-provided details for Pi Dash</div>
+            <div className="pt-2.5 text-18 font-medium">Gitea-provided details for karma-team</div>
             {GITEA_FORM_FIELDS.map((field) => (
               <ControllerInput
                 key={field.key}
@@ -212,7 +212,7 @@ export function InstanceGiteaConfigForm(props: Props) {
           </div>
           <div className="col-span-2 md:col-span-1">
             <div className="flex flex-col gap-y-4 rounded-lg bg-layer-1 px-6 pt-1.5 pb-4">
-              <div className="pt-2 text-18 font-medium">Pi Dash-provided details for Gitea</div>
+              <div className="pt-2 text-18 font-medium">karma-team-provided details for Gitea</div>
               {GITEA_SERVICE_FIELD.map((field) => (
                 <CopyField key={field.key} label={field.label} url={field.url} description={field.description} />
               ))}

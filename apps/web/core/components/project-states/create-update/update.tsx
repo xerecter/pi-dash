@@ -6,8 +6,8 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IState, TStateOperationsCallbacks } from "@pi-dash/types";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IState, TStateOperationsCallbacks } from "@karma-team/types";
 // components
 import { StateForm } from "@/components/project-states";
 

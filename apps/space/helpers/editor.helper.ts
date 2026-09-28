@@ -4,11 +4,11 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { MAX_FILE_SIZE } from "@pi-dash/constants";
-import type { TFileHandler } from "@pi-dash/editor";
-import { SitesFileService } from "@pi-dash/services";
-import { getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { MAX_FILE_SIZE } from "@karma-team/constants";
+import type { TFileHandler } from "@karma-team/editor";
+import { SitesFileService } from "@karma-team/services";
+import { getFileURL } from "@karma-team/utils";
 // services
 const sitesFileService = new SitesFileService();
 

@@ -5,11 +5,11 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { TDescriptionVersion } from "@pi-dash/types";
-import { Avatar, CustomMenu } from "@pi-dash/ui";
-import { calculateTimeAgo, getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { TDescriptionVersion } from "@karma-team/types";
+import { Avatar, CustomMenu } from "@karma-team/ui";
+import { calculateTimeAgo, getFileURL } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 

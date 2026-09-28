@@ -6,11 +6,11 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-import { PlusIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TIssueLink } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import { PlusIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TIssueLink } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports

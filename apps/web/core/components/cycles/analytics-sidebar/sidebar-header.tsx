@@ -8,13 +8,13 @@ import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { ArrowRight } from "lucide-react";
-// Pi Dash Imports
-import { CYCLE_STATUS, EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronRightIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { ICycle } from "@pi-dash/types";
-import { getDate, renderFormattedPayloadDate } from "@pi-dash/utils";
+// karma-team Imports
+import { CYCLE_STATUS, EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronRightIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { ICycle } from "@karma-team/types";
+import { getDate, renderFormattedPayloadDate } from "@karma-team/utils";
 // components
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";
 // hooks
@@ -108,7 +108,9 @@ export const CycleSidebarHeader = observer(function CycleSidebarHeader(props: Pr
       setToast({
         type: TOAST_TYPE.ERROR,
         title: t("Error!"),
-        message: t("You already have a cycle on the given dates, if you want to create a draft cycle, you can do that by removing both the dates."),
+        message: t(
+          "You already have a cycle on the given dates, if you want to create a draft cycle, you can do that by removing both the dates."
+        ),
       });
     }
     return isDateValid;

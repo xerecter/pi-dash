@@ -5,12 +5,12 @@
  */
 
 import { Controller, useFormContext } from "react-hook-form";
-// pi dash imports
-import { NETWORK_CHOICES, ETabIndices } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { IProject } from "@pi-dash/types";
-import { CustomSelect } from "@pi-dash/ui";
-import { getTabIndex } from "@pi-dash/utils";
+// karma-team imports
+import { NETWORK_CHOICES, ETabIndices } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { IProject } from "@karma-team/types";
+import { CustomSelect } from "@karma-team/ui";
+import { getTabIndex } from "@karma-team/utils";
 // components
 import { MemberDropdown } from "@/components/dropdowns/member/dropdown";
 import { ProjectNetworkIcon } from "@/components/project/project-network-icon";

@@ -5,10 +5,10 @@
  */
 
 import { CalendarDays } from "lucide-react";
-// pi dash imports
-import { DueDatePropertyIcon, StartDatePropertyIcon } from "@pi-dash/propel/icons";
-import type { TStateGroups } from "@pi-dash/types";
-import { cn, renderFormattedDate, shouldHighlightIssueDueDate } from "@pi-dash/utils";
+// karma-team imports
+import { DueDatePropertyIcon, StartDatePropertyIcon } from "@karma-team/propel/icons";
+import type { TStateGroups } from "@karma-team/types";
+import { cn, renderFormattedDate, shouldHighlightIssueDueDate } from "@karma-team/utils";
 
 type Props = {
   startDate: string | null;

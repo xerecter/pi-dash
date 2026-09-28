@@ -8,15 +8,15 @@ import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { SquareUser } from "lucide-react";
-// Pi Dash imports
-import { MODULE_STATUS, EUserPermissions, EUserPermissionsLevel, IS_FAVORITE_MENU_OPEN } from "@pi-dash/constants";
-import { useLocalStorage } from "@pi-dash/hooks";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setPromiseToast, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IModule } from "@pi-dash/types";
-import { FavoriteStar } from "@pi-dash/ui";
-import { renderFormattedPayloadDate, getDate } from "@pi-dash/utils";
+// karma-team imports
+import { MODULE_STATUS, EUserPermissions, EUserPermissionsLevel, IS_FAVORITE_MENU_OPEN } from "@karma-team/constants";
+import { useLocalStorage } from "@karma-team/hooks";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setPromiseToast, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IModule } from "@karma-team/types";
+import { FavoriteStar } from "@karma-team/ui";
+import { renderFormattedPayloadDate, getDate } from "@karma-team/utils";
 // components
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";
 import { ModuleQuickActions } from "@/components/modules";

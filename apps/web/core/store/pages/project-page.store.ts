@@ -8,14 +8,14 @@ import { unset, set } from "lodash-es";
 import { makeObservable, observable, runInAction, action, reaction, computed } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import { EUserPermissions } from "@pi-dash/constants";
-import type { TPage, TPageFilters, TPageNavigationTabs } from "@pi-dash/types";
-import { EUserProjectRoles } from "@pi-dash/types";
+import { EUserPermissions } from "@karma-team/constants";
+import type { TPage, TPageFilters, TPageNavigationTabs } from "@karma-team/types";
+import { EUserProjectRoles } from "@karma-team/types";
 // helpers
-import { filterPagesByPageType, getPageName, orderPages, shouldFilterPage } from "@pi-dash/utils";
-// pi dash web constants
-// pi dash web store
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import { filterPagesByPageType, getPageName, orderPages, shouldFilterPage } from "@karma-team/utils";
+// karma-team web constants
+// karma-team web store
+import type { RootStore } from "@/karma-team-web/store/root.store";
 // services
 import { ProjectPageService } from "@/services/page";
 // store

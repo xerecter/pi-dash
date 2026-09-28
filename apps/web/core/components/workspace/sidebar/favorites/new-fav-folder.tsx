@@ -9,13 +9,13 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import type { SubmitHandler } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { useTranslation } from "@pi-dash/i18n";
-// pi dash helpers
-// pi dash ui
-import { FavoriteFolderIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Input } from "@pi-dash/ui";
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { useTranslation } from "@karma-team/i18n";
+// karma-team helpers
+// karma-team ui
+import { FavoriteFolderIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Input } from "@karma-team/ui";
 // hooks
 import { useFavorite } from "@/hooks/store/use-favorite";
 
@@ -146,12 +146,7 @@ export const NewFavoriteFolder = observer(function NewFavoriteFolder(props: TPro
           control={control}
           rules={{ required: true }}
           render={({ field }) => (
-            <Input
-              className="w-full"
-              placeholder={t("New folder")}
-              aria-label={t("Enter folder name")}
-              {...field}
-            />
+            <Input className="w-full" placeholder={t("New folder")} aria-label={t("Enter folder name")} {...field} />
           )}
         />
       </form>

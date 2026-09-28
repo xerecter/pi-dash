@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 // components
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import { HEADER_HEIGHT, SIDEBAR_WIDTH } from "@/components/gantt-chart/constants";
 // helpers
 // hooks

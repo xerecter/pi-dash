@@ -1,11 +1,11 @@
 //! Hidden `__run` subcommand: entry point that systemd / launchd exec.
 //!
 //! Not a user-facing verb. Users drive the daemon through service-lifecycle
-//! verbs (`pidash install`, `start`, `stop`, `restart`, `status`). This handler
+//! verbs (`karma-team install`, `start`, `stop`, `restart`, `status`). This handler
 //! is what the generated unit files call via `ExecStart={exe} __run` (systemd)
 //! and `<array><string>{exe}</string><string>__run</string></array>` (launchd).
 //!
-//! The body is the old `pidash start` foreground flow: load config, load any
+//! The body is the old `karma-team start` foreground flow: load config, load any
 //! legacy connection creds, run the supervisor loop, block until shutdown.
 
 use anyhow::{Context, Result};
@@ -25,7 +25,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     if !config_path.exists() {
         anyhow::bail!(
             "no config.toml at {config_path:?}. \
-             Run `pidash auth login --url <URL>`, then `pidash runner add --project <PROJECT>`."
+             Run `karma-team auth login --url <URL>`, then `karma-team runner add --project <PROJECT>`."
         );
     }
 
@@ -44,7 +44,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     if config.runners.is_empty() && !supports_machine_control(&config) {
         anyhow::bail!(
             "no runners configured in config.toml — \
-             register one with `pidash runner add --project <SLUG>`."
+             register one with `karma-team runner add --project <SLUG>`."
         );
     }
 
@@ -57,7 +57,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
             if !p.exists() {
                 anyhow::bail!(
                     "no credentials.toml at {p:?} for runner {} ({}). \
-                     Re-add it with `pidash runner add`, or remove the [[runner]] block from config.toml.",
+                     Re-add it with `karma-team runner add`, or remove the [[runner]] block from config.toml.",
                     r.name,
                     r.runner_id
                 );
@@ -66,12 +66,12 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     }
 
     // The legacy top-level credentials.toml (connection-secret model)
-    // is only populated by the legacy `pidash connect` flow. The
+    // is only populated by the legacy `karma-team connect` flow. The
     // supervisor doesn't actually consume it (see Supervisor::run,
     // which destructures `creds: _creds`) — runner runtime auth comes
     // from the shared [cli].token or legacy per-runner refresh-token
     // files. We pass a placeholder when the legacy file is absent so
-    // the new `pidash runner add` flow can start the daemon without
+    // the new `karma-team runner add` flow can start the daemon without
     // the legacy enrollment step.
     let creds = crate::config::file::load_credentials(paths).unwrap_or_else(|_| {
         use chrono::Utc;
@@ -153,7 +153,7 @@ mod tests {
         let args = Args { offline: false };
         assert!(requires_runner_credentials(
             &args,
-            &config_with_cli_token(Some("pi_dash_api_user"))
+            &config_with_cli_token(Some("karma_team_api_user"))
         ));
         assert!(requires_runner_credentials(
             &args,

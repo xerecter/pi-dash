@@ -6,13 +6,13 @@
 
 import React from "react";
 import { Link } from "react-router";
-import { PiDashLockup } from "@pi-dash/propel/icons";
+import { KarmaTeamLockup } from "@karma-team/propel/icons";
 
 export function AuthHeader() {
   return (
     <div className="sticky top-0 flex w-full flex-shrink-0 items-center justify-between gap-6">
       <Link to="/">
-        <PiDashLockup height={20} width={37} className="text-primary" />
+        <KarmaTeamLockup height={20} width={37} className="text-primary" />
       </Link>
     </div>
   );

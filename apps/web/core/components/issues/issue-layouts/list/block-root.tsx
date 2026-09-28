@@ -10,13 +10,13 @@ import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { attachInstruction, extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 import { observer } from "mobx-react";
-// pi dash helpers
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+// karma-team helpers
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // types
-import type { IIssueDisplayProperties, TIssue, TIssueMap } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import type { IIssueDisplayProperties, TIssue, TIssueMap } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // components
-import { DropIndicator } from "@pi-dash/ui";
+import { DropIndicator } from "@karma-team/ui";
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 import { ListLoaderItemRow } from "@/components/ui/loader/layouts/list-layout-loader";
 // hooks

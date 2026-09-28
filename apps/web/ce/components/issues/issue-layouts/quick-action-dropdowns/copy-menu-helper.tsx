@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import type { TContextMenuItem } from "@pi-dash/ui";
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import type { TContextMenuItem } from "@karma-team/ui";
 
 export interface CopyMenuHelperProps {
   baseItem: {

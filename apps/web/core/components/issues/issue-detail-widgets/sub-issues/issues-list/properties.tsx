@@ -4,14 +4,14 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
+// karma-team imports
 import type { SyntheticEvent } from "react";
 import { useMemo } from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { StartDatePropertyIcon, DueDatePropertyIcon } from "@pi-dash/propel/icons";
-import type { IIssueDisplayProperties, TIssue } from "@pi-dash/types";
-import { getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { StartDatePropertyIcon, DueDatePropertyIcon } from "@karma-team/propel/icons";
+import type { IIssueDisplayProperties, TIssue } from "@karma-team/types";
+import { getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@karma-team/utils";
 // components
 import { DateDropdown } from "@/components/dropdowns/date";
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";

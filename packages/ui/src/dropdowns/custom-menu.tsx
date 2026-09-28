@@ -9,9 +9,9 @@ import { MoreHorizontal } from "lucide-react";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import { usePopper } from "react-popper";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { ChevronDownIcon, ChevronRightIcon } from "@pi-dash/propel/icons";
-// pi dash helpers
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { ChevronDownIcon, ChevronRightIcon } from "@karma-team/propel/icons";
+// karma-team helpers
 // helpers
 import { useDropdownKeyDown } from "../hooks/use-dropdown-key-down";
 import { cn } from "../utils";

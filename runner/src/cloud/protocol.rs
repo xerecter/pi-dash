@@ -3,10 +3,10 @@ use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use uuid::Uuid;
 
-// These wire enums moved to the shared `pidash-ipc` crate (PDASHOSS01-158);
+// These wire enums moved to the shared `karma-team-ipc` crate (PDASHOSS01-158);
 // re-exported here so every `cloud::protocol::{RunnerStatus, ApprovalKind,
 // ApprovalDecision}` call site is unchanged.
-pub use pidash_ipc::dto::{ApprovalDecision, ApprovalKind, ApprovalMode, RunnerStatus};
+pub use karma_team_ipc::dto::{ApprovalDecision, ApprovalKind, ApprovalMode, RunnerStatus};
 
 /// Wire version — bump on incompatible shape changes.
 ///
@@ -182,7 +182,7 @@ pub enum ClientMsg {
     /// Agent yielded with a question for the human (Codex tool-call path).
     /// Cloud transitions the run to PAUSED_AWAITING_INPUT and waits for a
     /// continuation trigger (typically a non-bot comment on the issue).
-    /// Claude's yield uses the `pi-dash-done` fenced block instead and
+    /// Claude's yield uses the `karma-team-done` fenced block instead and
     /// arrives via `RunCompleted` → cloud's done-signal parser.
     RunPaused {
         run_id: Uuid,
@@ -291,8 +291,8 @@ pub enum ServerMsg {
         run_id: Uuid,
         work_item_id: Option<Uuid>,
         /// Human-readable work-item key (e.g. `ENG-42`). Exported to the
-        /// agent as `PIDASH_ISSUE_IDENTIFIER` so its `pidash state list` /
-        /// `pidash workpad` calls resolve the current issue without an
+        /// agent as `KARMA_TEAM_ISSUE_IDENTIFIER` so its `karma-team state list` /
+        /// `karma-team workpad` calls resolve the current issue without an
         /// explicit argument. Absent from older clouds.
         #[serde(default)]
         work_item_identifier: Option<String>,
@@ -330,7 +330,7 @@ pub enum ServerMsg {
         reason: String,
     },
     /// Cloud-initiated per-runner removal (UI's "Remove" action on a
-    /// runner row, or `pidash token remove-runner` on a different
+    /// runner row, or `karma-team token remove-runner` on a different
     /// machine). The daemon cancels that runner's in-flight run, drops
     /// it from `instances`, and deletes its data directory. Connection
     /// and other runners stay up. See `design.md` §11.4.
@@ -488,7 +488,7 @@ pub enum FailureReason {
     /// runners can still serialize this reason to a current cloud without
     /// deserialization errors.
     ResumeUnavailable,
-    /// The daemon process is shutting down (SIGTERM, e.g. `pidash restart`,
+    /// The daemon process is shutting down (SIGTERM, e.g. `karma-team restart`,
     /// systemd stop, host reboot). The run cannot continue past this point.
     /// Sent eagerly during the daemon's drain step so the cloud transitions
     /// the run to FAILED via a deliberate signal instead of inferring it

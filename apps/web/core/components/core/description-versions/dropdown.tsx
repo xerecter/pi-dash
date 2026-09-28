@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 import { History } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { TDescriptionVersion } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
-import { calculateTimeAgo } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { TDescriptionVersion } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
+import { calculateTimeAgo } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 // local imports

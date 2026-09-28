@@ -5,7 +5,7 @@
  */
 
 // store
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
 import type { TPageInstance } from "@/store/pages/base-page";
 
 export type TPageHeaderExtraActionsProps = {

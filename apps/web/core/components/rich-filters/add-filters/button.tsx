@@ -7,13 +7,13 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { ListFilter } from "lucide-react";
-// pi dash imports
-import type { TButtonSize, TButtonVariant } from "@pi-dash/propel/button";
-import { getButtonStyling } from "@pi-dash/propel/button";
-import type { IFilterInstance } from "@pi-dash/shared-state";
-import type { TExternalFilter, TFilterProperty, TSupportedOperators } from "@pi-dash/types";
-import { LOGICAL_OPERATOR } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type { TButtonSize, TButtonVariant } from "@karma-team/propel/button";
+import { getButtonStyling } from "@karma-team/propel/button";
+import type { IFilterInstance } from "@karma-team/shared-state";
+import type { TExternalFilter, TFilterProperty, TSupportedOperators } from "@karma-team/types";
+import { LOGICAL_OPERATOR } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // local imports
 import { AddFilterDropdown } from "./dropdown";
 

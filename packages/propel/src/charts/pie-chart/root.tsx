@@ -6,8 +6,8 @@
 
 import React, { useMemo, useState } from "react";
 import { Cell, PieChart as CorePieChart, Label, Legend, Pie, ResponsiveContainer, Tooltip } from "recharts";
-// pi dash imports
-import type { TPieChartProps } from "@pi-dash/types";
+// karma-team imports
+import type { TPieChartProps } from "@karma-team/types";
 // local components
 import { getLegendProps } from "../components/legend";
 import { CustomActiveShape } from "./active-shape";

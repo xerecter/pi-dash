@@ -5,7 +5,7 @@
  */
 
 import { Link2Off } from "lucide-react";
-import { CopyIcon, GlobeIcon, EditIcon } from "@pi-dash/propel/icons";
+import { CopyIcon, GlobeIcon, EditIcon } from "@karma-team/propel/icons";
 // components
 import type { LinkViewProps, LinkViews } from "@/components/links";
 

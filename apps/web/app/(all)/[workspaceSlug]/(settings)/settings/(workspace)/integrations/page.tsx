@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import type { IAppIntegration } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import type { IAppIntegration } from "@karma-team/types";
 // components
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { PageHead } from "@/components/core/page-title";

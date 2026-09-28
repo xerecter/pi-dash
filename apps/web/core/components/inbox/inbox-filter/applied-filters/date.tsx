@@ -5,12 +5,12 @@
  */
 
 import { observer } from "mobx-react";
-import { PAST_DURATION_FILTER_OPTIONS } from "@pi-dash/constants";
-import { CloseIcon } from "@pi-dash/propel/icons";
-import type { TInboxIssueFilterDateKeys } from "@pi-dash/types";
+import { PAST_DURATION_FILTER_OPTIONS } from "@karma-team/constants";
+import { CloseIcon } from "@karma-team/propel/icons";
+import type { TInboxIssueFilterDateKeys } from "@karma-team/types";
 // helpers
-import { Tag } from "@pi-dash/ui";
-import { renderFormattedDate } from "@pi-dash/utils";
+import { Tag } from "@karma-team/ui";
+import { renderFormattedDate } from "@karma-team/utils";
 // constants
 // hooks
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";

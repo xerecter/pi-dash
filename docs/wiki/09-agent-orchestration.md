@@ -3,12 +3,12 @@
 This page covers the cloud-side logic that turns a user's work item into a concrete run on a runner. The work happens across three Django modules:
 
 ```
-pi_dash/orchestration/   ← phases, scheduling, workpad, done signals
-pi_dash/prompting/       ← prompt fragments, composition, rendering, context
-pi_dash/scheduler/       ← built-in scheduling hooks + signals
+karma_team/orchestration/   ← phases, scheduling, workpad, done signals
+karma_team/prompting/       ← prompt fragments, composition, rendering, context
+karma_team/scheduler/       ← built-in scheduling hooks + signals
 ```
 
-Plus the runner-side glue in `pi_dash/runner/services/` (matcher, run lifecycle, outbox, scheduler hook).
+Plus the runner-side glue in `karma_team/runner/services/` (matcher, run lifecycle, outbox, scheduler hook).
 
 ## Concept map
 
@@ -50,9 +50,9 @@ Prompts are not hard-coded — they live in DB rows seeded by `seed.py`. Instanc
 
 `scheduler/builtins/` holds the default scheduling rules; `signals.py` wires them into the run lifecycle. This is the layer that asks "is now a good time to dispatch?" — it can defer runs based on quotas, project state, manual gating, etc.
 
-The runner-side scheduler hook (`pi_dash/runner/services/scheduler_hook.py`) is the bridge between this layer and the runner's HTTP long-poll: when a run becomes eligible, the matcher hands it to the next runner that asks.
+The runner-side scheduler hook (`karma_team/runner/services/scheduler_hook.py`) is the bridge between this layer and the runner's HTTP long-poll: when a run becomes eligible, the matcher hands it to the next runner that asks.
 
-## Runner-side dispatch services (`pi_dash/runner/services/`)
+## Runner-side dispatch services (`karma_team/runner/services/`)
 
 ```
 matcher.py            ← match an eligible run to a runner (project, capabilities, availability)
@@ -100,4 +100,4 @@ Agent emits done_signal → orchestration parses + validates → phase complete
 - [06 — Backend architecture](./06-backend-architecture.md) — the modules referenced here in context
 - [07 — Runner architecture](./07-runner-architecture.md) — the runner's view of dispatch
 - [08 — Cloud ↔ runner protocol](./08-cloud-runner-protocol.md) — the wire schema runs flow over
-- `pi_dash/orchestration/service.py` — the canonical entrypoint
+- `karma_team/orchestration/service.py` — the canonical entrypoint

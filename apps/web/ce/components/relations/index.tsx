@@ -5,7 +5,7 @@
  */
 
 import { CircleDot, XCircle } from "lucide-react";
-import { RelatedIcon, DuplicatePropertyIcon } from "@pi-dash/propel/icons";
+import { RelatedIcon, DuplicatePropertyIcon } from "@karma-team/propel/icons";
 import type { TRelationObject } from "@/components/issues/issue-detail-widgets/relations";
 import type { TIssueRelationTypes } from "../../types";
 

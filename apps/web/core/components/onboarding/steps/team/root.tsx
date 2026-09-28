@@ -18,15 +18,15 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { usePopper } from "react-popper";
 import { XCircle } from "lucide-react";
 import { Listbox } from "@headlessui/react";
-// pi dash imports
-import type { EUserPermissions } from "@pi-dash/constants";
-import { ROLE, ROLE_DETAILS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { PlusIcon, CheckIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { EOnboardingSteps } from "@pi-dash/types";
-import { Input, Spinner } from "@pi-dash/ui";
+// karma-team imports
+import type { EUserPermissions } from "@karma-team/constants";
+import { ROLE, ROLE_DETAILS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { PlusIcon, CheckIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { EOnboardingSteps } from "@karma-team/types";
+import { Input, Spinner } from "@karma-team/ui";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 // services
@@ -343,7 +343,7 @@ export const InviteTeamStep = observer(function InviteTeamStep(props: Props) {
     >
       <CommonOnboardingHeader
         title="Invite your teammates"
-        description="Work in pi dash happens best with your team. Invite them now to use Pi Dash to its potential."
+        description="Work in karma-team happens best with your team. Invite them now to use karma-team to its potential."
       />
       <div className="w-full py-4 text-13">
         <div className="group relative mx-8 grid grid-cols-10 gap-4 py-2">

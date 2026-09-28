@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { ISSUE_LAYOUTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { EIssueLayoutTypes } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { ISSUE_LAYOUTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { EIssueLayoutTypes } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // components
 import { IssueLayoutIcon } from "@/components/issues/issue-layouts/layout-icon";
 // hooks

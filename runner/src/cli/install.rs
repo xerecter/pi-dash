@@ -1,7 +1,7 @@
-//! `pidash install` — write or refresh the OS service unit.
+//! `karma-team install` — write or refresh the OS service unit.
 //!
-//! Runner enrollment now lives in `pidash auth login` and
-//! `pidash runner add`. `install` writes the systemd / launchd unit so
+//! Runner enrollment now lives in `karma-team auth login` and
+//! `karma-team runner add`. `install` writes the systemd / launchd unit so
 //! the daemon survives reboots. Safe to run repeatedly (e.g. after
 //! upgrading the binary).
 
@@ -28,8 +28,8 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
         println!("Service unit written.");
         println!();
         println!("This machine is not configured yet. Next:");
-        println!("  pidash auth login --url <URL>");
-        println!("  pidash runner add --project <PROJECT>");
+        println!("  karma-team auth login --url <URL>");
+        println!("  karma-team runner add --project <PROJECT>");
         println!();
         return Ok(());
     }

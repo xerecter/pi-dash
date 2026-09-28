@@ -12,10 +12,10 @@ import { useParams } from "next/navigation";
 // icons
 import { Paperclip } from "lucide-react";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon, StartDatePropertyIcon, ViewsIcon, DueDatePropertyIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TIssue, IIssueDisplayProperties, TIssuePriorities } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon, StartDatePropertyIcon, ViewsIcon, DueDatePropertyIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TIssue, IIssueDisplayProperties, TIssuePriorities } from "@karma-team/types";
 // ui
 import {
   cn,
@@ -23,7 +23,7 @@ import {
   renderFormattedPayloadDate,
   generateWorkItemLink,
   shouldHighlightIssueDueDate,
-} from "@pi-dash/utils";
+} from "@karma-team/utils";
 // components
 import { CycleDropdown } from "@/components/dropdowns/cycle";
 import { DateDropdown } from "@/components/dropdowns/date";
@@ -42,8 +42,8 @@ import { useProjectState } from "@/hooks/store/use-project-state";
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web components
-import { WorkItemLayoutAdditionalProperties } from "@/pi-dash-web/components/issues/issue-layouts/additional-properties";
+// karma-team web components
+import { WorkItemLayoutAdditionalProperties } from "@/karma-team-web/components/issues/issue-layouts/additional-properties";
 // local components
 import { IssuePropertyLabels } from "./labels";
 import { WithDisplayPropertiesHOC } from "./with-display-properties-HOC";

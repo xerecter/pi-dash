@@ -7,8 +7,8 @@
 import { clone, update, unset, orderBy, set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import { EDraftIssuePaginationType } from "@pi-dash/constants";
+// karma-team imports
+import { EDraftIssuePaginationType } from "@karma-team/constants";
 import type {
   TWorkspaceDraftIssue,
   TWorkspaceDraftPaginationInfo,
@@ -21,8 +21,8 @@ import type {
   ViewFlags,
   TIssue,
   TBulkOperationsPayload,
-} from "@pi-dash/types";
-import { getCurrentDateTimeInISO, convertToISODateString } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { getCurrentDateTimeInISO, convertToISODateString } from "@karma-team/utils";
 // services
 import workspaceDraftService from "@/services/issue/workspace_draft.service";
 // types

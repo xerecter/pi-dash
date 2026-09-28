@@ -8,9 +8,9 @@ import { useState } from "react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import { observer } from "mobx-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { cn } from "@karma-team/utils";
 // helpers
 import { queryParamGenerator } from "@/helpers/query-param-generator";
 // hooks

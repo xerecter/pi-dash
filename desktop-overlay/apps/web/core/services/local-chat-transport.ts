@@ -8,9 +8,9 @@
  * Desktop **local** chat transport (PDASHOSS01-159, slice-4 remainder).
  *
  * This is the browser-side half of direct local chat: it plugs into the
- * `ChatTransport` seam (`@pi-dash/services`) so the shared runner chat UI —
+ * `ChatTransport` seam (`@karma-team/services`) so the shared runner chat UI —
  * `RunnerChatPage`, `useAgentChatEvents` — drives the bundled agent engine on
- * the same machine, never the Pi Dash cloud chat relay. Two directions:
+ * the same machine, never the karma-team cloud chat relay. Two directions:
  *
  * * **UI → engine** — the transport's verbs call the slice-2 Tauri commands
  *   (`chat_warm` / `chat_send` / `chat_cancel` / `chat_close` / `chat_decide`)
@@ -19,7 +19,7 @@
  *   session/message list the UI renders.
  * * **engine → UI** — `subscribeChatEvents` listens to the slice-2 Tauri events
  *   `chat://frame` / `chat://error`, filters by chat-session id, and translates
- *   each daemon `Response::Chat*` frame (slice-1a `pidash-ipc` wire protocol)
+ *   each daemon `Response::Chat*` frame (slice-1a `karma-team-ipc` wire protocol)
  *   into the server-shaped `IAgentChatEvent` the UI already understands, so the
  *   page's `handleEvent` logic is unchanged between cloud and local.
  *
@@ -42,7 +42,7 @@ import {
   type ChatEventUnsubscribe,
   type ChatTransport,
   type RunnerDetailFetcher,
-} from "@pi-dash/services";
+} from "@karma-team/services";
 import type {
   IAgentChatEvent,
   IAgentChatMessage,
@@ -51,11 +51,11 @@ import type {
   TAgentChatMessageRole,
   TApprovalDecision,
   TApprovalMode,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 import { ensureChatRuntime, getAgentAccount, isDesktop } from "@/services/agent-runtime";
 
 /** Synthetic runner id for the bundled built-in engine (see the picker seam). */
-export const BUILTIN_RUNNER_ID = "pidash-builtin";
+export const BUILTIN_RUNNER_ID = "karma-team-builtin";
 
 /** Tauri event carrying one streamed `Response::Chat*` frame (see `chat.rs`). */
 const CHAT_FRAME_EVENT = "chat://frame";
@@ -90,7 +90,7 @@ interface StoredEvent {
   created_at: number;
 }
 
-// --- Daemon `Response::Chat*` frames (pidash-ipc, tag=result/content=data) --
+// --- Daemon `Response::Chat*` frames (karma-team-ipc, tag=result/content=data) --
 
 type ChatFrame =
   | { result: "chat_started"; data: FrameStarted }
@@ -359,8 +359,8 @@ export class LocalChatTransport implements ChatTransport {
   // No `runner` selector is sent with any chat request. The daemon's selector
   // is a *runner name* from its own config (`resolve_runner`, runner/src/ipc/
   // server.rs); the id this transport knows is the synthetic route id
-  // `pidash-builtin`, which no daemon is configured under — passing it fails
-  // every request with `no runner named "pidash-builtin"`. Omitting it lets
+  // `karma-team-builtin`, which no daemon is configured under — passing it fails
+  // every request with `no runner named "karma-team-builtin"`. Omitting it lets
   // the daemon resolve its single managed runner, which is what the desktop
   // bundle always hosts.
 

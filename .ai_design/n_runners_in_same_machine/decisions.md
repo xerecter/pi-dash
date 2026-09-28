@@ -15,6 +15,7 @@ Mental model: **one dev machine == one daemon == one token == one WS connection 
 Each runner still has its own `runner_id` (used as a routing key on the wire and a display key in the UI), but no per-runner secret. The token is the security primitive; the runner is the operational primitive.
 
 **Rationale**:
+
 - Clean rotation story — rotate the token without touching runner records.
 - Audit logs name the host doing the work, which is what's actually wanted when investigating an incident.
 - Removes the bootstrap-vs-rest auth asymmetry that an in-band multi-Hello scheme would have.
@@ -32,6 +33,7 @@ Each runner still has its own `runner_id` (used as a routing key on the wire and
 **Rationale**: explicitly committed by the cloud team. No need to build the N-WS fallback.
 
 **Consequences**:
+
 - The N-WS variant is no longer a fallback. ADR §15 in `design.md` is retained as a historical record but marked final.
 - Migration window is bounded (~one release cycle of v1/v2 coexistence) rather than indefinite — see `design.md` §13.
 
@@ -41,7 +43,7 @@ Each runner still has its own `runner_id` (used as a routing key on the wire and
 
 ## Q3 — Failure-coupling acceptance
 
-**Question**: with one shared WebSocket, a connection blip stalls *all* runners on this daemon at once. Concretely: approval requests queue locally for ~seconds, all heartbeats miss a tick or two, all runners flip to `Reconnecting` together. Runs themselves continue locally and catch up on reconnect — only the cloud-visible signalling pauses. Is this acceptable, or do we need per-runner failure isolation badly enough to use N WebSockets?
+**Question**: with one shared WebSocket, a connection blip stalls _all_ runners on this daemon at once. Concretely: approval requests queue locally for ~seconds, all heartbeats miss a tick or two, all runners flip to `Reconnecting` together. Runs themselves continue locally and catch up on reconnect — only the cloud-visible signalling pauses. Is this acceptable, or do we need per-runner failure isolation badly enough to use N WebSockets?
 
 **Decision**: **acceptable.** Connection is always shared among runners on the same dev machine.
 
@@ -61,6 +63,7 @@ Each runner still has its own `runner_id` (used as a routing key on the wire and
 2. **Runners section**: lists runners (under their owning tokens). Runners have a **Remove** action only. **No Revoke action on runners.**
 
 **Wire-protocol consequence**:
+
 - `Revoke` is connection-scoped only — `Envelope.runner_id` is always `None`. No per-runner Revoke.
 - New variant `RemoveRunner { runner_id, reason }` — cloud-initiated decommission of one runner, leaves connection and other runners alone.
 
@@ -91,6 +94,7 @@ Cap can be revisited later — lower it if 50 turns out to mask configuration mi
 **Decision**: **hard error, daemon refuses to start, with a detailed message.** Each runner must have its own unique working directory. Both exact-path collisions and nested paths (one is a strict prefix of another) are refused.
 
 Example error:
+
 ```
 configuration error: runners "main" and "side-project" share working_dir "/home/rich/work".
 Each runner must have its own working directory. Update one of them in config.toml.
@@ -104,9 +108,9 @@ Each runner must have its own working directory. Update one of them in config.to
 
 ## Q7 — Multi-workspace per machine
 
-**Question**: in Pi Dash, "workspace" is a tenant. Should one machine be able to host runners across different Pi Dash workspaces (e.g. personal + employer)?
+**Question**: in karma-team, "workspace" is a tenant. Should one machine be able to host runners across different karma-team workspaces (e.g. personal + employer)?
 
-**Decision**: **defer.** All runners on one daemon belong to a single Pi Dash workspace — the workspace the token was created in. Multi-workspace per machine is out of scope for this design.
+**Decision**: **defer.** All runners on one daemon belong to a single karma-team workspace — the workspace the token was created in. Multi-workspace per machine is out of scope for this design.
 
 **Rationale**: scope discipline. Each axis of identity added to the multi-runner project roughly doubles design complexity (CLI commands need a `--workspace` selector, UI needs cross-workspace runner views, billing/quota gets cross-workspace). Multi-runner alone is enough work; cross-workspace is a separate project.
 
@@ -120,7 +124,7 @@ If the need emerges later, the runner-side change is small (it's a CLI selector 
 
 **Question**: how does a user rotate a token's secret? In-place rotation flow, or create-new + revoke-old?
 
-**Decision**: **no in-place rotation.** Tokens have only two operations: create and revoke. To "rotate," the user creates a new token in the UI, runs `pidash configure token` to install it on the machine, then revokes the old token in the UI.
+**Decision**: **no in-place rotation.** Tokens have only two operations: create and revoke. To "rotate," the user creates a new token in the UI, runs `karma-team configure token` to install it on the machine, then revokes the old token in the UI.
 
 **Rationale**: keeps the cloud-side surface minimal. In-place rotation would need an overlap window, careful coordination of which secret is current, and additional UI affordances. The create-new + revoke-old workflow already produces the same security outcome with no new code paths.
 
@@ -134,17 +138,17 @@ If the need emerges later, the runner-side change is small (it's a CLI selector 
 
 **Decision**: **separate credentials, one per surface.** WS uses `X-Token-Id` + `Bearer token_secret`. REST stays on `X-Api-Key: <api_token>`. Unifying both surfaces onto one credential is deferred.
 
-| Surface | Credential | Header |
-|---|---|---|
-| WS (`/ws/runner/`) | `token_secret` | `X-Token-Id` + `Bearer token_secret` |
-| REST (`/api/v1/...`) | `api_token` | `X-Api-Key: <api_token>` |
+| Surface              | Credential     | Header                               |
+| -------------------- | -------------- | ------------------------------------ |
+| WS (`/ws/runner/`)   | `token_secret` | `X-Token-Id` + `Bearer token_secret` |
+| REST (`/api/v1/...`) | `api_token`    | `X-Api-Key: <api_token>`             |
 
 **Rationale**: unifying WS and REST onto one token is a separate auth-system redesign that reaches into:
 
 - Every `/api/v1/` endpoint and the cloud middleware that validates `X-Api-Key`.
-- The `PIDASH_TOKEN` env-var path in the CLI client (`runner/src/api_client.rs:8`).
-- Every contract test on the v1 surface (`runner/tests/pidash_cli_contract.rs`).
-- The `pidash login` retrofit flow (`schema.rs:165`).
+- The `KARMA_TEAM_TOKEN` env-var path in the CLI client (`runner/src/api_client.rs:8`).
+- Every contract test on the v1 surface (`runner/tests/karma_team_cli_contract.rs`).
+- The `karma-team login` retrofit flow (`schema.rs:165`).
 
 That work has its own scoping conversation. Punting it lets multi-runner stay focused on the WS-side multiplex; a follow-up can unify both surfaces if and when it's wanted.
 
@@ -170,7 +174,7 @@ That work has its own scoping conversation. Punting it lets multi-runner stay fo
 
 **Decision**: **delete it.** Once a runner is removed, its data is gone. No archival, no GC delay.
 
-**Rationale**: a removed runner can't be brought back — its `runner_id` is decommissioned cloud-side and the user can't address its history through any CLI verb. Keeping orphan data forever just wastes disk. Users who want to keep history before removing should use `pidash status --runner <name>` to inspect first.
+**Rationale**: a removed runner can't be brought back — its `runner_id` is decommissioned cloud-side and the user can't address its history through any CLI verb. Keeping orphan data forever just wastes disk. Users who want to keep history before removing should use `karma-team status --runner <name>` to inspect first.
 
 **Affects**: `design.md` §11.4 (step 5 deletes the data dir).
 
@@ -185,4 +189,3 @@ That work has its own scoping conversation. Punting it lets multi-runner stay fo
 **Rationale**: today's `ConfigPush` already only touches `approval_policy`, which is per-runner by design (each runner can have a different policy for different repo sensitivities). No daemon-level field is currently remotely pushable (`cloud_url` and `heartbeat_interval_secs` come from `Welcome`; `log_level` is local-only). Keeping the door open for daemon-wide pushes without designing a use case avoids over-engineering.
 
 **Affects**: `design.md` §4.2 routing table (`ConfigPush` row), §9.2 (new subsection on config scopes).
-

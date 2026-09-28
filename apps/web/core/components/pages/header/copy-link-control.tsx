@@ -7,11 +7,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { observer } from "mobx-react";
 
-import { LinkIcon, CheckIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { cn } from "@pi-dash/utils";
+import { LinkIcon, CheckIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { cn } from "@karma-team/utils";
 // hooks
 import { usePageOperations } from "@/hooks/use-page-operations";
 // store

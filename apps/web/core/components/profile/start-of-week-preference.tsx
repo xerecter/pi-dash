@@ -5,11 +5,11 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { START_OF_THE_WEEK_OPTIONS } from "@pi-dash/constants";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { EStartOfTheWeek } from "@pi-dash/types";
-import { CustomSelect } from "@pi-dash/ui";
+// karma-team imports
+import { START_OF_THE_WEEK_OPTIONS } from "@karma-team/constants";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { EStartOfTheWeek } from "@karma-team/types";
+import { CustomSelect } from "@karma-team/ui";
 // components
 import { SettingsControlItem } from "@/components/settings/control-item";
 // hooks

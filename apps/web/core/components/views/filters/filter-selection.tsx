@@ -7,9 +7,9 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-import type { TViewFilterProps, TViewFilters } from "@pi-dash/types";
-import { EViewAccess } from "@pi-dash/types";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+import type { TViewFilterProps, TViewFilters } from "@karma-team/types";
+import { EViewAccess } from "@karma-team/types";
 // components
 import { FilterCreatedDate } from "@/components/common/filters/created-at";
 import { FilterCreatedBy } from "@/components/common/filters/created-by";
@@ -17,8 +17,8 @@ import { FilterOption } from "@/components/issues/issue-layouts/filters";
 // constants
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web components
-import { FilterByAccess } from "@/pi-dash-web/components/views/filters/access-filter";
+// karma-team web components
+import { FilterByAccess } from "@/karma-team-web/components/views/filters/access-filter";
 
 type Props = {
   filters: TViewFilters;

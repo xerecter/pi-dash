@@ -5,8 +5,8 @@
  */
 
 import { Image, BrainCog, Cog, Mail, RefreshCw } from "lucide-react";
-// pi dash imports
-import { LockIcon, WorkspaceIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { LockIcon, WorkspaceIcon } from "@karma-team/propel/icons";
 // types
 import type { TSidebarMenuItem } from "./types";
 
@@ -51,7 +51,7 @@ export const coreSidebarMenuLinks: Record<TCoreSidebarMenuKey, TSidebarMenuItem>
   },
   image: {
     Icon: Image,
-    name: "Images in Pi Dash",
+    name: "Images in karma-team",
     description: "Allow third-party image libraries.",
     href: `/image/`,
   },

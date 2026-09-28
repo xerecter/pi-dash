@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash package imports
+// karma-team package imports
 import { Expand, Shrink } from "lucide-react";
-import { CloseIcon } from "@pi-dash/propel/icons";
-import type { ICycle, IModule } from "@pi-dash/types";
+import { CloseIcon } from "@karma-team/propel/icons";
+import type { ICycle, IModule } from "@karma-team/types";
 // icons
 
 type Props = {

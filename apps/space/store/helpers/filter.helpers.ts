@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { EIssueGroupByToServerOptions, EServerGroupByToFilterOptions } from "@pi-dash/constants";
-import type { IssuePaginationOptions, TIssueParams } from "@pi-dash/types";
+import { EIssueGroupByToServerOptions, EServerGroupByToFilterOptions } from "@karma-team/constants";
+import type { IssuePaginationOptions, TIssueParams } from "@karma-team/types";
 
 /**
  * This Method is used to construct the url params along with paginated values

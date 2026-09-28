@@ -7,9 +7,9 @@
 import { observer } from "mobx-react";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// Pi Dash-web
-import { getRelationActivityContent, useTimeLineRelationOptions } from "@/pi-dash-web/components/relations";
-import type { TIssueRelationTypes } from "@/pi-dash-web/types";
+// karma-team-web
+import { getRelationActivityContent, useTimeLineRelationOptions } from "@/karma-team-web/components/relations";
+import type { TIssueRelationTypes } from "@/karma-team-web/types";
 //
 import { IssueActivityBlockComponent } from "./";
 

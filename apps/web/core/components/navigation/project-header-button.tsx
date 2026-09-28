@@ -4,11 +4,11 @@
  * See the LICENSE file for details.
  */
 
-import type { TPartialProject } from "@/pi-dash-web/types";
-// pi dash propel imports
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import type { TPartialProject } from "@/karma-team-web/types";
+// karma-team propel imports
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
 
 type TProjectHeaderButtonProps = {
   project: TPartialProject;

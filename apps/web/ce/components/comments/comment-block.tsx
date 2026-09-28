@@ -7,10 +7,10 @@
 import type { ReactNode } from "react";
 import { useRef } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { CommentReplyIcon } from "@pi-dash/propel/icons";
-import type { TIssueComment } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { CommentReplyIcon } from "@karma-team/propel/icons";
+import type { TIssueComment } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // hooks
 
 type TCommentBlock = {

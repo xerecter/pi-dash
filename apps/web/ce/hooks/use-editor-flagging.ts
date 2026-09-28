@@ -5,8 +5,8 @@
  */
 
 // editor
-import type { TExtensions } from "@pi-dash/editor";
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
+import type { TExtensions } from "@karma-team/editor";
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
 
 export type TEditorFlaggingHookReturnType = {
   document: {

@@ -5,12 +5,12 @@
  */
 
 import { useRouter } from "next/navigation";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { PageIcon } from "@pi-dash/propel/icons";
-// pi dash import
-import type { TActivityEntityData, TPageEntityData } from "@pi-dash/types";
-import { Avatar } from "@pi-dash/ui";
-import { calculateTimeAgo, getFileURL, getPageName } from "@pi-dash/utils";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { PageIcon } from "@karma-team/propel/icons";
+// karma-team import
+import type { TActivityEntityData, TPageEntityData } from "@karma-team/types";
+import { Avatar } from "@karma-team/ui";
+import { calculateTimeAgo, getFileURL, getPageName } from "@karma-team/utils";
 import { ListItem } from "@/components/core/list";
 // hooks
 import { useMember } from "@/hooks/store/use-member";

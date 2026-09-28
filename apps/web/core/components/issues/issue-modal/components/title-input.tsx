@@ -8,15 +8,15 @@ import React from "react";
 import { observer } from "mobx-react";
 import type { Control, FormState } from "react-hook-form";
 import { Controller } from "react-hook-form";
-// pi dash imports
-import { ETabIndices } from "@pi-dash/constants";
+// karma-team imports
+import { ETabIndices } from "@karma-team/constants";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import type { TIssue } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import type { TIssue } from "@karma-team/types";
 // ui
-import { Input } from "@pi-dash/ui";
+import { Input } from "@karma-team/ui";
 // helpers
-import { getTabIndex } from "@pi-dash/utils";
+import { getTabIndex } from "@karma-team/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 
@@ -26,8 +26,8 @@ type TIssueTitleInputProps = {
   formState: FormState<TIssue>;
   handleFormChange: () => void;
   /**
-   * When true, the user has a working Pi Dash AI assistant configured, so the
-   * title becomes optional — if left blank, Pi Dash AI generates one from the
+   * When true, the user has a working karma-team AI assistant configured, so the
+   * title becomes optional — if left blank, karma-team AI generates one from the
    * description on save. When false, the title stays required.
    */
   aiAvailable?: boolean;
@@ -83,7 +83,7 @@ export const IssueTitleInput = observer(function IssueTitleInput(props: TIssueTi
             }}
             ref={issueTitleRef || ref}
             hasError={Boolean(errors.name)}
-            placeholder={aiAvailable ? t("Title is optional — Pi Dash AI will generate it") : t("Title")}
+            placeholder={aiAvailable ? t("Title is optional — karma-team AI will generate it") : t("Title")}
             className="w-full text-body-sm-regular"
             disabled={disabled}
             // oxlint-disable-next-line jsx-a11y/no-autofocus -- The create/edit modal intentionally focuses the title field on open.

@@ -12,8 +12,8 @@ import type {
   EInboxIssueSource,
   TIssue,
   TInboxDuplicateIssueDetails,
-} from "@pi-dash/types";
-import { EInboxIssueStatus } from "@pi-dash/types";
+} from "@karma-team/types";
+import { EInboxIssueStatus } from "@karma-team/types";
 // helpers
 // services
 import { InboxIssueService } from "@/services/inbox";

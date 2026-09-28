@@ -5,18 +5,18 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import { EIssuesStoreType, EUserWorkspaceRoles } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import { EIssuesStoreType, EUserWorkspaceRoles } from "@karma-team/types";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 
 export const GlobalViewEmptyState = observer(function GlobalViewEmptyState() {
-  // pi dash imports
+  // karma-team imports
   const { t } = useTranslation();
   // store hooks
   const { workspaceProjectIds } = useProject();
@@ -52,7 +52,9 @@ export const GlobalViewEmptyState = observer(function GlobalViewEmptyState() {
   return (
     <EmptyStateDetailed
       title={t("No Views yet")}
-      description={t("Add work items to your project and use views to filter, sort, and monitor progress effortlessly.")}
+      description={t(
+        "Add work items to your project and use views to filter, sort, and monitor progress effortlessly."
+      )}
       assetKey="project"
       assetClassName="size-40"
       actions={[

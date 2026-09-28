@@ -7,8 +7,8 @@
 import { orderBy, set } from "lodash-es";
 import { observable, action, makeObservable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-import { STICKIES_PER_PAGE } from "@pi-dash/constants";
-import type { InstructionType, TLoader, TPaginationInfo, TSticky } from "@pi-dash/types";
+import { STICKIES_PER_PAGE } from "@karma-team/constants";
+import type { InstructionType, TLoader, TPaginationInfo, TSticky } from "@karma-team/types";
 import { StickyService } from "@/services/sticky.service";
 
 export interface IStickyStore {

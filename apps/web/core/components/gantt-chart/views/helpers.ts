@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { ChartDataType, IGanttBlock } from "@pi-dash/types";
-import { addDaysToDate, findTotalDaysInRange, getDate } from "@pi-dash/utils";
+import type { ChartDataType, IGanttBlock } from "@karma-team/types";
+import { addDaysToDate, findTotalDaysInRange, getDate } from "@karma-team/utils";
 import { DEFAULT_BLOCK_WIDTH } from "../constants";
 
 /**

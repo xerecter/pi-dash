@@ -7,9 +7,9 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import type { IIssueLabel } from "@pi-dash/types";
-import { EUserPermissions } from "@pi-dash/types";
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import type { IIssueLabel } from "@karma-team/types";
+import { EUserPermissions } from "@karma-team/types";
 // hooks
 import { useLabel } from "@/hooks/store/use-label";
 import { useUserPermissions } from "@/hooks/store/user";

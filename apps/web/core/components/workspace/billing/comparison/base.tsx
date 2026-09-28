@@ -6,39 +6,40 @@
 
 import { observer } from "mobx-react";
 import { ArrowDown, ArrowUp } from "lucide-react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import { cn } from "@karma-team/utils";
 // constants
-import type { TPiDashPlans } from "@/constants/plans";
-import { ComingSoonBadge, PI_DASH_PLANS, PLANS_LIST } from "@/constants/plans";
+import type { TKarmaTeamPlans } from "@/constants/plans";
+import { ComingSoonBadge, KARMA_TEAM_PLANS, PLANS_LIST } from "@/constants/plans";
 // local imports
 import { PlanFeatureDetail } from "./feature-detail";
 
 type TPlansComparisonBaseProps = {
-  piDashDetails: React.ReactNode;
+  karmaTeamDetails: React.ReactNode;
   isSelfManaged: boolean;
   isCompareAllFeaturesSectionOpen: boolean;
   setIsCompareAllFeaturesSectionOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export const shouldRenderPlanDetail = (planKey: TPiDashPlans) => {
+export const shouldRenderPlanDetail = (planKey: TKarmaTeamPlans) => {
   // Free plan is not required to be shown in the comparison
   if (planKey === "free") return false;
-  // Pi Dash one plan is not longer available
+  // karma-team one plan is not longer available
   if (planKey === "one") return false;
   return true;
 };
 
 export const PlansComparisonBase = observer(function PlansComparisonBase(props: TPlansComparisonBaseProps) {
-  const { piDashDetails, isSelfManaged, isCompareAllFeaturesSectionOpen, setIsCompareAllFeaturesSectionOpen } = props;
+  const { karmaTeamDetails, isSelfManaged, isCompareAllFeaturesSectionOpen, setIsCompareAllFeaturesSectionOpen } =
+    props;
   // plan details
-  const { planDetails, planHighlights, planComparison } = PI_DASH_PLANS;
+  const { planDetails, planHighlights, planComparison } = KARMA_TEAM_PLANS;
   const numberOfPlansToRender = Object.keys(planDetails).filter((planKey) =>
-    shouldRenderPlanDetail(planKey as TPiDashPlans)
+    shouldRenderPlanDetail(planKey as TKarmaTeamPlans)
   ).length;
 
-  const getSubscriptionType = (planKey: TPiDashPlans) => planDetails[planKey].id;
+  const getSubscriptionType = (planKey: TKarmaTeamPlans) => planDetails[planKey].id;
 
   return (
     <div className="horizontal-scrollbar scrollbar-sm size-full overflow-x-auto">
@@ -51,7 +52,7 @@ export const PlansComparisonBase = observer(function PlansComparisonBase(props: 
             }}
           >
             <div className="col-span-1 space-y-0.5 p-3 text-body-sm-medium" />
-            {piDashDetails}
+            {karmaTeamDetails}
           </div>
           {/* Plan Headers */}
           <section className="flex-shrink-0">
@@ -63,7 +64,7 @@ export const PlansComparisonBase = observer(function PlansComparisonBase(props: 
               <div className="col-span-1 p-3 text-body-sm-medium">Highlights</div>
               {Object.entries(planHighlights).map(
                 ([planKey, highlights]) =>
-                  shouldRenderPlanDetail(planKey as TPiDashPlans) && (
+                  shouldRenderPlanDetail(planKey as TKarmaTeamPlans) && (
                     <div key={planKey} className="col-span-1 p-3">
                       <ul className="list-disc space-y-1 text-body-xs-regular">
                         {highlights.map((highlight, index) => (

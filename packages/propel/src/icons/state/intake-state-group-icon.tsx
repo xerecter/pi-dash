@@ -6,7 +6,7 @@
 
 import * as React from "react";
 
-import { EIconSize } from "@pi-dash/constants";
+import { EIconSize } from "@karma-team/constants";
 import type { IIntakeStateGroupIcon } from "./helper";
 import { INTAKE_STATE_GROUP_COLORS, STATE_GROUP_SIZES } from "./helper";
 import { TriageGroupIcon } from "./triage-group-icon";

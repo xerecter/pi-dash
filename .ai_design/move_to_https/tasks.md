@@ -46,7 +46,7 @@ How to use this file:
       `runner.owner` is already used by `matcher.py`,
       `views/runners.py`, `views/runs.py`; do **not** introduce a
       `created_by` field.
-- [ ] Add new auth fields to `Runner` (`apps/api/pi_dash/runner/models.py`):
+- [ ] Add new auth fields to `Runner` (`apps/api/karma_team/runner/models.py`):
   - [ ] `refresh_token_hash` indexed CharField(128)
   - [ ] `refresh_token_fingerprint` CharField(8)
   - [ ] `refresh_token_generation` PositiveIntegerField, default 0
@@ -72,7 +72,7 @@ How to use this file:
 ### 1.2 Access-token format & key ring
 
 - [ ] Add `RUNNER_ACCESS_TOKEN_KEYS` setting in
-      `apps/api/apple_pi_dash/settings/common.py` — ordered key ring
+      `apps/api/apple_karma_team/settings/common.py` — ordered key ring
       with `kid`, `secret`, `status` ∈ {`active`, `verify_only`}.
 - [ ] HS256 sign / verify helper in `tokens.access_token` module.
 - [ ] Verification order (`design.md` §5.2): sig-by-kid → exp →
@@ -106,13 +106,13 @@ How to use this file:
 ### 1.4 Authentication classes
 
 - [ ] `RunnerAccessTokenAuthentication` in
-      `apps/api/pi_dash/runner/authentication.py`:
+      `apps/api/karma_team/runner/authentication.py`:
   - [ ] Bearer JWT, verify by `kid`.
   - [ ] Verify `exp`; on failure → 401 `access_token_expired`.
   - [ ] Load `Runner` by `sub`; **reject if `revoked_at IS NOT NULL`
         → 401 `runner_revoked`**. Mirrors today's
         `revoked_at__isnull=True` predicate at
-        `apps/api/pi_dash/runner/authentication.py:50-55`.
+        `apps/api/karma_team/runner/authentication.py:50-55`.
         `Runner.revoke()` does not bump `rtg`, so without this
         per-request check an access token issued before revocation
         survives up to its TTL.
@@ -132,7 +132,7 @@ How to use this file:
 ### 1.5 MachineToken model + auth
 
 - [ ] Add `MachineToken` model in
-      `apps/api/pi_dash/runner/models.py` (or new module):
+      `apps/api/karma_team/runner/models.py` (or new module):
   - [ ] `id` UUID PK
   - [ ] `user` FK → User
   - [ ] `workspace` FK → Workspace
@@ -155,14 +155,14 @@ How to use this file:
 - [ ] Web-UI list/revoke page for the user's MachineTokens per
       workspace (out-of-scope HTML; just the API endpoint to list +
       revoke is in scope here).
-- [ ] `pidash auth login` flow:
+- [ ] `karma-team auth login` flow:
   - [ ] Web UI mints a one-time ticket at
         `POST /api/v1/workspaces/<ws>/machine-tokens/tickets/`,
         backed by Redis `machine_token_ticket:{uuid}` with `EX 60`.
-  - [ ] CLI `pidash auth login <ticket>` calls
+  - [ ] CLI `karma-team auth login <ticket>` calls
         `POST /api/v1/runner/machine-tokens/` to redeem the ticket
         for a MachineToken; daemon writes
-        `~/.config/apple-pi-dash-runner/machine_token.toml` (0600).
+        `~/.config/apple-karma-team-runner/machine_token.toml` (0600).
 
 ### 1.6 Enrollment endpoint
 
@@ -172,7 +172,7 @@ How to use this file:
   - [ ] `enrollment_token` (one-time bearer)
   - [ ] `host_label` (required; carries forward today's enrollment
         request shape at
-        `apps/api/pi_dash/runner/serializers.py:150` /
+        `apps/api/karma_team/runner/serializers.py:150` /
         `views/connections.py:254`. Required for MachineToken
         bootstrap dedupe key `(user, workspace, host_label)`.)
   - [ ] `name` (optional; daemon-supplied default)
@@ -215,7 +215,7 @@ How to use this file:
       enrollment from same machine omits the field.
 - [ ] MachineToken auth: revoked token → 401; live token + lapsed
       membership → 401 + `revoked_at` set on the next request.
-- [ ] `pidash auth login` flow: mint ticket → redeem → MachineToken
+- [ ] `karma-team auth login` flow: mint ticket → redeem → MachineToken
       issued; reuse rejected; expired ticket rejected.
 
 ## 2. Phase 2 — Cloud: per-runner sessions + streams + long-poll
@@ -296,7 +296,7 @@ COUNT 100 BLOCK 25000 STREAMS runner_stream:{rid} <0|>>`.
 ### 2.3 Outbox helpers
 
 - [ ] `enqueue_for_runner(runner_id, msg)` in
-      `apps/api/pi_dash/runner/services/pubsub.py`:
+      `apps/api/karma_team/runner/services/pubsub.py`:
   - [ ] If runner has active session: `XADD runner_stream:{rid}
 {...msg}` (no inline `MAXLEN` — see retention contract in
         `design.md` §7.4).
@@ -391,7 +391,7 @@ runner-group:{rid} consumer-{sid}`. The persistent
 
 ### 2.7 Tunables
 
-- [ ] Add to `apple_pi_dash/settings/common.py`:
+- [ ] Add to `apple_karma_team/settings/common.py`:
       `LONG_POLL_INTERVAL_SECS=25`, `ACCESS_TOKEN_TTL_SECS=3600`,
       `OFFLINE_STREAM_TTL_SECS=86400`,
       `OFFLINE_STREAM_MAXLEN=1000`,
@@ -497,7 +497,7 @@ For each of `Accept`, `RunStarted`, `RunEvent`, `ApprovalRequest`,
 ## 4. Phase 4 — Daemon: per-runner HTTPS clients
 
 Sub-phases per `daemon_module.md` §13. Each is independently
-mergeable behind `PI_DASH_TRANSPORT=http|ws` until 4d defaults to
+mergeable behind `KARMA_TEAM_TRANSPORT=http|ws` until 4d defaults to
 `http`.
 
 ### 4a. `SharedHttpTransport` + `RunnerCloudClient` scaffold
@@ -513,12 +513,12 @@ mergeable behind `PI_DASH_TRANSPORT=http|ws` until 4d defaults to
 - [ ] **Single-flight refresh** per `RunnerCloudClient` via
       `tokio::sync::watch`-based gate (`daemon_module.md` §9).
 - [ ] Per-runner credentials handle reads/writes
-      `~/.config/apple-pi-dash-runner/runners/<rid>/credentials.toml`
+      `~/.config/apple-karma-team-runner/runners/<rid>/credentials.toml`
       (0600). Persist new refresh token to disk **before** discarding
       old one in memory. Atomic write-temp + rename.
 - [ ] Daemon-level `daemon.toml` for shared config (host_label,
       cloud URL).
-- [ ] Daemon-level `machine_token.toml` written by `pidash auth
+- [ ] Daemon-level `machine_token.toml` written by `karma-team auth
 login` flow (read-only as far as the daemon is concerned —
       MachineToken is for the CLI, not the daemon).
 - [ ] 401 `access_token_expired` → auto-refresh + retry once.
@@ -625,7 +625,7 @@ login` flow (read-only as far as the daemon is concerned —
       `426 upgrade required` for v3 daemons.
 - [ ] TUI / IPC `StatusSnapshot` surfaces per-runner `polling` /
       `refreshing` / `session_evicted` states.
-- [ ] Runtime flag `PI_DASH_TRANSPORT=http|ws` (defaults to `http`
+- [ ] Runtime flag `KARMA_TEAM_TRANSPORT=http|ws` (defaults to `http`
       after this sub-phase merges; `ws` allowed only during
       validation window).
 - [ ] Integration test: queue a `force_refresh` server-side for one
@@ -678,9 +678,9 @@ login` flow (read-only as far as the daemon is concerned —
 - [ ] Update `runner/README.md` configure → service install → tui
       flow to reference the per-runner credentials format and the
       new `runners/<rid>/credentials.toml` layout.
-- [ ] Note the `PI_DASH_TRANSPORT` runtime flag in operator docs
+- [ ] Note the `KARMA_TEAM_TRANSPORT` runtime flag in operator docs
       (briefly; it's transitional).
-- [ ] Document `pidash auth login` for CLI credential bootstrap on
+- [ ] Document `karma-team auth login` for CLI credential bootstrap on
       a machine that doesn't have a runner enrolled yet.
 
 ### 6.3 Security
@@ -693,7 +693,7 @@ login` flow (read-only as far as the daemon is concerned —
 
 ### 6.4 Open questions to resolve before / during implementation
 
-- [ ] `pidash connect --count N` CLI sugar for bulk runner
+- [ ] `karma-team connect --count N` CLI sugar for bulk runner
       enrollment (`design.md` §13). Out of scope for this
       milestone; future CLI work.
 - [ ] Switch to Ed25519 access-token signing if a sidecar verifier

@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash types
-// pi dash ui
-import { useTranslation } from "@pi-dash/i18n";
-import { EModalWidth, ModalCore } from "@pi-dash/ui";
+// karma-team types
+// karma-team ui
+import { useTranslation } from "@karma-team/i18n";
+import { EModalWidth, ModalCore } from "@karma-team/ui";
 import { WidgetList } from "./widget-list";
 
 export type TProps = {

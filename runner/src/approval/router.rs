@@ -6,10 +6,10 @@ use tokio::sync::{Mutex, Notify, broadcast};
 use crate::cloud::protocol::ApprovalDecision;
 
 // `ApprovalRecord`, `ApprovalStatus` and `DecisionSource` moved to the shared
-// `pidash-ipc` crate (PDASHOSS01-158); re-exported here so every
+// `karma-team-ipc` crate (PDASHOSS01-158); re-exported here so every
 // `approval::router::{ApprovalRecord, ApprovalStatus, DecisionSource}` call
 // site is unchanged.
-pub use pidash_ipc::dto::{ApprovalRecord, ApprovalStatus, DecisionSource};
+pub use karma_team_ipc::dto::{ApprovalRecord, ApprovalStatus, DecisionSource};
 
 #[derive(Clone)]
 pub struct ApprovalRouter {

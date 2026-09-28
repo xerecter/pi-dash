@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { logger } from "@pi-dash/logger";
-import type { TDocumentPayload, TPage } from "@pi-dash/types";
+import { logger } from "@karma-team/logger";
+import type { TDocumentPayload, TPage } from "@karma-team/types";
 // services
 import { AppError } from "@/lib/errors";
 import { APIService } from "../api.service";

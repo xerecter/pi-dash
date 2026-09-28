@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { IAssistantLink, IAssistantMessage, IAssistantSkippedServer } from "@pi-dash/types";
+import type { IAssistantLink, IAssistantMessage, IAssistantSkippedServer } from "@karma-team/types";
 import { ChatMessage, ChatToolActivity } from "@/components/chat/message";
 import { ToolServersSkippedNotice } from "@/components/assistant/tool-servers-skipped-notice";
 

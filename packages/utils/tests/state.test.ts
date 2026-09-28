@@ -6,7 +6,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import type { IState, TStateGroups } from "@pi-dash/types";
+import type { IState, TStateGroups } from "@karma-team/types";
 
 import { orderStateGroups, sortStates } from "../src/work-item/state";
 

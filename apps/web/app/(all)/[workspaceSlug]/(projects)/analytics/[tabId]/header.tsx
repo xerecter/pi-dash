@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { AnalyticsIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { Breadcrumbs, Header } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { AnalyticsIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { Breadcrumbs, Header } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 
@@ -20,10 +20,7 @@ export const WorkspaceAnalyticsHeader = observer(function WorkspaceAnalyticsHead
         <Breadcrumbs>
           <Breadcrumbs.Item
             component={
-              <BreadcrumbLink
-                label={t("Analytics")}
-                icon={<AnalyticsIcon className="h-4 w-4 text-tertiary" />}
-              />
+              <BreadcrumbLink label={t("Analytics")} icon={<AnalyticsIcon className="h-4 w-4 text-tertiary" />} />
             }
           />
         </Breadcrumbs>

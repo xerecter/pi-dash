@@ -288,7 +288,7 @@ impl IpcServer {
                     inst.runner_id,
                     crate::cloud::protocol::ServerMsg::RemoveRunner {
                         runner_id: inst.runner_id,
-                        reason: Some("local removal via pidash CLI".to_string()),
+                        reason: Some("local removal via karma-team CLI".to_string()),
                     },
                 );
                 inst.mailbox_tx
@@ -307,7 +307,7 @@ impl IpcServer {
             }
             // Local chat (PDASHOSS01-159, IPC v4). The desktop host drives
             // the built-in engine directly over this socket — never through
-            // the Pi Dash chat relay. Streamed `Response::Chat*` frames are
+            // the karma-team chat relay. Streamed `Response::Chat*` frames are
             // written onto `buf` mid-call (same pattern as StatusSubscribe);
             // the terminal frame is returned. See `super::chat`.
             Request::ChatWarm {

@@ -5,11 +5,11 @@
  */
 
 import { observer } from "mobx-react";
-import { ISSUE_PRIORITIES } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { PriorityIcon, CloseIcon } from "@pi-dash/propel/icons";
-import type { TIssuePriorities } from "@pi-dash/types";
-import { Tag } from "@pi-dash/ui";
+import { ISSUE_PRIORITIES } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { PriorityIcon, CloseIcon } from "@karma-team/propel/icons";
+import type { TIssuePriorities } from "@karma-team/types";
+import { Tag } from "@karma-team/ui";
 // hooks
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 

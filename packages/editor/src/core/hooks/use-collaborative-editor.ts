@@ -14,8 +14,8 @@ import { useEffect, useMemo } from "react";
 import { HeadingListExtension, SideMenuExtension } from "@/extensions";
 // hooks
 import { useEditor } from "@/hooks/use-editor";
-// pi dash editor extensions
-import { DocumentEditorAdditionalExtensions } from "@/pi-dash-editor/extensions";
+// karma-team editor extensions
+import { DocumentEditorAdditionalExtensions } from "@/karma-team-editor/extensions";
 // types
 import type {
   TCollaborativeEditorHookProps,

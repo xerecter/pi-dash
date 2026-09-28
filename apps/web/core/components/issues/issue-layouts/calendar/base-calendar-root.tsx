@@ -8,11 +8,11 @@ import type { FC } from "react";
 import { useCallback, useEffect } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { EIssueGroupByToServerOptions, EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TGroupedIssues } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
+// karma-team imports
+import { EIssueGroupByToServerOptions, EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TGroupedIssues } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
 // hooks
 import { useCalendarView } from "@/hooks/store/use-calendar-view";
 import { useIssues } from "@/hooks/store/use-issues";

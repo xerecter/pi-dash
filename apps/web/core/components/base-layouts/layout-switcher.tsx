@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import { useTranslation } from "@pi-dash/i18n";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TBaseLayoutType } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TBaseLayoutType } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 import { BASE_LAYOUTS } from "./constants";
 

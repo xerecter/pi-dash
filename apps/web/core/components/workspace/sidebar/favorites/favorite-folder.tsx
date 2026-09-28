@@ -21,15 +21,15 @@ import { useParams } from "next/navigation";
 import { createRoot } from "react-dom/client";
 import { Star, MoreHorizontal, GripVertical } from "lucide-react";
 import { Disclosure, Transition } from "@headlessui/react";
-// pi dash imports
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { useTranslation } from "@pi-dash/i18n";
-import { DraftIcon, FavoriteFolderIcon, ChevronRightIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IFavorite, InstructionType } from "@pi-dash/types";
-import { CustomMenu, DropIndicator, DragHandle } from "@pi-dash/ui";
+// karma-team imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { useTranslation } from "@karma-team/i18n";
+import { DraftIcon, FavoriteFolderIcon, ChevronRightIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IFavorite, InstructionType } from "@karma-team/types";
+import { CustomMenu, DropIndicator, DragHandle } from "@karma-team/ui";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useFavorite } from "@/hooks/store/use-favorite";
 import { usePlatformOS } from "@/hooks/use-platform-os";
@@ -247,9 +247,7 @@ export function FavoriteFolder(props: Props) {
                   className={cn("hidden rounded-sm p-0.5 group-hover/project-item:inline-block hover:bg-layer-1", {
                     "inline-block": isMenuActive,
                   })}
-                  aria-label={t(
-                    open ? "Close folder" : "Open folder"
-                  )}
+                  aria-label={t(open ? "Close folder" : "Open folder")}
                 >
                   <ChevronRightIcon
                     className={cn("size-3 flex-shrink-0 text-placeholder transition-transform", {

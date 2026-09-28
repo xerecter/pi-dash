@@ -91,7 +91,7 @@ Non-goals:
 
 ### 4.1 Today's status surface
 
-`AgentRunStatus` (`apps/api/pi_dash/runner/models.py:101-110`) actually has:
+`AgentRunStatus` (`apps/api/karma_team/runner/models.py:101-110`) actually has:
 `QUEUED, ASSIGNED, RUNNING, AWAITING_APPROVAL, AWAITING_REAUTH, BLOCKED,
 COMPLETED, FAILED, CANCELLED`. Not the simpler enum sketched in earlier
 drafts — `BLOCKED` is already present and load-bearing.
@@ -115,8 +115,8 @@ continuation can create a follow-up.
 ### 4.2 Reconciling with the existing `BLOCKED` contract
 
 `BLOCKED` already terminates a run when the agent emits the
-`pi-dash-done` fenced block with `status: "blocked"`
-(`apps/api/pi_dash/orchestration/done_signal.py:32, 154-159`). The agent
+`karma-team-done` fenced block with `status: "blocked"`
+(`apps/api/karma_team/orchestration/done_signal.py:32, 154-159`). The agent
 populates `autonomy.question_for_human` and `blockers[]` in the same
 payload. So today, "agent has a question" is already representable — but it
 goes to **terminal** BLOCKED, with no resume path.
@@ -193,7 +193,7 @@ and lets the Codex thread idle on disk for later resume. This is the
 approval is routed in, because the MCP permission-prompt bridge isn't
 built. There is no tool-call surface to piggyback on.
 
-For Claude, the pragmatic path reuses the existing `pi-dash-done` channel:
+For Claude, the pragmatic path reuses the existing `karma-team-done` channel:
 
 1. Extend `done_signal.py:VALID_STATUSES` to include `"paused"` (Option B
    above). Add an optional `next_steps_if_resumed` field to the payload
@@ -226,7 +226,7 @@ plumbing.
 
 **Claude yield path** (done-signal fenced block):
 
-- Claude emits its terminal `pi-dash-done` fence with `status: "paused"`
+- Claude emits its terminal `karma-team-done` fence with `status: "paused"`
   and a `done_payload` containing the question + handoff fields.
 - Runner forwards Claude's terminal output verbatim (no bridge change)
   and reports run completion via the existing `RunCompleted` /
@@ -260,7 +260,7 @@ nothing to add but wants the agent to keep going.
 ### 5.2 Comment-triggered flow
 
 Today, run creation is triggered exclusively by issue state transitions
-(`apps/api/pi_dash/orchestration/signals.py:48` →
+(`apps/api/karma_team/orchestration/signals.py:48` →
 `handle_issue_state_transition`). Comments are inert. This proposal adds a
 second trigger via a `post_save(IssueComment)` receiver.
 
@@ -270,7 +270,7 @@ User adds comment to Issue I
         ▼
 post_save(IssueComment)
         │
-        ├─► Skip if comment.actor.is_bot (excludes pi_dash_agent workpad bot — see workpad.py)
+        ├─► Skip if comment.actor.is_bot (excludes karma_team_agent workpad bot — see workpad.py)
         ├─► Skip if no prior AgentRun for I (no conversation to continue)
         ├─► Skip if issue.state.group ∈ frozen-states (see gating below)
         ├─► Coalesce: if a QUEUED follow-up already exists for I, append to its prompt and stop
@@ -324,8 +324,8 @@ agent actually starting work are included. Also worth scoping by
 `R.created_by` or excluding the trigger comment itself depending on
 intended semantics — see Q9.)
 
-**Bot filter.** The `pi_dash_agent` bot user
-(`apps/api/pi_dash/orchestration/workpad.py:27-70`) authors the agent's
+**Bot filter.** The `karma_team_agent` bot user
+(`apps/api/karma_team/orchestration/workpad.py:27-70`) authors the agent's
 workpad comments with `is_bot=True`. The trigger MUST filter
 `comment.actor.is_bot` — not a vague "skip runner/agent" — otherwise the
 agent's own workpad updates would re-trigger continuation in a loop.
@@ -594,14 +594,14 @@ RunPaused {
 ```
 
 Cloud needs a matching `on_run_paused` handler in
-`apps/api/pi_dash/runner/consumers.py` (next to `on_run_completed` /
+`apps/api/karma_team/runner/consumers.py` (next to `on_run_completed` /
 `on_run_failed` at line 236). The handler transitions the run to
 `PAUSED_AWAITING_INPUT`, stores the payload on `done_payload`, and
 triggers `drain_for_runner(runner)` so the runner picks up its next
 queued work immediately.
 
 **Claude does not use this path.** Claude's yield rides the existing
-`pi-dash-done` fenced-block channel (§4.4); cloud's
+`karma-team-done` fenced-block channel (§4.4); cloud's
 `done_signal.ingest_into_run` is the entry point, with the new `"paused"`
 status mapping to `PAUSED_AWAITING_INPUT`. No new `ClientMsg` variant is
 needed for Claude.
@@ -622,7 +622,7 @@ the runner reports it via `RunFailed` with a new
    - Out of: `BUSY_STATUSES`, `is_terminal`, `is_active`,
      `ACTIVE_RUN_STATUSES`.
    - In: `NON_TERMINAL_STATUSES`.
-2. **Done-signal contract** (`apps/api/pi_dash/orchestration/done_signal.py`):
+2. **Done-signal contract** (`apps/api/karma_team/orchestration/done_signal.py`):
    add `"paused"` to `VALID_STATUSES`. In `ingest_into_run`, map
    `"paused"` → `PAUSED_AWAITING_INPUT` (non-terminal); leave `"blocked"`
    → `BLOCKED` unchanged. Leave `done_payload` populated so the handoff
@@ -630,7 +630,7 @@ the runner reports it via `RunFailed` with a new
 3. **Schema**: add `pinned_runner_id` (FK to `Runner`, nullable) on
    `AgentRun`. Field-only migration.
 4. **Comment trigger**: `post_save` on `IssueComment`:
-   - Filter `comment.actor.is_bot` (excludes `pi_dash_agent` workpad bot).
+   - Filter `comment.actor.is_bot` (excludes `karma_team_agent` workpad bot).
    - Apply state gating per §5.2 (only continue when issue.state.group is
      STARTED).
    - Coalesce duplicate triggers: if a QUEUED follow-up already exists for
@@ -678,7 +678,7 @@ the runner reports it via `RunFailed` with a new
    JSON-RPC tool surface. On tool call, send `ClientMsg::RunPaused { ... }`
    and return runner to idle.
 5. **Claude yield**: no runner-side change. Claude emits the existing
-   `pi-dash-done` fenced block with the new `"paused"` status; the runner
+   `karma-team-done` fenced block with the new `"paused"` status; the runner
    already forwards Claude's terminal output and cloud parses it.
 6. **Resume-failure detection**: when the bridge's resume call fails
    because the session is missing, report `RunFailed { reason:
@@ -745,7 +745,7 @@ through interleaving and where state lives, the decisions tighten:
    anything that already reads BLOCKED.
 4. **Yield mechanism diverges per agent.** Codex uses a `request_user_input`
    tool call and a new `RunPaused` `ClientMsg` (the approval path is wired,
-   tool calls are first-class). Claude rides the existing `pi-dash-done`
+   tool calls are first-class). Claude rides the existing `karma-team-done`
    fenced block with the new `"paused"` status because Claude approvals
    are bypassed and there's no tool-call surface to piggyback. Both paths
    converge on the cloud-side `PAUSED_AWAITING_INPUT` state.
@@ -762,7 +762,7 @@ through interleaving and where state lives, the decisions tighten:
    fresh-context-from-issue carries it — _if_ the yield protocol forces a
    structured handoff. This sidesteps the entire replay-quality problem.
 9. **Comment trigger has explicit gates.** Bot filter on `actor.is_bot`
-   (the `pi_dash_agent` workpad bot is the concrete blocker), state-group
+   (the `karma_team_agent` workpad bot is the concrete blocker), state-group
    gating to STARTED, and coalesce on duplicate QUEUED followers. Without
    these, the trigger conflicts with the existing single-active-run
    guardrail and the workpad bot self-triggers a loop.
@@ -783,7 +783,7 @@ candidate in §11.5.
 ### 11.1 Happy paths
 
 **A1. Issue completes in one run.** Unchanged from today. State → In
-Progress, run dispatched, agent emits `pi-dash-done` with
+Progress, run dispatched, agent emits `karma-team-done` with
 `status: "completed"`, run terminates COMPLETED. No continuation.
 
 **A2. Issue takes two runs (clean continuation).**
@@ -833,7 +833,7 @@ is built around.
 - **Multiple paused issues on agentA.** When agentA frees up, FIFO by
   `R_next.created_at` (the follow-up's creation time, not the
   original's). Earliest comment-trigger wins.
-- **Bot comments.** Filtered by `actor.is_bot`. The `pi_dash_agent`
+- **Bot comments.** Filtered by `actor.is_bot`. The `karma_team_agent`
   workpad updates never trigger continuation.
 
 ### 11.4 State-gating outcomes
@@ -922,7 +922,7 @@ These map directly to acceptance criteria for the implementation:
    rapid succession before R2 dispatches; assert only one new
    `AgentRun` row exists and its prompt contains both comments.
 4. **Bot comment does not trigger continuation.** Workpad update from
-   `pi_dash_agent`; assert no new `AgentRun` is created.
+   `karma_team_agent`; assert no new `AgentRun` is created.
 5. **State gating.** Comment on a BACKLOG / COMPLETED issue produces
    no new run.
 6. **Comment during RUNNING.** Comment arrives mid-run; assert the

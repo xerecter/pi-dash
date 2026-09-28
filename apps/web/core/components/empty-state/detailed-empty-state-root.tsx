@@ -7,9 +7,9 @@
 import React from "react";
 import { observer } from "mobx-react";
 // ui
-import { Button } from "@pi-dash/propel/button";
+import { Button } from "@karma-team/propel/button";
 // utils
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type EmptyStateSize = "sm" | "base" | "lg";
 

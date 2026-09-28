@@ -1,4 +1,4 @@
-//! Translation from Pi Dash's user-facing [`ApprovalMode`] to the built-in
+//! Translation from karma-team's user-facing [`ApprovalMode`] to the built-in
 //! engine's per-thread posture, and to the runner's default decision for a
 //! request the static policy does not otherwise cover.
 //!
@@ -107,7 +107,10 @@ mod tests {
     #[test]
     fn default_matches_legacy_full_access_posture() {
         // The mode-less (cloud) path keeps the historical hardcoded posture.
-        assert_eq!(EngineThreadSettings::default().sandbox, "danger-full-access");
+        assert_eq!(
+            EngineThreadSettings::default().sandbox,
+            "danger-full-access"
+        );
         assert_eq!(EngineThreadSettings::default().approval_policy, "never");
     }
 

@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash types
-import type { TIssueServiceType, TWorkItemWidgets } from "@pi-dash/types";
+// karma-team types
+import type { TIssueServiceType, TWorkItemWidgets } from "@karma-team/types";
 
 export type TWorkItemAdditionalWidgetActionButtonsProps = {
   disabled: boolean;

@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg width="258" height="140" viewBox="30 0 258 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Pi Dash logo">
-  <g fill="#ffffff">
-    <circle cx="54" cy="70" r="24"/>
-    <rect x="84" y="46" width="72" height="48" rx="24" ry="24"/>
-    <rect x="162" y="46" width="72" height="48" rx="24" ry="24"/>
-    <circle cx="264" cy="70" r="24"/>
-  </g>
-</svg>

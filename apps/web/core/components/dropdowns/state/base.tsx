@@ -9,20 +9,20 @@ import { useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { usePopper } from "react-popper";
 import { Combobox } from "@headlessui/react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { SearchIcon, StateGroupIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { IState } from "@pi-dash/types";
-import { ComboDropDown, Spinner } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { SearchIcon, StateGroupIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import type { IState } from "@karma-team/types";
+import { ComboDropDown, Spinner } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { DropdownButton } from "@/components/dropdowns/buttons";
 import { BUTTON_VARIANTS_WITH_TEXT } from "@/components/dropdowns/constants";
 import type { TDropdownProps } from "@/components/dropdowns/types";
 // hooks
 import { useDropdown } from "@/hooks/use-dropdown";
-// pi dash web imports
-import { StateOption } from "@/pi-dash-web/components/workflow";
+// karma-team web imports
+import { StateOption } from "@/karma-team-web/components/workflow";
 
 export type TWorkItemStateDropdownBaseProps = TDropdownProps & {
   alwaysAllowStateChange?: boolean;

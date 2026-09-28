@@ -5,11 +5,11 @@
  */
 
 import useSWR from "swr";
-// pi dash imports
-import { GROUP_CHOICES } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { IUserStateDistribution, TStateGroups } from "@pi-dash/types";
-import { ContentWrapper } from "@pi-dash/ui";
+// karma-team imports
+import { GROUP_CHOICES } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { IUserStateDistribution, TStateGroups } from "@karma-team/types";
+import { ContentWrapper } from "@karma-team/ui";
 // components
 import { PageHead } from "@/components/core/page-title";
 import { ProfileActivity } from "@/components/profile/overview/activity";

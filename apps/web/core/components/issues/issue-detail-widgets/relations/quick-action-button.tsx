@@ -7,16 +7,16 @@
 import React from "react";
 import { observer } from "mobx-react";
 
-import { useTranslation } from "@pi-dash/i18n";
-import { PlusIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import type { TIssueServiceType } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { PlusIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import type { TIssueServiceType } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// Pi Dash-web
-import { useTimeLineRelationOptions } from "@/pi-dash-web/components/relations";
-import type { TIssueRelationTypes } from "@/pi-dash-web/types";
+// karma-team-web
+import { useTimeLineRelationOptions } from "@/karma-team-web/components/relations";
+import type { TIssueRelationTypes } from "@/karma-team-web/types";
 
 type Props = {
   issueId: string;

@@ -6,11 +6,11 @@
 
 import { Link } from "react-router";
 import { PinOff } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { ContextMenu } from "@pi-dash/propel/context-menu";
-import { SetAsDefaultIcon } from "@pi-dash/propel/icons";
-import { TabNavigationItem } from "@pi-dash/propel/tab-navigation";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { ContextMenu } from "@karma-team/propel/context-menu";
+import { SetAsDefaultIcon } from "@karma-team/propel/icons";
+import { TabNavigationItem } from "@karma-team/propel/tab-navigation";
 // local imports
 import type { TNavigationItem } from "./tab-navigation-root";
 import type { TTabPreferences } from "./tab-navigation-utils";

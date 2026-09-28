@@ -6,12 +6,12 @@
 
 import React from "react";
 import { Paperclip } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon, ViewsIcon, RelationPropertyIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import type { TIssueServiceType, TWorkItemWidgets } from "@pi-dash/types";
-// pi dash web imports
-import { WorkItemAdditionalWidgetActionButtons } from "@/pi-dash-web/components/issues/issue-detail-widgets/action-buttons";
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon, ViewsIcon, RelationPropertyIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import type { TIssueServiceType, TWorkItemWidgets } from "@karma-team/types";
+// karma-team web imports
+import { WorkItemAdditionalWidgetActionButtons } from "@/karma-team-web/components/issues/issue-detail-widgets/action-buttons";
 // local imports
 import { IssueAttachmentActionButton } from "./attachments";
 import { IssueLinksActionButton } from "./links";

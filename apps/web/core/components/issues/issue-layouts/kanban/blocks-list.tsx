@@ -6,8 +6,8 @@
 
 import type { MutableRefObject } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TIssue, IIssueDisplayProperties, IIssueMap } from "@pi-dash/types";
+// karma-team imports
+import type { TIssue, IIssueDisplayProperties, IIssueMap } from "@karma-team/types";
 // local imports
 import type { TRenderQuickActions } from "../list/list-view-types";
 import { KanbanIssueBlock } from "./block";

@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { IProjectView } from "@pi-dash/types";
+import type { IProjectView } from "@karma-team/types";
 
 type Props = {
   isOpen: boolean;

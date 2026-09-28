@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-//! `pidash issue …` subcommands.
+//! `karma-team issue …` subcommands.
 //!
 //! Thin wrappers around the `/api/v1/` REST surface. JSON on stdout, JSON on
 //! stderr for errors, exit codes per `api_client::EXIT_*`.
@@ -30,8 +30,8 @@ pub enum IssueCommand {
         identifier: String,
     },
     /// Create a new work item under a project. If `--project` is omitted,
-    /// the CLI uses PIDASH_PROJECT_ID, local config default_project, or
-    /// the workspace default project from Pi Dash cloud.
+    /// the CLI uses KARMA_TEAM_PROJECT_ID, local config default_project, or
+    /// the workspace default project from karma-team cloud.
     Create(CreateArgs),
     /// List work items in a project. Returns the server's paginated envelope
     /// (`{count, next_cursor, prev_cursor, results: [...]}`) — pass `--cursor`
@@ -47,7 +47,7 @@ pub enum IssueCommand {
     /// starting similar work.
     Search(SearchArgs),
     /// Attach a GitHub pull request or GitLab merge request to a work item so
-    /// Pi Dash links it and tracks its status. Idempotent; one issue may have
+    /// karma-team links it and tracks its status. Idempotent; one issue may have
     /// many code reviews, but one code review attaches to exactly one issue.
     AttachReview(AttachReviewArgs),
     /// Attach a GitHub pull request to a work item. Alias of `attach-review`
@@ -345,7 +345,7 @@ async fn resolve_create_project(
     if let Some(project) = explicit.map(str::trim).filter(|p| !p.is_empty()) {
         return Ok(project.to_string());
     }
-    if let Ok(project) = std::env::var("PIDASH_PROJECT_ID") {
+    if let Ok(project) = std::env::var("KARMA_TEAM_PROJECT_ID") {
         let trimmed = project.trim();
         if !trimmed.is_empty() {
             return Ok(trimmed.to_string());
@@ -428,7 +428,7 @@ fn percent_encode_value(v: &str) -> String {
 /// the web API stores in `description_html`.
 ///
 /// Mirrors the server-side renderer
-/// (`apps/api/pi_dash/assistant/runtime/markdown.py::markdown_to_html`) so a
+/// (`apps/api/karma_team/assistant/runtime/markdown.py::markdown_to_html`) so a
 /// description filed via the CLI reads identically to one filed by the in-app AI
 /// assistant: a blank line starts a new paragraph, a single newline becomes a
 /// `<br/>`, and empty input yields the model's default empty body. The server
@@ -464,7 +464,7 @@ fn html_escape(s: &str) -> String {
     out
 }
 
-/// The `parent`-field mutation requested by a `pidash issue patch`.
+/// The `parent`-field mutation requested by a `karma-team issue patch`.
 ///
 /// `clap`'s `conflicts_with` guarantees `--parent` and `--clear-parent` are
 /// never both present, so these three variants are exhaustive.
@@ -593,7 +593,7 @@ async fn cmd_attach_review(client: &ApiClient, args: AttachReviewArgs) -> Result
     Ok(())
 }
 
-/// Build the ordered (key, value) param list for `pidash issue search`.
+/// Build the ordered (key, value) param list for `karma-team issue search`.
 ///
 /// Pulled out of `cmd_search` so the URL contract is testable without a
 /// network round-trip — the order matters because `build_query_string`
@@ -607,11 +607,19 @@ async fn cmd_attach_review(client: &ApiClient, args: AttachReviewArgs) -> Result
 fn build_search_params(args: &SearchArgs) -> Result<Vec<(&'static str, String)>, CliError> {
     let q = args.query.trim();
     if q.is_empty() {
-        return Err(CliError::new(EXIT_INVALID, "search query must not be empty"));
+        return Err(CliError::new(
+            EXIT_INVALID,
+            "search query must not be empty",
+        ));
     }
 
     let mut params: Vec<(&'static str, String)> = vec![("q", q.to_string())];
-    if let Some(p) = args.project.as_ref().map(|s| s.trim()).filter(|s| !s.is_empty()) {
+    if let Some(p) = args
+        .project
+        .as_ref()
+        .map(|s| s.trim())
+        .filter(|s| !s.is_empty())
+    {
         params.push(("project", p.to_string()));
     }
     // Send `status` only when it differs from the server default to keep
@@ -950,7 +958,7 @@ mod tests {
         assert!(err.message.contains("--clear-parent"));
     }
 
-    /// Parse `pidash issue patch` args in isolation. `PatchArgs` derives
+    /// Parse `karma-team issue patch` args in isolation. `PatchArgs` derives
     /// `Args`, not `Parser`, so wrap it in a throwaway `Parser` to exercise the
     /// `conflicts_with` relationship the way clap enforces it at runtime.
     #[derive(Debug, clap::Parser)]
@@ -999,7 +1007,8 @@ mod tests {
 
     #[test]
     fn run_ai_parses_positional_identifier() {
-        let parsed = TestCli::try_parse_from(["pidash", "run-ai", "ENG-42"]).expect("parse run-ai");
+        let parsed =
+            TestCli::try_parse_from(["karma-team", "run-ai", "ENG-42"]).expect("parse run-ai");
         match parsed.issue.command {
             IssueCommand::RunAi { identifier } => assert_eq!(identifier, "ENG-42"),
             other => panic!("expected run-ai, got {other:?}"),
@@ -1010,13 +1019,17 @@ mod tests {
     fn run_ai_requires_an_identifier() {
         // A missing positional identifier is a clap parse error, not a
         // silent workspace-wide call.
-        assert!(TestCli::try_parse_from(["pidash", "run-ai"]).is_err());
+        assert!(TestCli::try_parse_from(["karma-team", "run-ai"]).is_err());
     }
 
     #[test]
     fn run_ai_path_targets_the_work_item_run_ai_route() {
         assert_eq!(
-            run_ai_path("eng", "11111111-1111-1111-1111-111111111111", "22222222-2222-2222-2222-222222222222"),
+            run_ai_path(
+                "eng",
+                "11111111-1111-1111-1111-111111111111",
+                "22222222-2222-2222-2222-222222222222"
+            ),
             "workspaces/eng/projects/11111111-1111-1111-1111-111111111111/work-items/22222222-2222-2222-2222-222222222222/run-ai/"
         );
     }

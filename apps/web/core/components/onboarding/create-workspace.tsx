@@ -8,15 +8,15 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 // constants
-import { ORGANIZATION_SIZE, RESTRICTED_URLS } from "@pi-dash/constants";
+import { ORGANIZATION_SIZE, RESTRICTED_URLS } from "@karma-team/constants";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IUser, IWorkspace, TOnboardingSteps } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IUser, IWorkspace, TOnboardingSteps } from "@karma-team/types";
 // ui
-import { CustomSelect, Input, Spinner } from "@pi-dash/ui";
-import { validateWorkspaceName, validateSlug } from "@pi-dash/utils";
+import { CustomSelect, Input, Spinner } from "@karma-team/ui";
+import { validateWorkspaceName, validateSlug } from "@karma-team/utils";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserProfile, useUserSettings } from "@/hooks/store/user";
@@ -38,7 +38,7 @@ export const CreateWorkspace = observer(function CreateWorkspace(props: Props) {
   // states
   const [slugError, setSlugError] = useState(false);
   const [invalidSlug, setInvalidSlug] = useState(false);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { updateUserProfile } = useUserProfile();
@@ -124,7 +124,9 @@ export const CreateWorkspace = observer(function CreateWorkspace(props: Props) {
       )}
       <div className="mx-auto space-y-1 py-4 text-center">
         <h3 className="text-24 font-bold text-primary">{t("Create your workspace")}</h3>
-        <p className="font-medium text-placeholder">{t("To start using Pi Dash, you need to create or join a workspace.")}</p>
+        <p className="font-medium text-placeholder">
+          {t("To start using karma-team, you need to create or join a workspace.")}
+        </p>
       </div>
       <form className="mx-auto mt-2 w-full space-y-4" onSubmit={handleSubmit(handleCreateWorkspace)}>
         <div className="space-y-1">
@@ -214,13 +216,11 @@ export const CreateWorkspace = observer(function CreateWorkspace(props: Props) {
             )}
           />
           <p className="text-13 text-tertiary">{t("You can only edit the slug of the URL")}</p>
-          {slugError && (
-            <p className="-mt-3 text-13 text-danger-primary">
-              {t("Workspace URL is already taken!")}
-            </p>
-          )}
+          {slugError && <p className="-mt-3 text-13 text-danger-primary">{t("Workspace URL is already taken!")}</p>}
           {invalidSlug && (
-            <p className="text-13 text-danger-primary">{t("URLs can contain only ('-') and alphanumeric characters.")}</p>
+            <p className="text-13 text-danger-primary">
+              {t("URLs can contain only ('-') and alphanumeric characters.")}
+            </p>
           )}
           {errors.slug && <span className="text-13 text-danger-primary">{errors.slug.message}</span>}
         </div>
@@ -243,9 +243,7 @@ export const CreateWorkspace = observer(function CreateWorkspace(props: Props) {
                   onChange={onChange}
                   label={
                     ORGANIZATION_SIZE.find((c) => c === value) ?? (
-                      <span className="text-placeholder">
-                        {t("Select a range")}
-                      </span>
+                      <span className="text-placeholder">{t("Select a range")}</span>
                     )
                   }
                   buttonClassName="border border-subtle bg-layer-2 !shadow-none !rounded-md"

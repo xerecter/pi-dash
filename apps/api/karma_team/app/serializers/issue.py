@@ -1,0 +1,1479 @@
+# Copyright (c) 2023-present Pi Dash Software, Inc. and contributors
+# SPDX-License-Identifier: AGPL-3.0-only
+# See the LICENSE file for details.
+
+# Django imports
+from django.utils import timezone
+from django.core.validators import URLValidator
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import IntegrityError
+
+# Third Party imports
+from rest_framework import serializers
+
+# Module imports
+from .base import BaseSerializer, DynamicBaseSerializer
+from .user import UserLiteSerializer
+from .state import StateLiteSerializer
+from .project import ProjectLiteSerializer
+from .workspace import WorkspaceLiteSerializer
+from karma_team.db.models import (
+    User,
+    Issue,
+    IssueActivity,
+    IssueComment,
+    ProjectUserProperty,
+    IssueAssignee,
+    IssueSubscriber,
+    IssueLabel,
+    Label,
+    CycleIssue,
+    Cycle,
+    Module,
+    ModuleIssue,
+    IssueLink,
+    GitCodeReviewLink,
+    GithubPullRequestLink,
+    FileAsset,
+    IssueReaction,
+    CommentReaction,
+    IssueVote,
+    IssueRelation,
+    State,
+    IssueVersion,
+    IssueDescriptionVersion,
+    ProjectMember,
+    EstimatePoint,
+)
+from karma_team.runner.models import Pod
+from karma_team.runner.diagnostics import classify_run_error
+from karma_team.utils.content_validator import (
+    validate_html_content,
+    validate_binary_data,
+)
+
+
+# Synced (mirrored from a Git provider) rows are read-only on synced fields.
+# The lock predicate is "an active sync row exists", not "external_source has
+# a specific value". After unbind, cascades delete sync rows and release locks.
+_LOCKED_ISSUE_FIELDS = {"name", "description_html", "description_json", "description_stripped", "description_binary"}
+_LOCKED_COMMENT_FIELDS = {"comment_html", "comment_json", "comment_stripped"}
+
+
+def _issue_is_actively_synced(issue) -> bool:
+    # Native (non-synced) issues have ``external_source`` empty/None — short-
+    # circuit before any DB query so list endpoints don't pay an N+1 of two
+    # .exists() probes per row.
+    if issue is None or not issue.external_source:
+        return False
+
+    annotated_is_synced = getattr(issue, "is_synced", None)
+    if annotated_is_synced is not None:
+        return bool(annotated_is_synced)
+
+    from karma_team.db.models import GitIssueSync, GithubIssueSync
+
+    return GitIssueSync.objects.filter(issue=issue).exists() or GithubIssueSync.objects.filter(issue=issue).exists()
+
+
+def _comment_is_actively_synced(comment) -> bool:
+    if comment is None or not comment.external_source:
+        return False
+    from karma_team.db.models import GitCommentSync, GithubCommentSync
+
+    return (
+        GitCommentSync.objects.filter(comment=comment).exists()
+        or GithubCommentSync.objects.filter(comment=comment).exists()
+    )
+
+
+#: User-facing copy for a refused ``managed_runner`` pin, keyed by the reason
+#: code ``managed_runner_availability`` returned. The picker shows the same
+#: strings, so a user never sees two different explanations for one situation.
+_MANAGED_UNAVAILABLE_DETAIL = {
+    "managed_runner_disabled": "karma-team Agent is not enabled on this instance",
+    "desktop_not_connected": "Open the karma-team desktop app to run on this computer",
+    "llm_config_missing": "Configure an AI provider in karma-team AI settings first",
+    "gateway_scopes_missing": "Sign in to karma-team again to refresh your AI access",
+    "byok_not_supported_on_desktop": (
+        "karma-team Agent on desktop uses OpenHub. Switch your AI provider to OpenHub to run here; "
+        "karma-team AI and the Cloud Agent keep using your own key."
+    ),
+}
+
+
+class IssueFlatSerializer(BaseSerializer):
+    ## Contain only flat fields
+
+    class Meta:
+        model = Issue
+        fields = [
+            "id",
+            "name",
+            "description_json",
+            "description_html",
+            "priority",
+            "complexity_score",
+            "start_date",
+            "target_date",
+            "sequence_id",
+            "sort_order",
+            "is_draft",
+        ]
+
+
+class IssueProjectLiteSerializer(BaseSerializer):
+    project_detail = ProjectLiteSerializer(source="project", read_only=True)
+
+    class Meta:
+        model = Issue
+        fields = ["id", "project_detail", "name", "sequence_id"]
+        read_only_fields = fields
+
+
+##TODO: Find a better way to write this serializer
+## Find a better approach to save manytomany?
+class IssueCreateSerializer(BaseSerializer):
+    # ids
+    state_id = serializers.PrimaryKeyRelatedField(
+        source="state", queryset=State.all_state_objects.all(), required=False, allow_null=True
+    )
+    parent_id = serializers.PrimaryKeyRelatedField(
+        source="parent", queryset=Issue.objects.all(), required=False, allow_null=True
+    )
+    # Pod this issue's runs dispatch to. Exposed under the ``*_id`` convention
+    # (like state_id / parent_id) so the web client routes it the same way as
+    # every other FK. The bare ``assigned_pod`` model field is removed from the
+    # auto-generated set below so this is the single read/write key.
+    # ``all_objects`` (not the default manager, which hides soft-deleted pods)
+    # so a tombstoned pod id still resolves and validate() can return the
+    # friendly "pod has been deleted" message instead of DRF's generic
+    # "object does not exist". Cross-project / deleted pods are rejected in
+    # validate(), not here.
+    assigned_pod_id = serializers.PrimaryKeyRelatedField(
+        source="assigned_pod", queryset=Pod.all_objects.all(), required=False, allow_null=True
+    )
+    label_ids = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(queryset=Label.objects.all()),
+        write_only=True,
+        required=False,
+    )
+    assignee_ids = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(queryset=User.objects.all()),
+        write_only=True,
+        required=False,
+    )
+    project_id = serializers.UUIDField(source="project.id", read_only=True)
+    workspace_id = serializers.UUIDField(source="workspace.id", read_only=True)
+
+    class Meta:
+        model = Issue
+        # Exclude the agent workpad — it's read/written via the dedicated
+        # workpad endpoint and would bloat every web-tier issue payload if
+        # included here. ``assigned_pod`` is excluded too because it's surfaced
+        # explicitly as ``assigned_pod_id`` above (the *_id FK convention).
+        exclude = ["workpad", "assigned_pod"]
+        read_only_fields = [
+            "workspace",
+            "project",
+            "created_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+        ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        assignee_ids = self.initial_data.get("assignee_ids")
+        data["assignee_ids"] = assignee_ids if assignee_ids else []
+        label_ids = self.initial_data.get("label_ids")
+        data["label_ids"] = label_ids if label_ids else []
+        return data
+
+    def validate_complexity_score(self, value):
+        # AI-reasoning complexity rule check: only 0..10 is allowed. 0 means
+        # "no score" (unrated); a rated issue is 1..10. The model already carries
+        # Min/Max validators, but re-checking here gives a precise, field-scoped
+        # error instead of DRF's generic min/max wording.
+        if value is None:
+            return value
+        if not 0 <= value <= 10:
+            raise serializers.ValidationError(
+                "complexity_score must be an integer from 0 to 10 (0 means unrated)."
+            )
+        return value
+
+    def validate(self, attrs):
+        allow_triage = self.context.get("allow_triage_state", False)
+        state_manager = State.triage_objects if allow_triage else State.objects
+
+        # Read-only lock for actively-synced Git provider issues. Only block
+        # when the *value* actually changed — the web UI re-PATCHes the full
+        # editable set on blur even
+        # if the user only clicked through a synced issue, and rejecting
+        # unchanged values surfaces a misleading "Work item update failed"
+        # toast every time someone navigates a synced issue.
+        if self.instance is not None and _issue_is_actively_synced(self.instance):
+            blocked = [
+                field
+                for field in _LOCKED_ISSUE_FIELDS & set(attrs.keys())
+                if attrs[field] != getattr(self.instance, field, None)
+            ]
+            if blocked:
+                raise serializers.ValidationError(
+                    {
+                        f: "This field is synced from a Git provider and is read-only. "
+                        "Unbind the project's repository to edit."
+                        for f in blocked
+                    }
+                )
+
+        if (
+            attrs.get("start_date", None) is not None
+            and attrs.get("target_date", None) is not None
+            and attrs.get("start_date", None) > attrs.get("target_date", None)
+        ):
+            raise serializers.ValidationError("Start date cannot exceed target date")
+
+        # assigned_pod must belong to the issue's *project* and be active.
+        # See .ai_design/n_runners_in_same_machine/new_pod_project_relationship/
+        # design.md §8.2. Pods are project-scoped now; allowing any pod in
+        # the same workspace would be a cross-project routing escape hatch
+        # — a Project P issue could end up assigned to Project Q's pod and
+        # dispatch would happily route P's runs to Q's runners.
+        if "assigned_pod" in attrs:
+            pod = attrs["assigned_pod"]  # may be None when clearing the pod
+            if pod is not None:
+                project_id = self.context.get("project_id")
+                if project_id is None and self.instance is not None:
+                    project_id = self.instance.project_id
+                # ``project`` may also be present in attrs on issue create.
+                if project_id is None and "project" in attrs and attrs["project"] is not None:
+                    proj = attrs["project"]
+                    project_id = getattr(proj, "id", proj)
+                if project_id is not None and str(pod.project_id) != str(project_id):
+                    raise serializers.ValidationError({"assigned_pod_id": "pod is in a different project"})
+                if pod.deleted_at is not None:
+                    raise serializers.ValidationError({"assigned_pod_id": "pod has been deleted"})
+            # Block mid-flight *reassignment* — changing OR clearing the pod once
+            # a run is active. The run's pod FK is immutable, so a change would
+            # silently take effect only on the *next* dispatch (and clearing to
+            # null would re-route the next run to the project default). Initial
+            # assignment (no prior pod) is allowed; re-sending the current pod
+            # (the web form re-PATCHes the full editable set on blur) is a no-op.
+            if self.instance is not None and self.instance.assigned_pod_id is not None:
+                new_pod_id = pod.id if pod is not None else None
+                if str(new_pod_id) != str(self.instance.assigned_pod_id) and self.instance.has_active_run:
+                    raise serializers.ValidationError(
+                        {"assigned_pod_id": "cannot reassign pod while the issue has an active run"}
+                    )
+
+        # ``agent_executor`` is the per-issue execution-target override; NULL
+        # inherits the project default. Cloud Agent and pods are mutually
+        # exclusive targets, so the UI presents them as one "Runs on" choice
+        # and this is the matching server-side guard.
+        if "agent_executor" in attrs:
+            executor = attrs["agent_executor"]  # None clears the override
+            if executor is not None:
+                from karma_team.core.agent_execution import AgentExecutorKind, cloud_agent_is_configured
+
+                if executor not in AgentExecutorKind.values:
+                    raise serializers.ValidationError({"agent_executor": "unknown agent executor"})
+                # Refuse a target that could never dispatch, rather than
+                # accepting it and failing invisibly at run creation.
+                if executor == AgentExecutorKind.CLOUD_AGENT and not cloud_agent_is_configured():
+                    raise serializers.ValidationError(
+                        {"agent_executor": "karma-team Cloud Agent is not available on this instance"}
+                    )
+                if executor == AgentExecutorKind.MANAGED_RUNNER:
+                    # Pinning to the desktop is viewer-specific: the check is
+                    # "can the person making this request run it on their own
+                    # machine", which is exactly what the picker showed them.
+                    from karma_team.managed_runner.errors import ManagedRunnerReason
+                    from karma_team.managed_runner.policy import managed_runner_availability
+
+                    project = self.instance.project if self.instance is not None else attrs.get("project")
+                    if project is None:
+                        from karma_team.db.models import Project
+
+                        project = Project.objects.filter(pk=self.context.get("project_id")).first()
+                    if project is None:
+                        raise serializers.ValidationError({"agent_executor": "A project is required for desktop runs"})
+                    viewer = getattr(self.context.get("request"), "user", None)
+                    available, reason = managed_runner_availability(project, viewer)
+                    # A desktop that has not enrolled this project yet fixes
+                    # itself the moment the app opens it, so accept the pin
+                    # rather than blocking on a race the client will resolve.
+                    if not available and reason != ManagedRunnerReason.NO_RUNNER_FOR_PROJECT:
+                        raise serializers.ValidationError(
+                            {"agent_executor": _MANAGED_UNAVAILABLE_DETAIL.get(reason, reason)}
+                        )
+            # Same mid-flight rule as the pod: ``AgentRun.executor_kind`` is
+            # snapshotted at creation, so switching targets under a live run
+            # would silently apply only to the next dispatch.
+            if (
+                self.instance is not None
+                and str(executor) != str(self.instance.agent_executor)
+                and self.instance.has_active_run
+            ):
+                raise serializers.ValidationError(
+                    {"agent_executor": "cannot change the execution target while the issue has an active run"}
+                )
+
+        # Validate description content for security
+        if "description_html" in attrs and attrs["description_html"]:
+            is_valid, error_msg, sanitized_html = validate_html_content(attrs["description_html"])
+            if not is_valid:
+                raise serializers.ValidationError({"error": "html content is not valid"})
+            # Update the attrs with sanitized HTML if available
+            if sanitized_html is not None:
+                attrs["description_html"] = sanitized_html
+
+        if "description_binary" in attrs and attrs["description_binary"]:
+            is_valid, error_msg = validate_binary_data(attrs["description_binary"])
+            if not is_valid:
+                raise serializers.ValidationError({"description_binary": "Invalid binary data"})
+
+        # Validate assignees are from project
+        if attrs.get("assignee_ids", []):
+            attrs["assignee_ids"] = ProjectMember.objects.filter(
+                project_id=self.context["project_id"],
+                role__gte=15,
+                is_active=True,
+                member_id__in=attrs["assignee_ids"],
+            ).values_list("member_id", flat=True)
+
+        # Validate labels are from project
+        if attrs.get("label_ids"):
+            label_ids = [label.id for label in attrs["label_ids"]]
+            attrs["label_ids"] = list(
+                Label.objects.filter(
+                    project_id=self.context.get("project_id"),
+                    id__in=label_ids,
+                ).values_list("id", flat=True)
+            )
+
+        # Check state is from the project only else raise validation error
+        if (
+            attrs.get("state")
+            and not state_manager.filter(
+                project_id=self.context.get("project_id"),
+                pk=attrs.get("state").id,
+            ).exists()
+        ):
+            raise serializers.ValidationError("State is not valid please pass a valid state_id")
+
+        # Check parent issue is from workspace as it can be cross workspace
+        if (
+            attrs.get("parent")
+            and not Issue.objects.filter(
+                project_id=self.context.get("project_id"),
+                pk=attrs.get("parent").id,
+            ).exists()
+        ):
+            raise serializers.ValidationError("Parent is not valid issue_id please pass a valid issue_id")
+
+        if (
+            attrs.get("estimate_point")
+            and not EstimatePoint.objects.filter(
+                project_id=self.context.get("project_id"),
+                pk=attrs.get("estimate_point").id,
+            ).exists()
+        ):
+            raise serializers.ValidationError("Estimate point is not valid please pass a valid estimate_point_id")
+
+        return attrs
+
+    def create(self, validated_data):
+        assignees = validated_data.pop("assignee_ids", None)
+        labels = validated_data.pop("label_ids", None)
+
+        project_id = self.context["project_id"]
+        workspace_id = self.context["workspace_id"]
+        default_assignee_id = self.context["default_assignee_id"]
+
+        # Create Issue
+        issue = Issue.objects.create(**validated_data, project_id=project_id)
+
+        # Issue Audit Users
+        created_by_id = issue.created_by_id
+        updated_by_id = issue.updated_by_id
+
+        if assignees is not None and len(assignees):
+            try:
+                IssueAssignee.objects.bulk_create(
+                    [
+                        IssueAssignee(
+                            assignee_id=assignee_id,
+                            issue=issue,
+                            project_id=project_id,
+                            workspace_id=workspace_id,
+                            created_by_id=created_by_id,
+                            updated_by_id=updated_by_id,
+                        )
+                        for assignee_id in assignees
+                    ],
+                    batch_size=10,
+                )
+            except IntegrityError:
+                pass
+        else:
+            # Then assign it to default assignee, if it is a valid assignee
+            if (
+                default_assignee_id is not None
+                and ProjectMember.objects.filter(
+                    member_id=default_assignee_id,
+                    project_id=project_id,
+                    role__gte=15,
+                    is_active=True,
+                ).exists()
+            ):
+                try:
+                    IssueAssignee.objects.create(
+                        assignee_id=default_assignee_id,
+                        issue=issue,
+                        project_id=project_id,
+                        workspace_id=workspace_id,
+                        created_by_id=created_by_id,
+                        updated_by_id=updated_by_id,
+                    )
+                except IntegrityError:
+                    pass
+
+        if labels is not None and len(labels):
+            try:
+                IssueLabel.objects.bulk_create(
+                    [
+                        IssueLabel(
+                            label_id=label_id,
+                            issue=issue,
+                            project_id=project_id,
+                            workspace_id=workspace_id,
+                            created_by_id=created_by_id,
+                            updated_by_id=updated_by_id,
+                        )
+                        for label_id in labels
+                    ],
+                    batch_size=10,
+                )
+            except IntegrityError:
+                pass
+
+        return issue
+
+    def update(self, instance, validated_data):
+        assignees = validated_data.pop("assignee_ids", None)
+        labels = validated_data.pop("label_ids", None)
+
+        # Related models
+        project_id = instance.project_id
+        workspace_id = instance.workspace_id
+        created_by_id = instance.created_by_id
+        updated_by_id = instance.updated_by_id
+
+        if assignees is not None:
+            IssueAssignee.objects.filter(issue=instance).delete()
+            try:
+                IssueAssignee.objects.bulk_create(
+                    [
+                        IssueAssignee(
+                            assignee_id=assignee_id,
+                            issue=instance,
+                            project_id=project_id,
+                            workspace_id=workspace_id,
+                            created_by_id=created_by_id,
+                            updated_by_id=updated_by_id,
+                        )
+                        for assignee_id in assignees
+                    ],
+                    batch_size=10,
+                    ignore_conflicts=True,
+                )
+            except IntegrityError:
+                pass
+
+        if labels is not None:
+            IssueLabel.objects.filter(issue=instance).delete()
+            try:
+                IssueLabel.objects.bulk_create(
+                    [
+                        IssueLabel(
+                            label_id=label_id,
+                            issue=instance,
+                            project_id=project_id,
+                            workspace_id=workspace_id,
+                            created_by_id=created_by_id,
+                            updated_by_id=updated_by_id,
+                        )
+                        for label_id in labels
+                    ],
+                    batch_size=10,
+                    ignore_conflicts=True,
+                )
+            except IntegrityError:
+                pass
+
+        # Time updation occues even when other related models are updated
+        instance.updated_at = timezone.now()
+        return super().update(instance, validated_data)
+
+
+class IssueActivitySerializer(BaseSerializer):
+    actor_detail = UserLiteSerializer(read_only=True, source="actor")
+    issue_detail = IssueFlatSerializer(read_only=True, source="issue")
+    project_detail = ProjectLiteSerializer(read_only=True, source="project")
+    workspace_detail = WorkspaceLiteSerializer(read_only=True, source="workspace")
+    source_data = serializers.SerializerMethodField()
+
+    def get_source_data(self, obj):
+        if hasattr(obj, "issue") and hasattr(obj.issue, "source_data") and obj.issue.source_data:
+            return {
+                "source": obj.issue.source_data[0].source,
+                "source_email": obj.issue.source_data[0].source_email,
+                "extra": obj.issue.source_data[0].extra,
+            }
+        return None
+
+    class Meta:
+        model = IssueActivity
+        fields = "__all__"
+
+
+class ProjectUserPropertySerializer(BaseSerializer):
+    class Meta:
+        model = ProjectUserProperty
+        fields = "__all__"
+        read_only_fields = ["user", "workspace", "project"]
+
+
+class LabelSerializer(BaseSerializer):
+    class Meta:
+        model = Label
+        fields = [
+            "parent",
+            "name",
+            "color",
+            "id",
+            "project_id",
+            "workspace_id",
+            "sort_order",
+        ]
+        read_only_fields = ["workspace", "project"]
+
+    def validate_name(self, value):
+        project_id = self.context.get("project_id")
+
+        label = Label.objects.filter(project_id=project_id, name__iexact=value)
+
+        if self.instance:
+            label = label.exclude(id=self.instance.pk)
+
+        if label.exists():
+            raise serializers.ValidationError(detail="LABEL_NAME_ALREADY_EXISTS")
+
+        return value
+
+
+class LabelLiteSerializer(BaseSerializer):
+    class Meta:
+        model = Label
+        fields = ["id", "name", "color"]
+
+
+class IssueLabelSerializer(BaseSerializer):
+    class Meta:
+        model = IssueLabel
+        fields = "__all__"
+        read_only_fields = ["workspace", "project"]
+
+
+class IssueRelationSerializer(BaseSerializer):
+    id = serializers.UUIDField(source="related_issue.id", read_only=True)
+    project_id = serializers.PrimaryKeyRelatedField(source="related_issue.project_id", read_only=True)
+    sequence_id = serializers.IntegerField(source="related_issue.sequence_id", read_only=True)
+    name = serializers.CharField(source="related_issue.name", read_only=True)
+    relation_type = serializers.CharField(read_only=True)
+    state_id = serializers.UUIDField(source="related_issue.state.id", read_only=True)
+    priority = serializers.CharField(source="related_issue.priority", read_only=True)
+    assignee_ids = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(queryset=User.objects.all()),
+        write_only=True,
+        required=False,
+    )
+
+    class Meta:
+        model = IssueRelation
+        fields = [
+            "id",
+            "project_id",
+            "sequence_id",
+            "relation_type",
+            "name",
+            "state_id",
+            "priority",
+            "assignee_ids",
+            "created_by",
+            "created_at",
+            "updated_at",
+            "updated_by",
+        ]
+        read_only_fields = [
+            "workspace",
+            "project",
+            "created_by",
+            "created_at",
+            "updated_by",
+            "updated_at",
+        ]
+
+
+class RelatedIssueSerializer(BaseSerializer):
+    id = serializers.UUIDField(source="issue.id", read_only=True)
+    project_id = serializers.PrimaryKeyRelatedField(source="issue.project_id", read_only=True)
+    sequence_id = serializers.IntegerField(source="issue.sequence_id", read_only=True)
+    name = serializers.CharField(source="issue.name", read_only=True)
+    relation_type = serializers.CharField(read_only=True)
+    state_id = serializers.UUIDField(source="issue.state.id", read_only=True)
+    priority = serializers.CharField(source="issue.priority", read_only=True)
+    assignee_ids = serializers.ListField(
+        child=serializers.PrimaryKeyRelatedField(queryset=User.objects.all()),
+        write_only=True,
+        required=False,
+    )
+
+    class Meta:
+        model = IssueRelation
+        fields = [
+            "id",
+            "project_id",
+            "sequence_id",
+            "relation_type",
+            "name",
+            "state_id",
+            "priority",
+            "assignee_ids",
+            "created_by",
+            "created_at",
+            "updated_by",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "workspace",
+            "project",
+            "created_by",
+            "created_at",
+            "updated_by",
+            "updated_at",
+        ]
+
+
+class IssueAssigneeSerializer(BaseSerializer):
+    assignee_details = UserLiteSerializer(read_only=True, source="assignee")
+
+    class Meta:
+        model = IssueAssignee
+        fields = "__all__"
+
+
+class CycleBaseSerializer(BaseSerializer):
+    class Meta:
+        model = Cycle
+        fields = "__all__"
+        read_only_fields = [
+            "workspace",
+            "project",
+            "created_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class IssueCycleDetailSerializer(BaseSerializer):
+    cycle_detail = CycleBaseSerializer(read_only=True, source="cycle")
+
+    class Meta:
+        model = CycleIssue
+        fields = "__all__"
+        read_only_fields = [
+            "workspace",
+            "project",
+            "created_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class ModuleBaseSerializer(BaseSerializer):
+    class Meta:
+        model = Module
+        fields = "__all__"
+        read_only_fields = [
+            "workspace",
+            "project",
+            "created_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class IssueModuleDetailSerializer(BaseSerializer):
+    module_detail = ModuleBaseSerializer(read_only=True, source="module")
+
+    class Meta:
+        model = ModuleIssue
+        fields = "__all__"
+        read_only_fields = [
+            "workspace",
+            "project",
+            "created_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class GithubPullRequestLinkSerializer(BaseSerializer):
+    """Read serializer for a GitHub PR linked to a work item (web overview).
+
+    All PR-status fields are server-managed (set at attach time and refreshed by
+    the GitHub App webhook), so the client only ever supplies ``url`` on create.
+    """
+
+    created_by_detail = UserLiteSerializer(read_only=True, source="created_by")
+
+    class Meta:
+        model = GithubPullRequestLink
+        fields = [
+            "id",
+            "issue",
+            "repo_owner",
+            "repo_name",
+            "pr_number",
+            "url",
+            "title",
+            "state",
+            "merged",
+            "draft",
+            "pr_updated_at",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_detail",
+        ]
+        read_only_fields = fields
+
+
+class GitCodeReviewLinkSerializer(BaseSerializer):
+    """Read serializer for a Git provider code review linked to a work item."""
+
+    created_by_detail = UserLiteSerializer(read_only=True, source="created_by")
+
+    class Meta:
+        model = GitCodeReviewLink
+        fields = [
+            "id",
+            "issue",
+            "provider",
+            "host_url",
+            "namespace",
+            "repo_name",
+            "repo_external_id",
+            "external_id",
+            "external_iid",
+            "url",
+            "title",
+            "state",
+            "merged",
+            "draft",
+            "remote_updated_at",
+            "metadata",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "created_by_detail",
+        ]
+        read_only_fields = fields
+
+
+class IssueLinkSerializer(BaseSerializer):
+    created_by_detail = UserLiteSerializer(read_only=True, source="created_by")
+
+    class Meta:
+        model = IssueLink
+        fields = "__all__"
+        read_only_fields = [
+            "workspace",
+            "project",
+            "created_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+            "issue",
+        ]
+
+    def to_internal_value(self, data):
+        # Modify the URL before validation by appending http:// if missing
+        url = data.get("url", "")
+        if url and not url.startswith(("http://", "https://")):
+            data["url"] = "http://" + url
+
+        return super().to_internal_value(data)
+
+    def validate_url(self, value):
+        # Use Django's built-in URLValidator for validation
+        url_validator = URLValidator()
+        try:
+            url_validator(value)
+        except ValidationError:
+            raise serializers.ValidationError({"error": "Invalid URL format."})
+
+        return value
+
+    # Validation if url already exists
+    def create(self, validated_data):
+        if IssueLink.objects.filter(url=validated_data.get("url"), issue_id=validated_data.get("issue_id")).exists():
+            raise serializers.ValidationError({"error": "URL already exists for this Issue"})
+        return IssueLink.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        if (
+            IssueLink.objects.filter(url=validated_data.get("url"), issue_id=instance.issue_id)
+            .exclude(pk=instance.id)
+            .exists()
+        ):
+            raise serializers.ValidationError({"error": "URL already exists for this Issue"})
+
+        return super().update(instance, validated_data)
+
+
+class IssueLinkLiteSerializer(BaseSerializer):
+    class Meta:
+        model = IssueLink
+        fields = [
+            "id",
+            "issue_id",
+            "title",
+            "url",
+            "metadata",
+            "created_by_id",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class IssueAttachmentSerializer(BaseSerializer):
+    asset_url = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = FileAsset
+        fields = "__all__"
+        read_only_fields = [
+            "created_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+            "workspace",
+            "project",
+            "issue",
+        ]
+
+
+class IssueAttachmentLiteSerializer(DynamicBaseSerializer):
+    class Meta:
+        model = FileAsset
+        fields = [
+            "id",
+            "asset",
+            "attributes",
+            # "issue_id",
+            "created_by",
+            "updated_at",
+            "updated_by",
+            "asset_url",
+        ]
+        read_only_fields = fields
+
+
+class IssueReactionSerializer(BaseSerializer):
+    actor_detail = UserLiteSerializer(read_only=True, source="actor")
+
+    class Meta:
+        model = IssueReaction
+        fields = "__all__"
+        read_only_fields = ["workspace", "project", "issue", "actor", "deleted_at"]
+
+
+class IssueReactionLiteSerializer(DynamicBaseSerializer):
+    display_name = serializers.CharField(source="actor.display_name", read_only=True)
+
+    class Meta:
+        model = IssueReaction
+        fields = ["id", "actor", "issue", "reaction", "display_name"]
+
+
+class CommentReactionSerializer(BaseSerializer):
+    display_name = serializers.CharField(source="actor.display_name", read_only=True)
+
+    class Meta:
+        model = CommentReaction
+        fields = [
+            "id",
+            "actor",
+            "comment",
+            "reaction",
+            "display_name",
+            "deleted_at",
+            "workspace",
+            "project",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "updated_by",
+        ]
+        read_only_fields = ["workspace", "project", "comment", "actor", "deleted_at", "created_by", "updated_by"]
+
+
+class IssueVoteSerializer(BaseSerializer):
+    actor_detail = UserLiteSerializer(read_only=True, source="actor")
+
+    class Meta:
+        model = IssueVote
+        fields = ["issue", "vote", "workspace", "project", "actor", "actor_detail"]
+        read_only_fields = fields
+
+
+class IssueCommentSerializer(BaseSerializer):
+    actor_detail = UserLiteSerializer(read_only=True, source="actor")
+    issue_detail = IssueFlatSerializer(read_only=True, source="issue")
+    project_detail = ProjectLiteSerializer(read_only=True, source="project")
+    workspace_detail = WorkspaceLiteSerializer(read_only=True, source="workspace")
+    comment_reactions = CommentReactionSerializer(read_only=True, many=True)
+    is_member = serializers.BooleanField(read_only=True)
+    # Surfaced so the UI can hide edit/delete affordances on synced rows.
+    is_synced = serializers.SerializerMethodField()
+
+    class Meta:
+        model = IssueComment
+        fields = "__all__"
+        read_only_fields = [
+            "workspace",
+            "project",
+            "issue",
+            "created_by",
+            "updated_by",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_is_synced(self, obj) -> bool:
+        return _comment_is_actively_synced(obj)
+
+    def validate(self, attrs):
+        # Block edits to synced comment bodies. See §6.8. Same value-changed
+        # check as the issue serializer above — don't reject no-op PATCHes.
+        if self.instance is not None and _comment_is_actively_synced(self.instance):
+            blocked = [
+                field
+                for field in _LOCKED_COMMENT_FIELDS & set(attrs.keys())
+                if attrs[field] != getattr(self.instance, field, None)
+            ]
+            if blocked:
+                raise serializers.ValidationError(
+                    {
+                        f: "This comment is synced from a Git provider and is read-only. "
+                        "Unbind the project's repository to edit."
+                        for f in blocked
+                    }
+                )
+        return attrs
+
+
+class IssueStateFlatSerializer(BaseSerializer):
+    state_detail = StateLiteSerializer(read_only=True, source="state")
+    project_detail = ProjectLiteSerializer(read_only=True, source="project")
+
+    class Meta:
+        model = Issue
+        fields = ["id", "sequence_id", "name", "state_detail", "project_detail"]
+
+
+# Issue Serializer with state details
+class IssueStateSerializer(DynamicBaseSerializer):
+    label_details = LabelLiteSerializer(read_only=True, source="labels", many=True)
+    state_detail = StateLiteSerializer(read_only=True, source="state")
+    project_detail = ProjectLiteSerializer(read_only=True, source="project")
+    assignee_details = UserLiteSerializer(read_only=True, source="assignees", many=True)
+    sub_issues_count = serializers.IntegerField(read_only=True)
+    attachment_count = serializers.IntegerField(read_only=True)
+    link_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Issue
+        # Exclude the agent workpad — read/written via the dedicated workpad
+        # endpoint; including it here would bloat list payloads with KBs of
+        # markdown per issue.
+        exclude = ["workpad"]
+
+
+class IssueIntakeSerializer(DynamicBaseSerializer):
+    label_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
+
+    class Meta:
+        model = Issue
+        fields = [
+            "id",
+            "name",
+            "priority",
+            "sequence_id",
+            "project_id",
+            "created_at",
+            "label_ids",
+            "created_by",
+        ]
+        read_only_fields = fields
+
+
+class IssueSerializer(DynamicBaseSerializer):
+    # ids
+    cycle_id = serializers.PrimaryKeyRelatedField(read_only=True)
+    # FK id only (PK-only optimization — no extra query). Lets the UI show and
+    # round-trip the issue's current pod. Reassignment while a run is active is
+    # rejected server-side in IssueCreateSerializer.validate.
+    assigned_pod_id = serializers.PrimaryKeyRelatedField(source="assigned_pod", read_only=True)
+    module_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
+
+    # Many to many
+    label_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
+    assignee_ids = serializers.ListField(child=serializers.UUIDField(), required=False)
+
+    # Count items
+    sub_issues_count = serializers.IntegerField(read_only=True)
+    attachment_count = serializers.IntegerField(read_only=True)
+    link_count = serializers.IntegerField(read_only=True)
+
+    # Surfaced so the UI can hide title/description edit affordances on
+    # actively-synced Git provider issues.
+    is_synced = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Issue
+        fields = [
+            "id",
+            "name",
+            "state_id",
+            "sort_order",
+            "completed_at",
+            "estimate_point",
+            "priority",
+            "complexity_score",
+            "start_date",
+            "target_date",
+            "sequence_id",
+            "project_id",
+            "parent_id",
+            "cycle_id",
+            "assigned_pod_id",
+            "agent_executor",
+            "module_ids",
+            "label_ids",
+            "assignee_ids",
+            "sub_issues_count",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "updated_by",
+            "attachment_count",
+            "link_count",
+            "is_draft",
+            "archived_at",
+            "is_synced",
+        ]
+        read_only_fields = fields
+
+    def get_is_synced(self, obj) -> bool:
+        return _issue_is_actively_synced(obj)
+
+    def validate(self, data):
+        if (
+            data.get("state_id")
+            and not State.objects.filter(project_id=self.context.get("project_id"), pk=data.get("state_id")).exists()
+        ):
+            raise serializers.ValidationError("State is not valid please pass a valid state_id")
+        # NOTE: ``assigned_pod`` is intentionally not validated here.
+        # The ``IssueViewSet`` (apps/.../views/issue/base.py) routes
+        # create / update / partial_update through ``IssueCreateSerializer``
+        # whose ``validate()`` already runs the project-equality + soft-
+        # delete checks. ``IssueSerializer`` is read-only for
+        # ``assigned_pod`` (not declared in ``Meta.fields``;
+        # ``read_only_fields = fields``) so any guard here would never
+        # see the field in ``data``.
+        return data
+
+
+class IssueListDetailSerializer(serializers.Serializer):
+    def __init__(self, *args, **kwargs):
+        # Extract expand parameter and store it as instance variable
+        self.expand = kwargs.pop("expand", []) or []
+        # Extract fields parameter and store it as instance variable
+        self.fields = kwargs.pop("fields", []) or []
+        super().__init__(*args, **kwargs)
+
+    def get_module_ids(self, obj):
+        return [module.module_id for module in obj.issue_module.all()]
+
+    def get_label_ids(self, obj):
+        return [label.label_id for label in obj.label_issue.all()]
+
+    def get_assignee_ids(self, obj):
+        return [assignee.assignee_id for assignee in obj.issue_assignee.all()]
+
+    def to_representation(self, instance):
+        data = {
+            # Basic fields
+            "id": instance.id,
+            "name": instance.name,
+            "state_id": instance.state_id,
+            "sort_order": instance.sort_order,
+            "completed_at": instance.completed_at,
+            "estimate_point": instance.estimate_point_id,
+            "priority": instance.priority,
+            "start_date": instance.start_date,
+            "target_date": instance.target_date,
+            "sequence_id": instance.sequence_id,
+            "project_id": instance.project_id,
+            "parent_id": instance.parent_id,
+            "created_at": instance.created_at,
+            "updated_at": instance.updated_at,
+            "created_by": instance.created_by_id,
+            "updated_by": instance.updated_by_id,
+            "is_draft": instance.is_draft,
+            "archived_at": instance.archived_at,
+            # Computed fields
+            "cycle_id": instance.cycle_id,
+            "module_ids": self.get_module_ids(instance),
+            "label_ids": self.get_label_ids(instance),
+            "assignee_ids": self.get_assignee_ids(instance),
+            "sub_issues_count": instance.sub_issues_count,
+            "attachment_count": instance.attachment_count,
+            "link_count": instance.link_count,
+        }
+
+        # Handle expanded fields only when requested - using direct field access
+        if self.expand:
+            if "issue_relation" in self.expand:
+                relations = []
+                for relation in instance.issue_relation.all():
+                    related_issue = relation.related_issue
+                    # If the related issue is deleted, skip it
+                    if not related_issue:
+                        continue
+                    # Add the related issue to the relations list
+                    relations.append(
+                        {
+                            "id": related_issue.id,
+                            "project_id": related_issue.project_id,
+                            "sequence_id": related_issue.sequence_id,
+                            "name": related_issue.name,
+                            "relation_type": relation.relation_type,
+                            "state_id": related_issue.state_id,
+                            "priority": related_issue.priority,
+                            "created_by": related_issue.created_by_id,
+                            "created_at": related_issue.created_at,
+                            "updated_at": related_issue.updated_at,
+                            "updated_by": related_issue.updated_by_id,
+                        }
+                    )
+                data["issue_relation"] = relations
+
+            if "issue_related" in self.expand:
+                related = []
+                for relation in instance.issue_related.all():
+                    issue = relation.issue
+                    # If the related issue is deleted, skip it
+                    if not issue:
+                        continue
+                    # Add the related issue to the related list
+                    related.append(
+                        {
+                            "id": issue.id,
+                            "project_id": issue.project_id,
+                            "sequence_id": issue.sequence_id,
+                            "name": issue.name,
+                            "relation_type": relation.relation_type,
+                            "state_id": issue.state_id,
+                            "priority": issue.priority,
+                            "created_by": issue.created_by_id,
+                            "created_at": issue.created_at,
+                            "updated_at": issue.updated_at,
+                            "updated_by": issue.updated_by_id,
+                        }
+                    )
+                data["issue_related"] = related
+
+        return data
+
+
+class IssueLiteSerializer(DynamicBaseSerializer):
+    class Meta:
+        model = Issue
+        fields = ["id", "sequence_id", "project_id"]
+        read_only_fields = fields
+
+
+class IssueDetailSerializer(IssueSerializer):
+    description_html = serializers.CharField()
+    is_subscribed = serializers.BooleanField(read_only=True)
+    is_intake = serializers.BooleanField(read_only=True)
+    agent_ticker = serializers.SerializerMethodField()
+    agent_status = serializers.SerializerMethodField()
+
+    class Meta(IssueSerializer.Meta):
+        fields = IssueSerializer.Meta.fields + [
+            "description_html",
+            "is_subscribed",
+            "is_intake",
+            "agent_ticker",
+            "agent_status",
+        ]
+        read_only_fields = fields
+
+    def _serialize_datetime(self, value):
+        return value.isoformat() if value else None
+
+    def get_agent_ticker(self, obj):
+        """Surface the per-issue continuation ticker for the issue detail UI.
+
+        Returns ``None`` when no ticker row exists yet (the issue has
+        never been moved to In Progress). See
+        ``.ai_design/issue_ticking_system/design.md`` §8.1.
+        """
+        try:
+            ticker = obj.agent_ticker
+        except ObjectDoesNotExist:
+            return None
+
+        if ticker is None:
+            return None
+        # ``can_re_tick`` is the single source of truth for the "re-tick"
+        # affordance: true only when a fresh budget grant would actually do
+        # something — the issue is still in a ticking state AND the current
+        # budget is exhausted. Mirrors the guardrails in
+        # ``scheduling.re_tick_ticker`` so the button never appears when the
+        # server would no-op (e.g. a cap-hit issue already auto-paused out
+        # of a ticking state).
+        from karma_team.orchestration.agent_phases import is_ticking_state
+        from karma_team.orchestration.scheduling import is_paused_state
+
+        # Re-tick is offered wherever the grant is honoured: in the bucket,
+        # and on the Paused state the cap-hit auto-pause parks issues in.
+        can_re_tick = (is_ticking_state(obj.state) or is_paused_state(obj.state)) and ticker.cap_reached()
+        return {
+            "enabled": ticker.enabled,
+            "user_disabled": ticker.user_disabled,
+            # One pool per issue: ``used`` of ``max_ticks`` (project pool +
+            # Re-tick grants). ``tick_count`` is the pre-pool spelling.
+            "used": ticker.used,
+            "tick_count": ticker.used,
+            "granted": ticker.granted,
+            "max_ticks": ticker.effective_max_ticks(),
+            "remaining": ticker.remaining(),
+            "interval_seconds": ticker.effective_interval_seconds(),
+            "next_run_at": ticker.next_run_at.isoformat() if ticker.next_run_at else None,
+            "last_tick_at": ticker.last_tick_at.isoformat() if ticker.last_tick_at else None,
+            "disarm_reason": ticker.disarm_reason,
+            # An entry run is owed and fires as soon as the issue is free
+            # (design §4.5) — the card shows "next run queued".
+            "pending_entry": ticker.pending_entry,
+            "can_re_tick": can_re_tick,
+        }
+
+    def _serialize_agent_live_state(self, state):
+        if state is None:
+            return None
+        return {
+            "observed_run_id": str(state.observed_run_id) if state.observed_run_id else None,
+            "last_event_at": self._serialize_datetime(state.last_event_at),
+            "last_event_kind": state.last_event_kind,
+            "last_event_summary": state.last_event_summary,
+            "agent_pid": state.agent_pid,
+            "agent_subprocess_alive": state.agent_subprocess_alive,
+            "approvals_pending": state.approvals_pending,
+            "input_tokens": state.input_tokens,
+            "output_tokens": state.output_tokens,
+            "total_tokens": state.total_tokens,
+            "llm_model": state.llm_model,
+            "turn_count": state.turn_count,
+            "updated_at": self._serialize_datetime(state.updated_at),
+        }
+
+    def _serialize_agent_run(self, run, *, include_live_state=False):
+        if run is None:
+            return None
+        live_state = None
+        if include_live_state and run.runner_id is not None:
+            live_state = getattr(run.runner, "live_state", None)
+            if (
+                live_state is not None
+                and live_state.observed_run_id is not None
+                and str(live_state.observed_run_id) != str(run.id)
+            ):
+                live_state = None
+        return {
+            "id": str(run.id),
+            "status": run.status,
+            "executor_kind": run.executor_kind,
+            "queue_position": run.queue_position,
+            "runner": str(run.runner_id) if run.runner_id else None,
+            "runner_name": run.runner.name if run.runner_id and run.runner else None,
+            "created_at": self._serialize_datetime(run.created_at),
+            "assigned_at": self._serialize_datetime(run.assigned_at),
+            "started_at": self._serialize_datetime(run.started_at),
+            "ended_at": self._serialize_datetime(run.ended_at),
+            "done_payload": run.done_payload,
+            "error": run.error,
+            "error_code": run.error_code,
+            "error_diagnostic": classify_run_error(run.error),
+            "llm_model": run.llm_model,
+            "input_tokens": run.input_tokens,
+            "output_tokens": run.output_tokens,
+            "total_tokens": run.total_tokens,
+            "live_state": self._serialize_agent_live_state(live_state),
+        }
+
+    def get_agent_status(self, obj):
+        """Compact agent-run state for the issue detail indicator.
+
+        ``IssueAgentTicker`` remains the source of truth for the next
+        automatic tick. ``AgentRun`` remains the source of truth for current
+        execution/failure/completion state. This method only composes those
+        rows for the issue page.
+        """
+        from karma_team.runner.models import AgentRun, AgentRunStatus
+
+        ticker = self.get_agent_ticker(obj)
+        runs = AgentRun.objects.filter(work_item=obj)
+        latest_run = runs.select_related("runner__live_state").order_by("-created_at").first()
+        active_run = (
+            runs.select_related("runner__live_state")
+            .filter(
+                status__in=[
+                    AgentRunStatus.QUEUED,
+                    AgentRunStatus.ASSIGNED,
+                    AgentRunStatus.WAITING_FOR_WORKTREE,
+                    AgentRunStatus.RUNNING,
+                    AgentRunStatus.CANCEL_REQUESTED,
+                    AgentRunStatus.AWAITING_APPROVAL,
+                    AgentRunStatus.AWAITING_REAUTH,
+                    AgentRunStatus.PAUSED_AWAITING_INPUT,
+                ]
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+        if ticker is None and latest_run is None:
+            return None
+
+        return {
+            "ticker": ticker,
+            "active_run": self._serialize_agent_run(active_run, include_live_state=True),
+            "latest_run": self._serialize_agent_run(latest_run, include_live_state=active_run is None),
+            "run_count": runs.count(),
+        }
+
+
+class IssuePublicSerializer(BaseSerializer):
+    project_detail = ProjectLiteSerializer(read_only=True, source="project")
+    state_detail = StateLiteSerializer(read_only=True, source="state")
+    reactions = IssueReactionSerializer(read_only=True, many=True, source="issue_reactions")
+    votes = IssueVoteSerializer(read_only=True, many=True)
+
+    class Meta:
+        model = Issue
+        fields = [
+            "id",
+            "name",
+            "description_html",
+            "sequence_id",
+            "state",
+            "state_detail",
+            "project",
+            "project_detail",
+            "workspace",
+            "priority",
+            "target_date",
+            "reactions",
+            "votes",
+        ]
+        read_only_fields = fields
+
+
+class IssueSubscriberSerializer(BaseSerializer):
+    class Meta:
+        model = IssueSubscriber
+        fields = "__all__"
+        read_only_fields = ["workspace", "project", "issue"]
+
+
+class IssueVersionDetailSerializer(BaseSerializer):
+    class Meta:
+        model = IssueVersion
+        fields = [
+            "id",
+            "workspace",
+            "project",
+            "issue",
+            "parent",
+            "state",
+            "estimate_point",
+            "name",
+            "priority",
+            "start_date",
+            "target_date",
+            "assignees",
+            "sequence_id",
+            "labels",
+            "sort_order",
+            "completed_at",
+            "archived_at",
+            "is_draft",
+            "external_source",
+            "external_id",
+            "type",
+            "cycle",
+            "modules",
+            "meta",
+            "name",
+            "last_saved_at",
+            "owned_by",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "updated_by",
+        ]
+        read_only_fields = ["workspace", "project", "issue"]
+
+
+class IssueDescriptionVersionDetailSerializer(BaseSerializer):
+    class Meta:
+        model = IssueDescriptionVersion
+        fields = [
+            "id",
+            "workspace",
+            "project",
+            "issue",
+            "description_binary",
+            "description_html",
+            "description_stripped",
+            "description_json",
+            "last_saved_at",
+            "owned_by",
+            "created_at",
+            "updated_at",
+            "created_by",
+            "updated_by",
+        ]
+        read_only_fields = ["workspace", "project", "issue"]

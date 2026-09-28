@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { ICalendarDate, ICalendarPayload } from "@pi-dash/types";
-import { EStartOfTheWeek } from "@pi-dash/types";
+// karma-team imports
+import type { ICalendarDate, ICalendarPayload } from "@karma-team/types";
+import { EStartOfTheWeek } from "@karma-team/types";
 // local imports
 import { getWeekNumberOfDate, renderFormattedPayloadDate } from "./datetime";
 

@@ -4,14 +4,14 @@
  * See the LICENSE file for details.
  */
 
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { CopyIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IApiToken } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { CopyIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IApiToken } from "@karma-team/types";
 // ui
-import { renderFormattedDate, renderFormattedTime, copyTextToClipboard } from "@pi-dash/utils";
+import { renderFormattedDate, renderFormattedTime, copyTextToClipboard } from "@karma-team/utils";
 // helpers
 // types
 import { usePlatformOS } from "@/hooks/use-platform-os";
@@ -40,7 +40,11 @@ export function GeneratedTokenDetails(props: Props) {
     <div className="w-full p-5">
       <div className="w-full space-y-3 text-wrap">
         <h3 className="text-16 leading-6 font-medium text-primary">{t("Key created")}</h3>
-        <p className="text-13 text-placeholder">{t("Copy and save this secret key in Pi Dash Pages. You can't see this key after you hit Close. A CSV file containing the key has been downloaded.")}</p>
+        <p className="text-13 text-placeholder">
+          {t(
+            "Copy and save this secret key in karma-team Pages. You can't see this key after you hit Close. A CSV file containing the key has been downloaded."
+          )}
+        </p>
       </div>
       <button
         type="button"

@@ -7,12 +7,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePopper } from "react-popper";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { useTranslation } from "@pi-dash/i18n";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { TLogoProps } from "@pi-dash/types";
-import { Badge, Checkbox, Input, Loader } from "@pi-dash/ui";
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { useTranslation } from "@karma-team/i18n";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+import type { TLogoProps } from "@karma-team/types";
+import { Badge, Checkbox, Input, Loader } from "@karma-team/ui";
 import { filterProjects } from "@/components/schedulers/install-scheduler-helpers";
 
 /** Minimal project shape the picker needs; `TProject` is structurally assignable. */

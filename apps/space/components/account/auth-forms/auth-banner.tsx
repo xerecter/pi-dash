@@ -5,7 +5,7 @@
  */
 
 import { Info } from "lucide-react";
-import { CloseIcon } from "@pi-dash/propel/icons";
+import { CloseIcon } from "@karma-team/propel/icons";
 // helpers
 import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
 

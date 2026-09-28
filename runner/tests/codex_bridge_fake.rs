@@ -2,16 +2,16 @@
 //! `codex app-server` and emits canned JSON-RPC responses; the Bridge drives
 //! it through `initialize → thread/start → turn/start → turn/completed`.
 
-use pidash::codex::app_server::AppServer;
-use pidash::codex::bridge::{Bridge, BridgeEvent, RunPayload};
-use pidash::codex::jsonrpc::{self, Incoming};
-use pidash::codex::schema::{ClientInfo, InitializeParams, TurnInputItem, TurnStartParams};
+use karma_team::codex::app_server::AppServer;
+use karma_team::codex::bridge::{Bridge, BridgeEvent, RunPayload};
+use karma_team::codex::jsonrpc::{self, Incoming};
+use karma_team::codex::schema::{ClientInfo, InitializeParams, TurnInputItem, TurnStartParams};
 use std::path::PathBuf;
 use std::time::Duration;
 use tokio::process::Command;
 use uuid::Uuid;
 
-async fn wait_completed(bridge: &mut Bridge, cursor: &mut pidash::codex::bridge::BridgeCursor) {
+async fn wait_completed(bridge: &mut Bridge, cursor: &mut karma_team::codex::bridge::BridgeCursor) {
     let deadline = tokio::time::Instant::now() + Duration::from_secs(3);
     while tokio::time::Instant::now() < deadline {
         let Some(frame) = tokio::time::timeout(Duration::from_secs(1), bridge.next_frame())
@@ -282,14 +282,14 @@ fn codex_request_params_serialize_in_v2_shape() {
         "initialize",
         &InitializeParams {
             client_info: ClientInfo {
-                name: "pidash".into(),
+                name: "karma-team".into(),
                 version: "0".into(),
             },
         },
     )
     .expect("serialize initialize");
     let init: serde_json::Value = serde_json::from_str(&init).unwrap();
-    assert_eq!(init["params"]["clientInfo"]["name"], "pidash");
+    assert_eq!(init["params"]["clientInfo"]["name"], "karma-team");
 
     let turn = jsonrpc::request(
         2,

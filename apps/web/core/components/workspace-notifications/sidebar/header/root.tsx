@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { InboxIcon } from "@pi-dash/propel/icons";
-import { Breadcrumbs, Header } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { InboxIcon } from "@karma-team/propel/icons";
+import { Breadcrumbs, Header } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 // local imports
@@ -31,11 +31,7 @@ export const NotificationSidebarHeader = observer(function NotificationSidebarHe
         <Breadcrumbs>
           <Breadcrumbs.Item
             component={
-              <BreadcrumbLink
-                label={t("Inbox")}
-                icon={<InboxIcon className="h-4 w-4 text-primary" />}
-                disableTooltip
-              />
+              <BreadcrumbLink label={t("Inbox")} icon={<InboxIcon className="h-4 w-4 text-primary" />} disableTooltip />
             }
           />
         </Breadcrumbs>

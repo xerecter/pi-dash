@@ -4,13 +4,13 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { BarChart } from "@pi-dash/propel/charts/bar-chart";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
-import type { IUserProfileData } from "@pi-dash/types";
-import { Loader, Card } from "@pi-dash/ui";
-import { capitalizeFirstLetter } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { BarChart } from "@karma-team/propel/charts/bar-chart";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
+import type { IUserProfileData } from "@karma-team/types";
+import { Loader, Card } from "@karma-team/ui";
+import { capitalizeFirstLetter } from "@karma-team/utils";
 
 type Props = {
   userProfile: IUserProfileData | undefined;
@@ -63,11 +63,7 @@ export function ProfilePriorityDistribution({ userProfile }: Props) {
               barSize={20}
             />
           ) : (
-            <EmptyStateCompact
-              assetKey="priority"
-              assetClassName="size-20"
-              title={t("No work item assigned yet")}
-            />
+            <EmptyStateCompact assetKey="priority" assetClassName="size-20" title={t("No work item assigned yet")} />
           )}
         </Card>
       ) : (

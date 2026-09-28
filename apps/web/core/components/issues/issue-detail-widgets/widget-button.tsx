@@ -6,7 +6,7 @@
 
 import React from "react";
 // helpers
-import { Button } from "@pi-dash/propel/button";
+import { Button } from "@karma-team/propel/button";
 
 type Props = {
   icon: React.ReactNode;

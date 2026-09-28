@@ -1,7 +1,7 @@
 # 03 — Frontend Design (apps/web)
 
 Stack facts this design follows: React Router pages under `app/`, MobX stores + SWR, Axios
-`APIService` subclasses, Tailwind + `@pi-dash/ui`, existing SSE chat consumption pattern in
+`APIService` subclasses, Tailwind + `@karma-team/ui`, existing SSE chat consumption pattern in
 `core/components/runners/chat/use-agent-chat-events.ts` and the runner chat page
 (`app/(all)/[workspaceSlug]/runners/chat/[runnerId]/page.tsx`).
 
@@ -54,7 +54,7 @@ any assistant UI.
 Step 2 — assistant-specific code:
 
 ```
-packages/services/src/assistant/assistant.service.ts   # in @pi-dash/services, beside RunnerService
+packages/services/src/assistant/assistant.service.ts   # in @karma-team/services, beside RunnerService
                                                         # (the kit's URL builders then come from one
                                                         # package for both consumers)
 core/store/assistant/                   # MobX: thread list per workspace + active thread id ONLY —

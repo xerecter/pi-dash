@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { LockIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import { LockIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
 
 export function LockedComponent(props: { toolTipContent?: string }) {
   const { toolTipContent } = props;

@@ -5,7 +5,7 @@
  */
 
 // FIXME: fix this!!!
-import type { ICustomSearchSelectOption } from "@pi-dash/types";
+import type { ICustomSearchSelectOption } from "@karma-team/types";
 
 type Placement =
   | "top"

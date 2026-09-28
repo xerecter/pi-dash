@@ -7,10 +7,10 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 // editor
-import type { EditorRefApi } from "@pi-dash/editor";
+import type { EditorRefApi } from "@karma-team/editor";
 // ui
-import { TextArea } from "@pi-dash/ui";
-import { cn, getPageName } from "@pi-dash/utils";
+import { TextArea } from "@karma-team/ui";
+import { cn, getPageName } from "@karma-team/utils";
 // helpers
 // hooks
 import { usePageFilters } from "@/hooks/use-page-filters";

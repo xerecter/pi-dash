@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { IProject, IUserLite, TOperatorConfigMap, TSupportedOperators } from "@pi-dash/types";
-import { COMPARISON_OPERATOR, EQUALITY_OPERATOR } from "@pi-dash/types";
+// karma-team imports
+import type { IProject, IUserLite, TOperatorConfigMap, TSupportedOperators } from "@karma-team/types";
+import { COMPARISON_OPERATOR, EQUALITY_OPERATOR } from "@karma-team/types";
 // local imports
 import { getDatePickerConfig, getDateRangePickerConfig, getMultiSelectConfig } from "../core";
 import type { IFilterIconConfig, TCreateDateFilterParams, TCreateFilterConfigParams, TFilterIconType } from "../shared";

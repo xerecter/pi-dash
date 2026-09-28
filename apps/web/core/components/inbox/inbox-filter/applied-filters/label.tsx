@@ -6,8 +6,8 @@
 
 import { observer } from "mobx-react";
 // hooks
-import { CloseIcon } from "@pi-dash/propel/icons";
-import { Tag } from "@pi-dash/ui";
+import { CloseIcon } from "@karma-team/propel/icons";
+import { Tag } from "@karma-team/ui";
 import { useLabel } from "@/hooks/store/use-label";
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 

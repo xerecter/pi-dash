@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 
 export type TDateAlertProps = {
   date: string;

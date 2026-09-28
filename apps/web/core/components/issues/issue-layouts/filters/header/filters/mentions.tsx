@@ -7,10 +7,10 @@
 import { useMemo, useState } from "react";
 import { sortBy } from "lodash-es";
 import { observer } from "mobx-react";
-// pi dash ui
-import { Loader, Avatar } from "@pi-dash/ui";
+// karma-team ui
+import { Loader, Avatar } from "@karma-team/ui";
 // components
-import { getFileURL } from "@pi-dash/utils";
+import { getFileURL } from "@karma-team/utils";
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 // helpers
 // hooks

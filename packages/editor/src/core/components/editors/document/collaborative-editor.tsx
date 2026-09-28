@@ -5,8 +5,8 @@
  */
 
 import React, { useMemo } from "react";
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 // components
 import { PageRenderer } from "@/components/editors";
 // constants

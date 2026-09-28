@@ -7,8 +7,8 @@
 import { makeObservable, observable } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { TIssue, TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import type { TIssue, TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // services
 import { IssueArchiveService, WorkspaceDraftService, IssueService } from "@/services/issue";
 // types

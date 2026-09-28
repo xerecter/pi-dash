@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash web imports
-import type { TEditorMentionComponentProps } from "@/pi-dash-web/components/editor/embeds/mentions";
-import { EditorAdditionalMentionsRoot } from "@/pi-dash-web/components/editor/embeds/mentions";
+// karma-team web imports
+import type { TEditorMentionComponentProps } from "@/karma-team-web/components/editor/embeds/mentions";
+import { EditorAdditionalMentionsRoot } from "@/karma-team-web/components/editor/embeds/mentions";
 // local imports
 import { EditorUserMention } from "./user";
 

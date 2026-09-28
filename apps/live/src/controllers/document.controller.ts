@@ -7,10 +7,10 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
 // helpers
-import { Controller, Post } from "@pi-dash/decorators";
-import { convertHTMLDocumentToAllFormats } from "@pi-dash/editor";
+import { Controller, Post } from "@karma-team/decorators";
+import { convertHTMLDocumentToAllFormats } from "@karma-team/editor";
 // logger
-import { logger } from "@pi-dash/logger";
+import { logger } from "@karma-team/logger";
 import type { TConvertDocumentRequestBody } from "@/types";
 
 // Define the schema with more robust validation

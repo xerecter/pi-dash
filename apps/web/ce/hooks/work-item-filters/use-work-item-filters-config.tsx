@@ -6,8 +6,8 @@
 
 import { useCallback, useMemo } from "react";
 import { AtSign, Briefcase } from "lucide-react";
-// pi dash imports
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
+// karma-team imports
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
 import {
   CalendarLayoutIcon,
   CycleGroupIcon,
@@ -22,7 +22,7 @@ import {
   DueDatePropertyIcon,
   UserCirclePropertyIcon,
   PriorityPropertyIcon,
-} from "@pi-dash/propel/icons";
+} from "@karma-team/propel/icons";
 import type {
   ICycle,
   IState,
@@ -32,8 +32,8 @@ import type {
   IModule,
   IProject,
   TWorkItemFilterProperty,
-} from "@pi-dash/types";
-import { Avatar } from "@pi-dash/ui";
+} from "@karma-team/types";
+import { Avatar } from "@karma-team/ui";
 import {
   getAssigneeFilterConfig,
   getCreatedAtFilterConfig,
@@ -52,7 +52,7 @@ import {
   getTargetDateFilterConfig,
   getUpdatedAtFilterConfig,
   isLoaderReady,
-} from "@pi-dash/utils";
+} from "@karma-team/utils";
 // store hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useLabel } from "@/hooks/store/use-label";
@@ -60,8 +60,8 @@ import { useMember } from "@/hooks/store/use-member";
 import { useModule } from "@/hooks/store/use-module";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
-// pi dash web imports
-import { useFiltersOperatorConfigs } from "@/pi-dash-web/hooks/rich-filters/use-filters-operator-configs";
+// karma-team web imports
+import { useFiltersOperatorConfigs } from "@/karma-team-web/hooks/rich-filters/use-filters-operator-configs";
 
 export type TWorkItemFiltersEntityProps = {
   workspaceSlug: string;

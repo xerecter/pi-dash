@@ -7,10 +7,10 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-// pi dash constants
-import { ISSUE_DISPLAY_FILTERS_BY_PAGE, PROJECT_VIEW_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { EIssueLayoutTypes, EIssuesStoreType } from "@pi-dash/types";
-import { Spinner } from "@pi-dash/ui";
+// karma-team constants
+import { ISSUE_DISPLAY_FILTERS_BY_PAGE, PROJECT_VIEW_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { EIssueLayoutTypes, EIssuesStoreType } from "@karma-team/types";
+import { Spinner } from "@karma-team/ui";
 // components
 import { ProjectLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/project-level";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";

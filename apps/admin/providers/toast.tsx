@@ -5,8 +5,8 @@
  */
 
 import { useTheme } from "next-themes";
-import { Toast } from "@pi-dash/propel/toast";
-import { resolveGeneralTheme } from "@pi-dash/utils";
+import { Toast } from "@karma-team/propel/toast";
+import { resolveGeneralTheme } from "@karma-team/utils";
 
 export function ToastWithTheme() {
   const { resolvedTheme } = useTheme();

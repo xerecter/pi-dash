@@ -13,7 +13,7 @@ import type {
   TIssuesResponse,
   TLoader,
   ViewFlags,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // services
 import { WorkspaceService } from "@/services/workspace.service";
 // types

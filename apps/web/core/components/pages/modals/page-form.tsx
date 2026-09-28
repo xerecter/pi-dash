@@ -8,16 +8,16 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 import type { LucideIcon } from "lucide-react";
 
-// pi dash imports
-import { ETabIndices, EPageAccess } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { GlobeIcon, LockIcon, PageIcon } from "@pi-dash/propel/icons";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import type { TPage } from "@pi-dash/types";
-import { Input } from "@pi-dash/ui";
-import { getTabIndex } from "@pi-dash/utils";
+// karma-team imports
+import { ETabIndices, EPageAccess } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@karma-team/propel/emoji-icon-picker";
+import { GlobeIcon, LockIcon, PageIcon } from "@karma-team/propel/icons";
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import type { TPage } from "@karma-team/types";
+import { Input } from "@karma-team/ui";
+import { getTabIndex } from "@karma-team/utils";
 // components
 import { AccessField } from "@/components/common/access-field";
 // hooks

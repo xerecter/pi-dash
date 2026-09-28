@@ -6,7 +6,7 @@
 
 import { Combobox } from "@headlessui/react";
 import React, { useEffect, useRef } from "react";
-import { SearchIcon } from "@pi-dash/propel/icons";
+import { SearchIcon } from "@karma-team/propel/icons";
 // helpers
 import { cn } from "../../utils";
 

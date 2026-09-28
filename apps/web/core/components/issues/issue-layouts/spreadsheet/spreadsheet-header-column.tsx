@@ -7,7 +7,7 @@
 import { useRef } from "react";
 //types
 import { observer } from "mobx-react";
-import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@pi-dash/types";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@karma-team/types";
 //components
 import { shouldRenderColumn } from "@/helpers/issue-filter.helper";
 import { WithDisplayPropertiesHOC } from "../properties/with-display-properties-HOC";

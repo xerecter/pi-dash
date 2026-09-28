@@ -8,20 +8,20 @@ import type { ReactNode } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-// pi dash imports
-import type { IWorkspaceSidebarNavigationItem } from "@pi-dash/constants";
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { joinUrlPath } from "@pi-dash/utils";
+// karma-team imports
+import type { IWorkspaceSidebarNavigationItem } from "@karma-team/constants";
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { joinUrlPath } from "@karma-team/utils";
 // components
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { useWorkspaceNavigationPreferences } from "@/hooks/use-navigation-preferences";
-// pi dash web imports
-import { getSidebarNavigationItemIcon } from "@/pi-dash-web/components/workspace/sidebar/helper";
+// karma-team web imports
+import { getSidebarNavigationItemIcon } from "@/karma-team-web/components/workspace/sidebar/helper";
 
 type Props = {
   item: IWorkspaceSidebarNavigationItem;

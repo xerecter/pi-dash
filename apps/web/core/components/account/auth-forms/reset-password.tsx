@@ -10,12 +10,12 @@ import { useSearchParams } from "next/navigation";
 // icons
 import { Eye, EyeOff } from "lucide-react";
 // ui
-import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { Input, PasswordStrengthIndicator } from "@pi-dash/ui";
+import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { Input, PasswordStrengthIndicator } from "@karma-team/ui";
 // components
-import { getPasswordStrength } from "@pi-dash/utils";
+import { getPasswordStrength } from "@karma-team/utils";
 // helpers
 import type { EAuthenticationErrorCodes, TAuthErrorInfo } from "@/helpers/authentication.helper";
 import { EErrorAlertType, authErrorHandler } from "@/helpers/authentication.helper";
@@ -60,7 +60,7 @@ export const ResetPasswordForm = observer(function ResetPasswordForm() {
   const [isPasswordInputFocused, setIsPasswordInputFocused] = useState(false);
   const [isRetryPasswordInputFocused, setIsRetryPasswordInputFocused] = useState(false);
   const [errorInfo, setErrorInfo] = useState<TAuthErrorInfo | undefined>(undefined);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
 
   const handleShowPassword = (key: keyof typeof showPassword) =>

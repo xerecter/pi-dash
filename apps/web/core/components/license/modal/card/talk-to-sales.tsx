@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 // types
-// pi dash imports
-import { getButtonStyling } from "@pi-dash/propel/button";
-import type { EProductSubscriptionEnum, IPaymentProduct, TSubscriptionPrice } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { getButtonStyling } from "@karma-team/propel/button";
+import type { EProductSubscriptionEnum, IPaymentProduct, TSubscriptionPrice } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // local imports
 import { BasePaidPlanCard } from "./base-paid-plan-card";
 

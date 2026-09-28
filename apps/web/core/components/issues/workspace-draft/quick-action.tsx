@@ -5,12 +5,12 @@
  */
 
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import type { TContextMenuItem } from "@pi-dash/ui";
-import { ContextMenu, CustomMenu } from "@pi-dash/ui";
+import type { TContextMenuItem } from "@karma-team/ui";
+import { ContextMenu, CustomMenu } from "@karma-team/ui";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 export interface Props {
   parentRef: React.RefObject<HTMLElement>;

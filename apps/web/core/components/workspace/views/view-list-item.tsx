@@ -8,10 +8,10 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { EditIcon, TrashIcon } from "@pi-dash/propel/icons";
-import { CustomMenu } from "@pi-dash/ui";
-import { truncateText } from "@pi-dash/utils";
+// karma-team imports
+import { EditIcon, TrashIcon } from "@karma-team/propel/icons";
+import { CustomMenu } from "@karma-team/ui";
+import { truncateText } from "@karma-team/utils";
 // hooks
 import { useGlobalView } from "@/hooks/store/use-global-view";
 // local imports

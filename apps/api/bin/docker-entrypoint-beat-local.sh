@@ -5,7 +5,7 @@ python manage.py wait_for_db
 python manage.py wait_for_migrations
 
 exec watchmedo auto-restart \
-  --directory=./pi_dash \
+  --directory=./karma_team \
   --pattern="*.py" \
   --recursive \
-  -- celery -A pi_dash beat -l info
+  -- celery -A karma_team beat -l info

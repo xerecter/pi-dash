@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { ScrollArea } from "@pi-dash/propel/scrollarea";
-import type { TProfileSettingsTabs } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { ScrollArea } from "@karma-team/propel/scrollarea";
+import type { TProfileSettingsTabs } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // local imports
 import { ProfileSettingsSidebarHeader } from "./header";
 import { ProfileSettingsSidebarItemCategories } from "./item-categories";

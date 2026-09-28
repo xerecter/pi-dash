@@ -5,8 +5,8 @@
  */
 
 import { useCallback } from "react";
-// pi dash imports
-import type { TExtendedFileHandler } from "@pi-dash/editor";
+// karma-team imports
+import type { TExtendedFileHandler } from "@karma-team/editor";
 
 export type TExtendedEditorFileHandlersArgs = {
   projectId?: string;

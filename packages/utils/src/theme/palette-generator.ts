@@ -195,7 +195,7 @@ export function generateColorPalette(
 
 /**
  * Generate both brand and neutral palettes for a custom theme
- * Optimized for Pi Dash's 2-color theme system
+ * Optimized for karma-team's 2-color theme system
  * Uses auto-calculated value stops for better color matching
  *
  * @param brandColor - Brand accent color (hex)

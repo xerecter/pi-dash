@@ -6,11 +6,11 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import { CloseIcon, PiSymbol } from "@pi-dash/propel/icons";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import { CloseIcon, KarmaTeamSymbol } from "@karma-team/propel/icons";
 // assets
-// TODO(onboarding): replace these reused Plane-era screenshots with Pi Dash-native captures
+// TODO(onboarding): replace these reused Plane-era screenshots with karma-team-native captures
 // (runner CLI, runner chat, workpad) once design provides them.
 import CyclesTour from "@/app/assets/onboarding/cycles.webp?url";
 import IssuesTour from "@/app/assets/onboarding/issues.webp?url";
@@ -41,15 +41,15 @@ const TOUR_STEPS: {
     key: "work-items",
     title: "Plan work your agents can run",
     description:
-      "Work items are the unit of work in Pi Dash. Describe what needs to happen, attach context, and hand it to a coding agent — or keep it for your team.",
+      "Work items are the unit of work in karma-team. Describe what needs to happen, attach context, and hand it to a coding agent — or keep it for your team.",
     image: IssuesTour,
     nextStep: "runners",
   },
   {
     key: "runners",
-    title: "Connect a Pi Dash Runner",
+    title: "Connect a karma-team Runner",
     description:
-      "Install the Pi Dash Runner on your dev machine to plug in Claude Code or Codex. The runner picks up work items you dispatch and executes them in the background.",
+      "Install the karma-team Runner on your dev machine to plug in Claude Code or Codex. The runner picks up work items you dispatch and executes them in the background.",
     image: CyclesTour,
     prevStep: "work-items",
     nextStep: "chat",
@@ -99,14 +99,14 @@ export const TourRoot = observer(function TourRoot(props: TOnboardingTourProps) 
         <div className="w-4/5 overflow-hidden rounded-[10px] bg-surface-1 md:w-1/2 lg:w-2/5">
           <div className="h-full overflow-hidden">
             <div className="grid h-64 place-items-center bg-accent-primary">
-              <PiSymbol className="h-20 w-auto text-on-color" />
+              <KarmaTeamSymbol className="h-20 w-auto text-on-color" />
             </div>
             <div className="flex flex-col overflow-y-auto p-6">
               <h3 className="font-semibold sm:text-18">
-                Welcome to Pi Dash, {currentUser?.first_name} {currentUser?.last_name}
+                Welcome to karma-team, {currentUser?.first_name} {currentUser?.last_name}
               </h3>
               <p className="mt-3 text-13 text-secondary">
-                Pi Dash is where you plan work and dispatch it to AI coding agents. Define what needs to be done,
+                karma-team is where you plan work and dispatch it to AI coding agents. Define what needs to be done,
                 connect a runner, and watch your agents execute it — with you in the loop the whole way.
               </p>
               <div className="flex h-full items-end">

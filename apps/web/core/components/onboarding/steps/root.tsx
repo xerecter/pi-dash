@@ -5,9 +5,9 @@
  */
 
 import { useEffect, useRef } from "react";
-// pi dash imports
-import type { IWorkspaceJoinRequest, IWorkspaceMemberInvitation } from "@pi-dash/types";
-import { EOnboardingSteps } from "@pi-dash/types";
+// karma-team imports
+import type { IWorkspaceJoinRequest, IWorkspaceMemberInvitation } from "@karma-team/types";
+import { EOnboardingSteps } from "@karma-team/types";
 // local components
 import { CliInstallStep } from "./cli-install";
 import { ProfileSetupStep } from "./profile";

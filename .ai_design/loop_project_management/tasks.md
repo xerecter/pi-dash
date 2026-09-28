@@ -14,10 +14,10 @@ Related docs:
 
 Goal: land all database changes with no runtime behavior change.
 
-- `pi_dash/db/models/loop.py`: `LoopJob`, `LoopTarget` (+ `SkipReason`), `LoopUserPreference` per §6.1–6.3; export from `db/models/__init__.py`
+- `karma_team/db/models/loop.py`: `LoopJob`, `LoopTarget` (+ `SkipReason`), `LoopUserPreference` per §6.1–6.3; export from `db/models/__init__.py`
 - `assistant` migration `0002_thread_kind.py`: `ThreadKind` choices + `kind` column (§6.4)
 - `kind=CHAT` filter in `AssistantThreadListCreateEndpoint.get` (`assistant/views/threads.py:22`) — behaviorally inert until loop threads exist, so it belongs here
-- `pi_dash/loop/builtins.py` (Django-free, §8.1) + `db` migration creating tables and upserting the builtin job with `enabled=False` (§13)
+- `karma_team/loop/builtins.py` (Django-free, §8.1) + `db` migration creating tables and upserting the builtin job with `enabled=False` (§13)
 - tests: `test_models.py`, `test_thread_visibility.py` (§12)
 - note: CI/local test DBs need one `--create-db` run after this lands
 
@@ -36,10 +36,10 @@ Goal: the assistant runtime understands unattended turns; nothing dispatches the
 
 Goal: due targets dispatch real assistant turns end-to-end.
 
-- `pi_dash/loop/eligibility.py`: `llm_available_q()` (ee-overridable), `eligible_due_targets(now)`, `check(target)` with deterministic reason precedence (§7.8)
-- `pi_dash/loop/dispatch.py`: `dispatch_loop_turn` + `_ensure_thread` rotation (§7.5)
-- `pi_dash/bgtasks/loop.py`: `scan_due_targets` (`_reconcile_targets` throttled, `_fan_out_due`, `_advance_ineligible_due`) and `fire_loop_target` (§7.2–7.4); `_stagger` helper (§7.3)
-- `scan-due-loop-targets` Beat entry (`pi_dash/celery.py`, next to line 118)
+- `karma_team/loop/eligibility.py`: `llm_available_q()` (ee-overridable), `eligible_due_targets(now)`, `check(target)` with deterministic reason precedence (§7.8)
+- `karma_team/loop/dispatch.py`: `dispatch_loop_turn` + `_ensure_thread` rotation (§7.5)
+- `karma_team/bgtasks/loop.py`: `scan_due_targets` (`_reconcile_targets` throttled, `_fan_out_due`, `_advance_ineligible_due`) and `fire_loop_target` (§7.2–7.4); `_stagger` helper (§7.3)
+- `scan-due-loop-targets` Beat entry (`karma_team/celery.py`, next to line 118)
 - settings block (§11): `LOOP_ENABLED`, `LOOP_STAGGER_WINDOW_MINUTES`, `LOOP_MAX_DISPATCH_PER_TICK`, `LOOP_RECONCILE_EVERY_MINUTES`, `LOOP_ROTATION_HEADROOM`, `LOOP_MAX_WRITES`
 - tests: `test_eligibility.py`, `test_scanner.py`, `test_fire_dispatch.py` (§12)
 
@@ -47,7 +47,7 @@ Goal: due targets dispatch real assistant turns end-to-end.
 
 Goal: the builtin job can actually establish merge state.
 
-- `pi_dash/assistant/tools/github.py` per the §8.2 contract (parse → creds via `_scoping.member_projects` → httpx → never-raise mapping → per-run budget); register in `tools/__init__.py:11`
+- `karma_team/assistant/tools/github.py` per the §8.2 contract (parse → creds via `_scoping.member_projects` → httpx → never-raise mapping → per-run budget); register in `tools/__init__.py:11`
 - `LOOP_PR_LOOKUPS_PER_RUN` setting
 - tests: `test_github_tool.py` (§12, mocked httpx)
 
@@ -55,7 +55,7 @@ Goal: the builtin job can actually establish merge state.
 
 Goal: users can see and toggle "Auto Project Management".
 
-- `pi_dash/loop/views.py` + `pi_dash/loop/urls.py`; include in `pi_dash/urls.py` (`path("api/", include("pi_dash.loop.urls"))`)
+- `karma_team/loop/views.py` + `karma_team/loop/urls.py`; include in `karma_team/urls.py` (`path("api/", include("karma_team.loop.urls"))`)
 - GET/PATCH contracts per §9.1 — five-key whitelist, `interval_label` derived server-side, `enabled`-only PATCH
 - `packages/types/src/auto-pm.ts`, `packages/services/src/auto-pm/auto-pm.service.ts`, page component `auto-project-management.tsx`, tab registration in `packages/constants/src/settings/profile.ts` + sidebar icon, route case in `[profileTabId]/page.tsx` (§10.A table)
 - i18n keys `auto_pm.*` in every locale
@@ -65,7 +65,7 @@ Goal: users can see and toggle "Auto Project Management".
 
 Goal: the operator can manage jobs and observe targets.
 
-- `pi_dash/loop/admin_views.py` + `admin_urls.py`; `path("loop/", include(...))` in `pi_dash/license/urls.py`; `InstanceAdminPermission` throughout
+- `karma_team/loop/admin_views.py` + `admin_urls.py`; `path("loop/", include(...))` in `karma_team/license/urls.py`; `InstanceAdminPermission` throughout
 - job serializer + RRULE validation incl. hourly floor (§6.1, §9.2); targets listing with filters
 - `apps/admin` `loop/` pages + sidebar entry + `InstanceLoopService` (§10.B)
 - tests: `test_admin_api.py` (§12)

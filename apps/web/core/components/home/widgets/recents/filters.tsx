@@ -5,11 +5,11 @@
  */
 
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { TRecentActivityFilterKeys } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+import type { TRecentActivityFilterKeys } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 
 export type TFiltersDropdown = {
   className?: string;

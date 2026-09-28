@@ -5,8 +5,8 @@
  */
 
 //
-import type { ChartDataType } from "@pi-dash/types";
-import { EStartOfTheWeek } from "@pi-dash/types";
+import type { ChartDataType } from "@karma-team/types";
+import { EStartOfTheWeek } from "@karma-team/types";
 import { months, generateWeeks } from "../data";
 import { getNumberOfDaysBetweenTwoDates, getWeekNumberByDate } from "./helpers";
 export interface IDayBlock {

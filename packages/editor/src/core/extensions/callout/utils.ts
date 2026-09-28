@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TLogoProps } from "@pi-dash/types";
-import { sanitizeHTML } from "@pi-dash/utils";
+// karma-team imports
+import type { TLogoProps } from "@karma-team/types";
+import { sanitizeHTML } from "@karma-team/utils";
 // types
 import type { TCalloutBlockAttributes, TCalloutBlockEmojiAttributes, TCalloutBlockIconAttributes } from "./types";
 import { ECalloutAttributeNames } from "./types";

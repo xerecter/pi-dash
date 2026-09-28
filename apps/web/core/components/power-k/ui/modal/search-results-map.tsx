@@ -5,21 +5,21 @@
  */
 
 import { Briefcase, FileText, Layers, LayoutGrid } from "lucide-react";
-// pi dash imports
-import { ContrastIcon, DiceIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { ContrastIcon, DiceIcon } from "@karma-team/propel/icons";
 import type {
   IWorkspaceDefaultSearchResult,
   IWorkspaceIssueSearchResult,
   IWorkspacePageSearchResult,
   IWorkspaceProjectSearchResult,
   IWorkspaceSearchResult,
-} from "@pi-dash/types";
-import { generateWorkItemLink } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { generateWorkItemLink } from "@karma-team/utils";
 // components
 import type { TPowerKSearchResultsKeys } from "@/components/power-k/core/types";
-// pi dash web imports
-import { SEARCH_RESULTS_GROUPS_MAP_EXTENDED } from "@/pi-dash-web/components/command-palette/power-k/search/search-results-map";
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web imports
+import { SEARCH_RESULTS_GROUPS_MAP_EXTENDED } from "@/karma-team-web/components/command-palette/power-k/search/search-results-map";
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 
 export type TPowerKSearchResultGroupDetails = {
   icon?: React.ComponentType<{ className?: string }>;

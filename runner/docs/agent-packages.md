@@ -2,7 +2,7 @@
 
 OSS provides an opt-in integration seam, not a bundled agent product. A
 developer supplies a trusted local executable (or executable adapter), then
-connects it to an already-enrolled runner. Pi Dash does **not** download,
+connects it to an already-enrolled runner. karma-team does **not** download,
 install, license, authenticate, configure the model provider for, or update
 that package. Existing runners are unchanged unless explicitly configured.
 
@@ -48,21 +48,21 @@ implementations and their fake-agent integration tests are the contract source.
 
 ## Connect an existing runner
 
-After the operator has enrolled a runner through the normal Pi Dash workflow:
+After the operator has enrolled a runner through the normal karma-team workflow:
 
 ```bash
-pidash runner use-package my-runner --manifest /path/to/package/agent-package.toml
+karma-team runner use-package my-runner --manifest /path/to/package/agent-package.toml
 ```
 
 This command only updates the named runner's agent kind and executable using
 the existing locked, validated, atomic configuration writer. Other runners,
-Pi Dash credentials, cloud registration, working directory, model settings,
+karma-team credentials, cloud registration, working directory, model settings,
 and approval policy are preserved. The executable is not started or probed.
 Reapplying the manifest is safe and updates its resolved executable path.
 
 Restart the **owning daemon when idle** to apply the change; the command does
 not restart it or interrupt an active task. For an operator-managed service,
-use the normal `pidash restart` workflow. An embedded host manages its own
+use the normal `karma-team restart` workflow. An embedded host manages its own
 lifecycle. If the package moves, reapply the manifest before restarting.
 
 Runs use the normal runner execution path, including existing approvals,
@@ -81,8 +81,8 @@ and stdio unchanged. Do not embed secrets in the manifest or argv.
 Hosts linking the OSS runner crate may use the same implementation:
 
 ```rust,ignore
-use pidash::agent::package::AgentPackage;
-use pidash::config::file;
+use karma_team::agent::package::AgentPackage;
+use karma_team::config::file;
 
 let package = AgentPackage::from_manifest(manifest_path)?;
 file::mutate_config(paths, |config| {

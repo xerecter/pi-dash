@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { IPaymentProduct, TBillingFrequency, TProductBillingFrequency } from "@pi-dash/types";
-import { EProductSubscriptionEnum } from "@pi-dash/types";
+import type { IPaymentProduct, TBillingFrequency, TProductBillingFrequency } from "@karma-team/types";
+import { EProductSubscriptionEnum } from "@karma-team/types";
 
 /**
  * Default billing frequency for each product subscription type
@@ -31,10 +31,10 @@ export const SUBSCRIPTION_WITH_BILLING_FREQUENCY = [
  * Mapping of product subscription types to their respective payment product details
  * Used to provide information about each product's pricing and features
  */
-export const PI_DASH_COMMUNITY_PRODUCTS: Record<string, IPaymentProduct> = {
+export const KARMA_TEAM_COMMUNITY_PRODUCTS: Record<string, IPaymentProduct> = {
   [EProductSubscriptionEnum.PRO]: {
     id: EProductSubscriptionEnum.PRO,
-    name: "Pi Dash Pro",
+    name: "karma-team Pro",
     description:
       "More views, more cycles powers, more pages features, new reports, and better dashboards are waiting to be unlocked.",
     type: "PRO",
@@ -61,9 +61,9 @@ export const PI_DASH_COMMUNITY_PRODUCTS: Record<string, IPaymentProduct> = {
   },
   [EProductSubscriptionEnum.BUSINESS]: {
     id: EProductSubscriptionEnum.BUSINESS,
-    name: "Pi Dash Business",
+    name: "karma-team Business",
     description:
-      "The earliest packaging of Business at $10 a seat a month billed annually, $12 a seat a month billed monthly for Pi Dash Cloud",
+      "The earliest packaging of Business at $10 a seat a month billed annually, $12 a seat a month billed monthly for karma-team Cloud",
     type: "BUSINESS",
     prices: [
       {
@@ -88,7 +88,7 @@ export const PI_DASH_COMMUNITY_PRODUCTS: Record<string, IPaymentProduct> = {
   },
   [EProductSubscriptionEnum.ENTERPRISE]: {
     id: EProductSubscriptionEnum.ENTERPRISE,
-    name: "Pi Dash Enterprise",
+    name: "karma-team Enterprise",
     description: "",
     type: "ENTERPRISE",
     prices: [

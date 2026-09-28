@@ -7,11 +7,11 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router";
 import { LogOut, MoreHorizontal, Settings, Share2, ArchiveIcon } from "lucide-react";
-// pi dash imports
-import { MEMBER_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon } from "@pi-dash/propel/icons";
-import { CustomMenu } from "@pi-dash/ui";
+// karma-team imports
+import { MEMBER_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon } from "@karma-team/propel/icons";
+import { CustomMenu } from "@karma-team/ui";
 
 type Props = {
   workspaceSlug: string;

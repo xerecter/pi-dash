@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash types
-import { StateGroupIcon } from "@pi-dash/propel/icons";
-import type { IState } from "@pi-dash/types";
+// karma-team types
+import { StateGroupIcon } from "@karma-team/propel/icons";
+import type { IState } from "@karma-team/types";
 // components
 import { PowerKModalCommandItem } from "@/components/power-k/ui/modal/command-item";
 

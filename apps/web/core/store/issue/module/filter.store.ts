@@ -8,8 +8,8 @@ import { isEmpty, set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 // base class
 import { computedFn } from "mobx-utils";
-import type { TSupportedFilterTypeForUpdate } from "@pi-dash/constants";
-import { EIssueFilterType } from "@pi-dash/constants";
+import type { TSupportedFilterTypeForUpdate } from "@karma-team/constants";
+import { EIssueFilterType } from "@karma-team/constants";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
@@ -19,9 +19,9 @@ import type {
   IssuePaginationOptions,
   TWorkItemFilterExpression,
   TSupportedFilterForUpdate,
-} from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { handleIssueQueryParamsByLayout } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { handleIssueQueryParamsByLayout } from "@karma-team/utils";
 import { IssueFiltersService } from "@/services/issue_filter.service";
 import type { IBaseIssueFilterStore } from "../helpers/issue-filter-helper.store";
 import { IssueFilterHelperStore } from "../helpers/issue-filter-helper.store";

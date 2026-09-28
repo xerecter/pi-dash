@@ -8,10 +8,10 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { Link } from "react-router";
 import useSWR from "swr";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { InstanceLoopService } from "@pi-dash/services";
-import type { ILoopJob } from "@pi-dash/types";
-import { Button, Loader, ToggleSwitch } from "@pi-dash/ui";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { InstanceLoopService } from "@karma-team/services";
+import type { ILoopJob } from "@karma-team/types";
+import { Button, Loader, ToggleSwitch } from "@karma-team/ui";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
 // local

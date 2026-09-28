@@ -7,10 +7,10 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { useForm } from "react-hook-form";
-// Pi Dash imports
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IModule } from "@pi-dash/types";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+// karma-team imports
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IModule } from "@karma-team/types";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // components
 import { ModuleForm } from "@/components/modules";
 // hooks

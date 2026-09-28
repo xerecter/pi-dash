@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TCoreLoginMediums } from "@pi-dash/types";
+import type { TCoreLoginMediums } from "@karma-team/types";
 
 export const CORE_LOGIN_MEDIUM_LABELS: Record<TCoreLoginMediums, string> = {
   email: "Email",

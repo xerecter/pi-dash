@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TWorkspaceSettingsItem, TWorkspaceSettingsTabs } from "@pi-dash/types";
-import { EUserWorkspaceRoles } from "@pi-dash/types";
+// karma-team imports
+import type { TWorkspaceSettingsItem, TWorkspaceSettingsTabs } from "@karma-team/types";
+import { EUserWorkspaceRoles } from "@karma-team/types";
 
 export enum WORKSPACE_SETTINGS_CATEGORY {
   ADMINISTRATION = "administration",

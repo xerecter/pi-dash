@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import { EIssuesStoreType, EUserProjectRoles } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import { EIssuesStoreType, EUserProjectRoles } from "@karma-team/types";
 // hooks
 import { useUserPermissions } from "@/hooks/store/user";
 import { useWorkItemFilterInstance } from "@/hooks/store/work-item-filters/use-work-item-filter-instance";
@@ -22,7 +22,7 @@ export const ProjectArchivedEmptyState = observer(function ProjectArchivedEmptyS
   const { workspaceSlug: routerWorkspaceSlug, projectId: routerProjectId } = useParams();
   const workspaceSlug = routerWorkspaceSlug ? routerWorkspaceSlug.toString() : undefined;
   const projectId = routerProjectId ? routerProjectId.toString() : undefined;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { allowPermissions } = useUserPermissions();
@@ -53,7 +53,9 @@ export const ProjectArchivedEmptyState = observer(function ProjectArchivedEmptyS
         <EmptyStateDetailed
           assetKey="archived-work-item"
           title={t("No archived work items yet")}
-          description={t("Manually or through automation, you can archive work items that are completed or cancelled. Find them here once archived.")}
+          description={t(
+            "Manually or through automation, you can archive work items that are completed or cancelled. Find them here once archived."
+          )}
           actions={[
             {
               label: t("Set automation"),

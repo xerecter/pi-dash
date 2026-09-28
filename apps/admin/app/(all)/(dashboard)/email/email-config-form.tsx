@@ -7,11 +7,11 @@
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 // types
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IFormattedInstanceConfiguration, TInstanceEmailConfigurationKeys } from "@pi-dash/types";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IFormattedInstanceConfiguration, TInstanceEmailConfigurationKeys } from "@karma-team/types";
 // ui
-import { CustomSelect } from "@pi-dash/ui";
+import { CustomSelect } from "@karma-team/ui";
 // components
 import type { TControllerInputFormField } from "@/components/common/controller-input";
 import { ControllerInput } from "@/components/common/controller-input";

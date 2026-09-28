@@ -5,10 +5,10 @@
  */
 
 import { computedFn } from "mobx-utils";
-import type { EUserProjectRoles } from "@pi-dash/types";
-// pi dash imports
-// pi dash web imports
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import type { EUserProjectRoles } from "@karma-team/types";
+// karma-team imports
+// karma-team web imports
+import type { RootStore } from "@/karma-team-web/store/root.store";
 // store
 import type { IMemberRootStore } from "@/store/member";
 import type { IBaseProjectMemberStore } from "@/store/member/project/base-project-member.store";

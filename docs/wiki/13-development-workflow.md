@@ -18,10 +18,10 @@ pnpm fix:lint                    # oxlint --fix
 # Target a single package or app:
 pnpm turbo run <task> --filter=<pkg>
 pnpm --filter web dev
-pnpm --filter @pi-dash/ui storybook    # Storybook on :6006
+pnpm --filter @karma-team/ui storybook    # Storybook on :6006
 ```
 
-> i18n: the OSS build is English-only — wrap UI copy in `t("Source English text")`; no key catalogue to sync. Adding a language is documented in `packages/i18n/README.md`. (Multi-language locales and their tooling are part of Pi Dash Cloud.)
+> i18n: the OSS build is English-only — wrap UI copy in `t("Source English text")`; no key catalogue to sync. Adding a language is documented in `packages/i18n/README.md`. (Multi-language locales and their tooling are part of karma-team Cloud.)
 
 ## Django backend (`apps/api/`)
 
@@ -33,7 +33,7 @@ python manage.py runserver
 python manage.py migrate
 python manage.py createsuperuser
 # For local work, point at local settings:
-DJANGO_SETTINGS_MODULE=apple_pi_dash.settings.local python manage.py runserver
+DJANGO_SETTINGS_MODULE=apple_karma_team.settings.local python manage.py runserver
 
 # Tests:
 ./run_tests.sh                   # wrapper around tests/run_tests.sh
@@ -60,7 +60,7 @@ cargo check                      # quick type-check
 cargo clippy -- -D warnings      # lint — treat warnings as errors
 
 # From a debug build, run via:
-./target/debug/pidash <subcommand>
+./target/debug/karma-team <subcommand>
 ```
 
 `rust-toolchain.toml` pins the Rust version. `cargo-dist` packages release artifacts — see [15 — Releasing](./15-releasing.md).
@@ -78,13 +78,13 @@ Both are Rust-based. OxLint is 50-100x faster than ESLint, with zero Node.js dep
 
 Each app pins its own ceiling in its `package.json`:
 
-| App           | Ceiling |
-| ------------- | ------- |
-| `web`         | 11957   |
-| `space`       | 676     |
-| `admin`       | 759     |
-| `live`        | 119     |
-| `@pi-dash/ui` | 66      |
+| App              | Ceiling |
+| ---------------- | ------- |
+| `web`            | 11957   |
+| `space`          | 676     |
+| `admin`          | 759     |
+| `live`           | 119     |
+| `@karma-team/ui` | 66      |
 
 Crossing the ceiling fails `pnpm check:lint`. **After a cleanup, lower the ceiling** — leaving headroom defeats the gate.
 

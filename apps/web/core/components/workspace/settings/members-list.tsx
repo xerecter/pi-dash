@@ -9,10 +9,10 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { Disclosure } from "@headlessui/react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-import { Collapsible } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+import { Collapsible } from "@karma-team/ui";
 // components
 import { CountChip } from "@/components/common/count-chip";
 import { MembersSettingsLoader } from "@/components/ui/loader/settings/members";

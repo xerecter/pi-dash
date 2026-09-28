@@ -6,12 +6,12 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IWorkspaceView } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
-import { copyUrlToClipboard, cn } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IWorkspaceView } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
+import { copyUrlToClipboard, cn } from "@karma-team/utils";
 // helpers
 import { useViewMenuItems } from "@/components/common/quick-actions-helper";
 // hooks

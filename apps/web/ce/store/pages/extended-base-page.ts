@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { TPage, TPageExtended } from "@pi-dash/types";
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import type { TPage, TPageExtended } from "@karma-team/types";
+import type { RootStore } from "@/karma-team-web/store/root.store";
 import type { TBasePageServices } from "@/store/pages/base-page";
 
 export type TExtendedPageInstance = TPageExtended & {

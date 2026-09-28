@@ -1,13 +1,13 @@
 name: Feature request
-description: Suggest a feature to improve Pi Dash
+description: Suggest a feature to improve karma-team
 title: "[feature]: "
-labels: [✨feature, pi-dash]
+labels: [✨feature, karma-team]
 assignees: [vihar, pushya22]
 body:
 - type: markdown
   attributes:
     value: |
-      Thank you for taking the time to request a feature for Pi Dash
+      Thank you for taking the time to request a feature for karma-team
 - type: checkboxes
   attributes:
     label: Is there an existing issue for this?

@@ -5,11 +5,11 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { WorkItemsIcon } from "@pi-dash/propel/icons";
-import { EInboxIssueSource } from "@pi-dash/types";
+// karma-team imports
+import { WorkItemsIcon } from "@karma-team/propel/icons";
+import { EInboxIssueSource } from "@karma-team/types";
 // hooks
-import { capitalizeFirstLetter } from "@pi-dash/utils";
+import { capitalizeFirstLetter } from "@karma-team/utils";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports
 import { IssueActivityBlockComponent } from "./";

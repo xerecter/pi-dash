@@ -5,7 +5,7 @@
  */
 
 import { range } from "lodash-es";
-import { Loader } from "@pi-dash/ui";
+import { Loader } from "@karma-team/ui";
 
 export function PageLoader() {
   return (

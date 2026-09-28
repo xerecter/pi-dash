@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { TTimezones } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+import type { TTimezones } from "@karma-team/types";
 // helpers
 // api services
 import { APIService } from "@/services/api.service";

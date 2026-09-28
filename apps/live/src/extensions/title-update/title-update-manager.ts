@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { logger } from "@pi-dash/logger";
+import { logger } from "@karma-team/logger";
 import { AppError } from "@/lib/errors";
 import { getPageService } from "@/services/page/handler";
 import type { HocusPocusServerContext } from "@/types";

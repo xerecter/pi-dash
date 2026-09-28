@@ -5,11 +5,11 @@
  */
 
 import { useMemo } from "react";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { EFileAssetType } from "@pi-dash/types";
-import type { TCommentsOperations } from "@pi-dash/types";
-import { copyUrlToClipboard, formatTextList, generateWorkItemLink } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { EFileAssetType } from "@karma-team/types";
+import type { TCommentsOperations } from "@karma-team/types";
+import { copyUrlToClipboard, formatTextList, generateWorkItemLink } from "@karma-team/utils";
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useMember } from "@/hooks/store/use-member";

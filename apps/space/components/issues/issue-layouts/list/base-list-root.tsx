@@ -7,7 +7,7 @@
 import { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
 // types
-import type { IIssueDisplayProperties, TGroupedIssues } from "@pi-dash/types";
+import type { IIssueDisplayProperties, TGroupedIssues } from "@karma-team/types";
 // constants
 // components
 import { IssueLayoutHOC } from "@/components/issues/issue-layouts/issue-layout-HOC";

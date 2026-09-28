@@ -7,9 +7,9 @@
 import { Fragment, useState } from "react";
 import { usePopper } from "react-popper";
 import { Popover } from "@headlessui/react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { CloseIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { CloseIcon } from "@karma-team/propel/icons";
 
 export function ForgotPasswordPopover() {
   // popper-js refs
@@ -27,7 +27,7 @@ export function ForgotPasswordPopover() {
       },
     ],
   });
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
 
   return (
@@ -50,7 +50,9 @@ export function ForgotPasswordPopover() {
             {...attributes.popper}
           >
             <span className="flex-shrink-0">🤥</span>
-            <p className="text-11">{t("We see that your god hasn't enabled SMTP, we will not be able to send a password reset link")}</p>
+            <p className="text-11">
+              {t("We see that your god hasn't enabled SMTP, we will not be able to send a password reset link")}
+            </p>
             <button
               type="button"
               className="grid size-3 flex-shrink-0 place-items-center"

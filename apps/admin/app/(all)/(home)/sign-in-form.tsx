@@ -7,12 +7,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-// pi dash internal packages
-import type { EAdminAuthErrorCodes, TAdminAuthErrorInfo } from "@pi-dash/constants";
-import { API_BASE_URL } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { AuthService } from "@pi-dash/services";
-import { Input, Spinner } from "@pi-dash/ui";
+// karma-team internal packages
+import type { EAdminAuthErrorCodes, TAdminAuthErrorInfo } from "@karma-team/constants";
+import { API_BASE_URL } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { AuthService } from "@karma-team/services";
+import { Input, Spinner } from "@karma-team/ui";
 // components
 import { Banner } from "@/components/common/banner";
 // local components
@@ -114,7 +114,7 @@ export function InstanceSignInForm() {
       <div className="mt-10 flex w-full flex-grow flex-col items-center justify-center py-6">
         <div className="relative flex w-full max-w-[22.5rem] flex-col gap-6">
           <FormHeader
-            heading="Manage your Pi Dash instance"
+            heading="Manage your karma-team instance"
             subHeading="Configure instance-wide settings to secure your instance"
           />
           <form

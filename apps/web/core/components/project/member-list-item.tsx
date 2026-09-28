@@ -5,15 +5,15 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Table } from "@pi-dash/ui";
+// karma-team imports
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Table } from "@karma-team/ui";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
-// pi dash web imports
-import { useProjectColumns } from "@/pi-dash-web/components/projects/settings/useProjectColumns";
+// karma-team web imports
+import { useProjectColumns } from "@/karma-team-web/components/projects/settings/useProjectColumns";
 // store
 import type { IProjectMemberDetails } from "@/store/member/project/base-project-member.store";
 // local imports

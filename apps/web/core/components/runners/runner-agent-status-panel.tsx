@@ -5,8 +5,8 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import type { IRunner, IRunnerLiveState } from "@pi-dash/types";
-import { Badge, type TBadgeVariant } from "@pi-dash/ui";
+import type { IRunner, IRunnerLiveState } from "@karma-team/types";
+import { Badge, type TBadgeVariant } from "@karma-team/ui";
 
 /**
  * Per-active-run agent observability panel.

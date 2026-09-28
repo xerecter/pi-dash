@@ -89,7 +89,7 @@ describe("desktop project availability refresh", () => {
       render(<AgentRuntime />);
     });
     expect(mocks.fetchProject).toHaveBeenCalledWith("workspace", "project");
-    expect(screen.getByRole("status").textContent).toContain("Waiting for Pi Dash Agent");
+    expect(screen.getByRole("status").textContent).toContain("Waiting for karma-team Agent");
     await act(async () => {
       await vi.advanceTimersByTimeAsync(5000);
     });

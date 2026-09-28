@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { CloseIcon } from "@pi-dash/propel/icons";
+import { useTranslation } from "@karma-team/i18n";
+import { CloseIcon } from "@karma-team/propel/icons";
 // types
 import type { TFilters } from "@/types/issue";
 // components

@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-import { MARKETING_PI_DASH_ONE_PAGE_LINK } from "@pi-dash/constants";
-import { getButtonStyling } from "@pi-dash/propel/button";
-import { cn } from "@pi-dash/utils";
+import { MARKETING_KARMA_TEAM_ONE_PAGE_LINK } from "@karma-team/constants";
+import { getButtonStyling } from "@karma-team/propel/button";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   className?: string;
@@ -23,7 +23,7 @@ export function BulkOperationsUpgradeBanner(props: Props) {
           operation.
         </p>
         <a
-          href={MARKETING_PI_DASH_ONE_PAGE_LINK}
+          href={MARKETING_KARMA_TEAM_ONE_PAGE_LINK}
           target="_blank"
           rel="noopener noreferrer"
           className={cn(getButtonStyling("primary", "base"), "flex-shrink-0")}

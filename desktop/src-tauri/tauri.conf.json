@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Pi Dash",
+  "productName": "karma-team",
   "version": "0.3.2",
-  "identifier": "com.airepublic.pidash.oss",
+  "identifier": "com.airepublic.karma-team.oss",
   "build": {
     "frontendDist": "dist",
     "beforeDevCommand": {
@@ -31,7 +31,7 @@
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": ["pidash"]
+        "schemes": ["karma-team"]
       }
     }
   }

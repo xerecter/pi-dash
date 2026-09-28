@@ -5,9 +5,9 @@
  */
 
 import { useMemo } from "react";
-import { setPromiseToast, TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import { setPromiseToast, TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // types

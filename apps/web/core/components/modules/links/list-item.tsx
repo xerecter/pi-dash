@@ -6,14 +6,14 @@
 
 import { observer } from "mobx-react";
 
-import { MODULE_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { CopyIcon, EditIcon, TrashIcon } from "@pi-dash/propel/icons";
-// pi dash types
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { ILinkDetails } from "@pi-dash/types";
-// pi dash ui
-import { getIconForLink, copyTextToClipboard, calculateTimeAgo } from "@pi-dash/utils";
+import { MODULE_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { CopyIcon, EditIcon, TrashIcon } from "@karma-team/propel/icons";
+// karma-team types
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { ILinkDetails } from "@karma-team/types";
+// karma-team ui
+import { getIconForLink, copyTextToClipboard, calculateTimeAgo } from "@karma-team/utils";
 // helpers
 //
 // hooks

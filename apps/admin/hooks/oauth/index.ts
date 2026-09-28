@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TInstanceAuthenticationModes } from "@pi-dash/types";
+import type { TInstanceAuthenticationModes } from "@karma-team/types";
 import { getCoreAuthenticationModesMap } from "./core";
 import type { TGetAuthenticationModeProps } from "./types";
 

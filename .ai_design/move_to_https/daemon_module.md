@@ -512,7 +512,7 @@ pub async fn run(self) -> Result<()> {
     // (2) Build N RunnerInstances — UNCHANGED in shape, but each
     //     RunnerInstance now also carries:
     //       - its own per-runner credentials handle (reads from
-    //         ~/.config/apple-pi-dash-runner/runners/<rid>/credentials.toml)
+    //         ~/.config/apple-karma-team-runner/runners/<rid>/credentials.toml)
     //       - its own RunnerCloudClient
     //       - its own (ack_tx, ack_rx) mpsc pair
     //     RunnerInstance::new takes a SharedHttpTransport clone.
@@ -635,14 +635,14 @@ Runner shutdown with in-flight agent subprocess:
 ## 13. Phase 4 sub-phases
 
 The work decomposes naturally; each sub-phase is independently
-mergeable behind a runtime flag (`PI_DASH_TRANSPORT=http|ws`) until
+mergeable behind a runtime flag (`KARMA_TEAM_TRANSPORT=http|ws`) until
 4d ships:
 
 - **4a** — scaffold `runner/src/cloud/http.rs`. `SharedHttpTransport`,
   `RunnerCloudClient` with `refresh()`, `open_session()`,
   `close_session()`. Single-flight refresh implementation. Per-runner
   credentials handle reading from
-  `~/.config/apple-pi-dash-runner/runners/<rid>/credentials.toml`.
+  `~/.config/apple-karma-team-runner/runners/<rid>/credentials.toml`.
   Single integration test against a fake cloud. No supervisor
   changes; daemon still uses WS in this commit.
 - **4b** — replace `ConnectionLoop` with per-runner `HttpLoop` in
@@ -656,7 +656,7 @@ mergeable behind a runtime flag (`PI_DASH_TRANSPORT=http|ws`) until
   Multi-runner isolation test added.
 - **4d** — `force_refresh` handler. Per-runner `refresh_loop` task.
   Bump `WIRE_VERSION`/`PROTOCOL_VERSION` to 4. Default
-  `PI_DASH_TRANSPORT=http`.
+  `KARMA_TEAM_TRANSPORT=http`.
 
 (Note: the old design had a separate Phase 4d for `attach_emitter`
 replacement; that step is gone in the per-runner architecture
@@ -693,7 +693,7 @@ because session-open is inline in `HttpLoop::run`.)
 - TUI redesign beyond the new per-runner `polling` / `refreshing` /
   `session_evicted` status indicators. The IPC shape
   (`StatusSnapshot`) does not change.
-- `runner/src/cli/`-level changes for `pidash connect --count N`.
+- `runner/src/cli/`-level changes for `karma-team connect --count N`.
 - Changes to the agent bridge (`runner/src/codex/`,
   `runner/src/claude_code/`). Bridges interact with `RunnerOut` via
   the existing call-site shape and are unaffected by transport

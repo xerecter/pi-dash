@@ -10,9 +10,9 @@ import { useParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { Info, SquareUser } from "lucide-react";
 import { Disclosure, Transition } from "@headlessui/react";
-import { MODULE_STATUS, EUserPermissions, EUserPermissionsLevel, EEstimateSystem } from "@pi-dash/constants";
-// pi dash types
-import { useTranslation } from "@pi-dash/i18n";
+import { MODULE_STATUS, EUserPermissions, EUserPermissionsLevel, EEstimateSystem } from "@karma-team/constants";
+// karma-team types
+import { useTranslation } from "@karma-team/i18n";
 import {
   PlusIcon,
   MembersPropertyIcon,
@@ -21,14 +21,14 @@ import {
   StartDatePropertyIcon,
   ChevronDownIcon,
   ChevronRightIcon,
-} from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { ILinkDetails, IModule, ModuleLink } from "@pi-dash/types";
-// pi dash ui
-import { Loader, CustomSelect, TextArea } from "@pi-dash/ui";
+} from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { ILinkDetails, IModule, ModuleLink } from "@karma-team/types";
+// karma-team ui
+import { Loader, CustomSelect, TextArea } from "@karma-team/ui";
 // components
 // helpers
-import { getDate, renderFormattedPayloadDate } from "@pi-dash/utils";
+import { getDate, renderFormattedPayloadDate } from "@karma-team/utils";
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";
 import { MemberDropdown } from "@/components/dropdowns/member/dropdown";
 import { CreateUpdateModuleLinkModal, ModuleAnalyticsProgress, ModuleLinksList } from "@/components/modules";
@@ -36,7 +36,7 @@ import { CreateUpdateModuleLinkModal, ModuleAnalyticsProgress, ModuleLinksList }
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useModule } from "@/hooks/store/use-module";
 import { useUserPermissions } from "@/hooks/store/user";
-// pi dash web constants
+// karma-team web constants
 const defaultValues: Partial<IModule> = {
   lead_id: "",
   member_ids: [],

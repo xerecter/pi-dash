@@ -5,9 +5,9 @@
  */
 
 // ui
-import { Checkbox } from "@pi-dash/ui";
+import { Checkbox } from "@karma-team/ui";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 

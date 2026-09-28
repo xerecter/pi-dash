@@ -5,11 +5,11 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
-import { CircularProgressIndicator, CollapsibleButton } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
+import { CircularProgressIndicator, CollapsibleButton } from "@karma-team/ui";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { SubWorkItemTitleActions } from "./title-actions";

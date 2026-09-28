@@ -6,12 +6,12 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { ISchedulerBinding } from "@pi-dash/services";
-import { SchedulerService } from "@pi-dash/services";
-import { AlertModalCore } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { ISchedulerBinding } from "@karma-team/services";
+import { SchedulerService } from "@karma-team/services";
+import { AlertModalCore } from "@karma-team/ui";
 
 type Props = {
   isOpen: boolean;
@@ -62,7 +62,11 @@ export const UninstallSchedulerBindingModal = observer(function UninstallSchedul
       title={t("Uninstall scheduler?")}
       content={
         <>
-          <p>{t("The scheduler stops firing on this project. The workspace definition is unaffected and can be re-installed later.")}</p>
+          <p>
+            {t(
+              "The scheduler stops firing on this project. The workspace definition is unaffected and can be re-installed later."
+            )}
+          </p>
           {binding && <p className="mt-2 font-medium text-primary">{binding.scheduler_name}</p>}
         </>
       }

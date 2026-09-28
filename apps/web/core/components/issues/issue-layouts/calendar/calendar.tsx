@@ -8,8 +8,8 @@ import { useEffect, useRef, useState } from "react";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
 import { observer } from "mobx-react";
-// pi dash constants
-import type { TSupportedFilterTypeForUpdate } from "@pi-dash/constants";
+// karma-team constants
+import type { TSupportedFilterTypeForUpdate } from "@karma-team/constants";
 // types
 import type {
   TGroupedIssues,
@@ -18,11 +18,11 @@ import type {
   TPaginationData,
   ICalendarWeek,
   TSupportedFilterForUpdate,
-} from "@pi-dash/types";
-import { EIssuesStoreType, EIssueLayoutTypes } from "@pi-dash/types";
+} from "@karma-team/types";
+import { EIssuesStoreType, EIssueLayoutTypes } from "@karma-team/types";
 // ui
-import { Spinner } from "@pi-dash/ui";
-import { renderFormattedPayloadDate, cn } from "@pi-dash/utils";
+import { Spinner } from "@karma-team/ui";
+import { renderFormattedPayloadDate, cn } from "@karma-team/utils";
 // constants
 import { MONTHS_LIST } from "@/constants/calendar";
 // helpers

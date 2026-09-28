@@ -33,19 +33,19 @@ function client() {
 }
 
 beforeEach(() => {
-  Object.assign(window, { __PIDASH_NATIVE_HTTP__: api, __TAURI__: { core: { invoke } } });
+  Object.assign(window, { __KARMA_TEAM_NATIVE_HTTP__: api, __TAURI__: { core: { invoke } } });
   invoke.mockReset().mockResolvedValue(response());
 });
 afterEach(() => {
-  delete (window as any).__PIDASH_NATIVE_HTTP__;
+  delete (window as any).__KARMA_TEAM_NATIVE_HTTP__;
   delete (window as any).__TAURI__;
 });
 
 describe("desktop API cookie transport", () => {
   it("leaves browsers and older desktop binaries on their normal adapter", () => {
-    delete (window as any).__PIDASH_NATIVE_HTTP__;
+    delete (window as any).__KARMA_TEAM_NATIVE_HTTP__;
     expect(getDesktopApiAdapter()).toBeUndefined();
-    (window as any).__PIDASH_NATIVE_HTTP__ = api;
+    (window as any).__KARMA_TEAM_NATIVE_HTTP__ = api;
     delete (window as any).__TAURI__;
     expect(getDesktopApiAdapter()).toBeUndefined();
   });

@@ -7,13 +7,13 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IWebhook, IWorkspace, TWebhookEventTypes } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IWebhook, IWorkspace, TWebhookEventTypes } from "@karma-team/types";
 // ui
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // helpers
-import { csvDownload } from "@pi-dash/utils";
+import { csvDownload } from "@karma-team/utils";
 // hooks
 import useKeypress from "@/hooks/use-keypress";
 // components

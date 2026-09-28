@@ -10,9 +10,9 @@ import {
   CalendarLayoutIcon,
   SheetLayoutIcon,
   TimelineLayoutIcon,
-} from "@pi-dash/propel/icons";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import { EIssueLayoutTypes } from "@pi-dash/types";
+} from "@karma-team/propel/icons";
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import { EIssueLayoutTypes } from "@karma-team/types";
 
 export function IssueLayoutIcon({
   layout,

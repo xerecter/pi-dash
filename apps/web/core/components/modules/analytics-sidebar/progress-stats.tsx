@@ -6,10 +6,10 @@
 
 import { observer } from "mobx-react";
 import { Tab } from "@headlessui/react";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TWorkItemFilterCondition } from "@pi-dash/shared-state";
-import type { TModuleDistribution, TModuleEstimateDistribution, TModulePlotType } from "@pi-dash/types";
-import { cn, toFilterArray } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import type { TWorkItemFilterCondition } from "@karma-team/shared-state";
+import type { TModuleDistribution, TModuleEstimateDistribution, TModulePlotType } from "@karma-team/types";
+import { cn, toFilterArray } from "@karma-team/utils";
 // components
 import type { TAssigneeData } from "@/components/core/sidebar/progress-stats/assignee";
 import { AssigneeStatComponent } from "@/components/core/sidebar/progress-stats/assignee";
@@ -50,7 +50,7 @@ export const ModuleProgressStats = observer(function ModuleProgressStats(props: 
     size = "sm",
     totalIssuesCount,
   } = props;
-  // pi dash imports
+  // karma-team imports
   const { t } = useTranslation();
   // hooks
   const { storedValue: currentTab, setValue: setModuleTab } = useLocalStorage(

@@ -6,12 +6,12 @@
 
 import { observer } from "mobx-react";
 import { Expand, Shrink } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-// pi dash
-import type { TGanttViews } from "@pi-dash/types";
-import { Row } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+// karma-team
+import type { TGanttViews } from "@karma-team/types";
+import { Row } from "@karma-team/ui";
 // components
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import { VIEWS_LIST } from "@/components/gantt-chart/data";
 // helpers
 // hooks

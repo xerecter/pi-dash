@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TEditorAsset } from "@pi-dash/editor";
+// karma-team imports
+import type { TEditorAsset } from "@karma-team/editor";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

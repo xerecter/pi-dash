@@ -1,14 +1,14 @@
-# Releasing Pi Dash
+# Releasing karma-team
 
-Pi Dash ships two independently-versioned components, each with its own
+karma-team ships two independently-versioned components, each with its own
 release pipeline. Tag the right prefix from `main` and CI takes it from there.
 
 ## Tag scheme
 
-| Component                                          | Tag prefix           | Triggers                                               | Builds                                                                                                                                                                    |
-| -------------------------------------------------- | -------------------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Runner CLI** (the `pidash` command)              | `pidash-v<semver>`   | `.github/workflows/release.yml` (cargo-dist)           | Cross-platform binaries (macOS arm64, Linux arm64/x86_64), Homebrew formula, GitHub Release with installer scripts                                                        |
-| **Pi Dash platform** (the 6 service Docker images) | `platform-v<semver>` | `.github/workflows/build-branch.yml` (Branch Build CE) | Multi-arch Docker images pushed to `airepublic/pi-dash-{frontend,backend,space,admin,live,proxy}`, GitHub Release with `setup.sh` + `docker-compose.yml` for self-hosters |
+| Component                                             | Tag prefix             | Triggers                                               | Builds                                                                                                                                                                       |
+| ----------------------------------------------------- | ---------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Runner CLI** (the `karma-team` command)             | `karma-team-v<semver>` | `.github/workflows/release.yml` (cargo-dist)           | Cross-platform binaries (macOS arm64, Linux arm64/x86_64), Homebrew formula, GitHub Release with installer scripts                                                           |
+| **karma-team platform** (the 6 service Docker images) | `platform-v<semver>`   | `.github/workflows/build-branch.yml` (Branch Build CE) | Multi-arch Docker images pushed to `airepublic/karma-team-{frontend,backend,space,admin,live,proxy}`, GitHub Release with `setup.sh` + `docker-compose.yml` for self-hosters |
 
 Versions are independent. The runner is currently `0.1.x`; the platform
 follows `package.json` (`1.x.x`). Don't try to align them — each component
@@ -20,7 +20,7 @@ gets a fix or feature on its own cadence.
 2. Bump the version in `runner/Cargo.toml`:
    ```toml
    [package]
-   name = "pidash"
+   name = "karma-team"
    version = "0.1.2"   # was 0.1.1
    ```
 3. Commit, tag, push:
@@ -28,16 +28,16 @@ gets a fix or feature on its own cadence.
    git checkout main && git pull
    # edit runner/Cargo.toml ...
    git commit -am "chore(runner): bump version to 0.1.2"
-   git tag pidash-v0.1.2
-   git push origin main pidash-v0.1.2
+   git tag karma-team-v0.1.2
+   git push origin main karma-team-v0.1.2
    ```
 4. CI does the rest. Watch:
    ```bash
    gh run watch
    ```
 5. When green, the GitHub Release will be at
-   `https://github.com/The-AI-Republic/pi-dash/releases/tag/pidash-v0.1.2`
-   with a `pidash-installer.sh` and platform-specific archives.
+   `https://github.com/xerecter/karma-team/releases/tag/karma-team-v0.1.2`
+   with a `karma-team-installer.sh` and platform-specific archives.
 6. The release workflow automatically writes
    `LATEST_RUNNER_VERSION=0.1.2` to the Cloud SSM parameters for test and
    prod. It does not restart or redeploy the API; the currently running
@@ -45,9 +45,9 @@ gets a fix or feature on its own cadence.
    `MIN_RUNNER_VERSION=0.1.2` manually only for a breaking-protocol or
    security release. Runners with `auto_update` enabled — the default —
    will swap the on-disk binary on their next session bootstrap and surface
-   a "restart to apply" advisory in `pidash status` / the TUI. Runners
+   a "restart to apply" advisory in `karma-team status` / the TUI. Runners
    with `auto_update` disabled show an "update available — run
-   `pidash update --restart`" banner instead. See `runner/README.md`
+   `karma-team update --restart`" banner instead. See `runner/README.md`
    (Auto-update) for the full rendering matrix.
 
 ## Cutting a platform release
@@ -70,7 +70,7 @@ gets a fix or feature on its own cadence.
 4. CI does the rest:
    - Builds 6 Docker images in parallel (multi-arch via QEMU)
    - Pushes them to Docker Hub with three tags each: `:v1.4.0`, `:stable`, `:latest`
-   - Builds the AIO image (if the `airepublic/pi-dash-aio-community` repo
+   - Builds the AIO image (if the `airepublic/karma-team-aio-community` repo
      exists; CI will fail this single job otherwise without affecting the
      other 6)
    - Creates a GitHub Release with the platform `setup.sh` and current
@@ -81,7 +81,7 @@ gets a fix or feature on its own cadence.
 Suffix the version with anything starting with `-` followed by a letter:
 
 ```bash
-git tag pidash-v0.1.2-rc.1
+git tag karma-team-v0.1.2-rc.1
 # or
 git tag platform-v1.4.0-beta.2
 ```
@@ -98,8 +98,8 @@ For runner release advisories:
    - `AWS_ACCESS_KEY_ID`
    - `AWS_SECRET_ACCESS_KEY`
    - IAM permission: `ssm:PutParameter` on
-     `/pidash/config/test/LATEST_RUNNER_VERSION` and
-     `/pidash/config/prod/LATEST_RUNNER_VERSION`.
+     `/karma-team/config/test/LATEST_RUNNER_VERSION` and
+     `/karma-team/config/prod/LATEST_RUNNER_VERSION`.
    - The workflow intentionally does not restart EC2 or redeploy the API.
 
 For platform releases (cargo-dist runner releases already work):
@@ -108,11 +108,11 @@ For platform releases (cargo-dist runner releases already work):
    - `DOCKERHUB_USERNAME`
    - `DOCKERHUB_TOKEN` — Personal Access Token with Read & Write on
      `airepublic/*` repos
-   - Set at: <https://github.com/The-AI-Republic/pi-dash/settings/secrets/actions>
+   - Set at: <https://github.com/xerecter/karma-team/settings/secrets/actions>
 
 2. **The 6 Docker Hub repos must exist** under the `airepublic` namespace:
-   `pi-dash-frontend`, `pi-dash-backend`, `pi-dash-space`, `pi-dash-admin`,
-   `pi-dash-live`, `pi-dash-proxy`. Use `scripts/register-dockerhub-repos.sh`
+   `karma-team-frontend`, `karma-team-backend`, `karma-team-space`, `karma-team-admin`,
+   `karma-team-live`, `karma-team-proxy`. Use `scripts/register-dockerhub-repos.sh`
    if you need to recreate any.
 
 ## Smoke-testing the platform pipeline before tagging
@@ -140,8 +140,8 @@ Docker Hub:
 
 ```bash
 # Re-tag the previous version's manifest as :latest
-docker buildx imagetools create -t airepublic/pi-dash-frontend:latest \
-  airepublic/pi-dash-frontend:v1.3.0
+docker buildx imagetools create -t airepublic/karma-team-frontend:latest \
+  airepublic/karma-team-frontend:v1.3.0
 # Repeat for each of the 6 images.
 ```
 

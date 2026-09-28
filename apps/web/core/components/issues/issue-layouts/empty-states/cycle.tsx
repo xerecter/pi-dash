@@ -8,13 +8,13 @@ import { useState } from "react";
 import { isEmpty } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { EUserPermissionsLevel, WORK_ITEM_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { ISearchIssueResponse } from "@pi-dash/types";
-import { EIssuesStoreType, EUserProjectRoles } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissionsLevel, WORK_ITEM_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { ISearchIssueResponse } from "@karma-team/types";
+import { EIssuesStoreType, EUserProjectRoles } from "@karma-team/types";
 // components
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
@@ -31,7 +31,7 @@ export const CycleEmptyState = observer(function CycleEmptyState() {
   const cycleId = routerCycleId ? routerCycleId.toString() : undefined;
   // states
   const [cycleIssuesListModal, setCycleIssuesListModal] = useState(false);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { getCycleById } = useCycle();
@@ -87,7 +87,9 @@ export const CycleEmptyState = observer(function CycleEmptyState() {
           <EmptyStateDetailed
             assetKey="work-item"
             title={t("No work items in the cycle")}
-            description={t("No work items in the cycle. Work items are either transferred or hidden. To see hidden work items if any, update your display properties accordingly.")}
+            description={t(
+              "No work items in the cycle. Work items are either transferred or hidden. To see hidden work items if any, update your display properties accordingly."
+            )}
           />
         ) : cycleWorkItemFilter?.hasActiveFilters ? (
           <EmptyStateDetailed
@@ -107,7 +109,9 @@ export const CycleEmptyState = observer(function CycleEmptyState() {
           <EmptyStateDetailed
             assetKey="work-item"
             title={t("No work items to show in this cycle")}
-            description={t("Create work items to begin monitoring your team's progress this cycle and achieve your goals on time.")}
+            description={t(
+              "Create work items to begin monitoring your team's progress this cycle and achieve your goals on time."
+            )}
             actions={[
               {
                 label: t("Create work item"),

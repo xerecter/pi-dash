@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { STATE_GROUPS } from "@pi-dash/constants";
+// karma-team imports
+import { STATE_GROUPS } from "@karma-team/constants";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import type { IUserStateDistribution } from "@pi-dash/types";
-import { Card, ECardDirection, ECardSpacing } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import type { IUserStateDistribution } from "@karma-team/types";
+import { Card, ECardDirection, ECardSpacing } from "@karma-team/ui";
 // constants
 
 type Props = {

@@ -5,7 +5,7 @@
  */
 
 // types
-import type { IIssueDisplayProperties } from "@pi-dash/types";
+import type { IIssueDisplayProperties } from "@karma-team/types";
 // lib
 import { store } from "@/lib/store-context";
 

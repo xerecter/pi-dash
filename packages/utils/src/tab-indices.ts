@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { ETabIndices } from "@pi-dash/constants";
-import { TAB_INDEX_MAP } from "@pi-dash/constants";
+// karma-team imports
+import type { ETabIndices } from "@karma-team/constants";
+import { TAB_INDEX_MAP } from "@karma-team/constants";
 
 export const getTabIndex = (type?: ETabIndices, isMobile: boolean = false) => {
   const getIndex = (key: string) =>

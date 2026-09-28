@@ -1,0 +1,74 @@
+# Copyright (c) 2023-present Pi Dash Software, Inc. and contributors
+# SPDX-License-Identifier: AGPL-3.0-only
+# See the LICENSE file for details.
+
+"""Issue state-transition hook for Git provider completion comment-back.
+
+Pre-save snapshot of prior `state_id`, post-save fires
+`post_completion_comment` when an issue moves into a `completed`-group state
+and is mirrored from a Git provider.
+
+We use a separate dispatch_uid namespace from `orchestration.signals` so the
+two pre/post_save pairs run independently (each module owns its own snapshot
+attribute on the instance).
+"""
+
+from __future__ import annotations
+
+import logging
+
+from django.db.models.signals import post_save, pre_save
+from django.dispatch import receiver
+
+from karma_team.db.models.issue import Issue
+from karma_team.db.models.state import StateGroup
+
+logger = logging.getLogger(__name__)
+
+_PREVIOUS_STATE = "_git_sync_prev_state_id"
+
+
+@receiver(pre_save, sender=Issue, dispatch_uid="git_sync.issue_presave")
+def capture_prior_state(sender, instance: Issue, **kwargs) -> None:
+    if not instance.pk:
+        setattr(instance, _PREVIOUS_STATE, None)
+        return
+    try:
+        prior = Issue.all_objects.only("state_id").get(pk=instance.pk)
+    except Issue.DoesNotExist:
+        setattr(instance, _PREVIOUS_STATE, None)
+        return
+    setattr(instance, _PREVIOUS_STATE, prior.state_id)
+
+
+@receiver(post_save, sender=Issue, dispatch_uid="git_sync.issue_postsave")
+def trigger_completion_comment(sender, instance: Issue, created: bool, **kwargs) -> None:
+    if created:
+        return  # creation can't be a "transition"; freshly-imported synced issues land here too
+    prev_state_id = getattr(instance, _PREVIOUS_STATE, None)
+    if prev_state_id == instance.state_id:
+        return
+    if instance.state is None or instance.state.group != StateGroup.COMPLETED.value:
+        return
+
+    # Lazy-import to avoid loading models at app-config time and to dodge a
+    # circular-import risk through the bgtasks -> db -> bgtasks chain.
+    from karma_team.db.models.integration.git import GitIssueSync
+    from karma_team.db.models.integration.github import GithubIssueSync
+    from karma_team.bgtasks.git_sync_task import post_completion_comment as post_git_completion_comment
+    from karma_team.bgtasks.github_sync_task import post_completion_comment
+
+    git_issue_sync = GitIssueSync.objects.filter(issue=instance).first()
+    if git_issue_sync is not None:
+        if git_issue_sync.metadata.get("completion_comment_id"):
+            return
+        post_git_completion_comment.delay(str(git_issue_sync.id))
+        return
+
+    github_issue_sync = GithubIssueSync.objects.filter(issue=instance).first()
+    if github_issue_sync is None:
+        return
+    if github_issue_sync.metadata.get("completion_comment_id"):
+        return
+
+    post_completion_comment.delay(str(github_issue_sync.id))

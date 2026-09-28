@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { IFavorite } from "@pi-dash/types";
+// karma-team imports
+import type { IFavorite } from "@karma-team/types";
 // components
-import { getPageName } from "@pi-dash/utils";
+import { getPageName } from "@karma-team/utils";
 import {
   generateFavoriteItemLink,
   getFavoriteItemIcon,
@@ -18,9 +18,9 @@ import { useCycle } from "@/hooks/store/use-cycle";
 import { useModule } from "@/hooks/store/use-module";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectView } from "@/hooks/store/use-project-view";
-// pi dash web hooks
-import { EPageStoreType, usePage } from "@/pi-dash-web/hooks/store";
-import { useAdditionalFavoriteItemDetails } from "@/pi-dash-web/hooks/use-additional-favorite-item-details";
+// karma-team web hooks
+import { EPageStoreType, usePage } from "@/karma-team-web/hooks/store";
+import { useAdditionalFavoriteItemDetails } from "@/karma-team-web/hooks/use-additional-favorite-item-details";
 
 export const useFavoriteItemDetails = (workspaceSlug: string, favorite: IFavorite) => {
   const {

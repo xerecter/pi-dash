@@ -8,11 +8,11 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 // icons
 import { Settings2 } from "lucide-react";
-// pi dash internal packages
-import { getButtonStyling } from "@pi-dash/propel/button";
-import type { TInstanceAuthenticationMethodKeys } from "@pi-dash/types";
-import { ToggleSwitch } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team internal packages
+import { getButtonStyling } from "@karma-team/propel/button";
+import type { TInstanceAuthenticationMethodKeys } from "@karma-team/types";
+import { ToggleSwitch } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useInstance } from "@/hooks/store";
 

@@ -6,8 +6,8 @@
 
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import { useTranslation } from "@pi-dash/i18n";
-import type { IWorkspaceMemberInvitation } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import type { IWorkspaceMemberInvitation } from "@karma-team/types";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 import { WorkspaceLogo } from "@/components/workspace/logo";
@@ -28,29 +28,29 @@ const Titles = {
   [EAuthModes.SIGN_IN]: {
     [EAuthSteps.EMAIL]: {
       header: "Work in all dimensions.",
-      subHeader: "Welcome back to Pi Dash.",
+      subHeader: "Welcome back to karma-team.",
     },
     [EAuthSteps.PASSWORD]: {
       header: "Work in all dimensions.",
-      subHeader: "Welcome back to Pi Dash.",
+      subHeader: "Welcome back to karma-team.",
     },
     [EAuthSteps.UNIQUE_CODE]: {
       header: "Work in all dimensions.",
-      subHeader: "Welcome back to Pi Dash.",
+      subHeader: "Welcome back to karma-team.",
     },
   },
   [EAuthModes.SIGN_UP]: {
     [EAuthSteps.EMAIL]: {
       header: "Work in all dimensions.",
-      subHeader: "Create your Pi Dash account.",
+      subHeader: "Create your karma-team account.",
     },
     [EAuthSteps.PASSWORD]: {
       header: "Work in all dimensions.",
-      subHeader: "Create your Pi Dash account.",
+      subHeader: "Create your karma-team account.",
     },
     [EAuthSteps.UNIQUE_CODE]: {
       header: "Work in all dimensions.",
-      subHeader: "Create your Pi Dash account.",
+      subHeader: "Create your karma-team account.",
     },
   },
 };
@@ -59,7 +59,7 @@ const workSpaceService = new WorkspaceService();
 
 export const AuthHeader = observer(function AuthHeader(props: TAuthHeader) {
   const { workspaceSlug, invitationId, invitationEmail, authMode, currentAuthStep } = props;
-  // pi dash imports
+  // karma-team imports
   const { t } = useTranslation();
 
   const { data: invitation, isLoading } = useSWR(

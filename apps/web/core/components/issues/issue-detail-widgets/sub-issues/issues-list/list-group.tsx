@@ -7,12 +7,12 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { CircleDashed } from "lucide-react";
-import { ALL_ISSUES } from "@pi-dash/constants";
-import { ChevronRightIcon } from "@pi-dash/propel/icons";
-import type { IGroupByColumn, TIssue, TIssueServiceType, TSubIssueOperations } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { Collapsible } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { ALL_ISSUES } from "@karma-team/constants";
+import { ChevronRightIcon } from "@karma-team/propel/icons";
+import type { IGroupByColumn, TIssue, TIssueServiceType, TSubIssueOperations } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { Collapsible } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 import { SubIssuesListItem } from "./list-item";
 
 interface TSubIssuesListGroupProps {

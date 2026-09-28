@@ -9,13 +9,13 @@ import { add } from "date-fns";
 import { Controller, useForm } from "react-hook-form";
 import { Calendar } from "lucide-react";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IApiToken } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IApiToken } from "@karma-team/types";
 // ui
-import { CustomSelect, Input, TextArea, ToggleSwitch } from "@pi-dash/ui";
-import { cn, renderFormattedDate, renderFormattedTime } from "@pi-dash/utils";
+import { CustomSelect, Input, TextArea, ToggleSwitch } from "@karma-team/ui";
+import { cn, renderFormattedDate, renderFormattedTime } from "@karma-team/utils";
 // components
 import { DateDropdown } from "@/components/dropdowns/date";
 // helpers
@@ -126,9 +126,7 @@ export function CreateApiTokenForm(props: Props) {
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)}>
       <div className="space-y-5 p-5">
-        <h3 className="text-18 font-medium text-secondary">
-          {t("Create token")}
-        </h3>
+        <h3 className="text-18 font-medium text-secondary">{t("Create token")}</h3>
         <div className="space-y-3">
           <div className="space-y-1">
             <Controller
@@ -249,9 +247,7 @@ export function CreateApiTokenForm(props: Props) {
             {t("Cancel")}
           </Button>
           <Button variant="primary" type="submit" loading={isSubmitting}>
-            {isSubmitting
-              ? t("Generating")
-              : t("Generate token")}
+            {isSubmitting ? t("Generating") : t("Generate token")}
           </Button>
         </div>
       </div>

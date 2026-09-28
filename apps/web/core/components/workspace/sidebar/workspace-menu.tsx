@@ -8,9 +8,9 @@ import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { Disclosure, Transition } from "@headlessui/react";
-// pi dash imports
-import { AnalyticsIcon, CycleIcon, ProjectIcon, ViewsIcon } from "@pi-dash/propel/icons";
-import { EUserWorkspaceRoles } from "@pi-dash/types";
+// karma-team imports
+import { AnalyticsIcon, CycleIcon, ProjectIcon, ViewsIcon } from "@karma-team/propel/icons";
+import { EUserWorkspaceRoles } from "@karma-team/types";
 // hooks
 import useLocalStorage from "@/hooks/use-local-storage";
 // local imports

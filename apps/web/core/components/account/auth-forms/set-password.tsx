@@ -10,14 +10,14 @@ import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
 // icons
 import { Eye, EyeOff } from "lucide-react";
-// pi dash imports
-import { E_PASSWORD_STRENGTH } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Input, PasswordStrengthIndicator } from "@pi-dash/ui";
+// karma-team imports
+import { E_PASSWORD_STRENGTH } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Input, PasswordStrengthIndicator } from "@karma-team/ui";
 // components
-import { getPasswordStrength } from "@pi-dash/utils";
+import { getPasswordStrength } from "@karma-team/utils";
 // hooks
 import { useUser } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -59,7 +59,7 @@ export const SetPasswordForm = observer(function SetPasswordForm() {
   const [csrfToken, setCsrfToken] = useState<string | undefined>(undefined);
   const [isPasswordInputFocused, setIsPasswordInputFocused] = useState(false);
   const [isRetryPasswordInputFocused, setIsRetryPasswordInputFocused] = useState(false);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // hooks
   const { data: user, handleSetPassword } = useUser();

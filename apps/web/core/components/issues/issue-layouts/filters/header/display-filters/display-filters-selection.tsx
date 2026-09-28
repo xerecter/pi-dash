@@ -12,7 +12,7 @@ import type {
   IIssueDisplayProperties,
   ILayoutDisplayFiltersOptions,
   TIssueGroupByOptions,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // components
 import {
   FilterDisplayProperties,

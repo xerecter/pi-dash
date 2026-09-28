@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-import { ISSUE_LAYOUTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { EIssueLayoutTypes } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
+import { ISSUE_LAYOUTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+import type { EIssueLayoutTypes } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
 import { IssueLayoutIcon } from "../../layout-icon";
 
 export function MobileLayoutSelection({

@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { RANDOM_EMOJI_CODES } from "@pi-dash/constants";
+// karma-team imports
+import { RANDOM_EMOJI_CODES } from "@karma-team/constants";
 
 /**
  * Converts a hyphen-separated hexadecimal emoji code to its decimal representation

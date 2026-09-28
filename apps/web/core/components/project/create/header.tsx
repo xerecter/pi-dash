@@ -6,20 +6,20 @@
 
 import { useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-// pi dash imports
-import { ETabIndices } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { CloseIcon } from "@pi-dash/propel/icons";
-// pi dash types
-import type { IProject } from "@pi-dash/types";
-// pi dash ui
-import { getTabIndex } from "@pi-dash/utils";
+// karma-team imports
+import { ETabIndices } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@karma-team/propel/emoji-icon-picker";
+import { CloseIcon } from "@karma-team/propel/icons";
+// karma-team types
+import type { IProject } from "@karma-team/types";
+// karma-team ui
+import { getTabIndex } from "@karma-team/utils";
 // components
 import { CoverImage } from "@/components/common/cover-image";
 import { ImagePickerPopover } from "@/components/core/image-picker-popover";
-// pi dash web imports
-import { ProjectTemplateSelect } from "@/pi-dash-web/components/projects/create/template-select";
+// karma-team web imports
+import { ProjectTemplateSelect } from "@/karma-team-web/components/projects/create/template-select";
 
 type Props = {
   handleClose: () => void;

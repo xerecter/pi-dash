@@ -18,8 +18,8 @@ import { attachInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree
 import { observer } from "mobx-react";
 import { usePathname } from "next/navigation";
 import { createRoot } from "react-dom/client";
-// pi dash types
-import type { InstructionType } from "@pi-dash/types";
+// karma-team types
+import type { InstructionType } from "@karma-team/types";
 // components
 import { StickyNote } from "../sticky";
 // helpers

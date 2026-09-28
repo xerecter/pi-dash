@@ -5,7 +5,7 @@
  */
 
 import useSWR from "swr";
-import type { TTimezoneObject } from "@pi-dash/types";
+import type { TTimezoneObject } from "@karma-team/types";
 // services
 import timezoneService from "@/services/timezone.service";
 

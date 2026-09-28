@@ -5,9 +5,9 @@
  */
 
 import { differenceInCalendarDays } from "date-fns/differenceInCalendarDays";
-// pi dash internal
-import { STATE_GROUPS } from "@pi-dash/constants";
-import type { TStateGroups } from "@pi-dash/types";
+// karma-team internal
+import { STATE_GROUPS } from "@karma-team/constants";
+import type { TStateGroups } from "@karma-team/types";
 // helpers
 import { getDate } from "@/helpers/date-time.helper";
 

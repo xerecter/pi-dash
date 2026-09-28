@@ -6,15 +6,15 @@
 
 import { useEffect, useState } from "react";
 // constants
-import type { EPageAccess } from "@pi-dash/constants";
-import type { TPage } from "@pi-dash/types";
+import type { EPageAccess } from "@karma-team/constants";
+import type { TPage } from "@karma-team/types";
 // ui
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // hooks
 import { useAppRouter } from "@/hooks/use-app-router";
-// pi dash web hooks
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
-import { usePageStore } from "@/pi-dash-web/hooks/store";
+// karma-team web hooks
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
+import { usePageStore } from "@/karma-team-web/hooks/store";
 // local imports
 import { PageForm } from "./page-form";
 

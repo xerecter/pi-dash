@@ -1,6 +1,6 @@
 # 16 — Glossary
 
-Terms you'll see across the wiki, code, UI, and tickets. Where a term has a Pi-Dash-specific meaning, it's noted.
+Terms you'll see across the wiki, code, UI, and tickets. Where a term has a karma-team-specific meaning, it's noted.
 
 ## Product
 
@@ -11,7 +11,7 @@ The top-level container a user logs into. Holds projects, members, settings. A u
 A discrete unit of work inside a workspace — a codebase, a team's board, etc. Owns work items, cycles, modules, members. A project can be connected to runners.
 
 **Work item** (a.k.a. _issue_, _task_)
-The user-facing unit of tracked work. Has a title, description, state, assignee, labels, parent/sub-issue links, etc. Lives in `apps/api/pi_dash/app/`.
+The user-facing unit of tracked work. Has a title, description, state, assignee, labels, parent/sub-issue links, etc. Lives in `apps/api/karma_team/app/`.
 
 **Cycle**
 A time-boxed iteration (sprint). Work items can be assigned to a cycle. Has start/end dates, progress analytics.
@@ -34,28 +34,28 @@ The first user registered against a self-hosted instance. Lives in `apps/admin/`
 ## Agent execution
 
 **Runner**
-A registered instance of the `pidash` daemon on a developer machine, scoped to a project. One host can run multiple runners (one per project). Model in `pi_dash/runner/models.py`.
+A registered instance of the `karma-team` daemon on a developer machine, scoped to a project. One host can run multiple runners (one per project). Model in `karma_team/runner/models.py`.
 
 **Pod**
-A grouping primitive on the runner side — a namespace a run lives in on a particular runner. Naming logic in `pi_dash/runner/services/pod_naming.py`.
+A grouping primitive on the runner side — a namespace a run lives in on a particular runner. Naming logic in `karma_team/runner/services/pod_naming.py`.
 
 **Run**
 One execution attempt of an agent against a work item. Persisted server-side; transcripts persisted locally on the runner under its data dir. A work item can have many runs (retries, follow-ups).
 
 **Phase**
-A step within a run. Runs progress through ordered phases (defined in `pi_dash/orchestration/agent_phases.py`); each phase has its own prompt template and expected outputs.
+A step within a run. Runs progress through ordered phases (defined in `karma_team/orchestration/agent_phases.py`); each phase has its own prompt template and expected outputs.
 
 **Workpad**
-The durable scratchpad attached to a run that the agent reads/writes structured artifacts into. Defined in `pi_dash/orchestration/workpad.py`.
+The durable scratchpad attached to a run that the agent reads/writes structured artifacts into. Defined in `karma_team/orchestration/workpad.py`.
 
 **Done signal**
-The explicit completion contract the agent emits to mark a phase done. Parsed by `pi_dash/orchestration/done_signal.py`.
+The explicit completion contract the agent emits to mark a phase done. Parsed by `karma_team/orchestration/done_signal.py`.
 
 **Approval**
 A user decision the agent is waiting on (run command, write file, fetch URL). Decision sources race; **first writer wins** (TUI vs cloud vs local policy). Router in `runner/src/approval/`.
 
 **Matcher**
-Server-side logic that assigns an eligible run to an available runner. `pi_dash/runner/services/matcher.py`.
+Server-side logic that assigns an eligible run to an available runner. `karma_team/runner/services/matcher.py`.
 
 ## Protocol / wire
 
@@ -74,7 +74,7 @@ The runner's ability to swap its on-disk binary in place when the cloud advertis
 ## Auth
 
 **CLI token**
-The dev-machine `MachineToken` minted by `pidash auth login` (device-code flow). Stored at `~/.config/pidash/config.toml` (`0600`). Authorizes CLI commands and every runner on that dev machine.
+The dev-machine `MachineToken` minted by `karma-team auth login` (device-code flow). Stored at `~/.config/karma-team/config.toml` (`0600`). Authorizes CLI commands and every runner on that dev machine.
 
 **MachineToken**
 One shared `mt_...` credential per dev machine/workspace. Runner runtime requests pair this token with an explicit runner id, so runners remain separate management units without separate secrets.
@@ -83,10 +83,10 @@ One shared `mt_...` credential per dev machine/workspace. Runner runtime request
 Browser-based login that requires no token paste. Same UX as `gh auth login` / `stripe login`. Recommended.
 
 **Enrollment token** (deprecated)
-One-shot token used by the hidden `pidash connect` compatibility path. New runner setup uses `pidash auth login` and `pidash runner add`.
+One-shot token used by the hidden `karma-team connect` compatibility path. New runner setup uses `karma-team auth login` and `karma-team runner add`.
 
 **Plan**
-The current subscription tier of an account on Pi Dash Cloud. Source-of-truth is the home-page OIDC; cached as a JWT `plan` claim on `Account`. No webhooks. Upgrade UI deep-links back to home-page.
+The current subscription tier of an account on karma-team Cloud. Source-of-truth is the home-page OIDC; cached as a JWT `plan` claim on `Account`. No webhooks. Upgrade UI deep-links back to home-page.
 
 ## Tooling / repo
 
@@ -99,11 +99,11 @@ A pinned OxLint warning count per app (e.g. `web: 11957`). `pnpm check:lint` fai
 **God mode**
 Casual name for the instance admin UI (`apps/admin`, mounted at `/god-mode/`).
 
-**Pi Dash CE**
+**karma-team CE**
 Community Edition — the OSS variant. Code under `apps/web/ce/` is the OSS implementation that can be overridden in the Cloud build.
 
-**`private-pi-dash`**
-The closed-source repo that overlays Pi Dash Cloud features on top of this OSS repo. Don't fork OSS files into it.
+**`private-karma-team`**
+The closed-source repo that overlays karma-team Cloud features on top of this OSS repo. Don't fork OSS files into it.
 
 ## Where to read next
 

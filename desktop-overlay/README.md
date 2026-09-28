@@ -7,7 +7,7 @@ desktop frontend is:
 
 ```
 apps/web (this repo)  →  edition overlays, if any  →  desktop-overlay/
-                         (PIDASH_DESKTOP_EXTRA_OVERLAYS)
+                         (KARMA_TEAM_DESKTOP_EXTRA_OVERLAYS)
 ```
 
 The plain build has no edition overlay. An edition (for example AI
@@ -40,7 +40,7 @@ silently replaces the edition's version. So:
 
 Current seams:
 
-| Seam (`@/pi-dash-web/components/desktop/…`)                                     | Used by                          | Community default                                                                       |
+| Seam (`@/karma-team-web/components/desktop/…`)                                  | Used by                          | Community default                                                                       |
 | ------------------------------------------------------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------- |
 | `sign-in-card.tsx` — `DesktopSignInCard`                                        | `app/(home)/page.tsx`            | Explains that desktop sign-in isn't available for this server yet and opens the web app |
 | `agent-runtime-edition.ts` — `AGENT_RUNTIME_REASON_MESSAGES`, `CSRF_TOKEN_PATH` | `core/services/agent-runtime.ts` | Generic messages for managed-runner reason codes; `/auth/get-csrf-token/`               |
@@ -76,7 +76,7 @@ desktop/src-tauri/dist/
   this machine, write the engine config and model credential, supervise the
   bundled daemon.
 - `apps/web/core/utils/desktop-web-url.ts` — resolves an in-app path against
-  `VITE_WEB_BASE_URL` (baked by `dev-prep.sh`, defaulting to `PI_DASH_URL`).
+  `VITE_WEB_BASE_URL` (baked by `dev-prep.sh`, defaulting to `KARMA_TEAM_URL`).
   Bundled pages run on a Tauri-owned origin, so anything that builds a
   shareable link from `window.location.origin` would hand the user a
   `tauri://localhost` URL.

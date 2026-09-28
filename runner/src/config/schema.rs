@@ -12,7 +12,7 @@ pub struct Config {
     /// daemon; will grow once the cap is lifted (design.md §16).
     #[serde(default, rename = "runner")]
     pub runners: Vec<RunnerConfig>,
-    /// CLI-side configuration consumed by the `pidash issue/comment/
+    /// CLI-side configuration consumed by the `karma-team issue/comment/
     /// state/workspace` subcommands when invoked by the agent (or by the
     /// operator out-of-band). Optional so older configs still parse;
     /// missing means "fall back to environment variables".
@@ -20,13 +20,13 @@ pub struct Config {
     pub cli: Option<CliSection>,
 }
 
-/// Top-level `[cli]` table. Holds the auth token the `pidash` CRUD
+/// Top-level `[cli]` table. Holds the auth token the `karma-team` CRUD
 /// subcommands present to the cloud. The CLI also reads `cloud_url`
 /// from `[daemon]` and `workspace_slug` from the primary `[[runner]]`
 /// — there's deliberately no duplication of those values here.
 ///
 /// For v1 the token is populated manually by the operator (or by a
-/// future `pidash login` flow). A per-run, per-issue scoped token
+/// future `karma-team login` flow). A per-run, per-issue scoped token
 /// minted by the cloud is the next step; see
 /// `.ai_design/agent_cli_auth/` (TBD).
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -38,11 +38,11 @@ pub struct CliSection {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
 
-    /// Workspace this host is bound to. The Pi Dash CLI on a dev host
-    /// is single-workspace-per-install in v1: `pidash auth login`
+    /// Workspace this host is bound to. The karma-team CLI on a dev host
+    /// is single-workspace-per-install in v1: `karma-team auth login`
     /// resolves it (auto-picks if the user belongs to one workspace,
     /// prompts if they belong to several) and persists it here.
-    /// `pidash runner add` reads this as the default for `--workspace`
+    /// `karma-team runner add` reads this as the default for `--workspace`
     /// when the caller doesn't pass one explicitly.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub workspace_slug: Option<String>,
@@ -58,7 +58,7 @@ pub struct CliSection {
 pub struct DaemonConfig {
     pub cloud_url: String,
     /// Stable local identity for this dev machine. Minted once by the CLI and
-    /// sent to the cloud on `pidash runner add`; host_label stays display-only.
+    /// sent to the cloud on `karma-team runner add`; host_label stays display-only.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub dev_machine_id: Option<Uuid>,
     #[serde(default = "default_log_level")]
@@ -71,12 +71,12 @@ pub struct DaemonConfig {
     #[serde(default)]
     pub agent_observability_v1: bool,
     /// Auto-update policy. When `true` (default), the daemon swaps the
-    /// on-disk `pidash` binary in place whenever the cloud announces a
+    /// on-disk `karma-team` binary in place whenever the cloud announces a
     /// newer `latest_runner_version` in the welcome frame. The running
     /// daemon is never disturbed — the new code only takes effect on
     /// the next natural restart. When `false`, the daemon surfaces an
-    /// advisory in `pidash status` / TUI and waits for the operator to
-    /// run `pidash update --restart` (or `pidash update` to defer restart).
+    /// advisory in `karma-team status` / TUI and waits for the operator to
+    /// run `karma-team update --restart` (or `karma-team update` to defer restart).
     #[serde(default = "default_auto_update")]
     pub auto_update: bool,
 }
@@ -114,7 +114,7 @@ pub struct RunnerConfig {
     pub name: String,
     pub runner_id: Uuid,
     /// Slug of the workspace this runner is bound to. Populated from the
-    /// register response at `pidash configure` time. `Option` so an older
+    /// register response at `karma-team configure` time. `Option` so an older
     /// config still parses; new CRUD subcommands hard-error if it's missing.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub workspace_slug: Option<String>,
@@ -128,7 +128,7 @@ pub struct RunnerConfig {
     pub project_slug: Option<String>,
     /// Pod id assigned by the cloud at registration. Informational only —
     /// the source of truth is the cloud-side runner row. Stamped here so
-    /// `pidash status` can show it without an extra REST call.
+    /// `karma-team status` can show it without an extra REST call.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pod_id: Option<Uuid>,
     pub workspace: WorkspaceSection,
@@ -184,14 +184,14 @@ pub struct CodexSection {
     /// Managed-runner only: private `CODEX_HOME` this runner's agent uses.
     ///
     /// When set, the daemon exports it for the agent process so the bundled
-    /// engine reads Pi Dash's configuration instead of `~/.codex`, and the
+    /// engine reads karma-team's configuration instead of `~/.codex`, and the
     /// user's own Codex install (if any) is neither read nor written. `None`
     /// for user-enrolled runners, which keeps their behaviour byte-identical.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub codex_home: Option<PathBuf>,
     /// Managed-runner only: directory prepended to the agent's `PATH`.
     ///
-    /// Carries the bundled `pidash` CLI so the agent's `pidash issue|comment|
+    /// Carries the bundled `karma-team` CLI so the agent's `karma-team issue|comment|
     /// workpad` calls resolve to the app's copy rather than whatever is on the
     /// user's `PATH` — or nothing at all.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -208,7 +208,7 @@ pub struct CodexSection {
     /// Reasoning-effort tier passed to codex `turn/start` (`low` / `medium`
     /// / `high` / `xhigh`). `None` omits the field so codex applies the
     /// model's own default effort. Only meaningful alongside `model_default`
-    /// — `pidash runner add --reasoning-effort` writes this.
+    /// — `karma-team runner add --reasoning-effort` writes this.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub effort_default: Option<String>,
 }
@@ -307,7 +307,7 @@ impl AgentKind {
     }
 
     /// Human-facing name for prompts and operator-facing messages, e.g.
-    /// the missing-agent reminder `pidash runner add` prints.
+    /// the missing-agent reminder `karma-team runner add` prints.
     pub fn display_name(self) -> &'static str {
         match self {
             AgentKind::Codex => "Codex",
@@ -321,7 +321,7 @@ impl AgentKind {
 
     /// Default CLI binary name for this agent — the executable name a
     /// fresh runner is configured with (see `CodexSection::default` /
-    /// `ClaudeCodeSection::default`) and the one `pidash runner add`
+    /// `ClaudeCodeSection::default`) and the one `karma-team runner add`
     /// probes for presence on the dev machine.
     pub fn default_binary(self) -> &'static str {
         match self {
@@ -329,7 +329,7 @@ impl AgentKind {
             AgentKind::ClaudeCode => "claude",
             AgentKind::CursorAgent => "cursor-agent",
             // OpenClaw is driven through the `acpx` ACP client, so that's the
-            // binary the runner invokes and `pidash runner add` probes for.
+            // binary the runner invokes and `karma-team runner add` probes for.
             AgentKind::OpenClaw => "acpx",
             // Grok is its own ACP server (`grok agent stdio`), so the runner
             // invokes `grok` directly.
@@ -339,7 +339,7 @@ impl AgentKind {
         }
     }
 
-    /// Official install / setup page for this agent's CLI. `pidash runner
+    /// Official install / setup page for this agent's CLI. `karma-team runner
     /// add` prints this and opens it in the operator's browser when the
     /// agent binary is missing, so they can install it before runs start.
     pub fn install_page_url(self) -> &'static str {
@@ -508,7 +508,7 @@ impl Default for ApprovalPolicySection {
 
 /// Long-lived credentials a daemon needs to talk to the cloud.
 ///
-/// One Connection per dev machine. Set on first ``pidash connect`` and
+/// One Connection per dev machine. Set on first ``karma-team connect`` and
 /// reused across runner adds/removes. Mode 0600 on disk.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Credentials {
@@ -519,12 +519,12 @@ pub struct Credentials {
     /// ``Authorization: Bearer …`` on every WS connect. Never echoed.
     pub connection_secret: String,
     /// Editable label echoed by the cloud at enrollment time. Mirrors
-    /// ``Connection.name``; surfaced in ``pidash status`` and the TUI.
+    /// ``Connection.name``; surfaced in ``karma-team status`` and the TUI.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub connection_name: Option<String>,
     /// Public REST API token (``X-Api-Key``) for ``/api/v1/`` CRUD
     /// commands. Optional so a daemon can be enrolled with WS-only access
-    /// today and pick up an api_token via ``pidash login`` later.
+    /// today and pick up an api_token via ``karma-team login`` later.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub api_token: Option<String>,
     pub issued_at: DateTime<Utc>,
@@ -571,7 +571,7 @@ impl Config {
     ///
     /// A zero-runner config is valid: a freshly enrolled connection may
     /// hold the WS open before any runners have been added. The daemon
-    /// stays connected and the user runs ``pidash runner add`` later.
+    /// stays connected and the user runs ``karma-team runner add`` later.
     pub fn validate(&self) -> Result<(), ConfigError> {
         if self.runners.len() > MAX_RUNNERS_PER_DAEMON {
             return Err(ConfigError::TooManyRunners {
@@ -665,7 +665,6 @@ impl Config {
 
         Ok(())
     }
-
 }
 
 /// User-facing config validation errors. Each variant's `Display` is the
@@ -716,7 +715,7 @@ impl std::fmt::Display for ConfigError {
             ConfigError::NoRunners => write!(
                 f,
                 "configuration error: no [[runner]] block in config.toml. \
-                 Run `pidash runner add` to register a runner under this connection."
+                 Run `karma-team runner add` to register a runner under this connection."
             ),
             ConfigError::TooManyRunners { count, cap } => write!(
                 f,
@@ -733,12 +732,12 @@ impl std::fmt::Display for ConfigError {
                 f,
                 "configuration error: two [[runner]] blocks share runner_id {id}. \
                  Each runner must have a unique runner_id; this usually means \
-                 config.toml was edited incorrectly — re-run `pidash runner add`."
+                 config.toml was edited incorrectly — re-run `karma-team runner add`."
             ),
             ConfigError::MissingProjectSlug { runner } => write!(
                 f,
                 "configuration error: runner {runner:?} has no project_slug. \
-                 Every runner must declare its project (via `pidash runner add \
+                 Every runner must declare its project (via `karma-team runner add \
                  --project <SLUG>`); dispatch is project-scoped and a runner \
                  with no project would be unreachable."
             ),
@@ -767,7 +766,7 @@ impl std::fmt::Display for ConfigError {
             ),
             ConfigError::IncompleteManagedCodex { runner, missing } => write!(
                 f,
-                "configuration error: runner {runner:?} sets some managed Codex                  fields but is missing {missing}. These are written together by                  the Pi Dash desktop app; a partial set means the config was                  hand-edited or a write was interrupted. Re-open the project in                  Pi Dash Desktop to rewrite it."
+                "configuration error: runner {runner:?} sets some managed Codex                  fields but is missing {missing}. These are written together by                  the karma-team desktop app; a partial set means the config was                  hand-edited or a write was interrupted. Re-open the project in                  karma-team Desktop to rewrite it."
             ),
         }
     }
@@ -826,7 +825,7 @@ mod tests {
     #[test]
     fn validate_accepts_zero_runners() {
         // A freshly enrolled connection has no runners yet — the daemon
-        // still needs to come up so the user can `pidash runner add`.
+        // still needs to come up so the user can `karma-team runner add`.
         let cfg = config_with(vec![]);
         cfg.validate().unwrap();
     }
@@ -955,7 +954,7 @@ mod tests {
 
     #[test]
     fn agent_kind_default_binary_matches_section_defaults() {
-        // `pidash runner add` probes `default_binary()` for the agent it's
+        // `karma-team runner add` probes `default_binary()` for the agent it's
         // about to configure; it must equal the binary the fresh runner is
         // actually written with, or the probe checks the wrong executable.
         assert_eq!(
@@ -974,7 +973,10 @@ mod tests {
             AgentKind::OpenClaw.default_binary(),
             OpenClawSection::default().binary
         );
-        assert_eq!(AgentKind::Grok.default_binary(), GrokSection::default().binary);
+        assert_eq!(
+            AgentKind::Grok.default_binary(),
+            GrokSection::default().binary
+        );
         assert_eq!(
             AgentKind::MuseCode.default_binary(),
             MuseCodeSection::default().binary
@@ -1031,7 +1033,7 @@ mod tests {
 
     fn managed_runner(name: &str) -> RunnerConfig {
         let mut r = runner(name, "/work/managed");
-        r.codex.binary = "/app/bin/pidash-agent-engine".into();
+        r.codex.binary = "/app/bin/karma-team-agent-engine".into();
         r.codex.codex_home = Some(PathBuf::from("/app/managed/codex-home"));
         r.codex.path_prepend = Some(PathBuf::from("/app/bin"));
         r.codex.model_token_file = Some(PathBuf::from("/app/managed/runtime/model.token"));
@@ -1052,7 +1054,11 @@ mod tests {
 
     #[test]
     fn validate_accepts_complete_managed_codex_set() {
-        assert!(config_with(vec![managed_runner("desktop-host")]).validate().is_ok());
+        assert!(
+            config_with(vec![managed_runner("desktop-host")])
+                .validate()
+                .is_ok()
+        );
     }
 
     #[test]
@@ -1080,7 +1086,7 @@ mod tests {
             }
             // And the message must tell the operator what to do about it.
             assert!(
-                err.to_string().contains("Pi Dash Desktop"),
+                err.to_string().contains("karma-team Desktop"),
                 "message should point at the app that owns this config: {err}"
             );
         }
@@ -1106,13 +1112,16 @@ mod tests {
         let text = toml::to_string(&cfg).expect("serialise");
         let back: Config = toml::from_str(&text).expect("deserialise");
         let codex = &back.runners[0].codex;
-        assert_eq!(codex.codex_home.as_deref(), Some(Path::new("/app/managed/codex-home")));
+        assert_eq!(
+            codex.codex_home.as_deref(),
+            Some(Path::new("/app/managed/codex-home"))
+        );
         assert_eq!(codex.path_prepend.as_deref(), Some(Path::new("/app/bin")));
         assert_eq!(
             codex.model_token_file.as_deref(),
             Some(Path::new("/app/managed/runtime/model.token"))
         );
-        assert_eq!(codex.binary, "/app/bin/pidash-agent-engine");
+        assert_eq!(codex.binary, "/app/bin/karma-team-agent-engine");
     }
 
     #[test]
@@ -1123,6 +1132,9 @@ mod tests {
         let text = toml::to_string(&cfg).expect("serialise");
         assert!(!text.contains("codex_home"), "unexpected key in:\n{text}");
         assert!(!text.contains("path_prepend"), "unexpected key in:\n{text}");
-        assert!(!text.contains("model_token_file"), "unexpected key in:\n{text}");
+        assert!(
+            !text.contains("model_token_file"),
+            "unexpected key in:\n{text}"
+        );
     }
 }

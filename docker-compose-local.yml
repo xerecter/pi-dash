@@ -1,5 +1,7 @@
+name: karma-team
+
 services:
-  pi-dash-redis:
+  karma-team-redis:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/valkey/valkey:7.2.11-alpine
     restart: unless-stopped
     networks:
@@ -9,7 +11,7 @@ services:
     ports:
       - "${REDIS_HOST_PORT:-6379}:6379"
 
-  pi-dash-mq:
+  karma-team-mq:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/rabbitmq:3.13.6-management-alpine
     restart: unless-stopped
     networks:
@@ -23,7 +25,7 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
 
-  pi-dash-minio:
+  karma-team-minio:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/minio/minio:RELEASE.2025-05-24T17-08-30Z
     restart: unless-stopped
     networks:
@@ -48,7 +50,7 @@ services:
       - "${MINIO_HOST_PORT:-9000}:9000"
       - "9090:9090"
 
-  pi-dash-db:
+  karma-team-db:
     image: swr.cn-north-4.myhuaweicloud.com/ddn-k8s/docker.io/postgres:15.7-alpine
     restart: unless-stopped
     networks:
@@ -78,9 +80,9 @@ services:
     env_file:
       - ./apps/api/.env
     depends_on:
-      - pi-dash-db
-      - pi-dash-redis
-      - pi-dash-mq
+      - karma-team-db
+      - karma-team-redis
+      - karma-team-mq
     ports:
       - "${API_HOST_PORT:-8000}:8000"
 
@@ -100,8 +102,8 @@ services:
       - ./apps/api/.env
     depends_on:
       - api
-      - pi-dash-db
-      - pi-dash-redis
+      - karma-team-db
+      - karma-team-redis
 
   beat-worker:
     build:
@@ -119,8 +121,8 @@ services:
       - ./apps/api/.env
     depends_on:
       - api
-      - pi-dash-db
-      - pi-dash-redis
+      - karma-team-db
+      - karma-team-redis
 
   migrator:
     build:
@@ -133,12 +135,12 @@ services:
       - dev_env
     volumes:
       - ./apps/api:/code
-    command: ./bin/docker-entrypoint-migrator.sh --settings=pi_dash.settings.local
+    command: ./bin/docker-entrypoint-migrator.sh --settings=karma_team.settings.local
     env_file:
       - ./apps/api/.env
     depends_on:
-      - pi-dash-db
-      - pi-dash-redis
+      - karma-team-db
+      - karma-team-redis
 
 volumes:
   redisdata:

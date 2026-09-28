@@ -1,36 +1,36 @@
 services:
   web:
-    image: ${DOCKERHUB_USER:-local}/pi-dash-frontend:${APP_RELEASE:-latest}
+    image: ${DOCKERHUB_USER:-local}/karma-team-frontend:${APP_RELEASE:-latest}
     build:
       context: ../../
       dockerfile: apps/web/Dockerfile.web
 
   space:
-    image: ${DOCKERHUB_USER:-local}/pi-dash-space:${APP_RELEASE:-latest}
+    image: ${DOCKERHUB_USER:-local}/karma-team-space:${APP_RELEASE:-latest}
     build:
       context: ../../
       dockerfile: apps/space/Dockerfile.space
 
   admin:
-    image: ${DOCKERHUB_USER:-local}/pi-dash-admin:${APP_RELEASE:-latest}
+    image: ${DOCKERHUB_USER:-local}/karma-team-admin:${APP_RELEASE:-latest}
     build:
       context: ../../
       dockerfile: apps/admin/Dockerfile.admin
 
   live:
-    image: ${DOCKERHUB_USER:-local}/pi-dash-live:${APP_RELEASE:-latest}
+    image: ${DOCKERHUB_USER:-local}/karma-team-live:${APP_RELEASE:-latest}
     build:
       context: ../../
       dockerfile: apps/live/Dockerfile.live
 
   api:
-    image: ${DOCKERHUB_USER:-local}/pi-dash-backend:${APP_RELEASE:-latest}
+    image: ${DOCKERHUB_USER:-local}/karma-team-backend:${APP_RELEASE:-latest}
     build:
       context: ../../apps/api
       dockerfile: Dockerfile.api
 
   proxy:
-    image: ${DOCKERHUB_USER:-local}/pi-dash-proxy:${APP_RELEASE:-latest}
+    image: ${DOCKERHUB_USER:-local}/karma-team-proxy:${APP_RELEASE:-latest}
     build:
       context: ../../apps/proxy
       dockerfile: Dockerfile.ce

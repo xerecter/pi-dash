@@ -7,9 +7,9 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router";
 import { useSWRConfig } from "swr";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { AssistantService } from "@pi-dash/services";
-import type { IAssistantThread } from "@pi-dash/types";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { AssistantService } from "@karma-team/services";
+import type { IAssistantThread } from "@karma-team/types";
 
 const service = new AssistantService();
 

@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-//! `pidash __managed` — provisioning verbs for the Pi Dash desktop app.
+//! `karma-team __managed` — provisioning verbs for the karma-team desktop app.
 //!
-//! The desktop app bundles this binary and needs to do what `pidash auth
-//! login` + `pidash runner add` do, without a terminal. Rather than
+//! The desktop app bundles this binary and needs to do what `karma-team auth
+//! login` + `karma-team runner add` do, without a terminal. Rather than
 //! re-implementing config writing and enrollment inside the Tauri host — a
 //! second copy of `runner_ops` in a second language, drifting from this one —
 //! the app shells out to these hidden subcommands and passes the paths it
@@ -14,7 +14,7 @@
 //! Everything here is ordinary runner machinery: the same `[cli].token` write
 //! `auth login` performs, the same `create_runner` call `runner add` makes, the
 //! same `[[runner]]` block. The only additions are the managed Codex fields,
-//! which point the bundled engine at Pi Dash's own config and credential
+//! which point the bundled engine at karma-team's own config and credential
 //! instead of the user's.
 //!
 //! Hidden because these are not a supported way to configure a runner by hand:
@@ -122,7 +122,7 @@ pub async fn run(args: ManagedArgs, paths: &Paths) -> Result<()> {
         ManagedCommand::Rebind(a) => set_engine_paths(paths, &a, None),
         ManagedCommand::ModelToken(a) => {
             let token = std::fs::read_to_string(&a.file)
-                .context("managed model credential unavailable; reconnect Pi Dash Desktop")?;
+                .context("managed model credential unavailable; reconnect karma-team Desktop")?;
             let token = token.trim();
             if token.is_empty() || token.chars().any(|c| c.is_whitespace() || c.is_control()) {
                 anyhow::bail!("managed model credential is empty or malformed");
@@ -139,9 +139,9 @@ async fn bootstrap(args: BootstrapArgs, paths: &Paths) -> Result<()> {
     if token.is_empty() {
         anyhow::bail!("no machine token on stdin");
     }
-    // Exactly what `pidash auth login` writes after the device-code exchange:
+    // Exactly what `karma-team auth login` writes after the device-code exchange:
     // `[cli].token` *is* the machine token, so everything downstream (the
-    // agent's own `pidash` calls included) authenticates the same way it does
+    // agent's own `karma-team` calls included) authenticates the same way it does
     // for a hand-installed runner.
     runner_ops::write_cli_token(paths, &args.cloud_url, &token)
         .context("writing machine token to config.toml")?;
@@ -204,7 +204,7 @@ async fn enroll(args: EnrollArgs, paths: &Paths) -> Result<()> {
         },
     )
     .await
-    .context("registering the managed runner with Pi Dash")?;
+    .context("registering the managed runner with karma-team")?;
 
     let applied = runner_ops::apply_enroll_response(
         paths,

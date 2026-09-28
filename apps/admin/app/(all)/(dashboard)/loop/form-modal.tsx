@@ -5,10 +5,10 @@
  */
 
 import { useState } from "react";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { InstanceLoopService } from "@pi-dash/services";
-import type { ILoopJob, ILoopJobInput } from "@pi-dash/types";
-import { Button, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { InstanceLoopService } from "@karma-team/services";
+import type { ILoopJob, ILoopJobInput } from "@karma-team/types";
+import { Button, EModalWidth, ModalCore } from "@karma-team/ui";
 
 const service = new InstanceLoopService();
 

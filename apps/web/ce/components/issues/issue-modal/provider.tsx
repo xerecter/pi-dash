@@ -6,8 +6,8 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { ISearchIssueResponse, TIssue } from "@pi-dash/types";
+// karma-team imports
+import type { ISearchIssueResponse, TIssue } from "@karma-team/types";
 // components
 import { IssueModalContext } from "@/components/issues/issue-modal/context";
 // hooks

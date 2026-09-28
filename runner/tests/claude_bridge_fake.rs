@@ -3,10 +3,10 @@
 //! events; the Bridge drives it through `system/init → assistant message →
 //! result`.
 
-use pidash::agent::BridgeEvent;
-use pidash::agent::RunPayload;
-use pidash::claude_code::bridge::Bridge;
-use pidash::claude_code::process::ClaudeProcess;
+use karma_team::agent::BridgeEvent;
+use karma_team::agent::RunPayload;
+use karma_team::claude_code::bridge::Bridge;
+use karma_team::claude_code::process::ClaudeProcess;
 use std::path::PathBuf;
 use std::time::Duration;
 use tokio::process::Command;
@@ -62,7 +62,7 @@ fn fake_claude_one_shot_requires_eof_script() -> &'static str {
 
 async fn drain_until_completed(
     bridge: &mut Bridge,
-    cursor: &mut pidash::claude_code::bridge::BridgeCursor,
+    cursor: &mut karma_team::claude_code::bridge::BridgeCursor,
 ) -> serde_json::Value {
     let deadline = tokio::time::Instant::now() + Duration::from_secs(3);
     while tokio::time::Instant::now() < deadline {

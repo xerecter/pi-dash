@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import type { EIssuesStoreType } from "@pi-dash/types";
+// karma-team imports
+import type { EIssuesStoreType } from "@karma-team/types";
 // components
 import { FiltersToggle } from "@/components/rich-filters/filters-toggle";
 // hooks

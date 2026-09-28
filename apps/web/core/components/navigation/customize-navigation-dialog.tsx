@@ -8,14 +8,14 @@ import { useCallback, useMemo, useState } from "react";
 import { orderBy } from "lodash-es";
 import { observer } from "mobx-react";
 import { GripVertical, X } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Checkbox, EModalPosition, EModalWidth, ModalCore, Sortable } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Checkbox, EModalPosition, EModalWidth, ModalCore, Sortable } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import { usePersonalNavigationPreferences, useProjectNavigationPreferences } from "@/hooks/use-navigation-preferences";
 // helpers
-import { getSidebarNavigationItemIcon } from "@/pi-dash-web/components/workspace/sidebar/helper";
+import { getSidebarNavigationItemIcon } from "@/karma-team-web/components/workspace/sidebar/helper";
 // types
 import type { TPersonalNavigationItemKey } from "@/types/navigation-preferences";
 

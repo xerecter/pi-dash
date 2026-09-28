@@ -6,9 +6,9 @@
 
 import { observer } from "mobx-react";
 
-import { useTranslation } from "@pi-dash/i18n";
-import { PlusIcon } from "@pi-dash/propel/icons";
-import { Row } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { PlusIcon } from "@karma-team/propel/icons";
+import { Row } from "@karma-team/ui";
 import type { TQuickAddIssueButton } from "../root";
 
 export const ListQuickAddIssueButton = observer(function ListQuickAddIssueButton(props: TQuickAddIssueButton) {

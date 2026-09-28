@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { IFilterAdapter, TExternalFilter, TFilterExpression, TFilterProperty } from "@pi-dash/types";
+// karma-team imports
+import type { IFilterAdapter, TExternalFilter, TFilterExpression, TFilterProperty } from "@karma-team/types";
 
 /**
  * Abstract base class for converting between external filter formats and internal filter expressions.

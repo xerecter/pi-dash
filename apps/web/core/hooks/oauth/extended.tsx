@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TOAuthConfigs } from "@pi-dash/types";
+// karma-team imports
+import type { TOAuthConfigs } from "@karma-team/types";
 
 export const useExtendedOAuthConfig = (_oauthActionText: string): TOAuthConfigs => {
   return {

@@ -5,7 +5,7 @@
  */
 
 import { observer } from "mobx-react";
-import { EstimatePropertyIcon } from "@pi-dash/propel/icons";
+import { EstimatePropertyIcon } from "@karma-team/propel/icons";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components

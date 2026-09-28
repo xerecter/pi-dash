@@ -5,8 +5,8 @@
  */
 
 import { useCallback, useState } from "react";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 // services
 import { AgentRunService } from "@/services/runner";
 import type { TReTickResponse } from "@/services/runner";

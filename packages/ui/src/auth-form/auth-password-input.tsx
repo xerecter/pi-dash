@@ -5,8 +5,8 @@
  */
 
 import React, { useState } from "react";
-import type { E_PASSWORD_STRENGTH } from "@pi-dash/constants";
-import { cn, getPasswordStrength } from "@pi-dash/utils";
+import type { E_PASSWORD_STRENGTH } from "@karma-team/constants";
+import { cn, getPasswordStrength } from "@karma-team/utils";
 import { PasswordStrengthIndicator } from "../form-fields/password/indicator";
 import { AuthInput } from "./auth-input";
 

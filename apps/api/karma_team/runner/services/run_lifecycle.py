@@ -1,0 +1,485 @@
+# Copyright (c) 2023-present Pi Dash Software, Inc. and contributors
+# SPDX-License-Identifier: AGPL-3.0-only
+# See the LICENSE file for details.
+
+"""Shared cloud-side handlers for runner→cloud run-lifecycle frames.
+
+Extracted from the legacy ``RunnerConsumer`` so the new HTTP endpoints
+(``run_endpoints.py``) can reuse the same orchestration: pause →
+IssueComment + deferred-pause + drain re-fire; ``resume_unavailable``
+fail → re-queue + pin-drop + parent thread_id clear + drain.
+
+These two paths carry side-effects beyond a status update; without
+them the agent's question-for-human never reaches the user thread and
+runs that miss their session on disk fail-stop instead of recovering.
+"""
+
+from __future__ import annotations
+
+import logging
+from typing import Any, Dict, Optional
+from uuid import UUID
+
+from django.db import transaction
+from django.utils import timezone
+
+from karma_team.runner.diagnostics import enrich_run_error
+from karma_team.runner.models import (
+    AgentRun,
+    AgentRunStatus,
+    RefusalCategory,
+    Runner,
+    RunnerLiveState,
+    RunnerStatus,
+)
+
+logger = logging.getLogger(__name__)
+
+TERMINAL_RUN_STATUSES = (
+    AgentRunStatus.COMPLETED,
+    AgentRunStatus.FAILED,
+    AgentRunStatus.CANCELLED,
+    AgentRunStatus.BLOCKED,
+    AgentRunStatus.REFUSED,
+)
+BIGINT_MAX = 2**63 - 1
+
+_VALID_REFUSAL_CATEGORIES = frozenset(c.value for c in RefusalCategory)
+
+
+def _has_project_move_handoff(run: AgentRun) -> bool:
+    from karma_team.orchestration.service import PROJECT_MOVE_HANDOFF_CONFIG_KEY
+
+    return bool((run.run_config or {}).get(PROJECT_MOVE_HANDOFF_CONFIG_KEY))
+
+
+def _normalize_model(raw: Any) -> str:
+    return str(raw or "").strip()[:128]
+
+
+def _normalize_refusal_category(raw: Any) -> str:
+    """Map a runner-reported category to a known value, defaulting to
+    ``UNKNOWN`` for anything unrecognized or empty."""
+    value = str(raw or "").strip().lower()
+    return value if value in _VALID_REFUSAL_CATEGORIES else RefusalCategory.UNKNOWN.value
+
+
+def _coerce_token(raw: Any) -> Optional[int]:
+    if raw is None or raw == "":
+        return None
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return None
+    if value < 0 or value > BIGINT_MAX:
+        return None
+    return value
+
+
+def _token_updates(tokens: Any) -> Dict[str, int]:
+    if not isinstance(tokens, dict):
+        return {}
+    fields = {
+        "input_tokens": _coerce_token(tokens.get("input", tokens.get("input_tokens"))),
+        "output_tokens": _coerce_token(tokens.get("output", tokens.get("output_tokens"))),
+        "total_tokens": _coerce_token(tokens.get("total", tokens.get("total_tokens"))),
+    }
+    return {key: value for key, value in fields.items() if value is not None}
+
+
+def _payload_usage(payload: Any) -> Any:
+    if isinstance(payload, dict):
+        return payload.get("usage")
+    return None
+
+
+def _matching_live_state(runner: Runner, run_id: UUID | str) -> Optional[RunnerLiveState]:
+    return RunnerLiveState.objects.filter(
+        runner=runner,
+        observed_run_id=run_id,
+    ).first()
+
+
+def _usage_updates_from_live_state(state: Optional[RunnerLiveState]) -> Dict[str, Any]:
+    if state is None:
+        return {}
+    updates: Dict[str, Any] = {}
+    if state.input_tokens is not None:
+        updates["input_tokens"] = state.input_tokens
+    if state.output_tokens is not None:
+        updates["output_tokens"] = state.output_tokens
+    if state.total_tokens is not None:
+        updates["total_tokens"] = state.total_tokens
+    if state.llm_model:
+        updates["llm_model"] = state.llm_model[:128]
+    return updates
+
+
+def _apply_post_run_orchestration(run: AgentRun) -> None:
+    """Run the ticker side-effects that follow a paused or terminal run.
+
+    Called from both ``apply_run_paused`` (PAUSED_AWAITING_INPUT) and
+    ``finalize_run_terminal`` (COMPLETED / FAILED / CANCELLED), hence
+    "post-run" rather than "terminal" — paused runs are not terminal
+    but still need the same hooks.
+
+    Order matters: the run's outcome (``RUN_ENDED`` → ``reconcile``) must
+    be applied before the deferred pause so that hook sees the latest
+    disarm reason. Both are idempotent: ``reconcile`` ignores a run whose
+    stage the issue has already left (design §7 guard), and the CAP_HIT
+    gate inside ``maybe_apply_deferred_pause`` skips terminal-signal stops.
+
+    Each side-effect is wrapped in its own try/except so a failure in one
+    does not block the other or the surrounding drain.
+    """
+    from karma_team.orchestration.scheduling import (
+        maybe_apply_deferred_pause,
+        maybe_disarm_on_terminal_signal,
+    )
+
+    try:
+        maybe_disarm_on_terminal_signal(run)
+    except Exception:
+        logger.exception("orchestration.error: run-ended reconcile failed for run %s", run.pk)
+    try:
+        maybe_apply_deferred_pause(run)
+    except Exception:
+        logger.exception("orchestration.error: deferred-pause failed for run %s", run.pk)
+    # A queued entry run (design §4.5) is due *now*; don't make it wait for
+    # the scanner's next pass.
+    try:
+        _fire_pending_entry(run)
+    except Exception:
+        logger.exception("orchestration.error: pending-entry fire failed for run %s", run.pk)
+
+
+def _fire_pending_entry(run: AgentRun) -> None:
+    """Sub-minute pickup for an entry run the clock is holding (design §4.5)."""
+    if run.work_item_id is None:
+        return
+    from karma_team.bgtasks.agent_ticker import fire_tick
+    from karma_team.db.models.issue_agent_ticker import IssueAgentTicker
+
+    ticker_id = (
+        IssueAgentTicker.objects.filter(issue_id=run.work_item_id, enabled=True, pending_entry=True)
+        .values_list("id", flat=True)
+        .first()
+    )
+    if ticker_id is None:
+        return
+    transaction.on_commit(lambda: fire_tick.delay(str(ticker_id)))
+
+
+def apply_run_paused(
+    runner: Runner,
+    run_id: UUID | str,
+    payload: Dict[str, Any],
+    *,
+    tokens: Any = None,
+    model: Any = None,
+) -> None:
+    """Mark run paused, post the agent's question to the issue thread,
+    apply deferred-pause workspace transitions, and re-fire drain.
+
+    See legacy ``RunnerConsumer._handle_run_paused``.
+    """
+    live_state = _matching_live_state(runner, run_id)
+    usage_updates = _usage_updates_from_live_state(live_state)
+    usage_updates.update(_token_updates(_payload_usage(payload)))
+    usage_updates.update(_token_updates(tokens))
+    model_value = _normalize_model(model)
+    if model_value:
+        usage_updates["llm_model"] = model_value
+
+    from karma_team.runner.services.agent_run_finalization import merge_done_payload
+
+    with transaction.atomic():
+        pausing = (
+            AgentRun.objects.select_for_update()
+            .filter(id=run_id, runner=runner)
+            .exclude(status__in=TERMINAL_RUN_STATUSES)
+            .exclude(status=AgentRunStatus.CANCEL_REQUESTED)
+            .first()
+        )
+        if pausing is None:
+            return
+        # Keep a ``karma-team run yield`` the agent already made; the pause
+        # payload carries the question, not the stage outcome.
+        AgentRun.objects.filter(pk=pausing.pk).update(
+            status=AgentRunStatus.PAUSED_AWAITING_INPUT,
+            done_payload=merge_done_payload(pausing.done_payload, payload),
+            **usage_updates,
+        )
+    try:
+        run = AgentRun.objects.select_related("work_item").get(id=run_id)
+    except AgentRun.DoesNotExist:
+        return
+
+    if run.work_item_id is not None:
+        from django.utils.html import format_html
+
+        from karma_team.db.models.issue import IssueComment
+        from karma_team.orchestration.workpad import get_agent_system_user
+
+        question = (payload.get("autonomy") or {}).get("question_for_human")
+        summary = payload.get("summary")
+        body_parts: list[str] = []
+        if question:
+            body_parts.append(
+                format_html(
+                    "<p><strong>Agent paused — question:</strong></p><p>{}</p>",
+                    question,
+                )
+            )
+        if summary:
+            body_parts.append(format_html("<p><em>Summary so far:</em> {}</p>", summary))
+        if body_parts:
+            IssueComment.objects.create(
+                issue=run.work_item,
+                project=run.work_item.project,
+                workspace=run.work_item.workspace,
+                actor=get_agent_system_user(),
+                comment_html="".join(body_parts),
+            )
+
+    from karma_team.runner.services.matcher import drain_for_runner_by_id
+
+    def _pause_and_drain(rid=run_id, runner_id=runner.id):
+        paused = (
+            AgentRun.objects.select_related(
+                "work_item",
+                "work_item__state",
+                "work_item__project",
+            )
+            .filter(pk=rid)
+            .first()
+        )
+        if paused is not None:
+            _apply_post_run_orchestration(paused)
+        drain_for_runner_by_id(runner_id)
+
+    transaction.on_commit(_pause_and_drain)
+
+
+def apply_run_resume_unavailable(
+    runner: Runner,
+    run_id: UUID | str,
+    *,
+    locked_run: Optional[AgentRun] = None,
+) -> None:
+    """Re-queue a run whose pinned session disappeared.
+
+    Drops the runner / pin / assigned_at and clears the parent's
+    ``thread_id`` so the next dispatch builds a fresh-session Assign.
+    See legacy ``RunnerConsumer._handle_resume_unavailable``.
+
+    Must be called inside ``transaction.atomic()`` because the fallback
+    lookup takes a row lock.
+    """
+    run = locked_run
+    if run is None:
+        run = (
+            AgentRun.objects.select_for_update()
+            .filter(id=run_id, runner=runner)
+            .exclude(status__in=TERMINAL_RUN_STATUSES)
+            .first()
+        )
+    if run is None:
+        return
+    run.status = AgentRunStatus.QUEUED
+    run.runner = None
+    run.pinned_runner = None
+    run.assigned_at = None
+    # The run is no longer in any daemon's local worktree queue — drop a
+    # stale WAITING_FOR_WORKTREE position along with the assignment.
+    run.queue_position = None
+    if run.parent_run is not None and run.parent_run.thread_id:
+        run.parent_run.thread_id = ""
+        run.parent_run.save(update_fields=["thread_id"])
+    run.save(
+        update_fields=[
+            "status",
+            "runner",
+            "pinned_runner",
+            "assigned_at",
+            "queue_position",
+        ]
+    )
+
+    from karma_team.runner.services.matcher import drain_pod_by_id
+
+    if run.pod_id is not None:
+        transaction.on_commit(lambda pid=run.pod_id: drain_pod_by_id(pid))
+
+
+def apply_assign_rejected_busy(
+    runner: Runner,
+    run_id: UUID | str,
+    *,
+    locked_run: Optional[AgentRun] = None,
+) -> None:
+    """Re-queue an Assign the runner NACKed because it is still busy.
+
+    The matcher frees a runner the moment its previous run goes terminal in
+    the database — but the local agent may still be winding down (most
+    commonly after a user cancel). The next Assign then lands on a runner
+    that cannot take it; the runner reports ``reason=assign_rejected_busy``
+    instead of silently dropping it, because a dropped Assign leaves the run
+    ASSIGNED forever ("busy" in the UI with nothing running).
+
+    Same row reset as :func:`apply_run_resume_unavailable` (it owns the
+    re-queue semantics), plus the runner is flipped to BUSY first so the
+    post-commit pod drain can't instantly re-assign the run to the very
+    runner that just rejected it. The runner's next poll self-corrects its
+    status from the reported state.
+
+    Must be called inside ``transaction.atomic()``.
+    """
+    Runner.objects.filter(pk=runner.pk).update(status=RunnerStatus.BUSY)
+    apply_run_resume_unavailable(runner, run_id, locked_run=locked_run)
+
+
+# Detail-string prefixes for failures that aren't actionable by the user
+# (the runner restarted, the cloud watchdog reaped a stalled cluster of
+# runs, etc.). These get a DB row update and nothing else — surfacing a
+# `Run failed: daemon shutdown requested` on the issue thread is noise,
+# not signal. The next continuation will pick the work back up.
+#
+# Strings are intentionally compared as prefixes so the runner / cloud
+# can append context (timestamps, run ids) without breaking the guard.
+# When the remediation-map work lands, this hard-coded list goes away
+# and we route on `FailureReason` instead.
+_INFRA_FAILURE_DETAIL_PREFIXES = (
+    "daemon shutdown requested",
+    "agent stalled: no events for >",
+)
+
+
+def _post_failure_comment(run_id: UUID | str, error_detail: str) -> None:
+    """Post a single IssueComment from the agent system user describing
+    why a run failed. Mirrors the shape of ``apply_run_paused``'s comment
+    creation so the issue activity feed is the one place a user has to
+    look to understand what happened.
+
+    Conservative wording — we surface the runner's classification + any
+    detail it sent (last command, stderr tail) rather than asserting a
+    root cause we can't prove from telemetry alone. Hidden behind the
+    public ``finalize_run_terminal`` entry-point so callers don't have
+    to opt in.
+
+    Suppressed for known infrastructure-flavored failures (daemon
+    restart, cloud-side stall reconciler) — see
+    ``_INFRA_FAILURE_DETAIL_PREFIXES``. The DB row still gets the
+    ``error`` field; we just don't pollute the issue thread.
+    """
+    from django.utils.html import format_html
+
+    from karma_team.db.models.issue import IssueComment
+    from karma_team.orchestration.workpad import get_agent_system_user
+
+    detail = (error_detail or "").strip()
+    if detail.startswith(_INFRA_FAILURE_DETAIL_PREFIXES):
+        return
+
+    run = AgentRun.objects.select_related("work_item", "work_item__project").filter(pk=run_id).first()
+    if run is None or run.work_item_id is None:
+        return
+    if IssueComment.objects.filter(
+        issue_id=run.work_item_id,
+        speaker_agent_run_id=run.id,
+        speaker_type=IssueComment.SpeakerType.SYSTEM,
+    ).exists():
+        return
+
+    if detail:
+        body = format_html(
+            "<p><strong>Run failed.</strong></p><pre>{}</pre>",
+            detail,
+        )
+    else:
+        # Defensive: we'd rather post "(no diagnostic detail)" than
+        # silently drop the activity entry.
+        body = format_html(
+            "<p><strong>Run failed.</strong> {}</p>",
+            "(no diagnostic detail)",
+        )
+
+    IssueComment.objects.create(
+        issue=run.work_item,
+        project=run.work_item.project,
+        workspace=run.work_item.workspace,
+        actor=get_agent_system_user(),
+        comment_html=body,
+        speaker_type=IssueComment.SpeakerType.SYSTEM,
+        speaker_label="karma-team",
+        speaker_agent_run_id=run.id,
+    )
+
+
+def finalize_run_terminal(
+    runner: Runner,
+    run_id: UUID | str,
+    new_status: AgentRunStatus,
+    *,
+    done_payload: Any = None,
+    error_detail: str = "",
+    error_code: str = "",
+    refusal_category: Any = None,
+    tokens: Any = None,
+    model: Any = None,
+) -> None:
+    """Stamp a terminal status and re-fire drain after commit.
+
+    Used by the COMPLETED / FAILED / CANCELLED endpoints. The
+    ``resume_unavailable`` special case is handled in
+    :func:`apply_run_resume_unavailable`; callers should branch on
+    that BEFORE calling this helper.
+
+    Terminal transitions are first-writer-wins. Runner messages can be
+    delayed across session eviction, watchdog reaping, user cancellation,
+    and daemon restart. Once the cloud has closed the run, a later terminal
+    or non-terminal message must be acknowledged by the endpoint but must
+    not rewrite the final row.
+    """
+    updates: Dict[str, Any] = {
+        "status": new_status,
+        "ended_at": timezone.now(),
+        # Belt-and-braces: a terminal run is out of every queue, so a stale
+        # WAITING_FOR_WORKTREE position must not survive on the closed row.
+        "queue_position": None,
+    }
+    if new_status == AgentRunStatus.COMPLETED:
+        updates["done_payload"] = done_payload
+        updates["error"] = ""
+    if new_status == AgentRunStatus.FAILED and error_detail:
+        error_detail = enrich_run_error(error_detail, runner=runner, model=model)
+        updates["error"] = error_detail[:16000]
+    if new_status == AgentRunStatus.FAILED and error_code:
+        updates["error_code"] = error_code[:64]
+    if new_status == AgentRunStatus.REFUSED:
+        # A safety-classifier decline. Record the category (always set, so the
+        # column is queryable) and surface the explanation, if any, in `error`.
+        updates["refusal_category"] = _normalize_refusal_category(refusal_category)
+        if error_detail:
+            updates["error"] = error_detail[:16000]
+    live_state = _matching_live_state(runner, run_id)
+    updates.update(_usage_updates_from_live_state(live_state))
+    updates.update(_token_updates(_payload_usage(done_payload)))
+    updates.update(_token_updates(tokens))
+    model_value = _normalize_model(model)
+    if model_value:
+        updates["llm_model"] = model_value
+    from karma_team.runner.services.agent_run_finalization import finalize_agent_run
+
+    updated = finalize_agent_run(
+        run_id,
+        new_status,
+        updates=updates,
+        expected_runner_id=runner.id,
+    )
+    if not updated:
+        logger.info(
+            "run_lifecycle: ignoring late terminal transition for closed run %s",
+            run_id,
+        )
+    return

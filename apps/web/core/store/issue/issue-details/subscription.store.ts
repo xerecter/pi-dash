@@ -7,7 +7,7 @@
 import { set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 // services
-import type { EIssueServiceType } from "@pi-dash/types";
+import type { EIssueServiceType } from "@karma-team/types";
 import { IssueService } from "@/services/issue/issue.service";
 // types
 import type { IIssueDetail } from "./root.store";

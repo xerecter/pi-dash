@@ -6,8 +6,8 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { IFilterInstance } from "@pi-dash/shared-state";
+// karma-team imports
+import type { IFilterInstance } from "@karma-team/shared-state";
 import type {
   SingleOrArray,
   TExternalFilter,
@@ -15,9 +15,9 @@ import type {
   TFilterValue,
   TFilterConditionNodeForDisplay,
   TAllAvailableOperatorsForDisplay,
-} from "@pi-dash/types";
-import { CustomSearchSelect } from "@pi-dash/ui";
-import { cn, getOperatorForPayload } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { CustomSearchSelect } from "@karma-team/ui";
+import { cn, getOperatorForPayload } from "@karma-team/utils";
 // local imports
 import { FilterValueInput } from "../filter-value-input/root";
 import { COMMON_FILTER_ITEM_BORDER_CLASSNAME } from "../shared";

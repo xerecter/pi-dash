@@ -9,8 +9,8 @@ import { TableMap } from "@tiptap/pm/tables";
 import { ArrowDown, ArrowUp, ToggleRight } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 // extensions
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import { CopyIcon, TrashIcon, CloseIcon } from "@pi-dash/propel/icons";
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import { CopyIcon, TrashIcon, CloseIcon } from "@karma-team/propel/icons";
 import { findTable, getSelectedRows } from "@/extensions/table/table/utilities/helpers";
 // local imports
 import { duplicateRows } from "../actions";

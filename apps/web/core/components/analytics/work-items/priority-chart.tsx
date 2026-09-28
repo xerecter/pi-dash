@@ -10,21 +10,21 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { useTheme } from "next-themes";
 import useSWR from "swr";
-// pi dash package imports
+// karma-team package imports
 import { Download } from "lucide-react";
-import type { ChartXAxisDateGrouping } from "@pi-dash/constants";
+import type { ChartXAxisDateGrouping } from "@karma-team/constants";
 import {
   ANALYTICS_X_AXIS_VALUES,
   ANALYTICS_Y_AXIS_VALUES,
   CHART_COLOR_PALETTES,
   EChartModels,
-} from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { BarChart } from "@pi-dash/propel/charts/bar-chart";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
-import type { TBarItem, TChart, TChartDatum, ChartXAxisProperty, ChartYAxisMetric } from "@pi-dash/types";
-// pi dash web components
+} from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { BarChart } from "@karma-team/propel/charts/bar-chart";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
+import type { TBarItem, TChart, TChartDatum, ChartXAxisProperty, ChartYAxisMetric } from "@karma-team/types";
+// karma-team web components
 import { generateExtendedColors, parseChartData } from "@/components/chart/utils";
 // hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";
@@ -246,7 +246,9 @@ const PriorityChart = observer(function PriorityChart(props: Props) {
           assetKey="unknown"
           assetClassName="size-20"
           rootClassName="border border-subtle px-5 py-10 md:py-20 md:px-20"
-          title={t("Create projects with work items and assignees to start tracking performance, progress, and team impact here.")}
+          title={t(
+            "Create projects with work items and assignees to start tracking performance, progress, and team impact here."
+          )}
         />
       )}
     </div>

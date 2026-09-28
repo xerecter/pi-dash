@@ -6,10 +6,10 @@
 
 import { observer } from "mobx-react";
 // ui
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { CircularProgressIndicator } from "@pi-dash/ui";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { CircularProgressIndicator } from "@karma-team/ui";
 // components
-import { getFileExtension } from "@pi-dash/utils";
+import { getFileExtension } from "@karma-team/utils";
 import { getFileIcon } from "@/components/icons";
 // helpers
 // hooks

@@ -6,10 +6,10 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-import type { TModuleStatus } from "@pi-dash/propel/icons";
-// pi dash imports
-import { CloseIcon, SearchIcon } from "@pi-dash/propel/icons";
-import type { TModuleDisplayFilters, TModuleFilters } from "@pi-dash/types";
+import type { TModuleStatus } from "@karma-team/propel/icons";
+// karma-team imports
+import { CloseIcon, SearchIcon } from "@karma-team/propel/icons";
+import type { TModuleDisplayFilters, TModuleFilters } from "@karma-team/types";
 // components
 import { FilterOption } from "@/components/issues/issue-layouts/filters";
 import { FilterLead, FilterMembers, FilterStartDate, FilterStatus, FilterTargetDate } from "@/components/modules";

@@ -8,15 +8,15 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
-// pi dash imports
-import { WEB_BASE_URL, ORGANIZATION_SIZE, RESTRICTED_URLS } from "@pi-dash/constants";
-import { Button, getButtonStyling } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { InstanceWorkspaceService } from "@pi-dash/services";
-import type { IWorkspace } from "@pi-dash/types";
-import { validateSlug, validateWorkspaceName } from "@pi-dash/utils";
+// karma-team imports
+import { WEB_BASE_URL, ORGANIZATION_SIZE, RESTRICTED_URLS } from "@karma-team/constants";
+import { Button, getButtonStyling } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { InstanceWorkspaceService } from "@karma-team/services";
+import type { IWorkspace } from "@karma-team/types";
+import { validateSlug, validateWorkspaceName } from "@karma-team/utils";
 // components
-import { CustomSelect, Input } from "@pi-dash/ui";
+import { CustomSelect, Input } from "@karma-team/ui";
 // hooks
 import { useWorkspace } from "@/hooks/store";
 

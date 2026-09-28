@@ -7,9 +7,9 @@
 import { observer } from "mobx-react";
 
 // icons
-import { EIconSize } from "@pi-dash/constants";
-import { CloseIcon, StateGroupIcon } from "@pi-dash/propel/icons";
-import type { TStateGroups } from "@pi-dash/types";
+import { EIconSize } from "@karma-team/constants";
+import { CloseIcon, StateGroupIcon } from "@karma-team/propel/icons";
+import type { TStateGroups } from "@karma-team/types";
 
 type Props = {
   handleRemove: (val: string) => void;

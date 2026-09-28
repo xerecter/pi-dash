@@ -5,11 +5,11 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { ENotificationFilterType, FILTER_TYPE_OPTIONS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { CloseIcon } from "@pi-dash/propel/icons";
-import { Header, EHeaderVariant, Tag } from "@pi-dash/ui";
+// karma-team imports
+import { ENotificationFilterType, FILTER_TYPE_OPTIONS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { CloseIcon } from "@karma-team/propel/icons";
+import { Header, EHeaderVariant, Tag } from "@karma-team/ui";
 // hooks
 import { useWorkspaceNotifications } from "@/hooks/store/notifications";
 

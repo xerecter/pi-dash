@@ -6,8 +6,8 @@
 
 import { set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
-// pi dash imports
-import { SitesMemberService } from "@pi-dash/services";
+// karma-team imports
+import { SitesMemberService } from "@karma-team/services";
 import type { TPublicMember } from "@/types/member";
 import type { RootStore } from "./root.store";
 

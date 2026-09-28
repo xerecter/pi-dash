@@ -10,12 +10,12 @@
 
 We have two existing scheduling-shaped systems and they are both single-purpose:
 
-- **`IssueAgentSchedule`** (`apps/api/pi_dash/db/models/issue_agent_schedule.py`) — per-issue tick clock that re-invokes the agent on a _single existing_ issue. Issue-consuming.
-- **GitHub sync** (`apps/api/pi_dash/bgtasks/github_sync_task.py`) — hardcoded 4h Beat entry that runs `sync_all_repos` and fans out one task per `GithubRepositorySync`. Issue-producing, but only for one source.
+- **`IssueAgentSchedule`** (`apps/api/karma_team/db/models/issue_agent_schedule.py`) — per-issue tick clock that re-invokes the agent on a _single existing_ issue. Issue-consuming.
+- **GitHub sync** (`apps/api/karma_team/bgtasks/github_sync_task.py`) — hardcoded 4h Beat entry that runs `sync_all_repos` and fans out one task per `GithubRepositorySync`. Issue-producing, but only for one source.
 
 There is no general way to say _"every 6 hours, run the agent against project X with this prompt to look for security bugs"_, and no way for a user to install / uninstall such a job on a project.
 
-We want a **project-level scheduler layer**: reusable scheduler _definitions_ that can be installed on any project with optional per-install overrides, that periodically run a prompt against the project's workspace via the agent. The agent decides what to do with the result — typically: create new Pi Dash issues for findings.
+We want a **project-level scheduler layer**: reusable scheduler _definitions_ that can be installed on any project with optional per-install overrides, that periodically run a prompt against the project's workspace via the agent. The agent decides what to do with the result — typically: create new karma-team issues for findings.
 
 ## 2. Goals
 
@@ -23,7 +23,7 @@ We want a **project-level scheduler layer**: reusable scheduler _definitions_ th
 - **Independent install lifecycle.** A `Scheduler` exists without any project; projects install/uninstall via a `SchedulerBinding`.
 - **Per-install context.** Each install can carry extra prompt context (scope, severity threshold, project-specific notes) appended to the scheduler's base prompt at run time.
 - **Per-install cadence.** Two projects can install the same scheduler at different intervals.
-- **Issue-producing only.** Schedulers cause agent runs that _may_ create Pi Dash issues. The scheduler layer itself never creates issues — that's the agent's job via the same tools a user-driven run already uses.
+- **Issue-producing only.** Schedulers cause agent runs that _may_ create karma-team issues. The scheduler layer itself never creates issues — that's the agent's job via the same tools a user-driven run already uses.
 - **Builtin-first.** MVP ships builtins in-tree (`source="builtin"`). 3rd-party / manifest-loaded schedulers come later, but the schema doesn't change when they do.
 
 ## 3. Non-Goals (MVP)
@@ -127,7 +127,7 @@ class SchedulerBinding(BaseModel):
 ### `AgentRun` change — back-pointer to the binding
 
 ```python
-# Added to AgentRun (apps/api/pi_dash/runner/models.py).
+# Added to AgentRun (apps/api/karma_team/runner/models.py).
 scheduler_binding = ForeignKey(
     "db.SchedulerBinding", on_delete=SET_NULL,
     null=True, blank=True, related_name="agent_runs",
@@ -145,9 +145,9 @@ scheduler_binding = ForeignKey(
 ### 6.1 Beat scanner
 
 ```python
-# apps/api/pi_dash/celery.py
+# apps/api/karma_team/celery.py
 "scan-due-scheduler-bindings": {
-    "task": "pi_dash.bgtasks.scheduler.scan_due_bindings",
+    "task": "karma_team.bgtasks.scheduler.scan_due_bindings",
     "schedule": crontab(minute="*"),
 },
 ```
@@ -162,7 +162,7 @@ scheduler_binding = ForeignKey(
 
 ### 6.2 Per-binding fire — three-phase pattern
 
-`fire_scheduler_binding` follows the same three-phase claim/dispatch/rollback shape as `agent_schedule.fire_tick` (`apps/api/pi_dash/bgtasks/agent_schedule.py:84-204`). **Dispatch must run outside the SFU transaction** — the dispatcher registers `transaction.on_commit(drain_pod_by_id)`, and holding the binding row lock across a Celery / network dispatch extends contention and breaks the visibility assumption other tasks rely on.
+`fire_scheduler_binding` follows the same three-phase claim/dispatch/rollback shape as `agent_schedule.fire_tick` (`apps/api/karma_team/bgtasks/agent_schedule.py:84-204`). **Dispatch must run outside the SFU transaction** — the dispatcher registers `transaction.on_commit(drain_pod_by_id)`, and holding the binding row lock across a Celery / network dispatch extends contention and breaks the visibility assumption other tasks rely on.
 
 **Phase 1 — Claim (inside transaction, holds SFU on the binding row):**
 
@@ -220,7 +220,7 @@ The existing terminate hook (`runner/consumers.py:699-741`) only handles `run.wo
 
 ### 6.6 Builtin registry and seeding
 
-`pi_dash/scheduler/builtins/__init__.py` exposes a list of `BuiltinScheduler(slug, name, description, prompt)` records, plus a single helper:
+`karma_team/scheduler/builtins/__init__.py` exposes a list of `BuiltinScheduler(slug, name, description, prompt)` records, plus a single helper:
 
 ```python
 def ensure_builtin_schedulers(workspace) -> None:
@@ -236,7 +236,7 @@ Two call sites, **both required** (a single one is insufficient — see Codex fi
 
 A startup hook in `apps.ready()` was considered and rejected: with multiple processes (web + worker + beat + admin) it races on every boot, and idempotency via the conditional unique constraint converts those races into wasted writes rather than correctness bugs but still adds noise. The signal is the deterministic single-call path.
 
-**MVP builtin** — exactly one, to validate the wiring. The prompt assumes the agent has the **Pi Dash CLI** available in its session (this is how a user-driven run authors issues today). The scheduler layer does not create issues itself; the prompt instructs the agent to use the CLI:
+**MVP builtin** — exactly one, to validate the wiring. The prompt assumes the agent has the **karma-team CLI** available in its session (this is how a user-driven run authors issues today). The scheduler layer does not create issues itself; the prompt instructs the agent to use the CLI:
 
 ```
 slug:  security-audit
@@ -246,8 +246,8 @@ prompt:
   (injection, auth bypass, secret leakage, unsafe deserialization, SSRF,
   insecure defaults).
 
-  For each finding, create a Pi Dash issue using the `pi-dash` CLI:
-    pi-dash issue create \
+  For each finding, create a karma-team issue using the `karma-team` CLI:
+    karma-team issue create \
       --title "[security] <short summary>" \
       --description "<file path, line range, vulnerable snippet,
                      severity (high|medium|low), and suggested fix>"
@@ -257,7 +257,7 @@ prompt:
   corresponding open issue (de-dupe by file + rule, not by exact title).
 ```
 
-The exact CLI invocation and flag names should be filled in from the current `pi-dash` CLI surface at implementation time (out-of-tree relative to this design, so the doc points to the contract rather than pinning a specific syntax).
+The exact CLI invocation and flag names should be filled in from the current `karma-team` CLI surface at implementation time (out-of-tree relative to this design, so the doc points to the contract rather than pinning a specific syntax).
 
 More builtins (GDPR, dead-code, dependency-audit, …) ship later as code, no schema work.
 
@@ -382,10 +382,10 @@ Project admin only — same boundary the project's other settings tabs use.
 
 Standard for this repo (per `CLAUDE.md` §"Frontend composition"):
 
-- API client in `@pi-dash/services` — new module `services/scheduler.ts` covering both definition and binding endpoints.
-- State in `@pi-dash/shared-state` (MobX) — a `SchedulerDefinitionStore` keyed by workspace and a `SchedulerBindingStore` keyed by project. Two stores, not one, because the two surfaces have disjoint lifetimes and disjoint permission scopes.
-- Navigation wiring in `@pi-dash/constants` — add one workspace settings entry and one project settings entry to the existing `WORKSPACE_SETTINGS` / `PROJECT_SETTINGS` maps so the sidebars and Power-K settings menus surface the new tabs through the same mechanism as the rest of settings.
-- Components from `@pi-dash/ui`: table, modal, badge, toggle. Cron input is a plain text field with server-side validation in MVP (no JS cron parser pulled into the bundle); the 400 from the serializer surfaces as an inline form error.
+- API client in `@karma-team/services` — new module `services/scheduler.ts` covering both definition and binding endpoints.
+- State in `@karma-team/shared-state` (MobX) — a `SchedulerDefinitionStore` keyed by workspace and a `SchedulerBindingStore` keyed by project. Two stores, not one, because the two surfaces have disjoint lifetimes and disjoint permission scopes.
+- Navigation wiring in `@karma-team/constants` — add one workspace settings entry and one project settings entry to the existing `WORKSPACE_SETTINGS` / `PROJECT_SETTINGS` maps so the sidebars and Power-K settings menus surface the new tabs through the same mechanism as the rest of settings.
+- Components from `@karma-team/ui`: table, modal, badge, toggle. Cron input is a plain text field with server-side validation in MVP (no JS cron parser pulled into the bundle); the 400 from the serializer surfaces as an inline form error.
 - i18n: every new string lands in `packages/i18n/src/locales/<lang>/` for **every** locale (per `AGENTS.md` parity rule), English as placeholder where translations don't yet exist.
 
 ### 8.D Out of scope for the UI MVP

@@ -6,16 +6,16 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
+// karma-team imports
 import { useTheme } from "next-themes";
-import { EUserPermissionsLevel, CYCLE_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import type { TCycleFilters } from "@pi-dash/types";
-import { EUserProjectRoles } from "@pi-dash/types";
+import { EUserPermissionsLevel, CYCLE_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import type { TCycleFilters } from "@karma-team/types";
+import { EUserProjectRoles } from "@karma-team/types";
 // components
-import { Header, EHeaderVariant } from "@pi-dash/ui";
-import { calculateTotalFilters } from "@pi-dash/utils";
+import { Header, EHeaderVariant } from "@karma-team/ui";
+import { calculateTotalFilters } from "@karma-team/utils";
 // assets
 import darkEmptyState from "@/app/assets/empty-state/disabled-feature/cycles-dark.webp?url";
 import lightEmptyState from "@/app/assets/empty-state/disabled-feature/cycles-light.webp?url";
@@ -45,7 +45,7 @@ function ProjectCyclesPage({ params }: Route.ComponentProps) {
   const { workspaceSlug, projectId } = params;
   // theme hook
   const { resolvedTheme } = useTheme();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // cycle filters hook
   const { clearAllFilters, currentProjectFilters, updateFilters } = useCycleFilter();
@@ -76,7 +76,9 @@ function ProjectCyclesPage({ params }: Route.ComponentProps) {
       <div className="flex h-full w-full items-center justify-center">
         <DetailedEmptyState
           title={t("Cycles is not enabled for this project.")}
-          description={t("Break work down by timeboxed chunks, work backwards from your project deadline to set dates, and make tangible progress as a team. Enable the cycles feature for your project to start using them.")}
+          description={t(
+            "Break work down by timeboxed chunks, work backwards from your project deadline to set dates, and make tangible progress as a team. Enable the cycles feature for your project to start using them."
+          )}
           assetPath={resolvedEmptyState}
           primaryButton={{
             text: t("Manage features"),
@@ -106,7 +108,9 @@ function ProjectCyclesPage({ params }: Route.ComponentProps) {
             <EmptyStateDetailed
               assetKey="cycle"
               title={t("Group and timebox your work in Cycles.")}
-              description={t("Break work down by timeboxed chunks, work backwards from your project deadline to set dates, and make tangible progress as a team.")}
+              description={t(
+                "Break work down by timeboxed chunks, work backwards from your project deadline to set dates, and make tangible progress as a team."
+              )}
               actions={[
                 {
                   label: t("Set your first cycle"),

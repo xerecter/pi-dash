@@ -5,8 +5,8 @@
  */
 
 import { action, makeObservable, observable, runInAction } from "mobx";
-// pi dash imports
-import { SitesCycleService } from "@pi-dash/services";
+// karma-team imports
+import { SitesCycleService } from "@karma-team/services";
 import type { TPublicCycle } from "@/types/cycle";
 // store
 import type { RootStore } from "./root.store";

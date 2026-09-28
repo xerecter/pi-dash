@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-import { PROJECT_SETTINGS_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { TrashIcon } from "@pi-dash/propel/icons";
+import { PROJECT_SETTINGS_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { TrashIcon } from "@karma-team/propel/icons";
 
 type TEstimateListItem = {
   estimateId: string;

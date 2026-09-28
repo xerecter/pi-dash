@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
+// karma-team imports
 import type {
   IPromptCompiledResponse,
   IPromptPreviewPayload,
@@ -14,8 +14,8 @@ import type {
   IPromptSectionUpsertPayload,
   TPromptKind,
   TPromptScope,
-} from "@pi-dash/types";
-import { PromptSectionService } from "@pi-dash/services";
+} from "@karma-team/types";
+import { PromptSectionService } from "@karma-team/services";
 // store
 import type { CoreRootStore } from "./root.store";
 

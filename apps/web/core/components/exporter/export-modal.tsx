@@ -9,12 +9,12 @@ import { intersection } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IUser, IImporterService } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IUser, IImporterService } from "@karma-team/types";
 // ui
-import { Checkbox, CustomSearchSelect, EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { Checkbox, CustomSearchSelect, EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
@@ -147,18 +147,14 @@ export const Exporter = observer(function Exporter(props: Props) {
         </div>
         <div className="flex max-w-min cursor-pointer items-center gap-2">
           <Checkbox checked={multiple} onChange={() => setMultiple(!multiple)} />
-          <div className="text-13 whitespace-nowrap">
-            {t("Export the data into separate files")}
-          </div>
+          <div className="text-13 whitespace-nowrap">{t("Export the data into separate files")}</div>
         </div>
         <div className="flex justify-end gap-2">
           <Button variant="secondary" onClick={handleClose}>
             {t("Cancel")}
           </Button>
           <Button variant="primary" onClick={ExportCSVToMail} disabled={exportLoading} loading={exportLoading}>
-            {exportLoading
-              ? `${t("Exporting")}...`
-              : t("Exports")}
+            {exportLoading ? `${t("Exporting")}...` : t("Exports")}
           </Button>
         </div>
       </div>

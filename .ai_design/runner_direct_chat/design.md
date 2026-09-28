@@ -2,14 +2,14 @@
 
 > Directory: `.ai_design/runner_direct_chat/`
 >
-> This design adds first-class direct chat with a Pi Dash runner while keeping
+> This design adds first-class direct chat with a karma-team runner while keeping
 > the existing task/run workflow intact. It borrows BrowserX's session/channel
 > shape and Codex app-server's thread/turn/item lifecycle, but implements the
-> feature in Pi Dash's current Django + Rust runner + React route structure.
+> feature in karma-team's current Django + Rust runner + React route structure.
 
 ## 1. Problem Statement
 
-Pi Dash currently treats a runner as an asynchronous task executor. The cloud
+karma-team currently treats a runner as an asynchronous task executor. The cloud
 creates an `AgentRun`, assigns it to an idle runner, the runner starts a fresh
 local agent session, and the cloud records lifecycle events until the run is
 terminal.
@@ -45,12 +45,12 @@ The Django runner app already owns these task entities:
 
 Important code:
 
-- `apps/api/pi_dash/runner/models.py`
-- `apps/api/pi_dash/runner/views/runs.py`
-- `apps/api/pi_dash/runner/views/run_endpoints.py`
-- `apps/api/pi_dash/runner/views/sessions.py`
-- `apps/api/pi_dash/runner/services/matcher.py`
-- `apps/api/pi_dash/runner/services/outbox.py`
+- `apps/api/karma_team/runner/models.py`
+- `apps/api/karma_team/runner/views/runs.py`
+- `apps/api/karma_team/runner/views/run_endpoints.py`
+- `apps/api/karma_team/runner/views/sessions.py`
+- `apps/api/karma_team/runner/services/matcher.py`
+- `apps/api/karma_team/runner/services/outbox.py`
 
 The web-facing API is mounted at `/api/runners/`. The runner-facing API is
 mounted at `/api/v1/runner/`.
@@ -175,7 +175,7 @@ What we do not transplant:
 - its WebSocket server protocol,
 - its Node ownership of model/tool execution.
 
-Pi Dash's runner is Rust and wraps external CLIs; BrowserX's core owns the
+karma-team's runner is Rust and wraps external CLIs; BrowserX's core owns the
 model/tool loop directly.
 
 ### 3.2 Codex
@@ -200,7 +200,7 @@ Relevant files:
 
 Codex API mapping:
 
-| Pi Dash chat action                              | Codex app-server action                                     |
+| karma-team chat action                           | Codex app-server action                                     |
 | ------------------------------------------------ | ----------------------------------------------------------- |
 | start chat with runner                           | `thread/start`                                              |
 | send user message to idle chat                   | `turn/start`                                                |
@@ -242,7 +242,7 @@ Important Codex behavior:
 - Do not replace `AgentRun`.
 - Do not replace the existing approval system for task runs; chat gets parallel
   approval rows so task run state remains clean.
-- Do not copy BrowserX implementation code into Pi Dash.
+- Do not copy BrowserX implementation code into karma-team.
 
 ## 6. Product Behavior
 
@@ -993,7 +993,7 @@ Claude Code CLI supports:
 - `--resume <session-id>`,
 - `--continue`.
 
-Current Pi Dash Claude bridge is one subprocess per task. Preserve that style
+Current karma-team Claude bridge is one subprocess per task. Preserve that style
 for MVP chat:
 
 1. first chat message:
@@ -1146,7 +1146,7 @@ Turn completion handling:
   turn,
 - update `last_message_at`.
 
-BrowserX's `chat-stream.ts` uses 150ms delta throttling. Pi Dash can use the
+BrowserX's `chat-stream.ts` uses 150ms delta throttling. karma-team can use the
 same threshold for web SSE fan-out to avoid rendering every token as a separate
 React update.
 

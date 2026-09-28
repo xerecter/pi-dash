@@ -9,12 +9,12 @@ import { observer } from "mobx-react";
 import type { SubmitHandler } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { PodService } from "@pi-dash/services";
-import type { IPod, TPartialProject } from "@pi-dash/types";
-import { CustomSelect, EModalPosition, EModalWidth, Input, ModalCore } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { PodService } from "@karma-team/services";
+import type { IPod, TPartialProject } from "@karma-team/types";
+import { CustomSelect, EModalPosition, EModalWidth, Input, ModalCore } from "@karma-team/ui";
 import { ProjectService } from "@/services/project";
 
 type Props = {

@@ -1,7 +1,7 @@
 name: Bug report
-description: Create a bug report to help us improve Pi Dash
+description: Create a bug report to help us improve karma-team
 title: "[bug]: "
-labels: [🐛bug, pi-dash]
+labels: [🐛bug, karma-team]
 assignees: [vihar, pushya22]
 body:
 - type: markdown

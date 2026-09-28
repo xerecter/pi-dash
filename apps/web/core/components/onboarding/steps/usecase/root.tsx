@@ -6,14 +6,14 @@
 
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-// pi dash imports
-import { USE_CASES } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { CheckIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TUserProfile } from "@pi-dash/types";
-import { EOnboardingSteps } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { USE_CASES } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { CheckIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TUserProfile } from "@karma-team/types";
+import { EOnboardingSteps } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
 // local imports
@@ -86,7 +86,7 @@ export const UseCaseSetupStep = observer(function UseCaseSetupStep({ handleStepC
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-10">
       {/* Header */}
-      <CommonOnboardingHeader title="What brings you to Pi Dash?" description="Tell us your goals and team size." />
+      <CommonOnboardingHeader title="What brings you to karma-team?" description="Tell us your goals and team size." />
 
       {/* Use Case Selection */}
       <div className="flex flex-col gap-3">

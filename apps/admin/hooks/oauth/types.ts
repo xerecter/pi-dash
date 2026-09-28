@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TInstanceAuthenticationMethodKeys } from "@pi-dash/types";
+import type { TInstanceAuthenticationMethodKeys } from "@karma-team/types";
 
 export type TGetAuthenticationModeProps = {
   disabled: boolean;

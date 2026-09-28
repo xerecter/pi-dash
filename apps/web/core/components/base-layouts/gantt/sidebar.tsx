@@ -7,9 +7,9 @@
 import type { RefObject } from "react";
 import { useState } from "react";
 import { observer } from "mobx-react";
-import type { IBaseLayoutsBaseItem, IBlockUpdateData } from "@pi-dash/types";
-import { Loader, Row } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import type { IBaseLayoutsBaseItem, IBlockUpdateData } from "@karma-team/types";
+import { Loader, Row } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 import { BLOCK_HEIGHT } from "@/components/gantt-chart/constants";
 import { GanttDnDHOC } from "@/components/gantt-chart/sidebar/gantt-dnd-HOC";

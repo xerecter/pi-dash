@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash package imports
-import type { ChartYAxisMetric, IState } from "@pi-dash/types";
-import { ChartXAxisProperty } from "@pi-dash/types";
+// karma-team package imports
+import type { ChartYAxisMetric, IState } from "@karma-team/types";
+import { ChartXAxisProperty } from "@karma-team/types";
 
 interface ParamsProps {
   x_axis: ChartXAxisProperty;

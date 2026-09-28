@@ -5,7 +5,7 @@
 """Regression guard: the *renamed* engine still enforces its sandbox.
 
 `prepare-agent.sh` ships the upstream Codex binary renamed to
-`pidash-agent-engine`. Codex re-execs helper copies of itself to build the
+`karma-team-agent-engine`. Codex re-execs helper copies of itself to build the
 sandbox that walls in the commands an agent runs, dispatching on `argv[0]` /
 `current_exe()`. If a renamed binary fails to self-locate, commands could run
 *without* the sandbox and nothing would say so — a silent safety-feature
@@ -13,7 +13,7 @@ failure, not a crash (see design.md §24.8, PDASHOSS01-162).
 
 This script copies the engine under the name it ships as, then runs the probe
 from PDASHOSS01-162 against it: a no-sandbox control write must succeed, and the
-same write attempted through `pidash-agent-engine sandbox` must be refused. A
+same write attempted through `karma-team-agent-engine sandbox` must be refused. A
 future `CODEX_BUNDLE_VERSION` bump that breaks `arg0` dispatch makes this fail
 the build instead of shipping an un-sandboxed engine.
 
@@ -142,7 +142,7 @@ def main():
 
     # Scratch tree kept OUT of the system temp dir (trap 1). CODEX_HOME under
     # $TMPDIR makes the engine refuse its helper binaries and skip the sandbox.
-    root = Path.home() / ".cache" / "pidash-sandbox-rename-smoke"
+    root = Path.home() / ".cache" / "karma-team-sandbox-rename-smoke"
     if root.exists():
         shutil.rmtree(root)
     system_temp = Path(tempfile.gettempdir()).resolve()
@@ -167,7 +167,7 @@ def main():
     # The crux: run under the name the engine ships as, so arg0/current_exe
     # self-location is exercised exactly as in the app bundle.
     suffix = ".exe" if sys.platform.startswith("win") else ""
-    engine_named = root / f"pidash-agent-engine{suffix}"
+    engine_named = root / f"karma-team-agent-engine{suffix}"
     shutil.copy2(source, engine_named)
     engine_named.chmod(0o755)
 

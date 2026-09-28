@@ -15,11 +15,11 @@ import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import Masonry from "react-masonry-component";
 
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { PlusIcon } from "@pi-dash/propel/icons";
-import { EUserWorkspaceRoles } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { PlusIcon } from "@karma-team/propel/icons";
+import { EUserWorkspaceRoles } from "@karma-team/types";
 // assets
 import darkStickiesAsset from "@/app/assets/empty-state/stickies/stickies-dark.webp?url";
 import lightStickiesAsset from "@/app/assets/empty-state/stickies/stickies-light.webp?url";
@@ -53,7 +53,7 @@ export const StickiesList = observer(function StickiesList(props: TProps) {
   const pathname = usePathname();
   // theme hook
   const { resolvedTheme } = useTheme();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { getWorkspaceStickyIds, toggleShowNewSticky, searchQuery, loader } = useSticky();
@@ -126,7 +126,9 @@ export const StickiesList = observer(function StickiesList(props: TProps) {
             ) : (
               <DetailedEmptyState
                 title={t("Stickies are quick notes and to-dos you take down on the fly.")}
-                description={t("Capture your thoughts and ideas effortlessly by creating stickies that you can access anytime and from anywhere.")}
+                description={t(
+                  "Capture your thoughts and ideas effortlessly by creating stickies that you can access anytime and from anywhere."
+                )}
                 assetPath={stickiesResolvedPath}
                 primaryButton={{
                   prependIcon: <PlusIcon className="size-4" />,

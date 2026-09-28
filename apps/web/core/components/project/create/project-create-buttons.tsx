@@ -5,14 +5,14 @@
  */
 
 import { useFormContext } from "react-hook-form";
-// pi dash imports
-import { ETabIndices } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { IProject } from "@pi-dash/types";
+// karma-team imports
+import { ETabIndices } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { IProject } from "@karma-team/types";
 // ui
 // helpers
-import { getTabIndex } from "@pi-dash/utils";
+import { getTabIndex } from "@karma-team/utils";
 
 type Props = {
   handleClose: () => void;

@@ -6,7 +6,7 @@
 
 import { Link } from "react-router";
 // helpers
-import { SUPPORT_EMAIL } from "@pi-dash/constants";
+import { SUPPORT_EMAIL } from "@karma-team/constants";
 
 export enum EPageTypes {
   INIT = "INIT",

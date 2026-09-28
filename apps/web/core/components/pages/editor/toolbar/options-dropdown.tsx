@@ -7,16 +7,16 @@
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { ArrowUpToLine, Clipboard, History } from "lucide-react";
-// pi dash imports
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { ToggleSwitch } from "@pi-dash/ui";
+// karma-team imports
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { ToggleSwitch } from "@karma-team/ui";
 // hooks
 import { useAppRouter } from "@/hooks/use-app-router";
 import { usePageFilters } from "@/hooks/use-page-filters";
 import { useQueryParams } from "@/hooks/use-query-params";
-// pi dash web imports
-import type { TPageNavigationPaneTab } from "@/pi-dash-web/components/pages/navigation-pane";
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
+// karma-team web imports
+import type { TPageNavigationPaneTab } from "@/karma-team-web/components/pages/navigation-pane";
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports

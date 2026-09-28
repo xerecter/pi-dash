@@ -5,9 +5,9 @@
  */
 
 import type { ReactNode } from "react";
-// pi dash imports
-import type { TAuthErrorInfo } from "@pi-dash/constants";
-import { E_PASSWORD_STRENGTH, EErrorAlertType, EAuthErrorCodes } from "@pi-dash/constants";
+// karma-team imports
+import type { TAuthErrorInfo } from "@karma-team/constants";
+import { E_PASSWORD_STRENGTH, EErrorAlertType, EAuthErrorCodes } from "@karma-team/constants";
 
 /**
  * @description Password strength levels

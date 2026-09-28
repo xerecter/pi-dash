@@ -7,11 +7,11 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Button, getButtonStyling } from "@pi-dash/propel/button";
-import { PiDashLogo } from "@pi-dash/propel/icons";
-import type { IWorkspace } from "@pi-dash/types";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Button, getButtonStyling } from "@karma-team/propel/button";
+import { KarmaTeamLogo } from "@karma-team/propel/icons";
+import type { IWorkspace } from "@karma-team/types";
 // assets
 import WorkspaceCreationDisabled from "@/app/assets/workspace/workspace-creation-disabled.png?url";
 // components
@@ -43,11 +43,14 @@ const CreateWorkspacePage = observer(function CreateWorkspacePage() {
   // methods
   const getMailtoHref = () => {
     const subject = t("Requesting a new workspace");
-    const body = t("Hi instance admin(s),\n\nPlease create a new workspace with the URL [/workspace-name] for [purpose of creating the workspace].\n\nThanks,\n{firstName} {lastName}\n{email}", {
-      firstName: currentUser?.first_name || "",
-      lastName: currentUser?.last_name || "",
-      email: currentUser?.email || "",
-    });
+    const body = t(
+      "Hi instance admin(s),\n\nPlease create a new workspace with the URL [/workspace-name] for [purpose of creating the workspace].\n\nThanks,\n{firstName} {lastName}\n{email}",
+      {
+        firstName: currentUser?.first_name || "",
+        lastName: currentUser?.last_name || "",
+        email: currentUser?.email || "",
+      }
+    );
 
     return `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
@@ -65,7 +68,7 @@ const CreateWorkspacePage = observer(function CreateWorkspacePage() {
             className="absolute top-1/2 left-5 grid -translate-y-1/2 place-items-center px-3 sm:top-12 sm:left-1/2 sm:-translate-x-[15px] sm:translate-y-0 sm:px-0 sm:py-5 md:left-1/3"
             href="/"
           >
-            <PiDashLogo className="h-9 w-auto text-primary" />
+            <KarmaTeamLogo className="h-9 w-auto text-primary" />
           </Link>
           <div className="absolute top-1/4 right-4 -translate-y-1/2 text-13 text-primary sm:fixed sm:top-12 sm:right-16 sm:translate-y-0 sm:py-5">
             {currentUser?.email}
@@ -83,7 +86,9 @@ const CreateWorkspacePage = observer(function CreateWorkspacePage() {
                 {t("Only your instance admin can create workspaces")}
               </div>
               <p className="text-center text-13 break-words text-tertiary">
-                {t("If you know your instance admin's email address, click the button below to get in touch with them.")}
+                {t(
+                  "If you know your instance admin's email address, click the button below to get in touch with them."
+                )}
               </p>
               <div className="mt-6 flex gap-4">
                 <Button variant="primary" onClick={() => router.back()}>

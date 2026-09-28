@@ -8,9 +8,9 @@ import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { Disclosure, Transition } from "@headlessui/react";
-// pi dash imports
-import { EditIcon, TrashIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { IIssueLabel } from "@pi-dash/types";
+// karma-team imports
+import { EditIcon, TrashIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import type { IIssueLabel } from "@karma-team/types";
 // components
 import type { TLabelOperationsCallbacks } from "./create-update-label-inline";
 import { CreateUpdateLabelInline } from "./create-update-label-inline";

@@ -6,9 +6,9 @@
 
 import { useCallback } from "react";
 import { LogOut, Mails } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks

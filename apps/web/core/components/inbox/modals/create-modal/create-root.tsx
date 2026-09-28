@@ -7,15 +7,15 @@
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { ETabIndices } from "@pi-dash/constants";
-import type { EditorRefApi } from "@pi-dash/editor";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TIssue } from "@pi-dash/types";
-import { ToggleSwitch } from "@pi-dash/ui";
-import { renderFormattedPayloadDate, getTabIndex } from "@pi-dash/utils";
+// karma-team imports
+import { ETabIndices } from "@karma-team/constants";
+import type { EditorRefApi } from "@karma-team/editor";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TIssue } from "@karma-team/types";
+import { ToggleSwitch } from "@karma-team/ui";
+import { renderFormattedPayloadDate, getTabIndex } from "@karma-team/utils";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";
@@ -23,10 +23,10 @@ import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useAppRouter } from "@/hooks/use-app-router";
 import useKeypress from "@/hooks/use-keypress";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web imports
-import { DeDupeButtonRoot } from "@/pi-dash-web/components/de-dupe/de-dupe-button";
-import { DuplicateModalRoot } from "@/pi-dash-web/components/de-dupe/duplicate-modal";
-import { useDebouncedDuplicateIssues } from "@/pi-dash-web/hooks/use-debounced-duplicate-issues";
+// karma-team web imports
+import { DeDupeButtonRoot } from "@/karma-team-web/components/de-dupe/de-dupe-button";
+import { DuplicateModalRoot } from "@/karma-team-web/components/de-dupe/duplicate-modal";
+import { useDebouncedDuplicateIssues } from "@/karma-team-web/hooks/use-debounced-duplicate-issues";
 // services
 import { FileService } from "@/services/file.service";
 // local imports

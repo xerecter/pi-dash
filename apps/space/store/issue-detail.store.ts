@@ -8,10 +8,10 @@ import { isEmpty, set } from "lodash-es";
 import { makeObservable, observable, action, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 import { v4 as uuidv4 } from "uuid";
-// pi dash imports
-import { SitesFileService, SitesIssueService } from "@pi-dash/services";
-import type { TFileSignedURLResponse, TIssuePublicComment } from "@pi-dash/types";
-import { EFileAssetType } from "@pi-dash/types";
+// karma-team imports
+import { SitesFileService, SitesIssueService } from "@karma-team/services";
+import type { TFileSignedURLResponse, TIssuePublicComment } from "@karma-team/types";
+import { EFileAssetType } from "@karma-team/types";
 // store
 import type { RootStore } from "@/store/root.store";
 // types

@@ -8,19 +8,19 @@ import React from "react";
 import { isEmpty } from "lodash-es";
 import { observer } from "mobx-react";
 import { SquareUser } from "lucide-react";
-// pi dash types
-import { EEstimateSystem } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { MembersPropertyIcon, WorkItemsIcon } from "@pi-dash/propel/icons";
-import type { ICycle } from "@pi-dash/types";
-// pi dash ui
-import { Avatar, AvatarGroup, TextArea } from "@pi-dash/ui";
+// karma-team types
+import { EEstimateSystem } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { MembersPropertyIcon, WorkItemsIcon } from "@karma-team/propel/icons";
+import type { ICycle } from "@karma-team/types";
+// karma-team ui
+import { Avatar, AvatarGroup, TextArea } from "@karma-team/ui";
 // helpers
-import { getFileURL } from "@pi-dash/utils";
+import { getFileURL } from "@karma-team/utils";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useMember } from "@/hooks/store/use-member";
-// pi dash web constants
+// karma-team web constants
 
 type Props = {
   projectId: string;

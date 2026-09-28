@@ -11,21 +11,21 @@ import { Rocket } from "lucide-react";
 // headless ui
 import { Combobox } from "@headlessui/react";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
-import { SearchIcon } from "@pi-dash/propel/icons";
+import { useTranslation } from "@karma-team/i18n";
+import { SearchIcon } from "@karma-team/propel/icons";
 // types
-import type { ISearchIssueResponse } from "@pi-dash/types";
+import type { ISearchIssueResponse } from "@karma-team/types";
 // ui
-import { Loader, EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
-import { generateWorkItemLink, getTabIndex } from "@pi-dash/utils";
+import { Loader, EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
+import { generateWorkItemLink, getTabIndex } from "@karma-team/utils";
 // components
 import { IssueSearchModalEmptyState } from "@/components/core/modals/issue-search-modal-empty-state";
 // helpers
 // hooks
 import useDebounce from "@/hooks/use-debounce";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 // services
 import { ProjectService } from "@/services/project";
 

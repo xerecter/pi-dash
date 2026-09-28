@@ -8,9 +8,9 @@ import { useState } from "react";
 import type { Control } from "react-hook-form";
 import { Controller, useWatch } from "react-hook-form";
 import { ChevronRight } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TIssue } from "@pi-dash/types";
-import { Input } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import type { TIssue } from "@karma-team/types";
+import { Input } from "@karma-team/ui";
 
 type Props = {
   control: Control<TIssue>;

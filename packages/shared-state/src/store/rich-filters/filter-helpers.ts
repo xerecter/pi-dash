@@ -6,9 +6,9 @@
 
 import { cloneDeep } from "lodash-es";
 import { action, makeObservable, observable, toJS } from "mobx";
-// pi dash imports
-import type { TAutoVisibilityOptions, TExpressionOptions } from "@pi-dash/constants";
-import { DEFAULT_FILTER_EXPRESSION_OPTIONS } from "@pi-dash/constants";
+// karma-team imports
+import type { TAutoVisibilityOptions, TExpressionOptions } from "@karma-team/constants";
+import { DEFAULT_FILTER_EXPRESSION_OPTIONS } from "@karma-team/constants";
 import type {
   IFilterAdapter,
   TSupportedOperators,
@@ -19,9 +19,9 @@ import type {
   TExternalFilter,
   TLogicalOperator,
   TFilterConditionPayload,
-} from "@pi-dash/types";
-import { LOGICAL_OPERATOR } from "@pi-dash/types";
-import { addAndCondition, createConditionNode, updateNodeInExpression } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { LOGICAL_OPERATOR } from "@karma-team/types";
+import { addAndCondition, createConditionNode, updateNodeInExpression } from "@karma-team/utils";
 // local imports
 import type { IFilterInstance } from "./filter";
 

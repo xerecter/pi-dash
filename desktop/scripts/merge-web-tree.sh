@@ -8,8 +8,8 @@
 #   merge-web-tree.sh <dest> [extra-dir ...]
 #
 # Layers, merged in order (last writer wins):
-#   1. this pi-dash checkout (working tree as-is)
-#   2. each directory in PIDASH_DESKTOP_EXTRA_OVERLAYS (colon-separated),
+#   1. this karma-team checkout (working tree as-is)
+#   2. each directory in KARMA_TEAM_DESKTOP_EXTRA_OVERLAYS (colon-separated),
 #      in order — how an edition layers its own overrides under the
 #      desktop ones. Unset for the plain OSS build.
 #   3. desktop-overlay/
@@ -37,8 +37,8 @@ if ! command -v rsync >/dev/null 2>&1; then
 fi
 
 OVERLAYS=()
-if [[ -n "${PIDASH_DESKTOP_EXTRA_OVERLAYS:-}" ]]; then
-    IFS=':' read -r -a OVERLAYS <<< "$PIDASH_DESKTOP_EXTRA_OVERLAYS"
+if [[ -n "${KARMA_TEAM_DESKTOP_EXTRA_OVERLAYS:-}" ]]; then
+    IFS=':' read -r -a OVERLAYS <<< "$KARMA_TEAM_DESKTOP_EXTRA_OVERLAYS"
 fi
 OVERLAYS+=("$OSS_DIR/desktop-overlay")
 OVERLAYS+=("$@")

@@ -7,9 +7,9 @@
 import { Disclosure } from "@headlessui/react";
 import type { Editor } from "@tiptap/core";
 import { Ban, Palette } from "lucide-react";
-// pi dash imports
-import { ChevronRightIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { ChevronRightIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 // constants
 import { COLORS_LIST } from "@/constants/common";
 import { CORE_EXTENSIONS } from "@/constants/extension";

@@ -51,7 +51,7 @@ enum KillRequest {
 
 impl GrokProcess {
     /// Spawn `grok agent stdio` in `cwd` via the platform login-shell helper so
-    /// the probe (`pidash doctor`) and real launch stay aligned.
+    /// the probe (`karma-team doctor`) and real launch stay aligned.
     pub async fn spawn(binary: &str, cwd: &Path) -> Result<Self> {
         let cmd = login_shell_command(binary, &["agent", "stdio"], Some(cwd));
         Self::spawn_command(cmd).await

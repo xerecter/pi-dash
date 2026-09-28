@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-import { EStartOfTheWeek } from "@pi-dash/types";
-import { getOrderedDays } from "@pi-dash/utils";
+import { EStartOfTheWeek } from "@karma-team/types";
+import { getOrderedDays } from "@karma-team/utils";
 import { DAYS_LIST } from "@/constants/calendar";
 // helpers
 // hooks

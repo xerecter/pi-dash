@@ -7,8 +7,8 @@
 import { FloatingOverlay } from "@floating-ui/react";
 import type { SuggestionProps } from "@tiptap/suggestion";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
-// pi dash imports
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+// karma-team imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // helpers
 import { DROPDOWN_NAVIGATION_KEYS, getNextValidIndex } from "@/helpers/tippy";
 // types

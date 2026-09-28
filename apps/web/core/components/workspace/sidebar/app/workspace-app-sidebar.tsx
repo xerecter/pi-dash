@@ -6,10 +6,10 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
+// karma-team imports
 import { useParams, usePathname } from "next/navigation";
-import { SIDEBAR_WIDTH } from "@pi-dash/constants";
-import { useLocalStorage } from "@pi-dash/hooks";
+import { SIDEBAR_WIDTH } from "@karma-team/constants";
+import { useLocalStorage } from "@karma-team/hooks";
 // components
 import { ResizableSidebar } from "@/components/sidebar/resizable-sidebar";
 // hooks

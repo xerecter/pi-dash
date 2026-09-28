@@ -7,12 +7,12 @@
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { Tab } from "@headlessui/react";
-// pi dash package imports
-import type { ICycle, IModule, IProject } from "@pi-dash/types";
-import { Spinner } from "@pi-dash/ui";
+// karma-team package imports
+import type { ICycle, IModule, IProject } from "@karma-team/types";
+import { Spinner } from "@karma-team/ui";
 // hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";
-// pi dash web components
+// karma-team web components
 import TotalInsights from "../../total-insights";
 import CreatedVsResolved from "../created-vs-resolved";
 import CustomizedInsights from "../customized-insights";

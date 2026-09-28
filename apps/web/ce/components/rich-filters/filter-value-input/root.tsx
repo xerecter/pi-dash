@@ -6,8 +6,8 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TFilterValue, TFilterProperty } from "@pi-dash/types";
+// karma-team imports
+import type { TFilterValue, TFilterProperty } from "@karma-team/types";
 // local imports
 import type { TFilterValueInputProps } from "@/components/rich-filters/shared";
 

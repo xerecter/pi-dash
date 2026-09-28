@@ -6,9 +6,9 @@
 
 import { useEffect } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useLabel } from "@/hooks/store/use-label";
 import { usePlatformOS } from "@/hooks/use-platform-os";

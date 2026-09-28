@@ -12,13 +12,13 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { Pin, PinOff } from "lucide-react";
-// pi dash imports
-import type { IWorkspaceSidebarNavigationItem } from "@pi-dash/constants";
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { DragHandle, DropIndicator } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type { IWorkspaceSidebarNavigationItem } from "@karma-team/constants";
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { DragHandle, DropIndicator } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
 // hooks

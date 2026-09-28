@@ -1,6 +1,6 @@
-# @pi-dash/i18n
+# @karma-team/i18n
 
-Shared UI translation package for Pi Dash.
+Shared UI translation package for karma-team.
 
 The open-source build **ships English only**. The translation machinery (the
 `t()` runtime, the language picker, ICU MessageFormat support) is fully present
@@ -68,9 +68,9 @@ appears in the language picker automatically (`SUPPORTED_LANGUAGES` in
    added to `LANGUAGE_LABELS` in `src/constants/language.ts` (it falls back to
    the language code if omitted).
 
-That's it — `pnpm --filter @pi-dash/i18n build` and the new language is live.
+That's it — `pnpm --filter @karma-team/i18n build` and the new language is live.
 
 > **Note:** the upstream multi-language locales and the key-sync / machine-
 > translation tooling that maintains them are not part of this open-source
-> repository. They live in the Pi Dash Cloud overlay and are layered on top at
+> repository. They live in the karma-team Cloud overlay and are layered on top at
 > build time. Self-hosters maintain their own locale files as described above.

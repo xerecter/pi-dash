@@ -5,7 +5,7 @@
  */
 
 // types
-import type { TIssuesListTypes } from "@pi-dash/types";
+import type { TIssuesListTypes } from "@karma-team/types";
 
 export enum EDurationFilters {
   NONE = "none",

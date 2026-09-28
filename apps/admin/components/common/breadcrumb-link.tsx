@@ -5,7 +5,7 @@
  */
 
 import Link from "next/link";
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import { Tooltip } from "@karma-team/propel/tooltip";
 
 type Props = {
   label?: string;

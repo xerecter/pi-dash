@@ -8,18 +8,18 @@ import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { usePathname } from "next/navigation";
 import { Disclosure, Transition } from "@headlessui/react";
-// pi dash imports
+// karma-team imports
 import {
   WORKSPACE_SIDEBAR_DYNAMIC_NAVIGATION_ITEMS,
   WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS,
-} from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronRightIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+} from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronRightIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 // hooks
 import useLocalStorage from "@/hooks/use-local-storage";
-// pi-dash-web imports
-import { SidebarItem } from "@/pi-dash-web/components/workspace/sidebar/sidebar-item";
+// karma-team-web imports
+import { SidebarItem } from "@/karma-team-web/components/workspace/sidebar/sidebar-item";
 
 const MORE_ITEM_KEYS = ["projects", "runners", "prompts", "schedulers", "ai-dev-machines", "analytics", "archives"];
 

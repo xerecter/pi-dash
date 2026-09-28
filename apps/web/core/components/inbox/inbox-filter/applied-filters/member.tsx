@@ -6,13 +6,13 @@
 
 import { observer } from "mobx-react";
 
-// pi dash types
-import { CloseIcon } from "@pi-dash/propel/icons";
-import type { TInboxIssueFilterMemberKeys } from "@pi-dash/types";
-// pi dash ui
-import { Avatar, Tag } from "@pi-dash/ui";
+// karma-team types
+import { CloseIcon } from "@karma-team/propel/icons";
+import type { TInboxIssueFilterMemberKeys } from "@karma-team/types";
+// karma-team ui
+import { Avatar, Tag } from "@karma-team/ui";
 // helpers
-import { getFileURL } from "@pi-dash/utils";
+import { getFileURL } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";

@@ -8,9 +8,13 @@ import { useMemo } from "react";
 import { isEmpty } from "lodash-es";
 import { observer } from "mobx-react";
 import { SlidersHorizontal } from "lucide-react";
-// pi dash imports
-import type { IIssueDisplayFilterOptions, ILayoutDisplayFiltersOptions, IIssueDisplayProperties } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type {
+  IIssueDisplayFilterOptions,
+  ILayoutDisplayFiltersOptions,
+  IIssueDisplayProperties,
+} from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // components
 import {
   FilterDisplayProperties,

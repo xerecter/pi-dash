@@ -8,14 +8,14 @@ import { useMemo } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { Download } from "lucide-react";
-// pi dash imports
-import { CORE_EXTENSIONS } from "@pi-dash/editor";
-import type { TEditorAsset } from "@pi-dash/editor";
-import { useTranslation } from "@pi-dash/i18n";
-import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@pi-dash/utils";
-// pi dash web imports
-import { AdditionalPageNavigationPaneAssetItem } from "@/pi-dash-web/components/pages/navigation-pane/tab-panels/assets";
-import { PageNavigationPaneAssetsTabEmptyState } from "@/pi-dash-web/components/pages/navigation-pane/tab-panels/empty-states/assets";
+// karma-team imports
+import { CORE_EXTENSIONS } from "@karma-team/editor";
+import type { TEditorAsset } from "@karma-team/editor";
+import { useTranslation } from "@karma-team/i18n";
+import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@karma-team/utils";
+// karma-team web imports
+import { AdditionalPageNavigationPaneAssetItem } from "@/karma-team-web/components/pages/navigation-pane/tab-panels/assets";
+import { PageNavigationPaneAssetsTabEmptyState } from "@/karma-team-web/components/pages/navigation-pane/tab-panels/empty-states/assets";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

@@ -7,10 +7,10 @@
 import { observer } from "mobx-react";
 import { useRouter, useSearchParams } from "next/navigation";
 // ui
-import { SITES_ISSUE_LAYOUTS } from "@pi-dash/constants";
-// pi dash i18n
-import { useTranslation } from "@pi-dash/i18n";
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import { SITES_ISSUE_LAYOUTS } from "@karma-team/constants";
+// karma-team i18n
+import { useTranslation } from "@karma-team/i18n";
+import { Tooltip } from "@karma-team/propel/tooltip";
 // helpers
 import { queryParamGenerator } from "@/helpers/query-param-generator";
 // hooks

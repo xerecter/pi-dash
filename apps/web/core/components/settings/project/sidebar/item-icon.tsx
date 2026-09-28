@@ -6,8 +6,8 @@
 
 import type { LucideIcon } from "lucide-react";
 import { CalendarClock, GitBranch, Users, Zap } from "lucide-react";
-// pi dash imports
-import type { ISvgIcons } from "@pi-dash/propel/icons";
+// karma-team imports
+import type { ISvgIcons } from "@karma-team/propel/icons";
 import {
   CycleIcon,
   EstimatePropertyIcon,
@@ -17,8 +17,8 @@ import {
   PageIcon,
   StatePropertyIcon,
   ViewsIcon,
-} from "@pi-dash/propel/icons";
-import type { TProjectSettingsTabs } from "@pi-dash/types";
+} from "@karma-team/propel/icons";
+import type { TProjectSettingsTabs } from "@karma-team/types";
 // components
 import { SettingIcon } from "@/components/icons/attachment";
 

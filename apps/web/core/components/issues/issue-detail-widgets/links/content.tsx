@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import type { TIssueServiceType } from "@pi-dash/types";
+import type { TIssueServiceType } from "@karma-team/types";
 // components
 import { LinkList } from "../../issue-detail/links";
 // helper

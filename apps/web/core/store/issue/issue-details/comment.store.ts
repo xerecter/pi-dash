@@ -6,8 +6,8 @@
 
 import { pull, concat, update, uniq, set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
-// Pi Dash Imports
-import type { TIssueComment, TIssueCommentMap, TIssueCommentIdMap, TIssueServiceType } from "@pi-dash/types";
+// karma-team Imports
+import type { TIssueComment, TIssueCommentMap, TIssueCommentIdMap, TIssueServiceType } from "@karma-team/types";
 // services
 import { IssueCommentService } from "@/services/issue";
 // types

@@ -7,9 +7,9 @@
 import React, { useMemo, useState } from "react";
 import { sortBy } from "lodash-es";
 import { observer } from "mobx-react";
-import type { IIssueLabel } from "@pi-dash/types";
+import type { IIssueLabel } from "@karma-team/types";
 // components
-import { Loader } from "@pi-dash/ui";
+import { Loader } from "@karma-team/ui";
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 
 // ui

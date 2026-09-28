@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import type { IBaseLayoutsListItem, IBaseLayoutsListGroupProps } from "@pi-dash/types";
-import { cn } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import type { IBaseLayoutsListItem, IBaseLayoutsListGroupProps } from "@karma-team/types";
+import { cn } from "@karma-team/ui";
 import { useGroupDropTarget } from "../hooks/use-group-drop-target";
 import { GroupHeader } from "./group-header";
 import { BaseListItem } from "./item";
@@ -83,9 +83,7 @@ export const BaseListGroup = observer(function BaseListGroup<T extends IBaseLayo
 
       {isDraggingOver && enableDragDrop && (
         <div className="absolute top-0 left-0 z-[2] flex h-full w-full items-center justify-center rounded-sm border-[1px] border-strong bg-layer-1/85 text-13 font-medium text-tertiary">
-          <div className="my-8 flex flex-col items-center rounded-sm p-3 text-secondary">
-            {t("Drop here to move")}
-          </div>
+          <div className="my-8 flex flex-col items-center rounded-sm p-3 text-secondary">{t("Drop here to move")}</div>
         </div>
       )}
     </div>

@@ -7,8 +7,8 @@
 import React from "react";
 import { CalendarDays } from "lucide-react";
 // ui
-import { CalendarAfterIcon, CalendarBeforeIcon } from "@pi-dash/propel/icons";
-import { CustomSelect } from "@pi-dash/ui";
+import { CalendarAfterIcon, CalendarBeforeIcon } from "@karma-team/propel/icons";
+import { CustomSelect } from "@karma-team/ui";
 
 type Props = {
   title: string;

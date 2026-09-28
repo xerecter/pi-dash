@@ -8,11 +8,11 @@ import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 import { CheckCircle, ExternalLink, RefreshCw } from "lucide-react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import type { IGithubAppWorkspaceStatus } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import type { IGithubAppWorkspaceStatus } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
 // components
 import { ProfileSettingsHeading } from "@/components/settings/profile/heading";
 // constants
@@ -28,9 +28,9 @@ const formatDateTime = (value?: string | null) => {
 };
 
 const installErrorMessage: Record<string, string> = {
-  actor_mismatch: "This install session was started by a different Pi Dash user.",
-  github_verification_failed: "Pi Dash could not verify the GitHub installation.",
-  login_required: "Sign in to Pi Dash and start the GitHub App install again.",
+  actor_mismatch: "This install session was started by a different karma-team user.",
+  github_verification_failed: "karma-team could not verify the GitHub installation.",
+  login_required: "Sign in to karma-team and start the GitHub App install again.",
   installation_not_visible_to_user: "Your GitHub account cannot access that installation.",
   missing_installation_id: "GitHub did not return an installation id.",
   missing_oauth_code: "GitHub did not return a setup authorization code.",
@@ -103,7 +103,7 @@ function GithubAppWorkspacePanel({
           <p className="mt-1 text-12 text-secondary">
             {isConnected
               ? `Installed for ${installation.account_login || "GitHub"} on ${selectedWorkspace.name}.`
-              : `Install the Pi Dash GitHub App for ${selectedWorkspace.name}.`}
+              : `Install the karma-team GitHub App for ${selectedWorkspace.name}.`}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -134,7 +134,7 @@ function GithubAppWorkspacePanel({
 
       {!configured ? (
         <div className="rounded-md border border-warning-subtle bg-warning-subtle px-3 py-2 text-12 text-secondary">
-          GitHub App configuration is missing on this Pi Dash instance.
+          GitHub App configuration is missing on this karma-team instance.
         </div>
       ) : null}
 
@@ -152,8 +152,8 @@ function GithubAppWorkspacePanel({
         </div>
       ) : (
         <p className="text-12 text-secondary">
-          No GitHub App installation is connected for this workspace yet. Pi Dash will verify installation access after
-          GitHub redirects you back.
+          No GitHub App installation is connected for this workspace yet. karma-team will verify installation access
+          after GitHub redirects you back.
         </p>
       )}
 
@@ -261,7 +261,7 @@ export const IntegrationsProfileSettings = observer(function IntegrationsProfile
           <div className="rounded-md border border-subtle bg-surface-1 px-4 py-5">
             <h3 className="text-14 font-medium text-primary">No admin workspaces</h3>
             <p className="mt-1 text-12 text-secondary">
-              You need workspace admin access before you can install GitHub for a Pi Dash workspace.
+              You need workspace admin access before you can install GitHub for a karma-team workspace.
             </p>
           </div>
         ) : (

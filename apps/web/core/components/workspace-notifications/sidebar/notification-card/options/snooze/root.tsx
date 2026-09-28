@@ -9,12 +9,12 @@ import { Fragment } from "react";
 import { observer } from "mobx-react";
 import { Clock } from "lucide-react";
 import { Popover, Transition } from "@headlessui/react";
-// pi dash imports
-import { NOTIFICATION_SNOOZE_OPTIONS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { NOTIFICATION_SNOOZE_OPTIONS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useWorkspaceNotifications } from "@/hooks/store/notifications";
 import { usePlatformOS } from "@/hooks/use-platform-os";
@@ -96,12 +96,7 @@ export const NotificationItemSnoozeOption = observer(function NotificationItemSn
 
           return (
             <>
-              <Tooltip
-                tooltipContent={
-                  data.snoozed_till ? t("Un snooze") : t("Snooze")
-                }
-                isMobile={isMobile}
-              >
+              <Tooltip tooltipContent={data.snoozed_till ? t("Un snooze") : t("Snooze")} isMobile={isMobile}>
                 <Popover.Button
                   className={cn(
                     "relative flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-xs bg-layer-1 outline-none hover:bg-surface-2",

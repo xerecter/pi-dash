@@ -509,7 +509,7 @@ export const DesignTokens: Story = {
         <div>
           <h2 className="mb-2 text-16 font-semibold text-primary">Toast Design Tokens</h2>
           <p className="text-13 text-secondary">
-            The toast component uses semantic design tokens from the Pi Dash design system.
+            The toast component uses semantic design tokens from the karma-team design system.
           </p>
         </div>
 

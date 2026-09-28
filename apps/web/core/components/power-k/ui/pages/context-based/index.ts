@@ -8,8 +8,8 @@ export * from "./root";
 
 // components
 import type { TPowerKContextType } from "@/components/power-k/core/types";
-// pi dash web imports
-import { CONTEXT_ENTITY_MAP_EXTENDED } from "@/pi-dash-web/components/command-palette/power-k/pages/context-based";
+// karma-team web imports
+import { CONTEXT_ENTITY_MAP_EXTENDED } from "@/karma-team-web/components/command-palette/power-k/pages/context-based";
 
 export type TContextEntityMap = {
   i18n_title: string;

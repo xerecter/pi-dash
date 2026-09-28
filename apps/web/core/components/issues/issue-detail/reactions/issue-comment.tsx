@@ -6,11 +6,11 @@
 
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
-import { stringToEmoji } from "@pi-dash/propel/emoji-icon-picker";
-import { EmojiReactionGroup, EmojiReactionPicker } from "@pi-dash/propel/emoji-reaction";
-import type { EmojiReactionType } from "@pi-dash/propel/emoji-reaction";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IUser } from "@pi-dash/types";
+import { stringToEmoji } from "@karma-team/propel/emoji-icon-picker";
+import { EmojiReactionGroup, EmojiReactionPicker } from "@karma-team/propel/emoji-reaction";
+import type { EmojiReactionType } from "@karma-team/propel/emoji-reaction";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IUser } from "@karma-team/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useMember } from "@/hooks/store/use-member";

@@ -4,14 +4,14 @@ import { desktopWebUrl } from "../../core/utils/desktop-web-url";
 
 describe("desktopWebUrl", () => {
   it("resolves an issue path against the configured hosted frontend", () => {
-    expect(desktopWebUrl("/ai-republic/projects/project-id/issues/issue-id", "https://pidash.airepublic.com")).toBe(
-      "https://pidash.airepublic.com/ai-republic/projects/project-id/issues/issue-id"
+    expect(desktopWebUrl("/ai-republic/projects/project-id/issues/issue-id", "https://karma-team.example.com")).toBe(
+      "https://karma-team.example.com/ai-republic/projects/project-id/issues/issue-id"
     );
   });
 
   it("preserves query parameters and fragments", () => {
-    expect(desktopWebUrl("/workspace/issues/issue-id?peek=activity#comment", "https://pidash.example/")).toBe(
-      "https://pidash.example/workspace/issues/issue-id?peek=activity#comment"
+    expect(desktopWebUrl("/workspace/issues/issue-id?peek=activity#comment", "https://karma-team.example/")).toBe(
+      "https://karma-team.example/workspace/issues/issue-id?peek=activity#comment"
     );
   });
 

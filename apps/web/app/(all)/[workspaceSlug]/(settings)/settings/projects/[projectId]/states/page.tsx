@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { setPromiseToast } from "@pi-dash/propel/toast";
-import { ToggleSwitch } from "@pi-dash/ui";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { setPromiseToast } from "@karma-team/propel/toast";
+import { ToggleSwitch } from "@karma-team/ui";
 // components
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { PageHead } from "@/components/core/page-title";
@@ -74,7 +74,9 @@ function StatesSettingsPage({ params }: Route.ComponentProps) {
           <div className="mt-6">
             <SettingsBoxedControlItem
               title={t("Let members edit states")}
-              description={t("When enabled, project members can add, edit, reorder, and delete workflow states. When disabled, only admins can manage states.")}
+              description={t(
+                "When enabled, project members can add, edit, reorder, and delete workflow states. When disabled, only admins can manage states."
+              )}
               control={
                 <ToggleSwitch value={membersCanEditStates} onChange={handleMembersCanEditStatesToggle} size="sm" />
               }

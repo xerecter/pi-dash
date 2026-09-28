@@ -38,9 +38,9 @@ import {
   PriorityPropertyIcon,
   StartDatePropertyIcon,
   StatePropertyIcon,
-} from "@pi-dash/propel/icons";
+} from "@karma-team/propel/icons";
 import { store } from "@/lib/store-context";
-import type { TProjectActivity } from "@/pi-dash-web/types";
+import type { TProjectActivity } from "@/karma-team-web/types";
 
 type ActivityIconMap = {
   [key: string]: FC<{ className?: string }>;
@@ -104,7 +104,7 @@ export const messages = (activity: TProjectActivity): { message: string | ReactN
     case "archived_at":
       return {
         message: newValue === "restore" ? "restored the project" : "archived the project",
-        customUserName: newValue === "archive" ? "Pi Dash" : undefined,
+        customUserName: newValue === "archive" ? "karma-team" : undefined,
       };
     case "name":
       return {

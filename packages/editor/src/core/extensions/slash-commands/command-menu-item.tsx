@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // types
 import type { ISlashCommandItem } from "@/types";
 

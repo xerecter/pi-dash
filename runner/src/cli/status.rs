@@ -1,4 +1,4 @@
-//! `pidash status` — combined service-level + daemon-runtime status.
+//! `karma-team status` — combined service-level + daemon-runtime status.
 //!
 //! Two data sources in one command:
 //!

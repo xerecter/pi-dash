@@ -7,9 +7,9 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash ui
-import { WorkItemsIcon } from "@pi-dash/propel/icons";
-import { Breadcrumbs, Header } from "@pi-dash/ui";
+// karma-team ui
+import { WorkItemsIcon } from "@karma-team/propel/icons";
+import { Breadcrumbs, Header } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { IssueDetailQuickActions } from "@/components/issues/issue-detail/issue-detail-quick-actions";
@@ -17,8 +17,8 @@ import { IssueDetailQuickActions } from "@/components/issues/issue-detail/issue-
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useAppRouter } from "@/hooks/use-app-router";
-// pi dash web imports
-import { CommonProjectBreadcrumbs } from "@/pi-dash-web/components/breadcrumbs/common";
+// karma-team web imports
+import { CommonProjectBreadcrumbs } from "@/karma-team-web/components/breadcrumbs/common";
 
 export const WorkItemDetailsHeader = observer(function WorkItemDetailsHeader() {
   // router

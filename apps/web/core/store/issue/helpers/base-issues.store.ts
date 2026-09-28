@@ -7,8 +7,8 @@
 import { isEqual, concat, get, indexOf, isEmpty, orderBy, pull, set, uniq, update, clone } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash constants
-import { ALL_ISSUES, ISSUE_PRIORITIES } from "@pi-dash/constants";
+// karma-team constants
+import { ALL_ISSUES, ISSUE_PRIORITIES } from "@karma-team/constants";
 // types
 import type {
   TIssue,
@@ -25,12 +25,12 @@ import type {
   TPaginationData,
   TBulkOperationsPayload,
   IBlockUpdateDependencyData,
-} from "@pi-dash/types";
-import { EIssueServiceType, EIssueLayoutTypes } from "@pi-dash/types";
+} from "@karma-team/types";
+import { EIssueServiceType, EIssueLayoutTypes } from "@karma-team/types";
 // helpers
-import { convertToISODateString } from "@pi-dash/utils";
-// pi dash web imports
-import { workItemSortWithOrderByExtended } from "@/pi-dash-web/store/issue/helpers/base-issue.store";
+import { convertToISODateString } from "@karma-team/utils";
+// karma-team web imports
+import { workItemSortWithOrderByExtended } from "@/karma-team-web/store/issue/helpers/base-issue.store";
 // services
 import { CycleService } from "@/services/cycle.service";
 import { IssueArchiveService, IssueService } from "@/services/issue";

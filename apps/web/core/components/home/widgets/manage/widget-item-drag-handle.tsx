@@ -7,9 +7,9 @@
 import React from "react";
 import { observer } from "mobx-react";
 // ui
-import { DragHandle } from "@pi-dash/ui";
+import { DragHandle } from "@karma-team/ui";
 // helper
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   sort_order: number | null;

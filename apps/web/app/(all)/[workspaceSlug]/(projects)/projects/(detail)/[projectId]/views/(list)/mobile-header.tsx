@@ -7,9 +7,9 @@
 import { observer } from "mobx-react";
 // icons
 import { ListFilter } from "lucide-react";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
 // components
-import { Row } from "@pi-dash/ui";
+import { Row } from "@karma-team/ui";
 import { FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 import { ViewFiltersSelection } from "@/components/views/filters/filter-selection";
 import { ViewOrderByDropdown } from "@/components/views/filters/order-by";

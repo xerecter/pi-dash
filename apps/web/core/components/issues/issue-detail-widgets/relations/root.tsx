@@ -6,9 +6,9 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TIssueServiceType } from "@pi-dash/types";
-import { Collapsible } from "@pi-dash/ui";
+// karma-team imports
+import type { TIssueServiceType } from "@karma-team/types";
+import { Collapsible } from "@karma-team/ui";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports

@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 // components
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // assets
 import AllFiltersImage from "@/app/assets/empty-state/cycle/all-filters.svg?url";
 import NameFilterImage from "@/app/assets/empty-state/cycle/name-filter.svg?url";

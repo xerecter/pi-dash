@@ -11,9 +11,9 @@ import { Outlet } from "react-router";
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { getWorkspaceActivePath, pathnameToAccessKey } from "@/components/settings/helper";
 import { SettingsMobileNav } from "@/components/settings/mobile/nav";
-// pi dash imports
-import { WORKSPACE_SETTINGS_ACCESS } from "@pi-dash/constants";
-import type { EUserWorkspaceRoles } from "@pi-dash/types";
+// karma-team imports
+import { WORKSPACE_SETTINGS_ACCESS } from "@karma-team/constants";
+import type { EUserWorkspaceRoles } from "@karma-team/types";
 // components
 import { WorkspaceSettingsSidebarRoot } from "@/components/settings/workspace/sidebar";
 // hooks

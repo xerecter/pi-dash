@@ -20,7 +20,7 @@ export * from "@/helpers/common";
 export * from "@/helpers/yjs-utils";
 
 export { CORE_EXTENSIONS } from "@/constants/extension";
-export { ADDITIONAL_EXTENSIONS } from "@/pi-dash-editor/constants/extensions";
+export { ADDITIONAL_EXTENSIONS } from "@/karma-team-editor/constants/extensions";
 
 // types
 export * from "@/types";

@@ -4,16 +4,16 @@
  * See the LICENSE file for details.
  */
 
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
-import { getAssetIdFromUrl, checkURLValidity } from "@pi-dash/utils";
-// pi dash ui
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
+import { getAssetIdFromUrl, checkURLValidity } from "@karma-team/utils";
+// karma-team ui
 // helpers
 // hooks
 import useKeypress from "@/hooks/use-keypress";
-// pi dash web components
-import { CreateProjectForm } from "@/pi-dash-web/components/projects/create/root";
-// pi dash web types
-import type { TProject } from "@/pi-dash-web/types/projects";
+// karma-team web components
+import { CreateProjectForm } from "@/karma-team-web/components/projects/create/root";
+// karma-team web types
+import type { TProject } from "@/karma-team-web/types/projects";
 // services
 import { FileService } from "@/services/file.service";
 const fileService = new FileService();

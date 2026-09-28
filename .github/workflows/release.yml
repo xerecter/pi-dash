@@ -43,11 +43,11 @@ on:
   push:
     tags:
       # Runner-only release tag scheme. The runner Cargo package is named
-      # `pidash`; cargo-dist parses the `pidash-` prefix as the package
+      # `karma-team`; cargo-dist parses the `karma-team-` prefix as the package
       # selector. Platform / Docker image releases use the
       # `platform-v*.*.*` pattern handled by build-branch.yml and
       # intentionally do not match this workflow.
-      - 'pidash-v*.*.*'
+      - 'karma-team-v*.*.*'
 
 jobs:
   # Run 'cargo dist plan' (or host) to determine what tasks we need to do
@@ -397,18 +397,18 @@ jobs:
       # artifacts so the documented one-liners
       # (…/releases/latest/download/install.sh and …/install.ps1)
       # resolve. Each wrapper drops the binary via the matching
-      # cargo-dist installer (pidash-installer.sh / pidash-installer.ps1)
-      # and immediately launches `pidash auth login`.
+      # cargo-dist installer (karma-team-installer.sh / karma-team-installer.ps1)
+      # and immediately launches `karma-team auth login`.
       #
       # The wrappers ship with `latest` baked into their download URLs
       # so a plain upload would mean that even a tag-pinned wrapper
-      # (…/releases/download/pidash-v0.1.0/install.sh) would silently
+      # (…/releases/download/karma-team-v0.1.0/install.sh) would silently
       # fetch the latest binary. sed the actual tag in before upload
       # so pinning works as documented.
       - name: Upload install wrappers
         run: |
-          sed -i "s|/releases/latest/download/pidash-installer.sh|/releases/download/${{ needs.plan.outputs.tag }}/pidash-installer.sh|" runner/install.sh
-          sed -i "s|/releases/latest/download/pidash-installer.ps1|/releases/download/${{ needs.plan.outputs.tag }}/pidash-installer.ps1|" runner/install.ps1
+          sed -i "s|/releases/latest/download/karma-team-installer.sh|/releases/download/${{ needs.plan.outputs.tag }}/karma-team-installer.sh|" runner/install.sh
+          sed -i "s|/releases/latest/download/karma-team-installer.ps1|/releases/download/${{ needs.plan.outputs.tag }}/karma-team-installer.ps1|" runner/install.ps1
           gh release upload "${{ needs.plan.outputs.tag }}" runner/install.sh runner/install.ps1 --clobber
 
   publish-runner-version-advisory:
@@ -434,20 +434,20 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          VERSION="${RELEASE_TAG#pidash-v}"
+          VERSION="${RELEASE_TAG#karma-team-v}"
           if [ -z "$VERSION" ] || [ "$VERSION" = "$RELEASE_TAG" ]; then
-            echo "::error::expected runner tag shaped pidash-vX.Y.Z, got '$RELEASE_TAG'"
+            echo "::error::expected runner tag shaped karma-team-vX.Y.Z, got '$RELEASE_TAG'"
             exit 1
           fi
 
           for target in test prod; do
             aws ssm put-parameter \
               --region "$AWS_REGION" \
-              --name "/pidash/config/${target}/LATEST_RUNNER_VERSION" \
+              --name "/karma-team/config/${target}/LATEST_RUNNER_VERSION" \
               --type String \
               --value "$VERSION" \
               --overwrite
-            echo "Published LATEST_RUNNER_VERSION=$VERSION to /pidash/config/${target}/"
+            echo "Published LATEST_RUNNER_VERSION=$VERSION to /karma-team/config/${target}/"
           done
 
   announce:

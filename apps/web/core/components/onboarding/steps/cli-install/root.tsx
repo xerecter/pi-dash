@@ -6,11 +6,11 @@
 
 import { useEffect, useState } from "react";
 import { AlertTriangle, Check, Copy, Terminal } from "lucide-react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import { Tabs } from "@pi-dash/propel/tabs";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { EOnboardingSteps } from "@pi-dash/types";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import { Tabs } from "@karma-team/propel/tabs";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { EOnboardingSteps } from "@karma-team/types";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // local components
@@ -31,12 +31,12 @@ type TInstallCommand = {
   hint?: string;
 };
 
-const RELEASE_BASE = "https://github.com/The-AI-Republic/pi-dash/releases/latest/download";
+const RELEASE_BASE = "https://github.com/xerecter/karma-team/releases/latest/download";
 
 /**
  * These point at the `install.sh` / `install.ps1` *wrappers*, not the
- * `pidash-installer.*` scripts underneath them. The wrappers install the
- * binary and then run `pidash auth login`, so a user who pastes one of
+ * `karma-team-installer.*` scripts underneath them. The wrappers install the
+ * binary and then run `karma-team auth login`, so a user who pastes one of
  * these lands connected rather than holding an unauthenticated binary.
  */
 const PLATFORMS: Record<TPlatformKey, { label: string; commands: TInstallCommand[] }> = {
@@ -163,15 +163,15 @@ export function CliInstallStep({ handleStepChange }: Props) {
   return (
     <div className="flex flex-col gap-10">
       <CommonOnboardingHeader
-        title="Install the Pi Dash CLI."
+        title="Install the karma-team CLI."
         description="Run this on the machine where your coding agent will execute work."
       />
 
       <div className="flex gap-2 text-warning-primary">
         <AlertTriangle className="mt-0.5 size-4 shrink-0" />
         <p className="text-body-sm-medium">
-          Important: Pi Dash CLI has to be installed on the dev machine together with AI agents like Claude and Codex to
-          make Pi Dash work end to end.
+          Important: karma-team CLI has to be installed on the dev machine together with AI agents like Claude and Codex
+          to make karma-team work end to end.
         </p>
       </div>
 

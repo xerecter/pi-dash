@@ -6,14 +6,14 @@
 
 import { useRef } from "react";
 import { AlertCircle } from "lucide-react";
-// pi dash imports
-import { ISSUE_ORDER_BY_OPTIONS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TIssueOrderByOptions } from "@pi-dash/types";
+// karma-team imports
+import { ISSUE_ORDER_BY_OPTIONS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { TIssueOrderByOptions } from "@karma-team/types";
 // helpers
-import { cn } from "@pi-dash/utils";
-// pi dash web imports
-import { WorkFlowDisabledOverlay } from "@/pi-dash-web/components/workflow";
+import { cn } from "@karma-team/utils";
+// karma-team web imports
+import { WorkFlowDisabledOverlay } from "@/karma-team-web/components/workflow";
 
 type Props = {
   dragColumnOrientation: "justify-start" | "justify-center" | "justify-end";

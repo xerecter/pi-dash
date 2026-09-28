@@ -9,16 +9,16 @@ import type { MarkType, NodeType } from "@tiptap/pm/model";
 import type { Selection } from "@tiptap/pm/state";
 import type { EditorProps, EditorView } from "@tiptap/pm/view";
 import type { NodeViewProps as TNodeViewProps } from "@tiptap/react";
-// pi dash imports
-import type { TCustomComponentsMetaData } from "@pi-dash/utils";
+// karma-team imports
+import type { TCustomComponentsMetaData } from "@karma-team/utils";
 // extension types
 import type { TTextAlign } from "@/extensions";
-// pi dash editor imports
+// karma-team editor imports
 import type {
   IEditorPropsExtended,
   TExtendedEditorCommands,
   ICollaborativeDocumentEditorPropsExtended,
-} from "@/pi-dash-editor/types/editor-extended";
+} from "@/karma-team-editor/types/editor-extended";
 // types
 import type {
   IMarking,

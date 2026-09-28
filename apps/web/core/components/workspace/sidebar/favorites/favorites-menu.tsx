@@ -17,25 +17,25 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { FolderPlus } from "lucide-react";
 import { Disclosure, Transition } from "@headlessui/react";
-import { IS_FAVORITE_MENU_OPEN } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronRightIcon } from "@pi-dash/propel/icons";
+import { IS_FAVORITE_MENU_OPEN } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronRightIcon } from "@karma-team/propel/icons";
 // ui
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IFavorite } from "@pi-dash/types";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IFavorite } from "@karma-team/types";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useFavorite } from "@/hooks/store/use-favorite";
 import useLocalStorage from "@/hooks/use-local-storage";
-// pi dash web components
+// karma-team web components
 import { FavoriteFolder } from "./favorite-folder";
 import { FavoriteRoot } from "./favorite-items";
 import type { TargetData } from "./favorites.helpers";
 import { getInstructionFromPayload } from "./favorites.helpers";
 import { NewFavoriteFolder } from "./new-fav-folder";
-import { IconButton } from "@pi-dash/propel/icon-button";
+import { IconButton } from "@karma-team/propel/icon-button";
 
 export const SidebarFavoritesMenu = observer(function SidebarFavoritesMenu() {
   // states
@@ -197,11 +197,7 @@ export const SidebarFavoritesMenu = observer(function SidebarFavoritesMenu() {
               }
             )}
             onClick={() => toggleFavoriteMenu(!isFavoriteMenuOpen)}
-            aria-label={t(
-              isFavoriteMenuOpen
-                ? "Close favorites menu"
-                : "Open favorites menu"
-            )}
+            aria-label={t(isFavoriteMenuOpen ? "Close favorites menu" : "Open favorites menu")}
           >
             <span className="text-13 font-semibold">{t("Favorites")}</span>
           </Disclosure.Button>
@@ -223,11 +219,7 @@ export const SidebarFavoritesMenu = observer(function SidebarFavoritesMenu() {
               type="button"
               className="grid flex-shrink-0 place-items-center rounded-sm p-0.5 hover:bg-layer-transparent-hover"
               onClick={() => toggleFavoriteMenu(!isFavoriteMenuOpen)}
-              aria-label={t(
-                isFavoriteMenuOpen
-                  ? "Close favorites menu"
-                  : "Open favorites menu"
-              )}
+              aria-label={t(isFavoriteMenuOpen ? "Close favorites menu" : "Open favorites menu")}
             >
               <ChevronRightIcon
                 className={cn("size-3 flex-shrink-0 transition-all", {

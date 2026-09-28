@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { PROFILE_SETTINGS_TABS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TProfileSettingsTabs } from "@pi-dash/types";
+// karma-team imports
+import { PROFILE_SETTINGS_TABS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { TProfileSettingsTabs } from "@karma-team/types";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 import { PageHead } from "@/components/core/page-title";

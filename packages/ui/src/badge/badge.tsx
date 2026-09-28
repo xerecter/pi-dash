@@ -47,6 +47,6 @@ const Badge = React.forwardRef(function Badge(props: BadgeProps, ref: React.Forw
   );
 });
 
-Badge.displayName = "pi-dash-ui-badge";
+Badge.displayName = "karma-team-ui-badge";
 
 export { Badge };

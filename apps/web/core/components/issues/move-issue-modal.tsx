@@ -8,14 +8,14 @@ import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams, useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
-import { generateWorkItemLink } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { EIssuesStoreType } from "@karma-team/types";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
+import { generateWorkItemLink } from "@karma-team/utils";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { useProject } from "@/hooks/store/use-project";
@@ -36,7 +36,7 @@ export const MoveIssueModal = observer(function MoveIssueModal(props: Props) {
   // router
   const router = useRouter();
   const { workspaceSlug } = useParams();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { joinedProjectIds, getProjectById, getProjectIdentifierById, fetchProjects } = useProject();

@@ -16,8 +16,8 @@ import {
   ProjectIcon,
   ViewsIcon,
   YourWorkIcon,
-} from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+} from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 
 export const getSidebarNavigationItemIcon = (key: string, className: string = "") => {
   switch (key) {

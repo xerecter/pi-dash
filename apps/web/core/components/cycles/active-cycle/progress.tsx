@@ -6,12 +6,12 @@
 
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
-// pi dash imports
-import { PROGRESS_STATE_GROUPS_DETAILS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TWorkItemFilterCondition } from "@pi-dash/shared-state";
-import type { ICycle } from "@pi-dash/types";
-import { LinearProgressIndicator, Loader } from "@pi-dash/ui";
+// karma-team imports
+import { PROGRESS_STATE_GROUPS_DETAILS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { TWorkItemFilterCondition } from "@karma-team/shared-state";
+import type { ICycle } from "@karma-team/types";
+import { LinearProgressIndicator, Loader } from "@karma-team/ui";
 // assets
 import darkProgressAsset from "@/app/assets/empty-state/active-cycle/progress-dark.webp?url";
 import lightProgressAsset from "@/app/assets/empty-state/active-cycle/progress-light.webp?url";
@@ -29,7 +29,7 @@ export const ActiveCycleProgress = observer(function ActiveCycleProgress(props: 
   const { handleFiltersUpdate, cycle } = props;
   // theme hook
   const { resolvedTheme } = useTheme();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // derived values
   const progressIndicatorData = PROGRESS_STATE_GROUPS_DETAILS.map((group, index) => ({

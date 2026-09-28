@@ -9,12 +9,12 @@ import { observer } from "mobx-react";
 import { HelpCircle, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import useSWR from "swr";
-import { useTranslation } from "@pi-dash/i18n";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { PodService, RunnerService } from "@pi-dash/services";
-import type { IPod, IRunner } from "@pi-dash/types";
-import { AlertModalCore, Badge, Button, CustomMenu, Tooltip } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { PodService, RunnerService } from "@karma-team/services";
+import type { IPod, IRunner } from "@karma-team/types";
+import { AlertModalCore, Badge, Button, CustomMenu, Tooltip } from "@karma-team/ui";
 import { PageHead } from "@/components/core/page-title";
 import { AddRunnerModal } from "@/components/runners/add-runner-modal";
 import { CreatePodModal } from "@/components/runners/create-pod-modal";
@@ -162,7 +162,7 @@ const RunnersListPage = observer(function RunnersListPage() {
                     <div className="font-medium">{t("How to add a runner")}</div>
                     <div className="whitespace-pre-line text-secondary">
                       {t(
-                        'A runner is an AI agent instance working on a given project.\n\n1. Click "Add runner", pick a project + pod and generate the CLI command.\n2. On the machine that will host the runner, run the displayed `pidash runner add` command. If the host is not logged in yet, the CLI starts `pidash auth login` first.\n3. The daemon registers the runner and it shows online here.\n\nPrerequisite: the agent CLI (codex / claude) must already be installed on the host.'
+                        'A runner is an AI agent instance working on a given project.\n\n1. Click "Add runner", pick a project + pod and generate the CLI command.\n2. On the machine that will host the runner, run the displayed `karma-team runner add` command. If the host is not logged in yet, the CLI starts `karma-team auth login` first.\n3. The daemon registers the runner and it shows online here.\n\nPrerequisite: the agent CLI (codex / claude) must already be installed on the host.'
                       )}
                     </div>
                   </div>
@@ -179,7 +179,7 @@ const RunnersListPage = observer(function RunnersListPage() {
             </div>
             <div className="text-13 text-secondary">
               {t(
-                "`pidash runner add` starts `pidash auth login` first when the host is not logged in yet. Run it again for each project or pod this machine should serve."
+                "`karma-team runner add` starts `karma-team auth login` first when the host is not logged in yet. Run it again for each project or pod this machine should serve."
               )}
             </div>
           </div>

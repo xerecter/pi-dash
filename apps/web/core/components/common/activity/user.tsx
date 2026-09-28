@@ -7,7 +7,7 @@
 import { observer } from "mobx-react";
 import Link from "next/link";
 // types
-import type { TWorkspaceBaseActivity } from "@pi-dash/types";
+import type { TWorkspaceBaseActivity } from "@karma-team/types";
 // store hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useWorkspace } from "@/hooks/store/use-workspace";
@@ -29,7 +29,7 @@ export const User = observer(function User(props: TUser) {
   return (
     <>
       {customUserName || actorDetail?.display_name.includes("-intake") ? (
-        <span className="font-medium text-primary">{customUserName || "Pi Dash"}</span>
+        <span className="font-medium text-primary">{customUserName || "karma-team"}</span>
       ) : (
         <Link
           href={`/${workspaceDetail?.slug}/profile/${actorDetail?.id}`}

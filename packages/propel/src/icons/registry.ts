@@ -69,7 +69,7 @@ import {
 // Sub-brand icons
 import { CopyLinkIcon } from "./actions/copy-link";
 import { LabelFilledIcon } from "./properties/label-filled-icon";
-import { PiChatLogo, PiDashNewIcon, WikiIcon } from "./sub-brand";
+import { PiChatLogo, KarmaTeamNewIcon, WikiIcon } from "./sub-brand";
 // Workspace icons
 import {
   AnalyticsIcon,
@@ -85,7 +85,7 @@ import {
 
 export const ICON_REGISTRY = {
   // Sub-brand icons
-  "sub-brand.pi_dash": PiDashNewIcon,
+  "sub-brand.karma_team": KarmaTeamNewIcon,
   "sub-brand.wiki": WikiIcon,
   "sub-brand.pi-chat": PiChatLogo,
 

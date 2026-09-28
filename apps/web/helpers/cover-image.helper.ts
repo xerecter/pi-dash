@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { EFileAssetType } from "@pi-dash/types";
-import { getFileURL } from "@pi-dash/utils";
+import type { EFileAssetType } from "@karma-team/types";
+import { getFileURL } from "@karma-team/utils";
 
 import CoverImage1 from "@/app/assets/cover-images/image_1.jpg?url";
 import CoverImage10 from "@/app/assets/cover-images/image_10.jpg?url";

@@ -6,10 +6,10 @@
 
 import { action, computed, makeObservable, observable } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import type { TConfigOptions } from "@pi-dash/constants";
-import { DEFAULT_FILTER_CONFIG_OPTIONS } from "@pi-dash/constants";
-import type { TExternalFilter, TFilterConfig, TFilterProperty } from "@pi-dash/types";
+// karma-team imports
+import type { TConfigOptions } from "@karma-team/constants";
+import { DEFAULT_FILTER_CONFIG_OPTIONS } from "@karma-team/constants";
+import type { TExternalFilter, TFilterConfig, TFilterProperty } from "@karma-team/types";
 // local imports
 import type { IFilterConfig } from "./config";
 import { FilterConfig } from "./config";

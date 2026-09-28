@@ -1,8 +1,9 @@
-# Pi Dash Prompt System — Implementation Tasks
+# karma-team Prompt System — Implementation Tasks
 
 This file turns the prompt-system design into a concrete MVP implementation checklist.
 
 Related docs:
+
 - `prompt-system-design.md`
 - `workflow-handbook.md`
 
@@ -11,27 +12,32 @@ Related docs:
 ### PR 1 — Models and scaffolding
 
 Goal:
+
 - land the schema and module skeleton without changing runtime behavior yet
 
 Scope:
+
 - add `PromptTemplate` model + migration
 - add `AgentRun.parent_run`
 - add `AgentRun.done_payload`
 - align `AgentRun.status` enum
 - add `Project.repo_url` and `Project.base_branch`
-- create `apps/api/pi_dash/prompting/` module skeleton
-- create `apps/api/pi_dash/orchestration/service.py` skeleton
+- create `apps/api/karma_team/prompting/` module skeleton
+- create `apps/api/karma_team/orchestration/service.py` skeleton
 - register `PromptTemplate` in admin
 
 Why first:
+
 - all later work depends on the schema and module boundaries existing
 
 ### PR 2 — Prompt rendering and preview
 
 Goal:
+
 - make prompt generation real and testable in isolation
 
 Scope:
+
 - implement `context.py`
 - implement `renderer.py`
 - implement `composer.build_first_turn(...)`
@@ -45,14 +51,17 @@ Scope:
   - preview rendering
 
 Why second:
+
 - this validates the prompt contract before wiring state transitions and runner dispatch
 
 ### PR 3 — Orchestration trigger path
 
 Goal:
+
 - make `Todo -> In Progress` create and enqueue runs
 
 Scope:
+
 - implement `orchestration.service.handle_issue_state_transition(...)`
 - wire it into the issue-state transition path
 - enforce single-active-run guardrail
@@ -65,17 +74,20 @@ Scope:
   - follow-up run on re-entry
 
 Why third:
+
 - this is the first end-to-end behavior change and should come only after prompt generation is stable
 
 ### PR 4 — Workpad and done-signal ingestion
 
 Goal:
+
 - make runs produce structured durable outcomes
 
 Scope:
+
 - implement workpad lookup/create/update behavior
 - use dedicated agent/system user for workpad authorship
-- implement `pi-dash-done` parsing
+- implement `karma-team-done` parsing
 - normalize parsed output into `AgentRun.done_payload`
 - define malformed/missing done-signal failure handling
 - add tests for:
@@ -84,14 +96,17 @@ Scope:
   - malformed payload handling
 
 Why fourth:
+
 - this depends on real runs existing and gives the orchestration loop durable outputs and follow-up context
 
 ### PR 5 — Hardening and contract coverage
 
 Goal:
+
 - close gaps before broader rollout
 
 Scope:
+
 - add contract/integration tests across state transition -> run creation -> enqueue
 - verify runner receives prompt verbatim
 - verify `done_payload` normalization path
@@ -99,6 +114,7 @@ Scope:
 - document re-seed and operational workflows
 
 Why last:
+
 - by this point the system exists; this PR reduces rollout risk
 
 ## Dependency order
@@ -116,7 +132,7 @@ Why last:
 
 ## 1. Data model
 
-- Add `PromptTemplate` model under `apps/api/pi_dash/prompting/models.py`.
+- Add `PromptTemplate` model under `apps/api/karma_team/prompting/models.py`.
 - Add migration for `PromptTemplate`.
 - Add `parent_run` field to `AgentRun`.
 - Add `done_payload` field to `AgentRun`.
@@ -136,7 +152,7 @@ Why last:
 
 ## 2. Prompting module
 
-- Create `apps/api/pi_dash/prompting/`.
+- Create `apps/api/karma_team/prompting/`.
 - Implement `context.py`:
   - build the narrow prompt context
   - use raw markdown for `issue.description`
@@ -160,7 +176,7 @@ Why last:
 
 ## 4. Orchestration service
 
-- Create `apps/api/pi_dash/orchestration/service.py`.
+- Create `apps/api/karma_team/orchestration/service.py`.
 - Implement `handle_issue_state_transition(issue, from_state, to_state, actor)`.
 - MVP trigger rule:
   - only `Todo -> In Progress` creates a run
@@ -184,7 +200,7 @@ Why last:
 ## 6. Done-signal ingestion
 
 - Define where terminal run output is captured as `AgentRunEvent`.
-- Implement parser for fenced `pi-dash-done` blocks.
+- Implement parser for fenced `karma-team-done` blocks.
 - Validate JSON strictly.
 - Normalize parsed output into `AgentRun.done_payload`.
 - Use `status` as the authoritative branch field.
@@ -222,7 +238,7 @@ Why last:
   - no-op when active run exists
   - follow-up run creation on re-entry
 - Unit tests for done-signal parsing:
-  - valid `pi-dash-done`
+  - valid `karma-team-done`
   - malformed JSON
   - missing required fields
 - Unit tests for workpad lookup/create/update behavior.

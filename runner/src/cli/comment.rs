@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-//! `pidash comment …` subcommands.
+//! `karma-team comment …` subcommands.
 
 use std::path::{Path, PathBuf};
 
@@ -35,7 +35,7 @@ pub struct CommentSpeakerArgs {
     /// Mark the comment as spoken by an AI agent with this display name.
     #[arg(long = "as-agent", value_name = "NAME")]
     as_agent: Option<String>,
-    /// Pi Dash agent run UUID that produced this comment.
+    /// karma-team agent run UUID that produced this comment.
     #[arg(long = "agent-run-id", value_name = "UUID")]
     agent_run_id: Option<String>,
 }
@@ -166,7 +166,7 @@ fn add_speaker_metadata(
         (None, Some(_)) => {
             return Err(CliError::new(
                 EXIT_INVALID,
-                "--agent-run-id requires --as-agent so Pi Dash can mark the comment speaker",
+                "--agent-run-id requires --as-agent so karma-team can mark the comment speaker",
             ));
         }
         (None, None) => {}
@@ -313,9 +313,15 @@ mod tests {
 
     #[test]
     fn add_accepts_fold_flag() {
-        let parsed =
-            TestCli::try_parse_from(["pidash", "add", "ENG-42", "--body", "No change", "--fold"])
-                .expect("parse folded comment");
+        let parsed = TestCli::try_parse_from([
+            "karma-team",
+            "add",
+            "ENG-42",
+            "--body",
+            "No change",
+            "--fold",
+        ])
+        .expect("parse folded comment");
 
         match parsed.comments.command {
             super::CommentCommand::Add { fold, .. } => assert!(fold),

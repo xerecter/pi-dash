@@ -9,8 +9,8 @@ import { observer } from "mobx-react";
 import { PageHead } from "@/components/core/page-title";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
-// pi dash web components
-import { WorkspaceActiveCyclesRoot } from "@/pi-dash-web/components/active-cycles";
+// karma-team web components
+import { WorkspaceActiveCyclesRoot } from "@/karma-team-web/components/active-cycles";
 
 function WorkspaceActiveCyclesPage() {
   const { currentWorkspace } = useWorkspace();

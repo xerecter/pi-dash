@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-import { MODULE_VIEW_LAYOUTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-import { CustomMenu, Row } from "@pi-dash/ui";
+import { MODULE_VIEW_LAYOUTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+import { CustomMenu, Row } from "@karma-team/ui";
 import { ModuleLayoutIcon } from "@/components/modules";
 import { useModuleFilter } from "@/hooks/store/use-module-filter";
 import { useProject } from "@/hooks/store/use-project";

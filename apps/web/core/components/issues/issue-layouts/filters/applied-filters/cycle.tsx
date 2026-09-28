@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-import { CloseIcon, CycleGroupIcon } from "@pi-dash/propel/icons";
-import type { TCycleGroups } from "@pi-dash/types";
+import { CloseIcon, CycleGroupIcon } from "@karma-team/propel/icons";
+import type { TCycleGroups } from "@karma-team/types";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 // ui

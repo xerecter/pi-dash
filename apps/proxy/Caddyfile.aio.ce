@@ -1,4 +1,4 @@
-(pi_dash_proxy) {
+(karma_team_proxy) {
 	request_body {
 		max_size {$FILE_SIZE_LIMIT}
 	}
@@ -45,5 +45,5 @@
 }
 
 {$SITE_ADDRESS} {
-	import pi_dash_proxy
+	import karma_team_proxy
 }

@@ -9,13 +9,13 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import { CheckCircle } from "lucide-react";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IAppIntegration, IWorkspaceIntegration } from "@pi-dash/types";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IAppIntegration, IWorkspaceIntegration } from "@karma-team/types";
 // ui
-import { Loader } from "@pi-dash/ui";
+import { Loader } from "@karma-team/ui";
 // assets
 import GithubLogo from "@/app/assets/services/github.png?url";
 import SlackLogo from "@/app/assets/services/slack.png?url";
@@ -39,12 +39,12 @@ const integrationDetails: { [key: string]: any } = {
   github: {
     logo: GithubLogo,
     installed: "Activate GitHub on individual projects to sync with specific repositories.",
-    notInstalled: "Connect with GitHub with your Pi Dash workspace to sync project work items.",
+    notInstalled: "Connect with GitHub with your karma-team workspace to sync project work items.",
   },
   slack: {
     logo: SlackLogo,
     installed: "Activate Slack on individual projects to sync with specific channels.",
-    notInstalled: "Connect with Slack with your Pi Dash workspace to sync project work items.",
+    notInstalled: "Connect with Slack with your karma-team workspace to sync project work items.",
   },
 };
 

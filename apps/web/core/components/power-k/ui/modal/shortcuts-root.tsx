@@ -6,10 +6,10 @@
 
 import { useState, Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-// pi dash imports
-import { CloseIcon, SearchIcon } from "@pi-dash/propel/icons";
-import { ScrollArea } from "@pi-dash/propel/scrollarea";
-import { Input } from "@pi-dash/ui";
+// karma-team imports
+import { CloseIcon, SearchIcon } from "@karma-team/propel/icons";
+import { ScrollArea } from "@karma-team/propel/scrollarea";
+import { Input } from "@karma-team/ui";
 // hooks
 import { usePowerK } from "@/hooks/store/use-power-k";
 // local imports

@@ -1,35 +1,35 @@
 #!/bin/bash
 
 BRANCH=${BRANCH:-master}
-SERVICE_FOLDER=pi-dash-app
+SERVICE_FOLDER=karma-team-app
 SCRIPT_DIR=$PWD
-PI_DASH_INSTALL_DIR=$PWD/$SERVICE_FOLDER
+KARMA_TEAM_INSTALL_DIR=$PWD/$SERVICE_FOLDER
 export APP_RELEASE="stable"
 export DOCKERHUB_USER=airepublic
 
-export GH_REPO=The-AI-Republic/pi-dash
+export GH_REPO=xerecter/karma-team
 export RELEASE_DOWNLOAD_URL="https://github.com/$GH_REPO/releases/download"
 export FALLBACK_DOWNLOAD_URL="https://raw.githubusercontent.com/$GH_REPO/$BRANCH/deployments/cli/community"
 
 OS_NAME=$(uname)
 
 # Create necessary directories
-mkdir -p $PI_DASH_INSTALL_DIR/archive
+mkdir -p $KARMA_TEAM_INSTALL_DIR/archive
 
-DOCKER_FILE_PATH=$PI_DASH_INSTALL_DIR/docker-compose.yml
-DOCKER_ENV_PATH=$PI_DASH_INSTALL_DIR/pi_dash.env
+DOCKER_FILE_PATH=$KARMA_TEAM_INSTALL_DIR/docker-compose.yml
+DOCKER_ENV_PATH=$KARMA_TEAM_INSTALL_DIR/karma_team.env
 
 function print_header() {
 clear
 
 cat <<"EOF"
 --------------------------------------------
- ____  _                          ///////// 
-|  _ \| | __ _ _ __   ___         ///////// 
-| |_) | |/ _` | '_ \ / _ \   /////    ///// 
-|  __/| | (_| | | | |  __/   /////    ///// 
-|_|   |_|\__,_|_| |_|\___|        ////      
-                                  ////      
+ ____  _                          /////////
+|  _ \| | __ _ _ __   ___         /////////
+| |_) | |/ _` | '_ \ / _ \   /////    /////
+|  __/| | (_| | | | |  __/   /////    /////
+|_|   |_|\__,_|_| |_|\___|        ////
+                                  ////
 --------------------------------------------
 Project management tool from the future
 --------------------------------------------
@@ -44,7 +44,7 @@ function checkLatestRelease(){
         exit 1
     fi
 
-    echo $latest_release    
+    echo $latest_release
 }
 
 # Function to read stack name from env file
@@ -61,9 +61,9 @@ function readStackName() {
 
 # Function to get stack name (either from env or user input)
 function getStackName() {
-    read -p "Enter stack name [pi-dash]: " input_stack_name
+    read -p "Enter stack name [karma-team]: " input_stack_name
     if [ -z "$input_stack_name" ]; then
-        input_stack_name="pi_dash"
+        input_stack_name="karma_team"
     fi
     stack_name=$input_stack_name
     updateEnvFile "STACK_NAME" "$stack_name" "$DOCKER_ENV_PATH"
@@ -72,8 +72,8 @@ function getStackName() {
 
 function syncEnvFile(){
     echo "Syncing environment variables..." >&2
-    if [ -f "$PI_DASH_INSTALL_DIR/pi_dash.env.bak" ]; then        
-        # READ keys of pi_dash.env and update the values from pi_dash.env.bak
+    if [ -f "$KARMA_TEAM_INSTALL_DIR/karma_team.env.bak" ]; then
+        # READ keys of karma_team.env and update the values from karma_team.env.bak
         while IFS= read -r line
         do
             # ignore if the line is empty or starts with #
@@ -81,19 +81,19 @@ function syncEnvFile(){
                 continue
             fi
             key=$(echo "$line" | cut -d'=' -f1)
-            value=$(getEnvValue "$key" "$PI_DASH_INSTALL_DIR/pi_dash.env.bak")
+            value=$(getEnvValue "$key" "$KARMA_TEAM_INSTALL_DIR/karma_team.env.bak")
             if [ -n "$value" ]; then
                 updateEnvFile "$key" "$value" "$DOCKER_ENV_PATH"
             fi
         done < "$DOCKER_ENV_PATH"
 
-        value=$(getEnvValue "STACK_NAME" "$PI_DASH_INSTALL_DIR/pi_dash.env.bak")
+        value=$(getEnvValue "STACK_NAME" "$KARMA_TEAM_INSTALL_DIR/karma_team.env.bak")
         if [ -n "$value" ]; then
             updateEnvFile "STACK_NAME" "$value" "$DOCKER_ENV_PATH"
         fi
     fi
     echo "Environment variables synced successfully" >&2
-    rm -f $PI_DASH_INSTALL_DIR/pi_dash.env.bak
+    rm -f $KARMA_TEAM_INSTALL_DIR/karma_team.env.bak
 }
 
 function getEnvValue() {
@@ -133,7 +133,7 @@ function updateEnvFile() {
         if [ $? -ne 0 ]; then
             echo "$key=$value" >> "$file"
             return
-        else 
+        else
             if [ "$OS_NAME" == "Darwin" ]; then
                 value=$(echo "$value" | sed 's/|/\\|/g')
                 sed -i '' "s|^$key=.*|$key=$value|g" "$file"
@@ -185,8 +185,8 @@ function ensureGeneratedSecret() {
 function download() {
     cd $SCRIPT_DIR || exit 1
     TS=$(date +%s)
-    if [ -f "$PI_DASH_INSTALL_DIR/docker-compose.yml" ]; then
-        mv $PI_DASH_INSTALL_DIR/docker-compose.yml $PI_DASH_INSTALL_DIR/archive/$TS.docker-compose.yml
+    if [ -f "$KARMA_TEAM_INSTALL_DIR/docker-compose.yml" ]; then
+        mv $KARMA_TEAM_INSTALL_DIR/docker-compose.yml $KARMA_TEAM_INSTALL_DIR/archive/$TS.docker-compose.yml
     fi
 
     echo $RELEASE_DOWNLOAD_URL
@@ -198,7 +198,7 @@ function download() {
     STATUS=$(echo "$RESPONSE" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
 
     if [ "$STATUS" -eq 200 ]; then
-        echo "$BODY" > $PI_DASH_INSTALL_DIR/docker-compose.yml
+        echo "$BODY" > $KARMA_TEAM_INSTALL_DIR/docker-compose.yml
     else
         # Fallback to download from the raw github url
         RESPONSE=$(curl -H 'Cache-Control: no-cache, no-store' -s -w "HTTPSTATUS:%{http_code}" "$FALLBACK_DOWNLOAD_URL/docker-compose.yml?$(date +%s)")
@@ -206,11 +206,11 @@ function download() {
         STATUS=$(echo "$RESPONSE" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
 
         if [ "$STATUS" -eq 200 ]; then
-            echo "$BODY" > $PI_DASH_INSTALL_DIR/docker-compose.yml
+            echo "$BODY" > $KARMA_TEAM_INSTALL_DIR/docker-compose.yml
         else
             echo "Failed to download docker-compose.yml. HTTP Status: $STATUS"
             echo "URL: $RELEASE_DOWNLOAD_URL/$APP_RELEASE/docker-compose.yml"
-            mv $PI_DASH_INSTALL_DIR/archive/$TS.docker-compose.yml $PI_DASH_INSTALL_DIR/docker-compose.yml
+            mv $KARMA_TEAM_INSTALL_DIR/archive/$TS.docker-compose.yml $KARMA_TEAM_INSTALL_DIR/docker-compose.yml
             exit 1
         fi
     fi
@@ -220,7 +220,7 @@ function download() {
     STATUS=$(echo "$RESPONSE" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
 
     if [ "$STATUS" -eq 200 ]; then
-        echo "$BODY" > $PI_DASH_INSTALL_DIR/variables-upgrade.env
+        echo "$BODY" > $KARMA_TEAM_INSTALL_DIR/variables-upgrade.env
     else
         # Fallback to download from the raw github url
         RESPONSE=$(curl -H 'Cache-Control: no-cache, no-store' -s -w "HTTPSTATUS:%{http_code}" "$FALLBACK_DOWNLOAD_URL/variables.env?$(date +%s)")
@@ -228,22 +228,22 @@ function download() {
         STATUS=$(echo "$RESPONSE" | tr -d '\n' | sed -e 's/.*HTTPSTATUS://')
 
         if [ "$STATUS" -eq 200 ]; then
-            echo "$BODY" > $PI_DASH_INSTALL_DIR/variables-upgrade.env
+            echo "$BODY" > $KARMA_TEAM_INSTALL_DIR/variables-upgrade.env
         else
             echo "Failed to download variables.env. HTTP Status: $STATUS"
             echo "URL: $RELEASE_DOWNLOAD_URL/$APP_RELEASE/variables.env"
-            mv $PI_DASH_INSTALL_DIR/archive/$TS.docker-compose.yml $PI_DASH_INSTALL_DIR/docker-compose.yml
+            mv $KARMA_TEAM_INSTALL_DIR/archive/$TS.docker-compose.yml $KARMA_TEAM_INSTALL_DIR/docker-compose.yml
             exit 1
         fi
     fi
 
     if [ -f "$DOCKER_ENV_PATH" ];
     then
-        cp "$DOCKER_ENV_PATH" "$PI_DASH_INSTALL_DIR/archive/$TS.env"
-        cp "$DOCKER_ENV_PATH" "$PI_DASH_INSTALL_DIR/pi_dash.env.bak"
+        cp "$DOCKER_ENV_PATH" "$KARMA_TEAM_INSTALL_DIR/archive/$TS.env"
+        cp "$DOCKER_ENV_PATH" "$KARMA_TEAM_INSTALL_DIR/karma_team.env.bak"
     fi
 
-    mv $PI_DASH_INSTALL_DIR/variables-upgrade.env $DOCKER_ENV_PATH
+    mv $KARMA_TEAM_INSTALL_DIR/variables-upgrade.env $DOCKER_ENV_PATH
 
     syncEnvFile
 
@@ -256,7 +256,7 @@ function download() {
     updateEnvFile "APP_RELEASE" "$APP_RELEASE" "$DOCKER_ENV_PATH"
 
 }
-function deployStack() {   
+function deployStack() {
     # Check if docker compose file and env file exist
     if [ ! -f "$DOCKER_FILE_PATH" ] || [ ! -f "$DOCKER_ENV_PATH" ]; then
         echo "Configuration files not found"
@@ -269,7 +269,7 @@ function deployStack() {
     fi
     echo "Starting ${stack_name} stack..."
 
-    # Pull envs 
+    # Pull envs
     if [ -f "$DOCKER_ENV_PATH" ]; then
         set -o allexport; source $DOCKER_ENV_PATH; set +o allexport;
     else
@@ -292,14 +292,14 @@ function deployStack() {
             sleep 1
         done
         echo ""
-        
+
         # Get the most recent container for the migrator service
         local migrator_container=$(docker ps -a --filter name=${stack_name}_migrator --latest -q)
-        
+
         if [ -n "$migrator_container" ]; then
             # Get the exit code of the container
             local exit_code=$(docker inspect --format='{{.State.ExitCode}}' $migrator_container)
-            
+
             if [ "$exit_code" != "0" ]; then
                 echo "Server failed to start ❌"
                 echo "Migration failed with exit code: $exit_code"
@@ -327,12 +327,12 @@ function deployStack() {
     done
 
     if [ -z "$api_service" ]; then
-        echo "Pi Dash Server failed to start ❌"
+        echo "karma-team Server failed to start ❌"
         echo "Please check the logs for the 'api' service and resolve the issue(s)."
         echo "Stop the services by running the command: ./swarm.sh stop"
         exit 1
     fi
-    echo "   Pi Dash Server started successfully ✅"
+    echo "   karma-team Server started successfully ✅"
     echo ""
     echo "   You can access the application at $WEB_URL"
     echo ""
@@ -362,7 +362,7 @@ function viewStatus() {
     docker stack ps "$stack_name"
 }
 
-function redeployStack() {   
+function redeployStack() {
     removeStack
     echo "ReDeploying ${stack_name} stack..."
     deployStack
@@ -375,7 +375,7 @@ function upgrade() {
         echo "Stack name not found"
         exit 1
     fi
-    
+
     local latest_release=$(checkLatestRelease)
 
     echo ""
@@ -415,7 +415,7 @@ function upgrade() {
 
 function viewSpecificLogs() {
     local service=$1
-    
+
     # Input validation
     if [ -z "$service" ]; then
         echo "Error: Please specify a service name"
@@ -449,7 +449,7 @@ function viewSpecificLogs() {
             # Use regular arrays instead of associative arrays
             container_ids=()
             container_names=()
-            
+
             while read -r container_id; do
                 if [ -n "$container_id" ]; then
                     local container_name=$(docker inspect --format '{{.Name}}' "$container_id" | sed 's/\///')
@@ -459,7 +459,7 @@ function viewSpecificLogs() {
                     i=$((i+1))
                 fi
             done <<< "$running_containers"
-            
+
             echo -e "\nPlease select a container number:"
             read -r selection
 
@@ -468,11 +468,11 @@ function viewSpecificLogs() {
                 clear
                 echo "Showing logs for container: ${container_names[$selection]}"
                 echo "Press Ctrl+C or 'q' to return to container selection"
-                
+
                 # Start watching logs in the background
                 docker container logs -f "$selected_container" &
                 local log_pid=$!
-                
+
                 while true; do
                     read -r -n 1 input
                     if [[ $input == "q" ]]; then
@@ -493,7 +493,7 @@ function viewSpecificLogs() {
             echo "Press Ctrl+C or 'q' to exit logs"
             docker container logs -f "$running_containers" &
             local log_pid=$!
-            
+
             while true; do
                 read -r -n 1 input
                 if [[ $input == "q" ]]; then
@@ -508,7 +508,7 @@ function viewSpecificLogs() {
 }
 
 function viewLogs(){
-    
+
     ARG_SERVICE_NAME=$2
     if [ -z "$ARG_SERVICE_NAME" ];
     then
@@ -526,8 +526,8 @@ function viewLogs(){
         echo "   10) Minio"
         echo "   11) RabbitMQ"
         echo "   0) Back to Main Menu"
-        echo 
-        read -p "Service: " DOCKER_SERVICE_NAME 
+        echo
+        read -p "Service: " DOCKER_SERVICE_NAME
 
         until (( DOCKER_SERVICE_NAME >= 0 && DOCKER_SERVICE_NAME <= 11 )); do
             echo "Invalid selection. Please enter a number between 0 and 11."
@@ -546,10 +546,10 @@ function viewLogs(){
                 5) viewSpecificLogs "beat-worker";;
                 6) viewSpecificLogs "migrator";;
                 7) viewSpecificLogs "proxy";;
-                8) viewSpecificLogs "pi-dash-redis";;
-                9) viewSpecificLogs "pi-dash-db";;
-                10) viewSpecificLogs "pi-dash-minio";;
-                11) viewSpecificLogs "pi-dash-mq";;
+                8) viewSpecificLogs "karma-team-redis";;
+                9) viewSpecificLogs "karma-team-db";;
+                10) viewSpecificLogs "karma-team-minio";;
+                11) viewSpecificLogs "karma-team-mq";;
                 0) askForAction;;
                 *) echo "INVALID SERVICE NAME SUPPLIED";;
             esac
@@ -565,10 +565,10 @@ function viewLogs(){
             beat-worker) viewSpecificLogs "beat-worker";;
             migrator) viewSpecificLogs "migrator";;
             proxy) viewSpecificLogs "proxy";;
-            redis) viewSpecificLogs "pi-dash-redis";;
-            postgres) viewSpecificLogs "pi-dash-db";;
-            minio) viewSpecificLogs "pi-dash-minio";;
-            rabbitmq) viewSpecificLogs "pi-dash-mq";;
+            redis) viewSpecificLogs "karma-team-redis";;
+            postgres) viewSpecificLogs "karma-team-db";;
+            minio) viewSpecificLogs "karma-team-minio";;
+            rabbitmq) viewSpecificLogs "karma-team-mq";;
             *) echo "INVALID SERVICE NAME SUPPLIED";;
         esac
     else
@@ -592,7 +592,7 @@ function askForAction() {
         echo "   5) Upgrade"
         echo "   6) View Logs"
         echo "   7) Exit"
-        echo 
+        echo
         read -p "Action [3]: " ACTION
         until [[ -z "$ACTION" || "$ACTION" =~ ^[1-6]$ ]]; do
             echo "$ACTION: invalid selection."

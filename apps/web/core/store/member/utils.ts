@@ -5,8 +5,8 @@
  */
 
 // Types and utilities for member filtering
-import type { EUserPermissions, TMemberOrderByOptions } from "@pi-dash/constants";
-import type { IUserLite, TProjectMembership } from "@pi-dash/types";
+import type { EUserPermissions, TMemberOrderByOptions } from "@karma-team/constants";
+import type { IUserLite, TProjectMembership } from "@karma-team/types";
 
 export interface IMemberFilters {
   order_by?: TMemberOrderByOptions;

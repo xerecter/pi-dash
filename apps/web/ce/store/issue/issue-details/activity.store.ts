@@ -7,18 +7,18 @@
 import { concat, orderBy, set, uniq, update } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash package imports
-import type { E_SORT_ORDER } from "@pi-dash/constants";
-import { EActivityFilterType } from "@pi-dash/constants";
+// karma-team package imports
+import type { E_SORT_ORDER } from "@karma-team/constants";
+import { EActivityFilterType } from "@karma-team/constants";
 import type {
   TIssueActivityComment,
   TIssueActivity,
   TIssueActivityMap,
   TIssueActivityIdMap,
   TIssueServiceType,
-} from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
-// pi dash web constants
+} from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
+// karma-team web constants
 // services
 import { IssueActivityService } from "@/services/issue";
 // store

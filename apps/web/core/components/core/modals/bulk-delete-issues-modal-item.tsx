@@ -7,9 +7,9 @@
 import { observer } from "mobx-react";
 import { Combobox } from "@headlessui/react";
 // hooks
-import type { ISearchIssueResponse } from "@pi-dash/types";
-// pi dash web hooks
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+import type { ISearchIssueResponse } from "@karma-team/types";
+// karma-team web hooks
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 
 interface Props {
   issue: ISearchIssueResponse;

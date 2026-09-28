@@ -5,13 +5,13 @@
  */
 
 import Link from "next/link";
-import { PiSymbol } from "@pi-dash/propel/icons";
+import { KarmaTeamSymbol } from "@karma-team/propel/icons";
 
 export function AuthHeader() {
   return (
     <div className="sticky top-0 flex w-full flex-shrink-0 items-center justify-between gap-6">
       <Link href="/">
-        <PiSymbol height={28} width={52} className="text-primary" />
+        <KarmaTeamSymbol height={28} width={52} className="text-primary" />
       </Link>
     </div>
   );

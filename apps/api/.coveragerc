@@ -1,5 +1,5 @@
 [run]
-source = pi dash
+source = karma-team
 omit =
     */tests/*
     */migrations/*

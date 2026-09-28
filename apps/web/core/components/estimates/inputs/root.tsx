@@ -4,11 +4,11 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TEstimateSystemKeys } from "@pi-dash/types";
-import { EEstimateSystem } from "@pi-dash/types";
-// pi dash web imports
-import { EstimateTimeInput } from "@/pi-dash-web/components/estimates/inputs";
+// karma-team imports
+import type { TEstimateSystemKeys } from "@karma-team/types";
+import { EEstimateSystem } from "@karma-team/types";
+// karma-team web imports
+import { EstimateTimeInput } from "@/karma-team-web/components/estimates/inputs";
 // local imports
 import { EstimateNumberInput } from "./number-input";
 import { EstimateTextInput } from "./text-input";

@@ -5,8 +5,8 @@
  */
 
 import useSWR from "swr";
-import type { ISchedulerOccurrence, ISchedulerOccurrenceResponse } from "@pi-dash/services";
-import { SchedulerService } from "@pi-dash/services";
+import type { ISchedulerOccurrence, ISchedulerOccurrenceResponse } from "@karma-team/services";
+import { SchedulerService } from "@karma-team/services";
 
 // Shared singleton so the calendar root and the hook talk to one client.
 export const schedulerService = new SchedulerService();

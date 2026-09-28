@@ -4,6 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { TExtendedLoginMediums } from "@pi-dash/types";
+import type { TExtendedLoginMediums } from "@karma-team/types";
 
 export const EXTENDED_LOGIN_MEDIUM_LABELS: Record<TExtendedLoginMediums, string> = {};

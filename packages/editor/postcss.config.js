@@ -1,3 +1,3 @@
-import postcssConfig from "@pi-dash/tailwind-config/postcss.config.js";
+import postcssConfig from "@karma-team/tailwind-config/postcss.config.js";
 
 export default postcssConfig;

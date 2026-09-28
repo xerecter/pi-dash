@@ -6,15 +6,15 @@
 
 import { useCallback, useMemo } from "react";
 import { XCircle, ArchiveRestoreIcon, FolderInput } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon, CopyIcon, NewTabIcon, EditIcon, ArchiveIcon, TrashIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { EIssuesStoreType, TIssue } from "@pi-dash/types";
-import type { TContextMenuItem } from "@pi-dash/ui";
-import { copyUrlToClipboard, generateWorkItemLink } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon, CopyIcon, NewTabIcon, EditIcon, ArchiveIcon, TrashIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { EIssuesStoreType, TIssue } from "@karma-team/types";
+import type { TContextMenuItem } from "@karma-team/ui";
+import { copyUrlToClipboard, generateWorkItemLink } from "@karma-team/utils";
 // types
-import { createCopyMenuWithDuplication } from "@/pi-dash-web/components/issues/issue-layouts/quick-action-dropdowns";
+import { createCopyMenuWithDuplication } from "@/karma-team-web/components/issues/issue-layouts/quick-action-dropdowns";
 
 // Generic helper function to handle optional function calls gracefully
 // Overload for functions without parameters

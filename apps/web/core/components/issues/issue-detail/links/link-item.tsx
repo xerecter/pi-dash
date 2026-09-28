@@ -6,15 +6,15 @@
 
 import { observer } from "mobx-react";
 
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon, CopyIcon, EditIcon, TrashIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon, CopyIcon, EditIcon, TrashIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // ui
-import { CustomMenu } from "@pi-dash/ui";
-import { calculateTimeAgo, copyTextToClipboard } from "@pi-dash/utils";
+import { CustomMenu } from "@karma-team/ui";
+import { calculateTimeAgo, copyTextToClipboard } from "@karma-team/utils";
 // helpers
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";

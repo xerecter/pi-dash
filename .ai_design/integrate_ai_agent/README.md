@@ -1,7 +1,7 @@
-# Pi Dash AI Assistant — Design
+# karma-team AI Assistant — Design
 
 End-to-end design for integrating a multi-tenant AI agent ("Assistant") natively into the
-pi-dash cloud backend, serving all tenants from one stateless agent runtime.
+karma-team cloud backend, serving all tenants from one stateless agent runtime.
 
 ## Documents
 
@@ -10,20 +10,20 @@ pi-dash cloud backend, serving all tenants from one stateless agent runtime.
 | [01-overview.md](01-overview.md)                 | Goals, requirements, product decisions, system architecture                             |
 | [02-backend.md](02-backend.md)                   | Django app, models, agent runtime (Pydantic AI), tools, access control, streaming, BYOK |
 | [03-frontend.md](03-frontend.md)                 | Chat box on landing page, SSE streaming UI, settings UI                                 |
-| [04-cloud.md](04-cloud.md)                       | Private pi-dash cloud gating: plans, quotas, future platform keys                       |
+| [04-cloud.md](04-cloud.md)                       | Private karma-team cloud gating: plans, quotas, future platform keys                    |
 | [05-rollout.md](05-rollout.md)                   | Phasing, testing, risks, open questions                                                 |
 | [06-chat-ui-refactor.md](06-chat-ui-refactor.md) | Shared chat kit: extraction of runner chat UI into reusable components                  |
 
 ## Requirements (from product owner, 2026-06-11)
 
-1. Code lives in the **OSS pi-dash repo**, cloud side (Django API + web app) — not in the local runner daemon.
-2. Chat history stored in the **existing pi-dash Postgres DB**.
+1. Code lives in the **OSS karma-team repo**, cloud side (Django API + web app) — not in the local runner daemon.
+2. Chat history stored in the **existing karma-team Postgres DB**.
 3. Chat box lives on the **landing page** (authenticated workspace home).
-4. Agent has **tools to operate pi-dash on the user's behalf**: query projects/issues, create issues,
+4. Agent has **tools to operate karma-team on the user's behalf**: query projects/issues, create issues,
    comment, etc. — anything a user can do manually. Multi-turn **agent loop**, not fire-and-forget.
 5. **Access control parity (critical):** the agent must see/do exactly what the requesting user could
    see/do by clicking through the UI. No privilege escalation, no cross-tenant leakage.
-6. In private pi-dash cloud, **free users get the assistant from day 1 via BYOK**
+6. In private karma-team cloud, **free users get the assistant from day 1 via BYOK**
    (own LLM API key + model + provider URL in user settings). Paid users later get
    platform-provided keys with no setup.
 

@@ -5,11 +5,11 @@
  */
 
 import { BarChart2, Briefcase, FileText, Home, Inbox, Layers, PenSquare, Settings } from "lucide-react";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { ArchiveIcon, UserActivityIcon, LayersIcon, ContrastIcon, DiceIcon, Intake } from "@pi-dash/propel/icons";
-import type { ICycle, IModule, IPartialProject, IProjectView, IWorkspace } from "@pi-dash/types";
-import { EUserProjectRoles, EUserWorkspaceRoles } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { ArchiveIcon, UserActivityIcon, LayersIcon, ContrastIcon, DiceIcon, Intake } from "@karma-team/propel/icons";
+import type { ICycle, IModule, IPartialProject, IProjectView, IWorkspace } from "@karma-team/types";
+import { EUserProjectRoles, EUserWorkspaceRoles } from "@karma-team/types";
 // components
 import type { TPowerKCommandConfig, TPowerKContext } from "@/components/power-k/core/types";
 import { handlePowerKNavigate } from "@/components/power-k/utils/navigation";

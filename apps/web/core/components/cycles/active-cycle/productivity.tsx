@@ -8,10 +8,10 @@ import { Fragment } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { ICycle, TCycleEstimateType } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { ICycle, TCycleEstimateType } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
 // assets
 import darkChartAsset from "@/app/assets/empty-state/active-cycle/chart-dark.webp?url";
 import lightChartAsset from "@/app/assets/empty-state/active-cycle/chart-light.webp?url";
@@ -32,7 +32,7 @@ export const ActiveCycleProductivity = observer(function ActiveCycleProductivity
   const { workspaceSlug, projectId, cycle } = props;
   // theme hook
   const { resolvedTheme } = useTheme();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // hooks
   const { getEstimateTypeByCycleId, setEstimateType } = useCycle();
@@ -94,7 +94,10 @@ export const ActiveCycleProductivity = observer(function ActiveCycleProductivity
         ) : (
           <>
             <div className="flex h-full w-full items-center justify-center">
-              <SimpleEmptyState title={t("Add work items to the cycle to view the burndown chart.")} assetPath={resolvedPath} />
+              <SimpleEmptyState
+                title={t("Add work items to the cycle to view the burndown chart.")}
+                assetPath={resolvedPath}
+              />
             </div>
           </>
         )}

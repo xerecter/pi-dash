@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { useTranslation } from "@pi-dash/i18n";
-import { Input } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { Input } from "@karma-team/ui";
 
 type Props = {
   value: string;

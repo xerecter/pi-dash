@@ -91,7 +91,7 @@ fn config_lock_path(paths: &Paths) -> std::path::PathBuf {
 /// All `config.toml` mutators (CLI subcommands plus the daemon's
 /// per-runner cascade-uninstall) must go through this helper — without
 /// it, two concurrent writers will lose changes via last-writer-wins.
-/// The lock is host-wide (not per-runner) so a `pidash runner add` and
+/// The lock is host-wide (not per-runner) so a `karma-team runner add` and
 /// the daemon's RemoveRunner handler can't race each other.
 ///
 /// The closure receives `&mut Config` already loaded from disk and
@@ -117,7 +117,7 @@ where
 /// it as normal. Returning `None` from ``init`` preserves the strict
 /// [`mutate_config`] behaviour (propagate the NotFound error).
 ///
-/// Exists so `pidash runner add` / `pidash connect` can serialise the
+/// Exists so `karma-team runner add` / `karma-team connect` can serialise the
 /// first-runner write against the same `.config.lock` the daemon's
 /// `RemoveRunner` strip uses, instead of taking the legacy unlocked
 /// read-then-write path that loses a write on race.
@@ -287,7 +287,7 @@ mod tests {
                 auto_update: true,
             },
             runners: vec![sample_runner("t", tmp.path().join("wd"))],
-        cli: None,
+            cli: None,
         };
         write_config(&paths, &cfg).unwrap();
         let loaded = load_config(&paths).unwrap();
@@ -308,7 +308,7 @@ mod tests {
         // A config.toml written without a `workspace_slug = ...` line under
         // [[runner]] must still parse, with the field defaulting to None.
         // The CRUD subcommands will detect the None and error with a clear
-        // "rerun pidash configure" message.
+        // "rerun karma-team configure" message.
         let tmp = tempdir().unwrap();
         let paths = paths_for(tmp.path());
         std::fs::create_dir_all(&paths.config_dir).unwrap();
@@ -348,14 +348,14 @@ binary = "codex"
             connection_id: uuid::Uuid::new_v4(),
             connection_secret: "apd_cs_test".into(),
             connection_name: Some("connection_001".into()),
-            api_token: Some("pi_dash_api_test".into()),
+            api_token: Some("karma_team_api_test".into()),
             issued_at: chrono::Utc::now(),
         };
         write_credentials(&paths, &creds).unwrap();
         let loaded = load_credentials(&paths).unwrap();
         assert_eq!(loaded.connection_secret, "apd_cs_test");
         assert_eq!(loaded.connection_name.as_deref(), Some("connection_001"));
-        assert_eq!(loaded.api_token.as_deref(), Some("pi_dash_api_test"));
+        assert_eq!(loaded.api_token.as_deref(), Some("karma_team_api_test"));
     }
 
     #[test]
@@ -518,7 +518,7 @@ model_default = "o4-mini"
                 sample_runner("a", tmp.path().join("wd-a")),
                 sample_runner("b", tmp.path().join("wd-b")),
             ],
-        cli: None,
+            cli: None,
         };
         write_config(&paths, &cfg).unwrap();
 
@@ -544,11 +544,11 @@ model_default = "o4-mini"
     #[test]
     fn mutate_config_strips_one_runner_leaves_others() {
         // The daemon's `ServerMsg::RemoveRunner` handler and the CLI's
-        // `pidash runner remove` both call `mutate_config` with a
+        // `karma-team runner remove` both call `mutate_config` with a
         // closure that retains every block whose `runner_id` does NOT
         // match the target. Verify the on-disk file ends up with
         // exactly the other runners, and the systemd unit name (the
-        // shared `pidash.service`) is not expressed in this layer at
+        // shared `karma-team.service`) is not expressed in this layer at
         // all — config.toml is per-runner, the unit isn't touched.
         let tmp = tempdir().unwrap();
         let paths = paths_for(tmp.path());
@@ -599,7 +599,7 @@ model_default = "o4-mini"
                 auto_update: true,
             },
             runners: vec![sample_runner("keep", tmp.path().join("wd"))],
-        cli: None,
+            cli: None,
         };
         write_config(&paths, &cfg).unwrap();
 

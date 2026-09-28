@@ -6,9 +6,9 @@
 
 import type { Editor } from "@tiptap/react";
 
-import { CheckIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+import { CheckIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // components
 import type { EditorMenuItem } from "@/components/menus";
 import {

@@ -5,9 +5,9 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
-// pi dash imports
-import type { EditorRefApi, IMarking } from "@pi-dash/editor";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type { EditorRefApi, IMarking } from "@karma-team/editor";
+import { cn } from "@karma-team/utils";
 // components
 import type { THeadingComponentProps } from "./heading-components";
 import { OutlineHeading1, OutlineHeading2, OutlineHeading3 } from "./heading-components";

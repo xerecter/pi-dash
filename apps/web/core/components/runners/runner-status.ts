@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { TRunnerStatus } from "@pi-dash/types";
-import type { TBadgeVariant } from "@pi-dash/ui";
+import type { TRunnerStatus } from "@karma-team/types";
+import type { TBadgeVariant } from "@karma-team/ui";
 
 export const STATUS_BADGE_VARIANT: Record<TRunnerStatus, TBadgeVariant> = {
   online: "accent-success",

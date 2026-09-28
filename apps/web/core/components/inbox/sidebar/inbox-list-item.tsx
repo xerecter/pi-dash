@@ -8,11 +8,11 @@ import type { MouseEvent } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-// pi dash imports
-import { PriorityIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { Row, Avatar } from "@pi-dash/ui";
-import { cn, renderFormattedDate, getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { PriorityIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { Row, Avatar } from "@karma-team/ui";
+import { cn, renderFormattedDate, getFileURL } from "@karma-team/utils";
 // components
 import { ButtonAvatars } from "@/components/dropdowns/member/avatar";
 // hooks
@@ -20,8 +20,8 @@ import { useLabel } from "@/hooks/store/use-label";
 import { useMember } from "@/hooks/store/use-member";
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web imports
-import { InboxSourcePill } from "@/pi-dash-web/components/inbox/source-pill";
+// karma-team web imports
+import { InboxSourcePill } from "@/karma-team-web/components/inbox/source-pill";
 // local imports
 import { InboxIssueStatus } from "../inbox-issue-status";
 
@@ -130,7 +130,7 @@ export const InboxIssueListItem = observer(function InboxIssueListItem(props: In
             </div>
             {/* created by */}
             {createdByDetails && createdByDetails.email?.includes("intake@example.com") ? (
-              <Avatar src={getFileURL("")} name={"Pi Dash"} size="md" showTooltip />
+              <Avatar src={getFileURL("")} name={"karma-team"} size="md" showTooltip />
             ) : createdByDetails ? (
               <ButtonAvatars showTooltip={false} userIds={createdByDetails?.id} />
             ) : null}

@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { IAssistantMessage, IAssistantSkippedServer } from "@pi-dash/types";
+import type { IAssistantMessage, IAssistantSkippedServer } from "@karma-team/types";
 
 /**
  * Client-only `tool_servers_skipped` notices, and how they sit in a transcript.

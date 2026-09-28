@@ -6,11 +6,11 @@
 
 import { useEffect, useState, Fragment } from "react";
 import { Dialog, Transition } from "@headlessui/react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import { InstanceService } from "@pi-dash/services";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import { InstanceService } from "@karma-team/services";
 // ui
-import { Input } from "@pi-dash/ui";
+import { Input } from "@karma-team/ui";
 
 type Props = {
   isOpen: boolean;

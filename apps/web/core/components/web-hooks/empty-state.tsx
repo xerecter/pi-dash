@@ -6,7 +6,7 @@
 
 import React from "react";
 // ui
-import { Button } from "@pi-dash/propel/button";
+import { Button } from "@karma-team/propel/button";
 // assets
 import EmptyWebhook from "@/app/assets/empty-state/web-hook.svg?url";
 

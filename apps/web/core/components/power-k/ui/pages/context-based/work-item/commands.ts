@@ -18,14 +18,14 @@ import {
   UserPlus2,
   Users,
 } from "lucide-react";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon, TrashIcon, ContrastIcon, DiceIcon, DoubleCircleIcon } from "@pi-dash/propel/icons";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import type { ICycle, IIssueLabel, IModule, TIssue, TIssuePriorities } from "@pi-dash/types";
-import { EIssueServiceType, EUserPermissions } from "@pi-dash/types";
-import { copyTextToClipboard } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon, TrashIcon, ContrastIcon, DiceIcon, DoubleCircleIcon } from "@karma-team/propel/icons";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import type { ICycle, IIssueLabel, IModule, TIssue, TIssuePriorities } from "@karma-team/types";
+import { EIssueServiceType, EUserPermissions } from "@karma-team/types";
+import { copyTextToClipboard } from "@karma-team/utils";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks
@@ -124,9 +124,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
       setToast({
         type: TOAST_TYPE.SUCCESS,
         title: t("Success!"),
-        message: isSubscribed
-          ? t("Work item unsubscribed successfully")
-          : t("Work item subscribed successfully"),
+        message: isSubscribed ? t("Work item unsubscribed successfully") : t("Work item subscribed successfully"),
       });
     } catch {
       setToast({
@@ -255,9 +253,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
     },
     {
       id: "assign_work_item_to_me",
-      i18n_title: isCurrentUserAssigned
-        ? "Un-assign from me"
-        : "Assign to me",
+      i18n_title: isCurrentUserAssigned ? "Un-assign from me" : "Assign to me",
       icon: isCurrentUserAssigned ? UserMinus2 : UserPlus2,
       group: "contextual",
       contextType: "work-item",
@@ -388,9 +384,7 @@ export const usePowerKWorkItemContextBasedCommands = (): TPowerKCommandConfig[] 
     },
     {
       id: "subscribe_work_item",
-      i18n_title: isSubscribed
-        ? "Unsubscribe from notifications"
-        : "Subscribe to notifications",
+      i18n_title: isSubscribed ? "Unsubscribe from notifications" : "Subscribe to notifications",
       icon: isSubscribed ? BellOff : Bell,
       group: "contextual",
       contextType: "work-item",

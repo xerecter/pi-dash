@@ -6,11 +6,11 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { DEFAULT_PRODUCT_BILLING_FREQUENCY, SUBSCRIPTION_WITH_BILLING_FREQUENCY } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TBillingFrequency, TProductBillingFrequency } from "@pi-dash/types";
-import { EProductSubscriptionEnum } from "@pi-dash/types";
+// karma-team imports
+import { DEFAULT_PRODUCT_BILLING_FREQUENCY, SUBSCRIPTION_WITH_BILLING_FREQUENCY } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { TBillingFrequency, TProductBillingFrequency } from "@karma-team/types";
+import { EProductSubscriptionEnum } from "@karma-team/types";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 import { SettingsHeading } from "@/components/settings/heading";

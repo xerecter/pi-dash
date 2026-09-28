@@ -5,15 +5,15 @@
  */
 
 import { compact, isEqual, sortBy } from "lodash-es";
-// pi dash imports
+// karma-team imports
 import type {
   TFilterConditionNode,
   TFilterExpression,
   TFilterGroupNode,
   TFilterProperty,
   TFilterValue,
-} from "@pi-dash/types";
-import { FILTER_NODE_TYPE } from "@pi-dash/types";
+} from "@karma-team/types";
+import { FILTER_NODE_TYPE } from "@karma-team/types";
 // local imports
 import { isConditionNode, isGroupNode } from "../types/core";
 import { processGroupNode } from "../types/shared";

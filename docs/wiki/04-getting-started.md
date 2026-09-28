@@ -15,15 +15,15 @@ This is the from-zero contributor onboarding. For the production install paths s
 ## First-time bootstrap
 
 ```bash
-git clone https://github.com/The-AI-Republic/pi-dash.git
-cd pi-dash
+git clone https://github.com/xerecter/karma-team.git
+cd karma-team
 chmod +x setup.sh
 ./setup.sh
 ```
 
 `setup.sh` does three things:
 
-1. **Copies every `.env.example` to `.env`** — repo root plus `apps/{web,api,space,admin,live}`. The defaults work out of the box for loopback dev (localhost URLs, `pi-dash` Postgres creds, local MinIO endpoint). Only edit `.env` files if you're binding to a non-default host or wiring in external services.
+1. **Copies every `.env.example` to `.env`** — repo root plus `apps/{web,api,space,admin,live}`. The defaults work out of the box for loopback dev (localhost URLs, `karma-team` Postgres creds, local MinIO endpoint). Only edit `.env` files if you're binding to a non-default host or wiring in external services.
 2. **Generates a unique Django `SECRET_KEY`** and appends it to `apps/api/.env`.
 3. **Runs `pnpm install`** for the TS workspace.
 
@@ -58,11 +58,11 @@ Turbo launches every dev server concurrently. Watch the output for any one that 
 1. Open **`http://localhost:3001/god-mode/`** and register yourself as the **instance admin**. You only do this once per instance.
 2. Open **`http://localhost:3000`** and log in with the same credentials. This is the actual product.
 3. Create a workspace → create a project → invite yourself.
-4. (Optional, for runner work) install the `pidash` CLI and point it at `http://localhost:8000` (or whatever the API exposes locally) — see [11 — Authentication](./11-authentication.md) for device-code login.
+4. (Optional, for runner work) install the `karma-team` CLI and point it at `http://localhost:8000` (or whatever the API exposes locally) — see [11 — Authentication](./11-authentication.md) for device-code login.
 
 ## Common gotchas
 
-- **Django defaults to `production` settings.** `manage.py` sets `DJANGO_SETTINGS_MODULE=pi_dash.settings.production`. For local work either export `DJANGO_SETTINGS_MODULE=pi_dash.settings.local` or use the helper scripts under `apps/api/`.
+- **Django defaults to `production` settings.** `manage.py` sets `DJANGO_SETTINGS_MODULE=karma_team.settings.production`. For local work either export `DJANGO_SETTINGS_MODULE=karma_team.settings.local` or use the helper scripts under `apps/api/`.
 - **Turbo concurrency = 18.** If `pnpm dev` is choking your machine, lower it: `pnpm turbo run dev --concurrency=8`.
 - **OxLint warning ceilings will block your commit.** Each app pins a `--max-warnings` ceiling in its `package.json`. Adding warnings past the ceiling fails `check:lint` and trips the pre-commit hook. Either fix the warning or — if you legitimately removed some — _lower_ the ceiling, don't raise it.
 - **Husky + lint-staged run `oxfmt` and `oxlint --fix --deny-warnings` on commit.** A hook failure means the commit didn't happen — fix the underlying issue and re-commit, do **not** `--no-verify`.

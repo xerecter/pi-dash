@@ -5,9 +5,9 @@
  */
 
 import { orderBy } from "lodash-es";
-// pi dash imports
-import type { IPaymentProduct, TProductSubscriptionType, TSubscriptionPrice } from "@pi-dash/types";
-import { EProductSubscriptionEnum } from "@pi-dash/types";
+// karma-team imports
+import type { IPaymentProduct, TProductSubscriptionType, TSubscriptionPrice } from "@karma-team/types";
+import { EProductSubscriptionEnum } from "@karma-team/types";
 
 /**
  * Calculates the yearly discount percentage when switching from monthly to yearly billing

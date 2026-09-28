@@ -5,10 +5,10 @@
  */
 
 import { useCallback, useMemo } from "react";
-// pi dash editor
-import type { TMentionSection } from "@pi-dash/editor";
-// pi dash types
-import type { TSearchEntities, TSearchResponse } from "@pi-dash/types";
+// karma-team editor
+import type { TMentionSection } from "@karma-team/editor";
+// karma-team types
+import type { TSearchEntities, TSearchResponse } from "@karma-team/types";
 
 export type TUseAdditionalEditorMentionArgs = {
   enableAdvancedMentions: boolean;

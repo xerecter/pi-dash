@@ -5,9 +5,9 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import { AssistantService } from "@pi-dash/services";
+import { AssistantService } from "@karma-team/services";
 
-// Wire contract with apps/api/pi_dash/assistant/views/transcribe.py, which
+// Wire contract with apps/api/karma_team/assistant/views/transcribe.py, which
 // reads the recording from `request.FILES["file"]` (the OpenAI-compatible field
 // name). The hook tests mock this service wholesale, so without this test a
 // field-name drift ships green and every real dictation fails with `no_audio`.

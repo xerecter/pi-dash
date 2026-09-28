@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { EViewAccess } from "@pi-dash/types";
+import { EViewAccess } from "@karma-team/types";
 
 export const VIEW_ACCESS_SPECIFIERS: {
   key: EViewAccess;

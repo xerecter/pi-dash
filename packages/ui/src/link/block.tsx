@@ -5,9 +5,9 @@
  */
 
 import React from "react";
-// pi dash utils
-import { calculateTimeAgo, cn, getIconForLink } from "@pi-dash/utils";
-// pi dash ui
+// karma-team utils
+import { calculateTimeAgo, cn, getIconForLink } from "@karma-team/utils";
+// karma-team ui
 import type { TContextMenuItem } from "../dropdowns/context-menu/root";
 import { CustomMenu } from "../dropdowns/custom-menu";
 

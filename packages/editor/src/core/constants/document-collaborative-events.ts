@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { EPageAccess } from "@pi-dash/constants";
-import type { TPage } from "@pi-dash/types";
+import type { EPageAccess } from "@karma-team/constants";
+import type { TPage } from "@karma-team/types";
 import type { CreatePayload, BaseActionPayload } from "@/types";
 
 // Define all payload types for each event.

@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash ui
-import { Loader } from "@pi-dash/ui";
+// karma-team ui
+import { Loader } from "@karma-team/ui";
 
 export function StickiesLoader() {
   return (

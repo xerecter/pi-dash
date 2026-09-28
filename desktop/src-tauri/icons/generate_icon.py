@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-"""Regenerate the master desktop icon (icon.png) from the pi-symbol geometry.
+"""Regenerate the master desktop icon (icon.png) from the karma-team-symbol geometry.
 
 Output is a 1024x1024 black squircle (rounded square, iOS-style ~22% corner
 radius) with the white dot-dash-dash-dot pi mark centered. The mark layout
-mirrors `pi-dash/pi-symbol-dark.svg` (viewBox 30 0 258 140 — marks at
+mirrors `karma-team/karma-team-symbol-dark.svg` (viewBox 30 0 258 140 — marks at
 y-center 70, height 48), scaled 3x and translated to center on the 1024
 canvas.
 

@@ -6,11 +6,11 @@
 
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-// pi dash imports
-import { PROFILE_VIEWER_TAB, PROFILE_ADMINS_TAB } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Header, EHeaderVariant } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { PROFILE_VIEWER_TAB, PROFILE_ADMINS_TAB } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Header, EHeaderVariant } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   isAuthorized: boolean;

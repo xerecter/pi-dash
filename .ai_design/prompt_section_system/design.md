@@ -25,7 +25,7 @@
 > create-run-then-compose because the context carries `run.id`, and
 > render failures fail the run rather than writing `binding.last_error`
 > (§5.3); every context guarantees `run.kind` and shared sections must
-> branch on it, never probe object presence — today's `pidash-cli`
+> branch on it, never probe object presence — today's `karma-team-cli`
 > fragment references `issue.*` throughout and gets a guard pass in
 > PR 2 (§5.2); the override uniqueness constraint is split into two
 > partial constraints because Postgres NULL-distinctness +
@@ -56,7 +56,7 @@
 > (`prompting/context.py`), and `composer.build_first_turn()` as the
 > single entrypoint. The review template is a hand-written monolith in
 > `seed.py` that shares nothing with the coding-task fragments (it does
-> not even include the Pi Dash CLI section). The project scheduler
+> not even include the karma-team CLI section). The project scheduler
 > (`.ai_design/project_scheduler/`) bypasses the composer entirely:
 > `bgtasks/scheduler.py` string-concatenates `Scheduler.prompt` +
 > `SchedulerBinding.extra_context` and `dispatch_scheduler_run()` stores
@@ -78,7 +78,7 @@ Four goals drive this redesign:
    omits) shared content by hand.
 3. **Make user customization real.** Each user should be able to
    customize _their own_ prompt sections. Some sections are
-   non-customizable (e.g., how to use the `pidash` CLI — the
+   non-customizable (e.g., how to use the `karma-team` CLI — the
    orchestration contract), some are fully overridable (e.g., how to
    approach In Progress issues). This requires a section taxonomy,
    customizable/locked labeling, and per-user override storage.
@@ -106,9 +106,9 @@ out of that change.
                  └───────────────┬───────────────────────────────┘
                                  │ default bodies
 Recipes (code)                   ▼
- coding-task: [intro, framing, pidash-cli*, ..., ending]     ┌─ Overrides (DB) ─┐
- review:      [intro, framing, pidash-cli*, review-cycle…]   │ user-scoped      │
- scheduler:   [sched-intro, pidash-cli*, task-body, …]       │ workspace-scoped │
+ coding-task: [intro, framing, karma-team-cli*, ..., ending]     ┌─ Overrides (DB) ─┐
+ review:      [intro, framing, karma-team-cli*, review-cycle…]   │ user-scoped      │
+ scheduler:   [sched-intro, karma-team-cli*, task-body, …]       │ workspace-scoped │
                                  │                            └────────┬─────────┘
                                  ▼                                     │
                   compose(kind, workspace, project, user, context) ◄───┘
@@ -146,12 +146,12 @@ a markdown file with YAML front-matter:
 
 ```markdown
 ---
-key: pidash-cli
-title: Pi Dash CLI usage
+key: karma-team-cli
+title: karma-team CLI usage
 customizable: locked # locked | overridable
 ---
 
-## Pi Dash CLI (`pidash`)
+## karma-team CLI (`karma-team`)
 
 ...body, markdown + Jinja, same as fragments today...
 ```
@@ -160,7 +160,7 @@ customizable: locked # locked | overridable
   Renaming a key is a migration (it orphans overrides; see §6.4).
 - `customizable: locked` — the platform-level ceiling. Locked sections
   never consult the override chain. Locked v1 set: everything that
-  orchestration _parses or depends on_ — `pidash-cli`,
+  orchestration _parses or depends on_ — `karma-team-cli`,
   `session-framing`, `state-routing`, `blocking`, `guardrails`,
   `ending-run` (done-signal vocabulary), `workpad-template`.
 - `customizable: overridable` — opinion/style sections:
@@ -199,9 +199,9 @@ of being silently skipped.)
 - The review monolith (`seed.py::REVIEW_TEMPLATE_BODY`) splits into:
   a `review-intro` section (issue context header for review),
   `review-cycle` (steps 1–2: decide kind, run the cycle), and reuses
-  shared `session-framing`, `pidash-cli`, `guardrails`, and a
+  shared `session-framing`, `karma-team-cli`, `guardrails`, and a
   review-aware `ending-run`. **This fixes a live defect: today's
-  review prompt instructs the agent to use `pidash` commands but never
+  review prompt instructs the agent to use `karma-team` commands but never
   includes the CLI documentation.**
 - New scheduler sections: `scheduler-intro` (framing: scheduled agent
   for project X, no issue), `scheduler-task` (dynamic body, §5),
@@ -213,13 +213,13 @@ of being silently skipped.)
 
 ```python
 RECIPES: dict[str, tuple[str, ...]] = {
-    "coding-task": ("intro", "session-framing", "pidash-cli", "default-posture",
+    "coding-task": ("intro", "session-framing", "karma-team-cli", "default-posture",
                     "autonomy", "state-routing", "analyze-and-scope",
                     "workpad-setup", "implementation", "blocking", "guardrails",
                     "workpad-template", "ending-run"),
-    "review":      ("review-intro", "session-framing", "pidash-cli",
+    "review":      ("review-intro", "session-framing", "karma-team-cli",
                     "review-cycle", "guardrails", "ending-run"),
-    "scheduler":   ("scheduler-intro", "session-framing", "pidash-cli",
+    "scheduler":   ("scheduler-intro", "session-framing", "karma-team-cli",
                     "scheduler-task", "guardrails", "scheduler-ending"),
 }
 ```
@@ -304,13 +304,13 @@ name — `build_context` adds `run.kind` in PR 1). Because the renderer
 uses `StrictUndefined`, shared sections must branch on **`run.kind`**
 (always defined) and must never probe for the _presence_ of
 kind-specific objects (`{% if issue %}` raises on an undefined name).
-This matters immediately: today's `pidash-cli` fragment references
+This matters immediately: today's `karma-team-cli` fragment references
 `{{ issue.identifier }}` and `{{ issue.project_states }}` throughout,
 so PR 2 includes a content pass over every section shared into the
-scheduler recipe (`session-framing`, `pidash-cli`, `guardrails`),
+scheduler recipe (`session-framing`, `karma-team-cli`, `guardrails`),
 guarding issue-specific lines with `{% if run.kind != "scheduler" %}`
 (or scheduler-appropriate alternatives — e.g. the CLI section's
-environment block describes `PIDASH_ISSUE_IDENTIFIER` only for issue
+environment block describes `KARMA_TEAM_ISSUE_IDENTIFIER` only for issue
 kinds). The §6.3 dual-sample validation and the §3.2 CI check both
 render every kind's full default prompt, so an unguarded reference
 fails CI, not production.
@@ -583,7 +583,7 @@ composition. Two hazards in the window must be handled **in PR 1**:
 
 - `composer.load_template()` and the seed machinery
   (`seed_default_template*`, `reseed_default_template` command, the
-  `post_migrate` receiver, `PI_DASH_SKIP_PROMPT_SEED`) are deleted —
+  `post_migrate` receiver, `KARMA_TEAM_SKIP_PROMPT_SEED`) are deleted —
   defaults are code, so there is no DB sync and the
   `PromptTemplateNotFound` / "did the seed migration run?" failure
   mode disappears.
@@ -708,7 +708,7 @@ Four PRs, each shippable:
 - **PR 1 — Registry + recipes + compose-time assembly.**
   `prompting/sections/` with front-matter, `recipes.py`, new
   `compose()`; port `coding-task` and `review` onto it; split the
-  review monolith into sections (review gains `pidash-cli` /
+  review monolith into sections (review gains `karma-team-cli` /
   `session-framing` — the one intended behavior change); `run.kind`
   added to `build_context` (§5.2 base-context contract); transition
   guards per §8.1 (legacy workspace-row fallback; seed machinery

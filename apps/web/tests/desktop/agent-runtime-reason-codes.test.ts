@@ -8,7 +8,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { AGENT_RUNTIME_REASON_MESSAGES } from "@/pi-dash-web/components/desktop/agent-runtime-edition";
+import { AGENT_RUNTIME_REASON_MESSAGES } from "@/karma-team-web/components/desktop/agent-runtime-edition";
 
 // Guards against the desktop copy map drifting from the reason codes the
 // backend actually emits. Two things go wrong when they drift: a backend code
@@ -20,7 +20,7 @@ import { AGENT_RUNTIME_REASON_MESSAGES } from "@/pi-dash-web/components/desktop/
 // to `import.meta.url`: Vite rewrites any path outside the web root (apps/web)
 // to an `http://.../@fs/...` URL that `readFileSync` cannot open.
 const thisDir = path.dirname(fileURLToPath(import.meta.url));
-const errorsPy = path.resolve(thisDir, "../../../../apps/api/pi_dash/managed_runner/errors.py");
+const errorsPy = path.resolve(thisDir, "../../../../apps/api/karma_team/managed_runner/errors.py");
 
 /** String values declared on the `ManagedRunnerReason` class in errors.py. */
 function managedRunnerReasonCodes(): string[] {

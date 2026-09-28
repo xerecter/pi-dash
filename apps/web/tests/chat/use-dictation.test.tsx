@@ -14,7 +14,7 @@ const { getSTTConfig, transcribeAudio } = vi.hoisted(() => ({
   transcribeAudio: vi.fn(),
 }));
 
-vi.mock("@pi-dash/services", () => ({
+vi.mock("@karma-team/services", () => ({
   AssistantService: class {
     getSTTConfig = getSTTConfig;
     transcribeAudio = transcribeAudio;
@@ -141,7 +141,7 @@ describe("useDictation", () => {
   });
 
   // The backend reports transcribe failures as `{ error, detail }` (see
-  // apps/api/pi_dash/assistant/views/transcribe.py). These pin that shape.
+  // apps/api/karma_team/assistant/views/transcribe.py). These pin that shape.
   it("routes a stt_config_missing response to the unconfigured state", async () => {
     transcribeAudio.mockRejectedValue({ error: "stt_config_missing", detail: "Configure dictation in Settings." });
     const onResult = vi.fn();

@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 import type { LucideIcon } from "lucide-react";
-import { MembersPropertyIcon } from "@pi-dash/propel/icons";
-// pi dash ui
-import { Avatar, AvatarGroup } from "@pi-dash/ui";
-import { cn, getFileURL } from "@pi-dash/utils";
-// pi dash utils
+import { MembersPropertyIcon } from "@karma-team/propel/icons";
+// karma-team ui
+import { Avatar, AvatarGroup } from "@karma-team/ui";
+import { cn, getFileURL } from "@karma-team/utils";
+// karma-team utils
 // helpers
 // hooks
 import { useMember } from "@/hooks/store/use-member";

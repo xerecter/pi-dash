@@ -8,11 +8,11 @@ import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { Ban } from "lucide-react";
-import { EUserProjectRoles } from "@pi-dash/types";
-// pi dash ui
-import { Avatar, CustomSearchSelect } from "@pi-dash/ui";
+import { EUserProjectRoles } from "@karma-team/types";
+// karma-team ui
+import { Avatar, CustomSearchSelect } from "@karma-team/ui";
 // helpers
-import { getFileURL } from "@pi-dash/utils";
+import { getFileURL } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 

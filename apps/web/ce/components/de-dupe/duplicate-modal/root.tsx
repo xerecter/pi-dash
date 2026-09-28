@@ -5,7 +5,7 @@
  */
 
 // types
-import type { TDeDupeIssue } from "@pi-dash/types";
+import type { TDeDupeIssue } from "@karma-team/types";
 
 type TDuplicateModalRootProps = {
   workspaceSlug: string;

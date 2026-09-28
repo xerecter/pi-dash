@@ -5,8 +5,8 @@
  */
 
 import type { ReactNode } from "react";
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 
 type TPageWrapperProps = {
   children: ReactNode;

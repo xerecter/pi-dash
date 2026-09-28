@@ -1,11 +1,11 @@
 # 02 — Backend Design
 
-New OSS Django app: **`pi_dash.assistant`** (added to `INSTALLED_APPS` in
-`pi_dash/settings/common.py`). Named "assistant" to avoid collision with the existing
+New OSS Django app: **`karma_team.assistant`** (added to `INSTALLED_APPS` in
+`karma_team/settings/common.py`). Named "assistant" to avoid collision with the existing
 runner/AgentRun vocabulary.
 
 ```
-apps/api/pi_dash/assistant/
+apps/api/karma_team/assistant/
 ├── __init__.py
 ├── apps.py
 ├── models.py            # AssistantThread, AssistantTurn, AssistantMessage, AssistantEvent, UserLLMConfig
@@ -53,7 +53,7 @@ stored rows before any bump).
 
 ## 1. Data model (authoritative schema delta)
 
-All new tables live in `pi_dash.assistant` with app-local migrations. Naming/`db_table` follows
+All new tables live in `karma_team.assistant` with app-local migrations. Naming/`db_table` follows
 runner models' style.
 
 ### AssistantThread
@@ -145,7 +145,7 @@ task. SSE replay for `after` older than pruned history falls back to "client ref
 
 | Change                                                                                                     | Where                                                                         |
 | ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `Issue.created_via = CharField(max_length=32, choices=[("assistant","Assistant")], null=True, blank=True)` | `pi_dash/db/models/issue.py` + `db` app migration                             |
+| `Issue.created_via = CharField(max_length=32, choices=[("assistant","Assistant")], null=True, blank=True)` | `karma_team/db/models/issue.py` + `db` app migration                          |
 | Expose `speaker_type` / `speaker_label` (read-only) in the comment serializer                              | they exist on the model (`db/models/issue.py:550-556`) but are excluded today |
 
 ---
@@ -195,7 +195,7 @@ during build against real model behavior, with the runtime tests (05) asserting 
 elements remain present.
 
 ```
-You are Pi Assistant, built into the pi-dash project tracker. You operate pi-dash on
+You are Pi Assistant, built into the karma-team project tracker. You operate karma-team on
 behalf of the user via tools, with exactly the user's own permissions — nothing more.
 
 ## Operating rules
@@ -215,7 +215,7 @@ behalf of the user via tools, with exactly the user's own permissions — nothin
 5. ERRORS. If a tool returns an error, explain it briefly in plain language and stop —
    retry at most once, and only when you can fix the cause (e.g. a corrected argument).
    If something is denied by permissions, say so; do not look for workarounds.
-6. SCOPE. You only operate this workspace's pi-dash data via your tools. Politely
+6. SCOPE. You only operate this workspace's karma-team data via your tools. Politely
    decline anything else (general coding help, other websites, opinions on people).
    For substantial coding work on an issue, offer dispatch_coding_run instead of
    attempting it yourself.
@@ -261,8 +261,8 @@ OpenRouter, Together, Fireworks, Groq, DeepSeek, self-hosted vLLM/Ollama, and Op
 
 Missing config is rejected synchronously at `POST messages/` (§9.3 `llm_config_missing`) — no
 turn is enqueued. This seam is the future cloud override point: Phase 1 creates the OSS stub
-`pi_dash/ee/assistant/model_provider.py` (re-exporting the CE BYOK-only `resolve_model`), since
-**no Python-side `pi_dash/ee/` exists in OSS today** — the private repo's `ee-overlay` replaces
+`karma_team/ee/assistant/model_provider.py` (re-exporting the CE BYOK-only `resolve_model`), since
+**no Python-side `karma_team/ee/` exists in OSS today** — the private repo's `ee-overlay` replaces
 the stub at image build (see 04-cloud.md §3).
 
 Capability caveat: tool-calling quality varies across OSS models. v1 passes tools to whatever
@@ -336,7 +336,7 @@ Corrected ground truth (review-verified):
 
 **Per-site extract-vs-copy decisions (resolved by code inspection — these are final):**
 
-New plain Python package (not a Django app): **`pi_dash/core/`** —
+New plain Python package (not a Django app): **`karma_team/core/`** —
 `permissions.py` (role checks), `querysets.py` (shared queryset builders). `core/` must not
 import from `runner/` (CI-checked).
 
@@ -344,7 +344,7 @@ import from `runner/` (CI-checked).
 | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `@allow_permission` core check (`app/permissions/base.py:19-88`)                                       | **EXTRACT** → `core/permissions.py::check_project_role(user, workspace_slug, project_id, allowed_roles, allow_workspace_admin_bypass=True)` | ~210 decorator call sites justify it; the decorator stays in place and delegates to the function; tools call the function directly                           |
 | Workspace role helpers (`runner/services/permissions.py`: `is_workspace_member`, `is_workspace_admin`) | **EXTRACT** → `core/permissions.py`                                                                                                         | pure functions, already imported from 3 sites outside `runner/`; runner-specific `Visibility` logic stays behind in runner; old module re-exports for compat |
-| Issue full-text search                                                                                 | **ALREADY EXTRACTED** — `pi_dash/search/issue.py:128-186::issue_search_queryset()`                                                          | tools import it directly; single source of FTS truth, zero new work                                                                                          |
+| Issue full-text search                                                                                 | **ALREADY EXTRACTED** — `karma_team/search/issue.py:128-186::issue_search_queryset()`                                                       | tools import it directly; single source of FTS truth, zero new work                                                                                          |
 | "My issues" pattern (`WorkspaceUserProfileIssuesEndpoint`, assignees∪created∪subscribed)               | **EXTRACT** → `core/querysets.py::user_issues_queryset(user, workspace_slug, visibility=…)`                                                 | small pure builder; view and tool call it with different scope args                                                                                          |
 | `IssueViewSet.get_queryset` (`issue/base.py:209-215`)                                                  | **COPY** → `_scoping.base_issue_queryset()` with cross-ref comment                                                                          | 5 near-duplicate `get_queryset` variants across issue endpoints; unifying them is a risky refactor out of scope — CI equivalence test guards drift           |
 | Comment queryset + guest-own-issue rule (`comment.py:43-46`, `68-81`)                                  | **COPY** → `_scoping.issue_comment_queryset()` / `_scoping.can_guest_comment_on_issue()`                                                    | small filters entangled with serializer context; copy + equivalence test                                                                                     |
@@ -390,7 +390,7 @@ unintended themselves" — bounded further by no delete tools and no cross-works
 - **Encryption:** `ASSISTANT_ENCRYPTION_KEY` is a **comma-separated list** of 32-byte urlsafe-b64
   keys consumed via `MultiFernet` — first key encrypts, all decrypt. Rotation = prepend new key,
   run management command `assistant_reencrypt_llm_keys`, then drop the old key. Cloud stores it in
-  SSM `/pidash/<env>/assistant-encryption-key` via the existing pipeline. OSS: documented in env
+  SSM `/karma-team/<env>/assistant-encryption-key` via the existing pipeline. OSS: documented in env
   example; if unset, the config endpoint returns `503 assistant_not_configured` (never plaintext
   storage).
 - **Field validation (serializer):** `base_url` must be http(s), ≤ 500 chars, no userinfo;
@@ -533,7 +533,7 @@ refetch needed mid-stream; SWR refetch on `turn_*` terminal events reconciles.
 ### 8.5 Failure recovery & user retry
 
 Sweep task `@shared_task(name="assistant.sweep_stale_turns")`, registered in
-`pi_dash/celery.py` `beat_schedule` at 30s (same cadence as `runner.sweep_agent_chat_state`):
+`karma_team/celery.py` `beat_schedule` at 30s (same cadence as `runner.sweep_agent_chat_state`):
 turns `running` with `started_at` older than `time_limit + 60s` → `failed` (`error_code=
 turn_timeout`), emit `turn_failed`, clear `active_turn`, prune old events (§1 retention).
 UI "Retry" re-posts the same content as a **new user message / new turn** (transcript-honest;

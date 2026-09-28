@@ -5,13 +5,13 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import type { EProductSubscriptionEnum, TBillingFrequency } from "@pi-dash/types";
+// karma-team imports
+import type { EProductSubscriptionEnum, TBillingFrequency } from "@karma-team/types";
 // components
 import { PlansComparisonBase, shouldRenderPlanDetail } from "@/components/workspace/billing/comparison/base";
-import type { TPiDashPlans } from "@/constants/plans";
-import { PI_DASH_PLANS } from "@/constants/plans";
-// pi dash web imports
+import type { TKarmaTeamPlans } from "@/constants/plans";
+import { KARMA_TEAM_PLANS } from "@/constants/plans";
+// karma-team web imports
 import { PlanDetail } from "./plan-detail";
 
 type TPlansComparisonProps = {
@@ -29,12 +29,12 @@ export const PlansComparison = observer(function PlansComparison(props: TPlansCo
     setIsCompareAllFeaturesSectionOpen,
   } = props;
   // plan details
-  const { planDetails } = PI_DASH_PLANS;
+  const { planDetails } = KARMA_TEAM_PLANS;
 
   return (
     <PlansComparisonBase
-      piDashDetails={Object.entries(planDetails).map(([planKey, plan]) => {
-        const currentPlanKey = planKey as TPiDashPlans;
+      karmaTeamDetails={Object.entries(planDetails).map(([planKey, plan]) => {
+        const currentPlanKey = planKey as TKarmaTeamPlans;
         if (!shouldRenderPlanDetail(currentPlanKey)) return null;
         return (
           <PlanDetail

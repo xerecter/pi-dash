@@ -8,8 +8,8 @@ import { useEffect, useRef } from "react";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { autoScrollForElements } from "@atlaskit/pragmatic-drag-and-drop-auto-scroll/element";
 import { observer } from "mobx-react";
-// pi dash constants
-import { ALL_ISSUES } from "@pi-dash/constants";
+// karma-team constants
+import { ALL_ISSUES } from "@karma-team/constants";
 // types
 import type {
   GroupByColumnTypes,
@@ -21,15 +21,15 @@ import type {
   TIssueOrderByOptions,
   IGroupByColumn,
   TIssueKanbanFilters,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // components
 import { MultipleSelectGroup } from "@/components/core/multiple-select";
 // hooks
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
-// pi dash web components
-import { IssueBulkOperationsRoot } from "@/pi-dash-web/components/issues/bulk-operations";
-// pi dash web hooks
-import { useBulkOperationStatus } from "@/pi-dash-web/hooks/use-bulk-operation-status";
+// karma-team web components
+import { IssueBulkOperationsRoot } from "@/karma-team-web/components/issues/bulk-operations";
+// karma-team web hooks
+import { useBulkOperationStatus } from "@/karma-team-web/hooks/use-bulk-operation-status";
 // utils
 import type { GroupDropLocation } from "../utils";
 import { getGroupByColumns, isWorkspaceLevel, isSubGrouped } from "../utils";
@@ -82,7 +82,7 @@ export const List = observer(function List(props: IList) {
   } = props;
 
   const storeType = useIssueStoreType();
-  // pi dash web hooks
+  // karma-team web hooks
   const isBulkOperationsEnabled = useBulkOperationStatus();
 
   const containerRef = useRef<HTMLDivElement | null>(null);

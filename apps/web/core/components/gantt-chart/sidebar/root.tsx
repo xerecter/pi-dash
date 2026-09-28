@@ -6,11 +6,11 @@
 
 import type { RefObject } from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // components
-import type { IBlockUpdateData } from "@pi-dash/types";
-import { Row, ERowVariant } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import type { IBlockUpdateData } from "@karma-team/types";
+import { Row, ERowVariant } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 import { MultipleSelectGroupAction } from "@/components/core/multiple-select";
 // helpers
 // hooks

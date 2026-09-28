@@ -1,6 +1,6 @@
 # 07 — Runner Architecture
 
-The runner is the agent on the developer's machine: a single Rust binary (`pidash`) that authenticates to Pi Dash cloud, pulls assigned runs, and drives an AI agent (`codex` or `claude`) as a subprocess.
+The runner is the agent on the developer's machine: a single Rust binary (`karma-team`) that authenticates to karma-team cloud, pulls assigned runs, and drives an AI agent (`codex` or `claude`) as a subprocess.
 
 It lives at `runner/` and is an **independent Cargo crate** — not part of the Turborepo workspace. Edition 2024, MSRV 1.93 (`rust-toolchain.toml` pins the toolchain).
 
@@ -29,23 +29,23 @@ runner/src/
 
 ## CLI surface (`cli/`)
 
-The `pidash` binary is a clap subcommand router:
+The `karma-team` binary is a clap subcommand router:
 
 ```
-pidash auth login / logout / status      ← device-code login, token mgmt
-pidash runner add / list / remove        ← register a runner on this host
-pidash configure                          ← (re)write config
-pidash install / uninstall                ← install OS service unit
-pidash start / stop / restart             ← daemon lifecycle
-pidash status                             ← service + daemon status
-pidash tui                                ← interactive TUI
-pidash doctor                             ← preflight checks (agent on PATH, cloud reachable)
-pidash update [--check|--restart]         ← self-update via cargo-dist receipt
-pidash issue / comment / state / workspace ← assorted helper commands
-pidash __run                              ← hidden internal run wrapper
+karma-team auth login / logout / status      ← device-code login, token mgmt
+karma-team runner add / list / remove        ← register a runner on this host
+karma-team configure                          ← (re)write config
+karma-team install / uninstall                ← install OS service unit
+karma-team start / stop / restart             ← daemon lifecycle
+karma-team status                             ← service + daemon status
+karma-team tui                                ← interactive TUI
+karma-team doctor                             ← preflight checks (agent on PATH, cloud reachable)
+karma-team update [--check|--restart]         ← self-update via cargo-dist receipt
+karma-team issue / comment / state / workspace ← assorted helper commands
+karma-team __run                              ← hidden internal run wrapper
 ```
 
-Bare `pidash` (no subcommand) drops into `auth login` when no config exists — useful as the first-run path after MSI install.
+Bare `karma-team` (no subcommand) drops into `auth login` when no config exists — useful as the first-run path after MSI install.
 
 ## Daemon (`daemon/`)
 
@@ -93,7 +93,7 @@ This is also where path constraints live — the runner refuses to operate on pa
 Used by:
 
 - TUI ↔ daemon — push state updates, send approval decisions
-- CLI subcommands ↔ daemon — `pidash status`, `pidash stop`, etc.
+- CLI subcommands ↔ daemon — `karma-team status`, `karma-team stop`, etc.
 
 ## TUI (`tui/`)
 
@@ -107,18 +107,18 @@ Built on Ratatui. Views:
 ## On-disk layout (Linux example)
 
 ```
-~/.config/pidash/             ← config.toml, credentials (0600)
-$XDG_DATA_HOME/pidash/        ← per-run JSONL transcripts, recent-runs index
-$XDG_RUNTIME_DIR/pidash/      ← IPC socket, PID file
+~/.config/karma-team/             ← config.toml, credentials (0600)
+$XDG_DATA_HOME/karma-team/        ← per-run JSONL transcripts, recent-runs index
+$XDG_RUNTIME_DIR/karma-team/      ← IPC socket, PID file
 ```
 
 On Windows, everything goes under the user profile and IPC is via a named pipe.
 
 ## Auto-update
 
-The cloud's `welcome` frame can include `latest_runner_version` and `min_runner_version` (driven by the cloud's `LATEST_RUNNER_VERSION` / `MIN_RUNNER_VERSION` env vars). With auto-update enabled, the daemon swaps the on-disk `pidash` binary in place; the **running process is never disturbed** — it keeps its loaded copy until the next natural restart (`pidash restart`, host reboot, service-manager respawn).
+The cloud's `welcome` frame can include `latest_runner_version` and `min_runner_version` (driven by the cloud's `LATEST_RUNNER_VERSION` / `MIN_RUNNER_VERSION` env vars). With auto-update enabled, the daemon swaps the on-disk `karma-team` binary in place; the **running process is never disturbed** — it keeps its loaded copy until the next natural restart (`karma-team restart`, host reboot, service-manager respawn).
 
-`pidash update --restart` is the one-command manual path: swap the binary, restart the daemon, and wait for it to reconnect. `pidash update` without `--restart` only swaps the binary and applies on the next natural restart. Both paths only work for installs from cargo-dist installers (`pidash-installer.sh`, `pidash-installer.ps1`, MSI) — those leave an install receipt the updater reads. Source builds and `cargo install` builds get a clear "reinstall via the installer if you want self-update" error. See [15 — Releasing](./15-releasing.md).
+`karma-team update --restart` is the one-command manual path: swap the binary, restart the daemon, and wait for it to reconnect. `karma-team update` without `--restart` only swaps the binary and applies on the next natural restart. Both paths only work for installs from cargo-dist installers (`karma-team-installer.sh`, `karma-team-installer.ps1`, MSI) — those leave an install receipt the updater reads. Source builds and `cargo install` builds get a clear "reinstall via the installer if you want self-update" error. See [15 — Releasing](./15-releasing.md).
 
 ## Where to read next
 

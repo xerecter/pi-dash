@@ -5,8 +5,8 @@
  */
 
 import { useTheme } from "next-themes";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
 // components
 import { DetailedEmptyState } from "@/components/empty-state/detailed-empty-state-root";
 

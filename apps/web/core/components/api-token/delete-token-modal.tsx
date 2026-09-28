@@ -7,12 +7,12 @@
 import { useState } from "react";
 import { mutate } from "swr";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { APITokenService } from "@pi-dash/services";
-import type { IApiToken } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { APITokenService } from "@karma-team/services";
+import type { IApiToken } from "@karma-team/types";
 // ui
-import { AlertModalCore } from "@pi-dash/ui";
+import { AlertModalCore } from "@karma-team/ui";
 // fetch-keys
 import { API_TOKENS_LIST } from "@/constants/fetch-keys";
 
@@ -74,7 +74,13 @@ export function DeleteApiTokenModal(props: Props) {
       isSubmitting={deleteLoading}
       isOpen={isOpen}
       title={t("Delete personal access token")}
-      content={<>{t("Any application using this token will no longer have the access to Pi Dash data. This action cannot be undone.")} </>}
+      content={
+        <>
+          {t(
+            "Any application using this token will no longer have the access to karma-team data. This action cannot be undone."
+          )}{" "}
+        </>
+      }
     />
   );
 }

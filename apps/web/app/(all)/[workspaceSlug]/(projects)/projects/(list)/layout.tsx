@@ -9,8 +9,8 @@ import { Outlet } from "react-router";
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
 // local components
-import { ProjectsListHeader } from "@/pi-dash-web/components/projects/header";
-import { ProjectsListMobileHeader } from "@/pi-dash-web/components/projects/mobile-header";
+import { ProjectsListHeader } from "@/karma-team-web/components/projects/header";
+import { ProjectsListMobileHeader } from "@/karma-team-web/components/projects/mobile-header";
 
 export default function ProjectListLayout() {
   return (

@@ -8,11 +8,11 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams, useRouter } from "next/navigation";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IProjectView } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IProjectView } from "@karma-team/types";
 // ui
-import { AlertModalCore } from "@pi-dash/ui";
+import { AlertModalCore } from "@karma-team/ui";
 // hooks
 import { useProjectView } from "@/hooks/store/use-project-view";
 
@@ -66,7 +66,13 @@ export const DeleteProjectViewModal = observer(function DeleteProjectViewModal(p
       isSubmitting={isDeleteLoading}
       isOpen={isOpen}
       title={t("Are you sure you want to delete this view?")}
-      content={<>{t("If you confirm, all the sort, filter, and display options + the layout you have chosen for this view will be permanently deleted without any way to restore them.")}</>}
+      content={
+        <>
+          {t(
+            "If you confirm, all the sort, filter, and display options + the layout you have chosen for this view will be permanently deleted without any way to restore them."
+          )}
+        </>
+      }
     />
   );
 });

@@ -6,25 +6,25 @@
 
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-// pi dash imports
-import { ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
+// karma-team imports
+import { ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
   IWorkspaceView,
   IIssueFilters,
-} from "@pi-dash/types";
-import { EViewAccess, EIssueLayoutTypes, EIssuesStoreType } from "@pi-dash/types";
-import { Input, TextArea } from "@pi-dash/ui";
-import { getComputedDisplayFilters, getComputedDisplayProperties } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { EViewAccess, EIssueLayoutTypes, EIssuesStoreType } from "@karma-team/types";
+import { Input, TextArea } from "@karma-team/ui";
+import { getComputedDisplayFilters, getComputedDisplayProperties } from "@karma-team/utils";
 // components
 import { DisplayFiltersSelection, FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 import { WorkspaceLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/workspace-level";
-// pi dash web imports
+// karma-team web imports
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
-import { AccessController } from "@/pi-dash-web/components/views/access-controller";
+import { AccessController } from "@/karma-team-web/components/views/access-controller";
 
 type Props = {
   handleFormSubmit: (values: Partial<IWorkspaceView>) => Promise<void>;
@@ -195,13 +195,7 @@ export const WorkspaceViewForm = observer(function WorkspaceViewForm(props: Prop
           {t("Cancel")}
         </Button>
         <Button variant="primary" type="submit" loading={isSubmitting}>
-          {data
-            ? isSubmitting
-              ? t("Updating")
-              : t("Update View")
-            : isSubmitting
-              ? t("Creating")
-              : t("Create View")}
+          {data ? (isSubmitting ? t("Updating") : t("Update View")) : isSubmitting ? t("Creating") : t("Create View")}
         </Button>
       </div>
     </form>

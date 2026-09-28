@@ -6,10 +6,10 @@
 
 import { observer } from "mobx-react";
 // icons
-// pi dash imports
-import { EIconSize } from "@pi-dash/constants";
-import { CloseIcon, StateGroupIcon } from "@pi-dash/propel/icons";
-import type { IState } from "@pi-dash/types";
+// karma-team imports
+import { EIconSize } from "@karma-team/constants";
+import { CloseIcon, StateGroupIcon } from "@karma-team/propel/icons";
+import type { IState } from "@karma-team/types";
 
 type Props = {
   handleRemove: (val: string) => void;

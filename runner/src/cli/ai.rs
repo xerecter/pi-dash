@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-//! `pidash ai <command>` — talk to the connected Pi Dash cloud AI assistant.
+//! `karma-team ai <command>` — talk to the connected karma-team cloud AI assistant.
 //!
 //! Unlike the `issue`/`comment`/`state` CRUD verbs (thin one-shot REST calls
 //! that emit JSON via `run_crud`), this command drives the assistant's
@@ -15,7 +15,7 @@
 //!   4. prints the assistant's reply on stdout.
 //!
 //! The assistant is BYOK-only: if the user has not configured an LLM provider
-//! and key in Pi Dash, the message POST comes back `422 llm_config_missing`.
+//! and key in karma-team, the message POST comes back `422 llm_config_missing`.
 //! We detect that specific case and print a clear, actionable reason rather
 //! than a raw HTTP error — that requirement is the whole point of PDASHOSS01-35.
 
@@ -32,8 +32,8 @@ use crate::api_client::{ApiClient, CliEnv, CliError, EXIT_INVALID, EXIT_UNKNOWN,
 pub struct AiArgs {
     /// The command / question to send to the cloud AI assistant. Everything
     /// after `ai` is joined into one message, so quoting is optional:
-    /// `pidash ai "create an issue for the login bug"` and
-    /// `pidash ai create an issue for the login bug` are equivalent.
+    /// `karma-team ai "create an issue for the login bug"` and
+    /// `karma-team ai create an issue for the login bug` are equivalent.
     #[arg(trailing_var_arg = true, required = true, value_name = "COMMAND")]
     pub message: Vec<String>,
 
@@ -162,7 +162,7 @@ async fn drive(
                 "{}",
                 err_json(&format!(
                     "timed out after {}s waiting for the assistant; the turn may still be \
-                     running — check Pi Dash to see the result",
+                     running — check karma-team to see the result",
                     timeout.as_secs()
                 ))
             );
@@ -184,9 +184,9 @@ fn explain_post_error(err: CliError) -> CliError {
     match code.as_deref() {
         Some("llm_config_missing") => CliError::new(
             EXIT_INVALID,
-            "the Pi Dash AI assistant is not set up yet. It is BYOK (bring your own key): \
-             add your LLM provider and API key under Settings → AI assistant in Pi Dash, \
-             then run `pidash ai` again",
+            "the karma-team AI assistant is not set up yet. It is BYOK (bring your own key): \
+             add your LLM provider and API key under Settings → AI assistant in karma-team, \
+             then run `karma-team ai` again",
         ),
         Some("turn_active") => CliError::new(
             EXIT_INVALID,

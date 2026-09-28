@@ -8,11 +8,11 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 // ui
-import { useTranslation } from "@pi-dash/i18n";
-import { Avatar } from "@pi-dash/propel/avatar";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
-import { Loader, Card } from "@pi-dash/ui";
-import { calculateTimeAgo, getFileURL } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { Avatar } from "@karma-team/propel/avatar";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
+import { Loader, Card } from "@karma-team/ui";
+import { calculateTimeAgo, getFileURL } from "@karma-team/utils";
 // components
 import { ActivityMessage, IssueLink } from "@/components/core/activity";
 // constants

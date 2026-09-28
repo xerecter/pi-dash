@@ -17,9 +17,9 @@ import {
 import type { Editor } from "@tiptap/react";
 import type { LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { CopyIcon, TrashIcon } from "@pi-dash/propel/icons";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+import { CopyIcon, TrashIcon } from "@karma-team/propel/icons";
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // types

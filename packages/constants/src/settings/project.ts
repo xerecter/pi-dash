@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { EUserProjectRoles } from "@pi-dash/types";
-import type { TProjectSettingsItem, TProjectSettingsTabs } from "@pi-dash/types";
+// karma-team imports
+import { EUserProjectRoles } from "@karma-team/types";
+import type { TProjectSettingsItem, TProjectSettingsTabs } from "@karma-team/types";
 
 export enum PROJECT_SETTINGS_CATEGORY {
   GENERAL = "general",

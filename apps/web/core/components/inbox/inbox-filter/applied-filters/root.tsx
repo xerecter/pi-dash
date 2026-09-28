@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { Header, EHeaderVariant } from "@pi-dash/ui";
+// karma-team imports
+import { Header, EHeaderVariant } from "@karma-team/ui";
 // hooks
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 // local imports

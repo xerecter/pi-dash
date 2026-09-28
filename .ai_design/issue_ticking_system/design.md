@@ -101,7 +101,7 @@ moves the issue.
 - **Paused** (issue state, new in this design) — work is parked, ticking
   is disarmed, user-visible. Set at cap-hit or manually.
 - **PAUSED_AWAITING_INPUT** (AgentRun status, defined in
-  `apps/api/pi_dash/runner/models.py` `AgentRunStatus`) — a single
+  `apps/api/karma_team/runner/models.py` `AgentRunStatus`) — a single
   run yielded with a question. Internal. Multiple can occur over an
   issue's life without ever auto-moving the issue to the new Paused
   state.
@@ -401,10 +401,10 @@ minute) would re-cluster every cycle.
 
 ### 7.1 New model `IssueAgentTicker`
 
-Lives in `apps/api/pi_dash/db/models/issue_agent_ticker.py`
+Lives in `apps/api/karma_team/db/models/issue_agent_ticker.py`
 (co-located with other issue-adjacent models — orchestration is a
 service layer with no `models.py` of its own). Migrations land in
-`apps/api/pi_dash/db/migrations/`.
+`apps/api/karma_team/db/migrations/`.
 
 ```
 issue              FK → Issue (1:1, unique)
@@ -470,8 +470,8 @@ that don't have `user_disabled = true`.
 ### 7.3 Issue state model
 
 States are stored as per-project rows in
-`apps/api/pi_dash/db/models/state.py:State`, seeded from
-`apps/api/pi_dash/seeds/data/states.json` via
+`apps/api/karma_team/db/models/state.py:State`, seeded from
+`apps/api/karma_team/seeds/data/states.json` via
 `bgtasks/workspace_seed_task.py:create_project_states()`. Adding
 "Paused" therefore takes two changes:
 
@@ -563,15 +563,15 @@ The following are **kept**:
 All v1 decisions are pinned below. Anything genuinely open lives in
 the §12 implementation plan as concrete tasks, not as ambiguity.
 
-| #   | Question                                                                                    | Decision                                                                                                                                                                                                                                                                                                                |
-| --- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Q1  | Migration for existing In Progress issues — retroactive backfill?                           | **Yes.** Data migration (§12.1) iterates issues whose state is in `StateGroup.STARTED` AND named "In Progress" and creates an `IssueAgentTicker` row for each, with `next_run_at = NOW() + project default interval + jitter` (so the first tick fires roughly an interval after deploy, not all at once on start-up).  |
-| Q2  | "Paused" state — global template vs. per-workspace opt-in?                                  | **Global template.** Added to `seeds/data/states.json` (Backlog group) plus a one-time data migration that backfills every existing project that doesn't already have a "Paused" state. New projects pick it up via the existing seed path.                                                                             |
-| Q3  | Actor on system-driven In Progress → Paused transition?                                     | **The existing `pi_dash_agent` bot user** (`orchestration/workpad.py:get_agent_system_user()`). It already authors workpad comments; reusing it for the system-pause activity entry keeps a single "agent/system" actor in the activity feed. If we later need to distinguish, a separate bot user is a small addition. |
-| Q4  | Custom Started-group state names — does ticking apply?                                      | **No, for v1.** Ticking inherits the same strictness as `_is_delegation_trigger`: only the state literally named "In Progress" arms or fires a schedule (see §4.2 and the name check in §6.1's `fire_tick`). Generalizing to "any STARTED state" is tracked outside this design.                                        |
-| Q5  | Quiet hours / business-hours awareness?                                                     | **Out of scope for v1.** Not blocking; can be added as an additional gate inside `fire_tick` later.                                                                                                                                                                                                                     |
-| Q6  | User **manually** moves issue to Paused while a run is `RUNNING` — cancel or let it finish? | **Let the run finish.** Schedule disarms immediately (no future ticks); the active run completes naturally; no auto-resume until the user explicitly moves the issue back to In Progress. Matches the deferred cap-hit behavior and avoids implicit cancellation semantics.                                             |
-| Q7  | UI for `max_ticks = -1` (infinite)?                                                         | **"No cap"** label plus the running tick count, e.g. `"42 ticks · no cap"`. Cap-hit copy in §8.1 only applies when `max_ticks > 0`.                                                                                                                                                                                     |
+| #   | Question                                                                                    | Decision                                                                                                                                                                                                                                                                                                                   |
+| --- | ------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q1  | Migration for existing In Progress issues — retroactive backfill?                           | **Yes.** Data migration (§12.1) iterates issues whose state is in `StateGroup.STARTED` AND named "In Progress" and creates an `IssueAgentTicker` row for each, with `next_run_at = NOW() + project default interval + jitter` (so the first tick fires roughly an interval after deploy, not all at once on start-up).     |
+| Q2  | "Paused" state — global template vs. per-workspace opt-in?                                  | **Global template.** Added to `seeds/data/states.json` (Backlog group) plus a one-time data migration that backfills every existing project that doesn't already have a "Paused" state. New projects pick it up via the existing seed path.                                                                                |
+| Q3  | Actor on system-driven In Progress → Paused transition?                                     | **The existing `karma_team_agent` bot user** (`orchestration/workpad.py:get_agent_system_user()`). It already authors workpad comments; reusing it for the system-pause activity entry keeps a single "agent/system" actor in the activity feed. If we later need to distinguish, a separate bot user is a small addition. |
+| Q4  | Custom Started-group state names — does ticking apply?                                      | **No, for v1.** Ticking inherits the same strictness as `_is_delegation_trigger`: only the state literally named "In Progress" arms or fires a schedule (see §4.2 and the name check in §6.1's `fire_tick`). Generalizing to "any STARTED state" is tracked outside this design.                                           |
+| Q5  | Quiet hours / business-hours awareness?                                                     | **Out of scope for v1.** Not blocking; can be added as an additional gate inside `fire_tick` later.                                                                                                                                                                                                                        |
+| Q6  | User **manually** moves issue to Paused while a run is `RUNNING` — cancel or let it finish? | **Let the run finish.** Schedule disarms immediately (no future ticks); the active run completes naturally; no auto-resume until the user explicitly moves the issue back to In Progress. Matches the deferred cap-hit behavior and avoids implicit cancellation semantics.                                                |
+| Q7  | UI for `max_ticks = -1` (infinite)?                                                         | **"No cap"** label plus the running tick count, e.g. `"42 ticks · no cap"`. Cap-hit copy in §8.1 only applies when `max_ticks > 0`.                                                                                                                                                                                        |
 
 ## 11. Summary of decisions
 
@@ -626,8 +626,8 @@ the §12 implementation plan as concrete tasks, not as ambiguity.
     `_is_delegation_trigger` in v1. Custom Started-group state names
     are deferred.
 17. **Schedule model lives in `db/`, not `orchestration/`.**
-    `apps/api/pi_dash/db/models/issue_agent_ticker.py`,
-    migrations under `apps/api/pi_dash/db/migrations/`. Orchestration
+    `apps/api/karma_team/db/models/issue_agent_ticker.py`,
+    migrations under `apps/api/karma_team/db/migrations/`. Orchestration
     stays a service layer.
 
 ---
@@ -637,7 +637,7 @@ the §12 implementation plan as concrete tasks, not as ambiguity.
 ### 12.1 Migration plan
 
 Three migrations, in order, all under
-`apps/api/pi_dash/db/migrations/`:
+`apps/api/karma_team/db/migrations/`:
 
 **M1 — schema.** `0NNN_issue_agent_ticker.py`
 
@@ -649,7 +649,7 @@ Three migrations, in order, all under
 
 **M2 — Paused state seed + backfill.** `0NNN_paused_state.py`
 
-- Update `apps/api/pi_dash/seeds/data/states.json` to include a
+- Update `apps/api/karma_team/seeds/data/states.json` to include a
   `Paused` entry in the `backlog` group (committed alongside the
   migration so future seeds carry it).
 - `RunPython` data migration: for every project that lacks a
@@ -677,8 +677,8 @@ rows).
 
 ### 12.2 Public API surface
 
-New code lives in `apps/api/pi_dash/orchestration/` (service layer)
-and `apps/api/pi_dash/bgtasks/` (Celery tasks). Names are explicit
+New code lives in `apps/api/karma_team/orchestration/` (service layer)
+and `apps/api/karma_team/bgtasks/` (Celery tasks). Names are explicit
 so impl knows what to write — implementations are skeleton; behavior
 detail is in the lifecycle sections.
 
@@ -739,12 +739,12 @@ def fire_tick(sched_id: int) -> None:
 ```
 
 Add to the existing `CELERY_BEAT_SCHEDULE` (in
-`apps/api/pi_dash/celery.py` or wherever Beat schedules are
+`apps/api/karma_team/celery.py` or wherever Beat schedules are
 configured today):
 
 ```python
 "scan-due-agent-tickers": {
-    "task": "pi_dash.bgtasks.agent_ticker.scan_due_tickers",
+    "task": "karma_team.bgtasks.agent_ticker.scan_due_tickers",
     "schedule": crontab(minute="*"),
 },
 ```
@@ -803,7 +803,7 @@ Live test files (verified against current codebase):
 
 **Tests to delete or convert**
 
-`apps/api/pi_dash/tests/unit/orchestration/test_service.py`:
+`apps/api/karma_team/tests/unit/orchestration/test_service.py`:
 
 - `test_comment_creates_pinned_continuation` (line 253) — currently
   exercises the post_save auto-trigger. **Convert** to call
@@ -832,7 +832,7 @@ loses its `fire_comment_continuation` receiver entirely.
 
 **New tests to add**
 
-Create `apps/api/pi_dash/tests/unit/orchestration/test_scheduling.py`
+Create `apps/api/karma_team/tests/unit/orchestration/test_scheduling.py`
 covering:
 
 - `arm_ticker` honors `user_disabled` and project `agent_ticking_enabled`.
@@ -845,7 +845,7 @@ covering:
 - `maybe_apply_deferred_pause` only transitions when (schedule
   disarmed) AND (no active runs) AND (issue still in Started).
 
-Create `apps/api/pi_dash/tests/unit/bgtasks/test_agent_ticker.py`
+Create `apps/api/karma_team/tests/unit/bgtasks/test_agent_ticker.py`
 covering:
 
 - `scan_due_tickers` selects only enabled, due, under-cap rows.
@@ -908,7 +908,7 @@ semantics.
 A fifth PR may be desirable for prompt-system updates (telling the
 agent it can be re-invoked periodically and should prefer cheap
 `noop` exits over fabricated `paused` ones). Lives in
-`apps/api/pi_dash/prompting/`.
+`apps/api/karma_team/prompting/`.
 
 ---
 

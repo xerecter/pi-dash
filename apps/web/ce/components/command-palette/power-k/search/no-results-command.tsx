@@ -5,12 +5,12 @@
  */
 
 import { Command } from "cmdk";
-import { useTranslation } from "@pi-dash/i18n";
-import { SearchIcon } from "@pi-dash/propel/icons";
-// pi dash imports
+import { useTranslation } from "@karma-team/i18n";
+import { SearchIcon } from "@karma-team/propel/icons";
+// karma-team imports
 // components
 import type { TPowerKContext } from "@/components/power-k/core/types";
-// pi dash web imports
+// karma-team web imports
 import { PowerKModalCommandItem } from "@/components/power-k/ui/modal/command-item";
 
 export type TPowerKModalNoSearchResultsCommandProps = {
@@ -31,8 +31,7 @@ export function PowerKModalNoSearchResultsCommand(props: TPowerKModalNoSearchRes
         value="no-results"
         label={
           <p className="flex items-center gap-2">
-            {t("No results found")}{" "}
-            <span className="shrink-0 text-13 text-tertiary">{t("Clear search")}</span>
+            {t("No results found")} <span className="shrink-0 text-13 text-tertiary">{t("Clear search")}</span>
           </p>
         }
         onSelect={() => updateSearchTerm("")}

@@ -7,30 +7,30 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-// pi dash imports
-import { ETabIndices, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { ViewsIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { ETabIndices, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@karma-team/propel/emoji-icon-picker";
+import { ViewsIcon } from "@karma-team/propel/icons";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
   IProjectView,
   EIssueLayoutTypes,
   IIssueFilters,
-} from "@pi-dash/types";
-import { EViewAccess, EIssuesStoreType } from "@pi-dash/types";
-import { Input, TextArea } from "@pi-dash/ui";
-import { getComputedDisplayFilters, getComputedDisplayProperties, getTabIndex } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { EViewAccess, EIssuesStoreType } from "@karma-team/types";
+import { Input, TextArea } from "@karma-team/ui";
+import { getComputedDisplayFilters, getComputedDisplayProperties, getTabIndex } from "@karma-team/utils";
 // components
 import { DisplayFiltersSelection, FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web imports
-import { AccessController } from "@/pi-dash-web/components/views/access-controller";
+// karma-team web imports
+import { AccessController } from "@/karma-team-web/components/views/access-controller";
 // local imports
 import { LayoutDropDown } from "../dropdowns/layout";
 import { ProjectLevelWorkItemFiltersHOC } from "../work-item-filters/filters-hoc/project-level";
@@ -284,13 +284,7 @@ export const ProjectViewForm = observer(function ProjectViewForm(props: Props) {
           {t("Cancel")}
         </Button>
         <Button variant="primary" size="lg" type="submit" tabIndex={getIndex("submit")} loading={isSubmitting}>
-          {data
-            ? isSubmitting
-              ? t("Updating")
-              : t("Update View")
-            : isSubmitting
-              ? t("Creating")
-              : t("Create View")}
+          {data ? (isSubmitting ? t("Updating") : t("Update View")) : isSubmitting ? t("Creating") : t("Create View")}
         </Button>
       </div>
     </form>

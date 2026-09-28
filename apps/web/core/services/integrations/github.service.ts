@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 import type {
   IGithubAppInstallationStatus,
   IGithubAppInstallStartRequest,
@@ -16,7 +16,7 @@ import type {
   IGithubPullRequestLink,
   IGithubPullRequestLinkCreateRequest,
   IGithubReposPage,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 import { APIService } from "@/services/api.service";
 
 export class GithubIntegrationService extends APIService {

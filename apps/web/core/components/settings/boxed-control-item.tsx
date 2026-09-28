@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 
 type Props = {
   className?: string;

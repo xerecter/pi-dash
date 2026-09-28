@@ -15,11 +15,11 @@ const { pushSpy, setPeekIssue, getIssueById, getProjectIdentifierById, getIsIssu
   getIsIssuePeeked: vi.fn(),
 }));
 
-vi.mock("@pi-dash/i18n", () => ({
+vi.mock("@karma-team/i18n", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("@pi-dash/types", () => ({
+vi.mock("@karma-team/types", () => ({
   EIssuesStoreType: { ARCHIVED: "ARCHIVED", EPIC: "EPIC", PROJECT: "PROJECT" },
 }));
 
@@ -40,29 +40,29 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("@pi-dash/propel/icons", () => ({
+vi.mock("@karma-team/propel/icons", () => ({
   CenterPanelIcon: () => <svg />,
   CopyLinkIcon: () => <svg />,
   FullScreenPanelIcon: () => <svg />,
   SidePanelIcon: () => <svg />,
 }));
 
-vi.mock("@pi-dash/propel/toast", () => ({
+vi.mock("@karma-team/propel/toast", () => ({
   TOAST_TYPE: { SUCCESS: "success", ERROR: "error" },
   setToast: vi.fn(),
 }));
 
-vi.mock("@pi-dash/propel/tooltip", () => ({
+vi.mock("@karma-team/propel/tooltip", () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   Tooltip: ({ children }: any) => <>{children}</>,
 }));
 
-vi.mock("@pi-dash/propel/icon-button", () => ({
+vi.mock("@karma-team/propel/icon-button", () => ({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   IconButton: (props: any) => <button type="button" onClick={props.onClick} />,
 }));
 
-vi.mock("@pi-dash/ui", () => {
+vi.mock("@karma-team/ui", () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any, unicorn/consistent-function-scoping
   const CustomSelect: any = ({ children, customButton }: any) => (
     <div>
@@ -75,7 +75,7 @@ vi.mock("@pi-dash/ui", () => {
   return { CustomSelect };
 });
 
-vi.mock("@pi-dash/utils", () => ({
+vi.mock("@karma-team/utils", () => ({
   copyUrlToClipboard: vi.fn(),
   // Mirror the real generateWorkItemLink branch semantics so assertions match.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

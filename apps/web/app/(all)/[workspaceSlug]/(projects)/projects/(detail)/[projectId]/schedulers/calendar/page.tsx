@@ -5,7 +5,7 @@
  */
 
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 import { PageHead } from "@/components/core/page-title";
 import { SchedulerCalendar } from "@/components/project/scheduler-bindings/calendar/scheduler-calendar";
 import { useProject } from "@/hooks/store/use-project";
@@ -16,9 +16,7 @@ function ProjectSchedulersCalendarPage({ params }: Route.ComponentProps) {
   const { t } = useTranslation();
   const { getProjectById } = useProject();
   const project = getProjectById(projectId);
-  const pageTitle = project?.name
-    ? `${project.name} - ${t("Schedulers")} (${t("Calendar")})`
-    : t("Calendar");
+  const pageTitle = project?.name ? `${project.name} - ${t("Schedulers")} (${t("Calendar")})` : t("Calendar");
 
   return (
     <>

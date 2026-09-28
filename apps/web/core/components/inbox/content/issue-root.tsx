@@ -7,12 +7,12 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useMemo, useRef } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TIssue, TNameDescriptionLoader } from "@pi-dash/types";
-import { EFileAssetType, EInboxIssueSource, EInboxIssueStatus } from "@pi-dash/types";
-import { getTextContent } from "@pi-dash/utils";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TIssue, TNameDescriptionLoader } from "@karma-team/types";
+import { EFileAssetType, EInboxIssueSource, EInboxIssueStatus } from "@karma-team/types";
+import { getTextContent } from "@karma-team/utils";
 // components
 import { DescriptionVersionsRoot } from "@/components/core/description-versions";
 import { DescriptionInput } from "@/components/editor/rich-text/description-input";
@@ -30,8 +30,8 @@ import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 import { useUser } from "@/hooks/store/user";
 import useReloadConfirmations from "@/hooks/use-reload-confirmation";
 // store types
-import { DeDupeIssuePopoverRoot } from "@/pi-dash-web/components/de-dupe/duplicate-popover";
-import { useDebouncedDuplicateIssues } from "@/pi-dash-web/hooks/use-debounced-duplicate-issues";
+import { DeDupeIssuePopoverRoot } from "@/karma-team-web/components/de-dupe/duplicate-popover";
+import { useDebouncedDuplicateIssues } from "@/karma-team-web/hooks/use-debounced-duplicate-issues";
 // services
 import { IntakeWorkItemVersionService } from "@/services/inbox";
 // stores

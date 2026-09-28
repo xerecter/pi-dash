@@ -8,10 +8,10 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
-import { SearchIcon, CycleIcon, TransferIcon, CloseIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { SearchIcon, CycleIcon, TransferIcon, CloseIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { EIssuesStoreType } from "@karma-team/types";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useIssues } from "@/hooks/store/use-issues";
 

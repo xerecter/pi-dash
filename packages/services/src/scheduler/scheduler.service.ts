@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 import { APIService } from "../api.service";
 
 /**
@@ -27,7 +27,7 @@ export type SchedulerSource = "builtin" | "manifest";
 /**
  * What a scheduler run does with its findings. The scheduler layer never
  * creates issues or edits code itself; this steers the dispatched agent run.
- * - `create_issue`   — file a Pi Dash issue per finding (default).
+ * - `create_issue`   — file a karma-team issue per finding (default).
  * - `apply_fix`      — implement the fix and open a PR for review (no merge).
  * - `fix_and_review` — file an issue, fix it, open a PR, and move the issue
  *                      straight to In Review for a human.

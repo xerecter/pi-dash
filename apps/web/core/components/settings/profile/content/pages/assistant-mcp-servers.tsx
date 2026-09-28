@@ -7,10 +7,10 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { AssistantService } from "@pi-dash/services";
-import type { IAssistantMCPServer } from "@pi-dash/types";
-import { Button } from "@pi-dash/ui";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { AssistantService } from "@karma-team/services";
+import type { IAssistantMCPServer } from "@karma-team/types";
+import { Button } from "@karma-team/ui";
 
 const service = new AssistantService();
 

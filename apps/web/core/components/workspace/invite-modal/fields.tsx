@@ -7,12 +7,12 @@
 import { observer } from "mobx-react";
 import type { Control, FieldArrayWithId, FormState } from "react-hook-form";
 import { Controller } from "react-hook-form";
-// pi dash imports
-import { ROLE } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { CloseIcon } from "@pi-dash/propel/icons";
-import { CustomSelect, Input } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { ROLE } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { CloseIcon } from "@karma-team/propel/icons";
+import { CustomSelect, Input } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useUserPermissions } from "@/hooks/store/user";
 import type { InvitationFormValues } from "@/hooks/use-workspace-invitation";
@@ -35,7 +35,7 @@ export const InvitationFields = observer(function InvitationFields(props: TInvit
     remove,
     className,
   } = props;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { workspaceInfoBySlug } = useUserPermissions();

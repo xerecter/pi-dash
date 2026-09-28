@@ -5,13 +5,13 @@
  */
 
 import { ArrowDownWideNarrow, ArrowUpWideNarrow } from "lucide-react";
-// pi dash imports
-import { VIEW_SORT_BY_OPTIONS, VIEW_SORTING_KEY_OPTIONS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { getButtonStyling } from "@pi-dash/propel/button";
-import { CheckIcon } from "@pi-dash/propel/icons";
-import type { TViewFiltersSortBy, TViewFiltersSortKey } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
+// karma-team imports
+import { VIEW_SORT_BY_OPTIONS, VIEW_SORTING_KEY_OPTIONS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { getButtonStyling } from "@karma-team/propel/button";
+import { CheckIcon } from "@karma-team/propel/icons";
+import type { TViewFiltersSortBy, TViewFiltersSortKey } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
 
 type Props = {
   onChange: (value: { key?: TViewFiltersSortKey; order?: TViewFiltersSortBy }) => void;

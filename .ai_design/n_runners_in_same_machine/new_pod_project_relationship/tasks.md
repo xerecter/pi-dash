@@ -64,8 +64,8 @@ How to use:
 ### A.5 Dispatch path
 
 - [ ] Locate every `Pod.default_for_workspace*` call and switch to the project-scoped variant
-- [ ] **`Issue.save()` auto-resolution** (`apps/api/pi_dash/db/models/issue.py:199`): change the auto-fill from `Pod.default_for_workspace_id(workspace_id)` to `Pod.default_for_project_id(self.project_id)`
-- [ ] **`Issue` serializer cross-check** (`apps/api/pi_dash/app/serializers/issue.py:180`): replace the `pod.workspace_id == issue.workspace_id` guard with `pod.project_id == issue.project_id`. Update the error message to "pod is in a different project". Keep the soft-delete check.
+- [ ] **`Issue.save()` auto-resolution** (`apps/api/karma_team/db/models/issue.py:199`): change the auto-fill from `Pod.default_for_workspace_id(workspace_id)` to `Pod.default_for_project_id(self.project_id)`
+- [ ] **`Issue` serializer cross-check** (`apps/api/karma_team/app/serializers/issue.py:180`): replace the `pod.workspace_id == issue.workspace_id` guard with `pod.project_id == issue.project_id`. Update the error message to "pod is in a different project". Keep the soft-delete check.
 - [ ] AgentRun creation paths: `pod = issue.assigned_pod or Pod.default_for_project_id(issue.project_id)`. Issues without a project surface as a hard error (no silent workspace-default fallback).
 - [ ] Update orchestration tests — at least one happy-path covering "two projects, one issue per project, two pods, two runners → each runner gets its own project's run"
 - [ ] Add a regression test for the cross-project escape hatch: assigning an Issue from Project P a `Pod` belonging to Project Q (same workspace) must 400.
@@ -101,7 +101,7 @@ How to use:
 - [ ] `Config::validate()` rejects empty `project_slug`
 - [ ] Existing `working_dir` uniqueness check stays; add explicit comment that it's the per-machine "workspace value" uniqueness
 
-### B.2 `pidash configure`
+### B.2 `karma-team configure`
 
 - [ ] Add `--project <SLUG>` (required when registering)
 - [ ] Add `--pod <NAME>` (optional)
@@ -109,14 +109,14 @@ How to use:
 - [ ] Update Hello fan-out to include `project_slug`
 - [ ] Persist the registration response's `pod_id` into the `[[runner]]` block
 
-### B.3 `pidash token add-runner`
+### B.3 `karma-team token add-runner`
 
 - [ ] `--project <SLUG>` required
 - [ ] `--pod <NAME>` optional
 - [ ] Wire to `register-under-token/` endpoint with the new body
 - [ ] Persist `pod_id` to the new `[[runner]]` block
 
-### B.4 `pidash token list-projects` (new)
+### B.4 `karma-team token list-projects` (new)
 
 - [ ] CLI verb that calls `/api/runners/projects/?workspace=<token.workspace>` (Phase C also adds the endpoint)
 - [ ] Prints `identifier` + `name` + per-project pod counts so the user can pick
@@ -125,7 +125,7 @@ How to use:
 
 - [ ] Round-trip a v2 `config.toml` with `project_slug` + `pod_id`
 - [ ] `Config::validate()` rejects missing `project_slug`
-- [ ] `pidash configure` with `--project` produces a config block matching the cloud's response
+- [ ] `karma-team configure` with `--project` produces a config block matching the cloud's response
 
 ## Phase C — Cloud-side pod CRUD API + project listing
 
@@ -178,15 +178,15 @@ This is the original "F4 deferred" work, plus the per-runner project/pod surfaci
 
 ### D.4 CLI selectors
 
-- [x] `pidash status` lists every runner via `StatusSnapshot::print_compact()` (daemon row + per-runner rows)
-- [ ] ~~`pidash issue --runner <name> ...`, `pidash comment --runner <name> ...`, etc.~~ — out of scope: REST verbs go through the cloud API, not a specific runner
-- [x] `pidash doctor` walks every runner; `pidash doctor --runner <name>` filters; check names are tagged `<base>@<runner>` whenever there's ambiguity (multi-runner OR explicit filter)
+- [x] `karma-team status` lists every runner via `StatusSnapshot::print_compact()` (daemon row + per-runner rows)
+- [ ] ~~`karma-team issue --runner <name> ...`, `karma-team comment --runner <name> ...`, etc.~~ — out of scope: REST verbs go through the cloud API, not a specific runner
+- [x] `karma-team doctor` walks every runner; `karma-team doctor --runner <name>` filters; check names are tagged `<base>@<runner>` whenever there's ambiguity (multi-runner OR explicit filter)
 - [x] `IpcServer::resolve_runner` hard-errors with a hint listing runner names when N>1 and no selector is given for write endpoints
 
 ### D.5 Tests
 
 - [x] `StatusSnapshot` serialization roundtrip (4 unit tests in `ipc::protocol::tests`)
-- [x] `pidash doctor` covers two runners (`execute_with_two_runners_tags_each_runner_in_check_names` + 4 sibling tests in `cli::doctor::tests`)
+- [x] `karma-team doctor` covers two runners (`execute_with_two_runners_tags_each_runner_in_check_names` + 4 sibling tests in `cli::doctor::tests`)
 - [ ] _Skipped:_ TUI render snapshot — picker bar logic is straightforward and doesn't warrant a full ratatui-buffer test harness in this PR
 - [ ] _Skipped:_ end-to-end IPC server resolve test — `resolve_runner` is exercised indirectly through every per-runner selector test; a direct unit test would require constructing live `RunnerInstance`s
 
@@ -196,7 +196,7 @@ This is the original "F4 deferred" work, plus the per-runner project/pod surfaci
 - [ ] Add an integration test: spin up two `RunnerInstance` configs (different `project_slug`, different `working_dir`), the supervisor sends two Hellos, fake cloud sends one Assign each, both run to completion independently
 - [ ] Update parent `design.md` to reference this refactor (one-line footnote pointing here)
 - [ ] Update parent `tasks.md` checkboxes for the multi-runner phases that this work also closes (§4.4, §6.2, §6.4)
-- [ ] Write a deployment note in `runner/README.md`: "after a fresh install, run `pidash token list-projects` to find your project identifier; then `pidash configure --project <ID>` …"
+- [ ] Write a deployment note in `runner/README.md`: "after a fresh install, run `karma-team token list-projects` to find your project identifier; then `karma-team configure --project <ID>` …"
 - [ ] Run the manual test checklist from the previous setup notes against the new code (token install / add-runner / per-runner deregister / token revoke / heartbeat cleanup)
 
 ## Open follow-ups (not blocking this PR)

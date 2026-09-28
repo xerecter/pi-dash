@@ -41,8 +41,8 @@ import {
   setText,
   openEmojiPicker,
 } from "@/helpers/editor-commands";
-// pi dash editor extensions
-import { coreEditorAdditionalSlashCommandOptions } from "@/pi-dash-editor/extensions";
+// karma-team editor extensions
+import { coreEditorAdditionalSlashCommandOptions } from "@/karma-team-editor/extensions";
 // types
 import type { CommandProps, ISlashCommandItem, TSlashCommandSectionKeys } from "@/types";
 // local types

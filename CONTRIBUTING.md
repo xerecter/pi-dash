@@ -1,10 +1,10 @@
-# Contributing to Pi Dash
+# Contributing to karma-team
 
-Thank you for your interest in contributing to Pi Dash — an open-source AI agent orchestration platform built for **As Coding (asynchronous vibe coding)**. All kinds of contributions are valuable to us. This guide covers how to get started quickly.
+Thank you for your interest in contributing to karma-team — an open-source AI agent orchestration platform built for **As Coding (asynchronous vibe coding)**. All kinds of contributions are valuable to us. This guide covers how to get started quickly.
 
 ## Submitting an issue
 
-Before submitting a new issue, please search the [issues](https://github.com/The-AI-Republic/pi-dash/issues) tab or [discussions](https://github.com/The-AI-Republic/pi-dash/discussions). An existing thread might already address your question or inform you of workarounds.
+Before submitting a new issue, please search the [issues](https://github.com/xerecter/karma-team/issues) tab or [discussions](https://github.com/xerecter/karma-team/discussions). An existing thread might already address your question or inform you of workarounds.
 
 When reporting a bug, please provide a minimal reproduction scenario using a repository or [Gist](https://gist.github.com/). A reproducible case lets us investigate without lengthy back-and-forth. Include:
 
@@ -15,7 +15,7 @@ When reporting a bug, please provide a minimal reproduction scenario using a rep
 
 Without a minimal reproduction, we may not be able to investigate, and the issue might not be resolved.
 
-You can open a new issue [here](https://github.com/The-AI-Republic/pi-dash/issues/new).
+You can open a new issue [here](https://github.com/xerecter/karma-team/issues/new).
 
 ### Naming conventions for issues
 
@@ -34,9 +34,9 @@ Use a clear, concise title following this format:
 
 ## Local development
 
-If you haven't already set up Pi Dash locally, follow the [Installation](./README.md#-installation) steps in README.md first.
+If you haven't already set up karma-team locally, follow the [Installation](./README.md#-installation) steps in README.md first.
 
-Once Pi Dash is running, here's what you need to know for development:
+Once karma-team is running, here's what you need to know for development:
 
 ### Project structure
 
@@ -58,7 +58,7 @@ pnpm format
 
 ## Missing a feature?
 
-If a feature is missing, you can request one by opening a [new issue](https://github.com/The-AI-Republic/pi-dash/issues/new). If you'd like to implement it yourself, please submit a proposal issue first so we can discuss the approach.
+If a feature is missing, you can request one by opening a [new issue](https://github.com/xerecter/karma-team/issues/new). If you'd like to implement it yourself, please submit a proposal issue first so we can discuss the approach.
 
 ## Coding guidelines
 
@@ -69,10 +69,10 @@ To ensure consistency throughout the source code:
 
 ## Ways to contribute
 
-- Try Pi Dash (cloud or self-hosted) and give feedback
+- Try karma-team (cloud or self-hosted) and give feedback
 - Add new agent integrations or connectors
 - Add or update translations
-- Help with open [issues](https://github.com/The-AI-Republic/pi-dash/issues) or [create your own](https://github.com/The-AI-Republic/pi-dash/issues/new/choose)
+- Help with open [issues](https://github.com/xerecter/karma-team/issues) or [create your own](https://github.com/xerecter/karma-team/issues/new/choose)
 - Share your thoughts and suggestions with us
 - Help create tutorials and blog posts
 - Request a feature by submitting a proposal
@@ -86,16 +86,16 @@ The open-source build ships **English only**. UI copy is wrapped in
 there is no separate key catalogue to keep in sync, and no per-string entry to
 add when you introduce new copy.
 
-Self-hosters who want to run Pi Dash in another language can add their own
+Self-hosters who want to run karma-team in another language can add their own
 locale files; the package is built for it, with no code changes required. The
 full how-to (locale file shape, registering the language so it appears in the
 picker, ICU MessageFormat) lives next to the code in
 [`packages/i18n/README.md`](packages/i18n/README.md).
 
 > The upstream multi-language locales and the key-sync / machine-translation
-> tooling that maintains them are part of Pi Dash Cloud, layered on top at build
+> tooling that maintains them are part of karma-team Cloud, layered on top at build
 > time, and are not maintained in this repository.
 
 ## Need help?
 
-Questions, suggestions, and thoughts are most welcome. Reach us on [GitHub Discussions](https://github.com/The-AI-Republic/pi-dash/discussions) or visit [airepublic.com](https://airepublic.com/).
+Questions, suggestions, and thoughts are most welcome. Reach us on [GitHub Discussions](https://github.com/xerecter/karma-team/discussions) or visit [airepublic.com](https://airepublic.com/).

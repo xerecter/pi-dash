@@ -1,9 +1,9 @@
-//! `pidash update` — swap the on-disk `pidash` binary for the latest
+//! `karma-team update` — swap the on-disk `karma-team` binary for the latest
 //! release published to GitHub Releases.
 //!
 //! By design, this command **only swaps the file**. The currently-running
 //! daemon keeps its loaded copy and is not disturbed. The new code only
-//! takes effect on the next natural restart (`pidash restart`, host reboot,
+//! takes effect on the next natural restart (`karma-team restart`, host reboot,
 //! systemd respawn after a crash). Pass `--restart` to also trigger a
 //! service restart at the end.
 //!
@@ -14,7 +14,7 @@
 //!
 //! ## Receipt requirement
 //!
-//! This command only works for binaries installed via `pidash-installer.sh`
+//! This command only works for binaries installed via `karma-team-installer.sh`
 //! (which cargo-dist writes an install receipt for). Source builds and
 //! `cargo install`'d binaries lack a receipt and will get a clear error
 //! suggesting they reinstall via the installer if they want self-update.
@@ -37,19 +37,19 @@ pub struct Args {
 
     /// After a successful swap, also restart the daemon so the new
     /// binary takes effect immediately. Default is to swap only and
-    /// print a "run `pidash restart` to apply" hint.
+    /// print a "run `karma-team restart` to apply" hint.
     #[arg(long)]
     pub restart: bool,
 }
 pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     match check_or_swap(args.check, paths).await? {
         SwapOutcome::AlreadyLatest => {
-            println!("pidash is already on the latest version (v{RUNNER_VERSION}).");
+            println!("karma-team is already on the latest version (v{RUNNER_VERSION}).");
         }
         SwapOutcome::UpdateAvailable { new_version } => {
             // --check path: print and exit without touching disk.
             println!(
-                "update available: v{new_version} (running v{RUNNER_VERSION}). run `pidash update --restart` to install and apply now, or `pidash update` to install without restarting."
+                "update available: v{new_version} (running v{RUNNER_VERSION}). run `karma-team update --restart` to install and apply now, or `karma-team update` to install without restarting."
             );
         }
         SwapOutcome::Swapped {
@@ -75,7 +75,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
                 println!("daemon restarted on the new binary ({}).", outcome.summary);
             } else {
                 println!(
-                    "run `pidash restart` to apply now, or let the next reboot/service restart pick it up (the running daemon is still on v{old})."
+                    "run `karma-team restart` to apply now, or let the next reboot/service restart pick it up (the running daemon is still on v{old})."
                 );
             }
         }
@@ -100,11 +100,11 @@ pub enum SwapOutcome {
 
 /// Shared swap entry point used by both the manual CLI and the daemon's
 /// auto-update orchestration. Loads the cargo-dist install receipt,
-/// queries the GitHub Releases for `pidash`, and (when `check` is false)
+/// queries the GitHub Releases for `karma-team`, and (when `check` is false)
 /// runs the platform installer in-place over the existing binary.
 ///
 /// Returns an error if no install receipt exists — i.e. the user did not
-/// install via `pidash-installer.sh`. That's a hard failure for the CLI
+/// install via `karma-team-installer.sh`. That's a hard failure for the CLI
 /// but the daemon's auto-update path should treat it as "skip silently"
 /// since auto-swap doesn't apply to source builds.
 pub async fn check_or_swap(check: bool, paths: &Paths) -> Result<SwapOutcome> {
@@ -113,11 +113,11 @@ pub async fn check_or_swap(check: bool, paths: &Paths) -> Result<SwapOutcome> {
     } else {
         Some(UpdateLock::acquire(paths)?)
     };
-    let mut updater = AxoUpdater::new_for("pidash");
+    let mut updater = AxoUpdater::new_for("karma-team");
     updater
         .load_receipt()
         .context(
-            "no install receipt found — `pidash update` only works for binaries installed via `pidash-installer.sh`. Reinstall with the installer or update manually.",
+            "no install receipt found — `karma-team update` only works for binaries installed via `karma-team-installer.sh`. Reinstall with the installer or update manually.",
         )?;
     if !updater
         .check_receipt_is_for_this_executable()
@@ -131,7 +131,7 @@ pub async fn check_or_swap(check: bool, paths: &Paths) -> Result<SwapOutcome> {
     let needed = updater
         .is_update_needed()
         .await
-        .context("checking GitHub releases for a newer pidash")?;
+        .context("checking GitHub releases for a newer karma-team")?;
     if !needed {
         return Ok(SwapOutcome::AlreadyLatest);
     }
@@ -140,7 +140,7 @@ pub async fn check_or_swap(check: bool, paths: &Paths) -> Result<SwapOutcome> {
         let v = updater
             .query_new_version()
             .await
-            .context("querying latest pidash version")?
+            .context("querying latest karma-team version")?
             .map(|v| v.to_string())
             .unwrap_or_else(|| "(unknown)".to_string());
         return Ok(SwapOutcome::UpdateAvailable { new_version: v });

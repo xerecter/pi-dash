@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { setPromiseToast } from "@pi-dash/propel/toast";
-import type { IProject } from "@pi-dash/types";
-import { ToggleSwitch } from "@pi-dash/ui";
+// karma-team imports
+import { setPromiseToast } from "@karma-team/propel/toast";
+import type { IProject } from "@karma-team/types";
+import { ToggleSwitch } from "@karma-team/ui";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 // hooks

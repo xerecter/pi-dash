@@ -6,11 +6,11 @@
 
 import { useCallback } from "react";
 import { PanelLeft } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon, SearchIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { copyTextToClipboard } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon, SearchIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { copyTextToClipboard } from "@karma-team/utils";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks

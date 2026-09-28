@@ -5,9 +5,9 @@
  */
 
 import React from "react";
-// pi dash package imports
-import { useTranslation } from "@pi-dash/i18n";
-import { cn } from "@pi-dash/utils";
+// karma-team package imports
+import { useTranslation } from "@karma-team/i18n";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   i18nTitle: string;

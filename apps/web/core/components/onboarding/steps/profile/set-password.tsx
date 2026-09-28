@@ -5,9 +5,9 @@
  */
 
 import React, { useState, useCallback, useMemo } from "react";
-import { LockIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import { PasswordInput, PasswordStrengthIndicator } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { LockIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import { PasswordInput, PasswordStrengthIndicator } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 
 interface PasswordState {
   password: string;

@@ -5,13 +5,13 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash types
-import { PriorityIcon, StateGroupIcon, WorkItemsIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TActivityEntityData, TIssueEntityData } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
-// pi dash ui
-import { calculateTimeAgo, generateWorkItemLink } from "@pi-dash/utils";
+// karma-team types
+import { PriorityIcon, StateGroupIcon, WorkItemsIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TActivityEntityData, TIssueEntityData } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
+// karma-team ui
+import { calculateTimeAgo, generateWorkItemLink } from "@karma-team/utils";
 // components
 import { ListItem } from "@/components/core/list";
 import { MemberDropdown } from "@/components/dropdowns/member/dropdown";
@@ -20,8 +20,8 @@ import { MemberDropdown } from "@/components/dropdowns/member/dropdown";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 
 type BlockProps = {
   activity: TActivityEntityData;

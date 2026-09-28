@@ -5,11 +5,11 @@
  */
 
 import { useRef, useState } from "react";
-// pi dash imports
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   searchQuery: string;

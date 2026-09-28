@@ -7,12 +7,12 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { useForm } from "react-hook-form";
-// pi dash package imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { IAnalyticsParams } from "@pi-dash/types";
-import { ChartXAxisProperty, ChartYAxisMetric } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
-// pi dash web components
+// karma-team package imports
+import { useTranslation } from "@karma-team/i18n";
+import type { IAnalyticsParams } from "@karma-team/types";
+import { ChartXAxisProperty, ChartYAxisMetric } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
+// karma-team web components
 import AnalyticsSectionWrapper from "../analytics-section-wrapper";
 import { AnalyticsSelectParams } from "../select/analytics-params";
 import PriorityChart from "./priority-chart";

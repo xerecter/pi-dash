@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 import type { AxiosRequestConfig } from "axios";
 import type {
   IAssistantMCPServer,
@@ -14,7 +14,7 @@ import type {
   IUserLLMConfigInput,
   IUserSTTConfig,
   IUserSTTConfigInput,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 import { APIService } from "../api.service";
 
 export class AssistantService extends APIService {

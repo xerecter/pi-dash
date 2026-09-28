@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-// pi dash types
-import { useTranslation } from "@pi-dash/i18n";
-import type { IUser } from "@pi-dash/types";
-// pi dash ui
+// karma-team types
+import { useTranslation } from "@karma-team/i18n";
+import type { IUser } from "@karma-team/types";
+// karma-team ui
 // hooks
 import { useCurrentTime } from "@/hooks/use-current-time";
 

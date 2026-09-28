@@ -8,11 +8,11 @@ import { useCallback, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
 import useSWR from "swr";
-// pi dash internal packages
-import { setPromiseToast, setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import type { TInstanceConfigurationKeys, TInstanceAuthenticationModes } from "@pi-dash/types";
-import { Loader, ToggleSwitch } from "@pi-dash/ui";
-import { cn, resolveGeneralTheme } from "@pi-dash/utils";
+// karma-team internal packages
+import { setPromiseToast, setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import type { TInstanceConfigurationKeys, TInstanceAuthenticationModes } from "@karma-team/types";
+import { Loader, ToggleSwitch } from "@karma-team/ui";
+import { cn, resolveGeneralTheme } from "@karma-team/utils";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
 import { AuthenticationMethodCard } from "@/components/authentication/authentication-method-card";
@@ -169,6 +169,6 @@ const InstanceAuthenticationPage = observer(function InstanceAuthenticationPage(
   );
 });
 
-export const meta: Route.MetaFunction = () => [{ title: "Authentication Settings - Pi Dash Web" }];
+export const meta: Route.MetaFunction = () => [{ title: "Authentication Settings - karma-team Web" }];
 
 export default InstanceAuthenticationPage;

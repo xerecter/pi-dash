@@ -1,0 +1,187 @@
+# Copyright (c) 2023-present Pi Dash Software, Inc. and contributors
+# SPDX-License-Identifier: AGPL-3.0-only
+# See the LICENSE file for details.
+
+# Python imports
+import os
+import logging
+
+# Third party imports
+from datetime import timedelta
+
+from celery import Celery
+from pythonjsonlogger.jsonlogger import JsonFormatter
+from celery.signals import after_setup_logger, after_setup_task_logger
+from celery.schedules import crontab
+from django.conf import settings
+
+# Set the default Django settings module for the 'celery' program.
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "karma_team.settings.production")
+
+app = Celery("karma_team")
+
+# Using a string here means the worker will not have to
+# pickle the object when using Windows.
+app.config_from_object("django.conf:settings", namespace="CELERY")
+
+app.conf.beat_schedule = {
+    # Intra day recurring jobs
+    "check-every-five-minutes-to-send-email-notifications": {
+        "task": "karma_team.bgtasks.email_notification_task.stack_email_notification",
+        "schedule": crontab(minute="*/5"),  # Every 5 minutes
+    },
+    "run-every-6-hours-for-instance-trace": {
+        "task": "karma_team.license.bgtasks.tracer.instance_traces",
+        "schedule": crontab(hour="*/6", minute=0),  # Every 6 hours
+    },
+    # Occurs once every day
+    "check-every-day-to-delete-hard-delete": {
+        "task": "karma_team.bgtasks.deletion_task.hard_delete",
+        "schedule": crontab(hour=0, minute=0),  # UTC 00:00
+    },
+    "check-every-day-to-archive-and-close": {
+        "task": "karma_team.bgtasks.issue_automation_task.archive_and_close_old_issues",
+        "schedule": crontab(hour=1, minute=0),  # UTC 01:00
+    },
+    "check-every-day-to-delete_exporter_history": {
+        "task": "karma_team.bgtasks.exporter_expired_task.delete_old_s3_link",
+        "schedule": crontab(hour=1, minute=30),  # UTC 01:30
+    },
+    "check-every-day-to-delete-file-asset": {
+        "task": "karma_team.bgtasks.file_asset_task.delete_unuploaded_file_asset",
+        "schedule": crontab(hour=2, minute=0),  # UTC 02:00
+    },
+    "check-every-day-to-delete-api-logs": {
+        "task": "karma_team.bgtasks.cleanup_task.delete_api_logs",
+        "schedule": crontab(hour=2, minute=30),  # UTC 02:30
+    },
+    "check-every-day-to-delete-email-notification-logs": {
+        "task": "karma_team.bgtasks.cleanup_task.delete_email_notification_logs",
+        "schedule": crontab(hour=2, minute=45),  # UTC 02:45
+    },
+    "check-every-day-to-delete-page-versions": {
+        "task": "karma_team.bgtasks.cleanup_task.delete_page_versions",
+        "schedule": crontab(hour=3, minute=0),  # UTC 03:00
+    },
+    "check-every-day-to-delete-issue-description-versions": {
+        "task": "karma_team.bgtasks.cleanup_task.delete_issue_description_versions",
+        "schedule": crontab(hour=3, minute=15),  # UTC 03:15
+    },
+    "check-every-day-to-delete-webhook-logs": {
+        "task": "karma_team.bgtasks.cleanup_task.delete_webhook_logs",
+        "schedule": crontab(hour=3, minute=30),  # UTC 03:30
+    },
+    "check-every-day-to-delete-exporter-history": {
+        "task": "karma_team.bgtasks.exporter_expired_task.delete_old_s3_link",
+        "schedule": crontab(hour=3, minute=45),  # UTC 03:45
+    },
+    # Runner lifecycle
+    "runner-expire-stale-approvals": {
+        "task": "runner.expire_stale_approvals",
+        "schedule": crontab(minute="*/1"),
+    },
+    "runner-mark-offline-runners": {
+        "task": "runner.mark_offline_runners",
+        "schedule": crontab(minute="*/1"),
+    },
+    # Per-active-run agent stall watchdog. Backstop for the runner's own
+    # internal 5-minute stall timer; see
+    # `.ai_design/runner_agent_bridge/design.md` §4.5.3. 30s gives ~12
+    # ticks per stall threshold so we don't oversleep the deadline.
+    "runner-reconcile-stalled-runs": {
+        "task": "runner.reconcile_stalled_runs",
+        "schedule": timedelta(seconds=30),
+    },
+    "runner-sweep-agent-chat-state": {
+        "task": "runner.sweep_agent_chat_state",
+        "schedule": timedelta(seconds=30),
+    },
+    # AI assistant — fail turns whose worker died so threads never wedge.
+    "assistant-sweep-stale-turns": {
+        "task": "assistant.sweep_stale_turns",
+        "schedule": timedelta(seconds=30),
+    },
+    "runner-sweep-chat-message-dedupe": {
+        "task": "runner.sweep_chat_message_dedupe",
+        "schedule": crontab(hour=4, minute=0),
+    },
+    # Issue ticking — see .ai_design/issue_ticking_system/design.md §6
+    "scan-due-agent-tickers": {
+        "task": "karma_team.bgtasks.agent_ticker.scan_due_tickers",
+        "schedule": crontab(minute="*"),
+    },
+    # Git provider Issue Sync — keep the legacy schedule name so
+    # django-celery-beat updates existing GitHub rows instead of running the old
+    # GitHub poller and the new provider-neutral poller in parallel.
+    "github-issue-sync-every-4h": {
+        "task": "karma_team.bgtasks.git_sync_task.sync_all_bindings",
+        "schedule": crontab(minute=0, hour="*/4"),
+    },
+    # Project Scheduler scanner — see .ai_design/project_scheduler/design.md §6.1.
+    "scan-due-scheduler-bindings": {
+        "task": "karma_team.bgtasks.scheduler.scan_due_bindings",
+        "schedule": crontab(minute="*"),
+    },
+    # Loop (Auto Project Management) scanner — see
+    # .ai_design/loop_project_management/design.md §7.1.
+    "scan-due-loop-targets": {
+        "task": "karma_team.bgtasks.loop.scan_due_targets",
+        "schedule": crontab(minute="*"),
+    },
+}
+
+
+# Setup logging
+@after_setup_logger.connect
+def setup_loggers(logger, *args, **kwargs):
+    formatter = JsonFormatter('"%(levelname)s %(asctime)s %(module)s %(name)s %(message)s')
+    handler = logging.StreamHandler()
+    handler.setFormatter(fmt=formatter)
+    logger.addHandler(handler)
+
+
+@after_setup_task_logger.connect
+def setup_task_loggers(logger, *args, **kwargs):
+    formatter = JsonFormatter('"%(levelname)s %(asctime)s %(module)s %(name)s %(message)s')
+    handler = logging.StreamHandler()
+    handler.setFormatter(fmt=formatter)
+    logger.addHandler(handler)
+
+
+# Load task modules from all registered Django app configs.
+app.autodiscover_tasks()
+
+
+@app.on_after_finalize.connect
+def _register_settings_backed_beat_entries(sender, **_kwargs):
+    """Beat entries whose cadence comes from Django settings.
+
+    Registered after finalize — NOT in the literal dict above — because this
+    module is imported while Django's Settings object may still be under
+    construction (settings-overlay packages import ``karma_team`` from inside
+    their settings module), and a module-level ``settings.X`` read would see
+    a partially-built object. Every entry in the literal dict must stay a
+    literal.
+    """
+    sender.conf.beat_schedule.update(
+        {
+            "cloud-agent-scan-queued-runs": {
+                "task": "cloud_agent.scan_queued_runs",
+                "schedule": timedelta(seconds=settings.CLOUD_AGENT_DISPATCH_SCAN_INTERVAL_SECONDS),
+            },
+            "cloud-agent-sweep-stale-runs": {
+                "task": "cloud_agent.sweep_stale_runs",
+                "schedule": timedelta(seconds=settings.CLOUD_AGENT_SWEEP_INTERVAL_SECONDS),
+            },
+            "managed-runner-expire-waiting-runs": {
+                "task": "managed_runner.expire_waiting_runs",
+                "schedule": timedelta(seconds=settings.MANAGED_RUNNER_SWEEP_INTERVAL_SECONDS),
+            },
+            "agent-run-reconcile-terminal-effects": {
+                "task": "runner.reconcile_agent_run_terminal_effects",
+                "schedule": timedelta(seconds=settings.AGENT_RUN_TERMINAL_RECONCILE_INTERVAL_SECONDS),
+            },
+        }
+    )
+
+app.conf.beat_scheduler = "django_celery_beat.schedulers.DatabaseScheduler"

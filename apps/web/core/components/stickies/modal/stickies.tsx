@@ -7,8 +7,8 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 
-// pi dash ui
-import { RecentStickyIcon, PlusIcon, CloseIcon } from "@pi-dash/propel/icons";
+// karma-team ui
+import { RecentStickyIcon, PlusIcon, CloseIcon } from "@karma-team/propel/icons";
 // hooks
 import { useSticky } from "@/hooks/use-stickies";
 // components

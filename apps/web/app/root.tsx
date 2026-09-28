@@ -9,9 +9,9 @@ import Script from "next/script";
 import { Links, Meta, Outlet, Scripts } from "react-router";
 import type { LinksFunction } from "react-router";
 import { ThemeProvider } from "next-themes";
-// pi dash imports
-import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE } from "@pi-dash/constants";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE } from "@karma-team/constants";
+import { cn } from "@karma-team/utils";
 // types
 // assets
 import favicon16 from "@/app/assets/favicon/favicon-16x16.png?url";
@@ -65,7 +65,7 @@ export function Layout({ children }: { children: ReactNode }) {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta name="theme-color" content="#fff" />
         {/* Meta info for PWA */}
-        <meta name="application-name" content="Pi Dash" />
+        <meta name="application-name" content="karma-team" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content={SITE_NAME} />
@@ -107,7 +107,7 @@ export const meta: Route.MetaFunction = () => [
   { property: "og:image", content: ogImage },
   { property: "og:image:width", content: "1200" },
   { property: "og:image:height", content: "630" },
-  { property: "og:image:alt", content: "Pi Dash - AI agent orchestration platform" },
+  { property: "og:image:alt", content: "karma-team - AI agent orchestration platform" },
   {
     name: "keywords",
     content: SITE_KEYWORDS,
@@ -117,7 +117,7 @@ export const meta: Route.MetaFunction = () => [
   { name: "twitter:image", content: ogImage },
   { name: "twitter:image:width", content: "1200" },
   { name: "twitter:image:height", content: "630" },
-  { name: "twitter:image:alt", content: "Pi Dash - AI agent orchestration platform" },
+  { name: "twitter:image:alt", content: "karma-team - AI agent orchestration platform" },
 ];
 
 export default function Root() {

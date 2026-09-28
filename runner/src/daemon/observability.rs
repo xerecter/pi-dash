@@ -5,10 +5,10 @@
 
 use crate::agent::BridgeEvent;
 
-// `TokenUsage` moved to the shared `pidash-ipc` crate (PDASHOSS01-158) as a
+// `TokenUsage` moved to the shared `karma-team-ipc` crate (PDASHOSS01-158) as a
 // field of the `ObservabilitySnapshot` wire type; re-exported here so every
 // `daemon::observability::TokenUsage` call site is unchanged.
-pub use pidash_ipc::dto::TokenUsage;
+pub use karma_team_ipc::dto::TokenUsage;
 
 /// Maximum length for `last_event_kind` — matches the cloud's
 /// `RunnerLiveState.last_event_kind` column.
@@ -817,7 +817,10 @@ mod tests {
             },
         });
         let text = extract_agent_message_text("item/completed", &params).expect("narrative");
-        assert_eq!(text, "Let me first explore the original color of the button.");
+        assert_eq!(
+            text,
+            "Let me first explore the original color of the button."
+        );
     }
 
     #[test]

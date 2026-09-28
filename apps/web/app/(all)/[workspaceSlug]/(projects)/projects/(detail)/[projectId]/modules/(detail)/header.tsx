@@ -9,21 +9,21 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // icons
 import { ChartNoAxesColumn, PanelRight, SlidersHorizontal } from "lucide-react";
-// pi dash imports
+// karma-team imports
 import {
   EIssueFilterType,
   ISSUE_DISPLAY_FILTERS_BY_PAGE,
   EUserPermissions,
   EUserPermissionsLevel,
   WORK_ITEM_TRACKER_ELEMENTS,
-} from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { ModuleIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { ICustomSearchSelectOption, IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@pi-dash/types";
-import { EIssuesStoreType, EIssueLayoutTypes } from "@pi-dash/types";
-import { Breadcrumbs, Header, BreadcrumbNavigationSearchDropdown } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+} from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { ModuleIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { ICustomSearchSelectOption, IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@karma-team/types";
+import { EIssuesStoreType, EIssueLayoutTypes } from "@karma-team/types";
+import { Breadcrumbs, Header, BreadcrumbNavigationSearchDropdown } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { WorkItemsModal } from "@/components/analytics/work-items/modal";
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
@@ -46,9 +46,9 @@ import { useAppRouter } from "@/hooks/use-app-router";
 import { useIssuesActions } from "@/hooks/use-issues-actions";
 import useLocalStorage from "@/hooks/use-local-storage";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web imports
-import { CommonProjectBreadcrumbs } from "@/pi-dash-web/components/breadcrumbs/common";
-import { IconButton } from "@pi-dash/propel/icon-button";
+// karma-team web imports
+import { CommonProjectBreadcrumbs } from "@/karma-team-web/components/breadcrumbs/common";
+import { IconButton } from "@karma-team/propel/icon-button";
 
 export const ModuleIssuesHeader = observer(function ModuleIssuesHeader() {
   // refs

@@ -6,19 +6,19 @@
 
 import React, { useRef } from "react";
 import { observer } from "mobx-react";
-// pi dash constants
-import { SPREADSHEET_SELECT_GROUP, SPREADSHEET_PROPERTY_LIST } from "@pi-dash/constants";
+// karma-team constants
+import { SPREADSHEET_SELECT_GROUP, SPREADSHEET_PROPERTY_LIST } from "@karma-team/constants";
 // types
-import type { TIssue, IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@pi-dash/types";
-import { EIssueLayoutTypes } from "@pi-dash/types";
+import type { TIssue, IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@karma-team/types";
+import { EIssueLayoutTypes } from "@karma-team/types";
 // components
 import { MultipleSelectGroup } from "@/components/core/multiple-select";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
-// pi dash web components
-import { IssueBulkOperationsRoot } from "@/pi-dash-web/components/issues/bulk-operations";
-// pi dash web hooks
-import { useBulkOperationStatus } from "@/pi-dash-web/hooks/use-bulk-operation-status";
+// karma-team web components
+import { IssueBulkOperationsRoot } from "@/karma-team-web/components/issues/bulk-operations";
+// karma-team web hooks
+import { useBulkOperationStatus } from "@/karma-team-web/hooks/use-bulk-operation-status";
 // local imports
 import type { TRenderQuickActions } from "../list/list-view-types";
 import { QuickAddIssueRoot, SpreadsheetAddIssueButton } from "../quick-add";
@@ -64,7 +64,7 @@ export const SpreadsheetView = observer(function SpreadsheetView(props: Props) {
   const portalRef = useRef<HTMLDivElement | null>(null);
   // store hooks
   const { currentProjectDetails } = useProject();
-  // pi dash web hooks
+  // karma-team web hooks
   const isBulkOperationsEnabled = useBulkOperationStatus();
 
   const isEstimateEnabled: boolean = currentProjectDetails?.estimate !== null;

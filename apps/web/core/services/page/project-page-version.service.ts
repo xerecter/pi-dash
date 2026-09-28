@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash types
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { TPageVersion } from "@pi-dash/types";
+// karma-team types
+import { API_BASE_URL } from "@karma-team/constants";
+import type { TPageVersion } from "@karma-team/types";
 // helpers
 // services
 import { APIService } from "@/services/api.service";

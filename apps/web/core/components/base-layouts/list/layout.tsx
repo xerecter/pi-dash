@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-import type { IBaseLayoutsListItem, IBaseLayoutsListProps } from "@pi-dash/types";
-import { cn } from "@pi-dash/ui";
+import type { IBaseLayoutsListItem, IBaseLayoutsListProps } from "@karma-team/types";
+import { cn } from "@karma-team/ui";
 import { useLayoutState } from "../hooks/use-layout-state";
 import { BaseListGroup } from "./group";
 

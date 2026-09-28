@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TIdentifierTextProps, TIdentifierTextVariant, TIssueIdentifierSize } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TIdentifierTextProps, TIdentifierTextVariant, TIssueIdentifierSize } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 
 const SIZE_MAP: Record<TIssueIdentifierSize, string> = {
   xs: "text-caption-sm-regular",

@@ -5,7 +5,7 @@
  */
 
 // ui
-import { Button } from "@pi-dash/propel/button";
+import { Button } from "@karma-team/propel/button";
 
 const handleRetry = () => {
   window.location.reload();
@@ -18,14 +18,14 @@ function ErrorPage() {
         <div className="space-y-2">
           <h3 className="text-16 font-semibold">Yikes! That doesn{"'"}t look good.</h3>
           <p className="mx-auto text-13 text-secondary md:w-1/2">
-            That crashed Pi Dash, pun intended. No worries, though. Our engineers have been notified. If you have more
-            details, please write to{" "}
+            That crashed karma-team, pun intended. No worries, though. Our engineers have been notified. If you have
+            more details, please write to{" "}
             <a href="mailto:support@airepublic.com" className="text-accent-primary">
               support@airepublic.com
             </a>{" "}
             or on our{" "}
             <a
-              href="https://github.com/The-AI-Republic/pi-dash/discussions"
+              href="https://github.com/xerecter/karma-team/discussions"
               target="_blank"
               className="text-accent-primary"
               rel="noopener noreferrer"

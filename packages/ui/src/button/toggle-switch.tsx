@@ -57,6 +57,6 @@ function ToggleSwitch(props: IToggleSwitchProps) {
   );
 }
 
-ToggleSwitch.displayName = "pi-dash-ui-toggle-switch";
+ToggleSwitch.displayName = "karma-team-ui-toggle-switch";
 
 export { ToggleSwitch };

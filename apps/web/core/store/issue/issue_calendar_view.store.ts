@@ -8,9 +8,9 @@ import { observable, action, makeObservable, runInAction, computed, reaction } f
 
 // helpers
 import { computedFn } from "mobx-utils";
-import type { ICalendarPayload, ICalendarWeek } from "@pi-dash/types";
-import { EStartOfTheWeek } from "@pi-dash/types";
-import { generateCalendarData, getWeekNumberOfDate } from "@pi-dash/utils";
+import type { ICalendarPayload, ICalendarWeek } from "@karma-team/types";
+import { EStartOfTheWeek } from "@karma-team/types";
+import { generateCalendarData, getWeekNumberOfDate } from "@karma-team/utils";
 // types
 import type { IIssueRootStore } from "./root.store";
 

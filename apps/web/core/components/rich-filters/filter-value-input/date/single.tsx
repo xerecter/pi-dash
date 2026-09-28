@@ -6,9 +6,9 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TDateFilterFieldConfig, TFilterConditionNodeForDisplay, TFilterProperty } from "@pi-dash/types";
-import { cn, renderFormattedPayloadDate } from "@pi-dash/utils";
+// karma-team imports
+import type { TDateFilterFieldConfig, TFilterConditionNodeForDisplay, TFilterProperty } from "@karma-team/types";
+import { cn, renderFormattedPayloadDate } from "@karma-team/utils";
 import { DateDropdown } from "@/components/dropdowns/date";
 import { COMMON_FILTER_ITEM_BORDER_CLASSNAME, EMPTY_FILTER_PLACEHOLDER_TEXT } from "../../shared";
 

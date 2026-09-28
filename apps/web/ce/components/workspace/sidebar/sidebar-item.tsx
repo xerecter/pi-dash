@@ -5,7 +5,7 @@
  */
 
 import type { ReactNode } from "react";
-import type { IWorkspaceSidebarNavigationItem } from "@pi-dash/constants";
+import type { IWorkspaceSidebarNavigationItem } from "@karma-team/constants";
 import { SidebarItemBase } from "@/components/workspace/sidebar/sidebar-item";
 
 type Props = {

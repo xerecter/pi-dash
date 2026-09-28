@@ -24,7 +24,7 @@ controls **who may write at which scope**:
 
 | Tier (`customizable`) | Workspace override (admin) | Personal override (member) | Example                                               |
 | --------------------- | -------------------------- | -------------------------- | ----------------------------------------------------- |
-| `locked`              | ✗                          | ✗                          | `pidash-cli`, `guardrails`, `intro`                   |
+| `locked`              | ✗                          | ✗                          | `karma-team-cli`, `guardrails`, `intro`               |
 | `workspace`           | ✓                          | ✗                          | (admin-governed policy sections)                      |
 | `overridable`         | ✓                          | ✓                          | `implementation`, `review-cycle`, `analyze-and-scope` |
 

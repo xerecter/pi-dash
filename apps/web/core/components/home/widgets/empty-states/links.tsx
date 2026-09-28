@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
 
 export function LinksEmptyState() {
   const { t } = useTranslation();

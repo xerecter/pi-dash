@@ -1,12 +1,12 @@
 # Runner — End-User Setup Guide
 
-This guide walks you through connecting your dev machine to Pi Dash so the cloud can assign coding tasks to Codex running locally.
+This guide walks you through connecting your dev machine to karma-team so the cloud can assign coding tasks to Codex running locally.
 
-**Who this is for:** developers who want their Pi Dash issues to become live Codex runs on their own hardware.
+**Who this is for:** developers who want their karma-team issues to become live Codex runs on their own hardware.
 
 **What you need before you start:**
 
-- Pi Dash account with access to your workspace
+- karma-team account with access to your workspace
 - Codex installed and logged in (`codex --version` works, `codex account status` shows your account)
 - Git installed with working credentials for the repos you'll work on
 - macOS (arm64/x64) or Linux (x64). Windows is not yet supported.
@@ -17,13 +17,13 @@ Pick one:
 
 ```bash
 # Homebrew (macOS + Linux)
-brew install pidash/tap/pidash
+brew install karma-team/tap/karma-team
 
 # Shell installer
 curl -fsSL http://localhost/install.sh | sh
 ```
 
-Both drop `pidash` into `$HOME/.local/bin`. Make sure that directory is in your `PATH`.
+Both drop `karma-team` into `$HOME/.local/bin`. Make sure that directory is in your `PATH`.
 
 ## 2. Get a registration code
 
@@ -39,7 +39,7 @@ You can register up to 5 runners per account per workspace.
 ### Option A — interactive TUI (recommended for first-time setup)
 
 ```bash
-pidash tui
+karma-team tui
 ```
 
 The TUI detects that no config exists and walks you through 4 steps:
@@ -52,13 +52,13 @@ The TUI detects that no config exists and walks you through 4 steps:
 ### Option B — command-line (scripts / CI)
 
 ```bash
-pidash configure \
+karma-team configure \
   --url http://localhost \
   --token <PASTE_REGISTRATION_CODE> \
   --name my-laptop
 
-pidash service install
-pidash service start
+karma-team service install
+karma-team service start
 ```
 
 The daemon now runs as a `launchd` agent (macOS) or `systemd --user` unit (Linux) and will auto-start on login.
@@ -66,7 +66,7 @@ The daemon now runs as a `launchd` agent (macOS) or `systemd --user` unit (Linux
 ## 4. Verify it's connected
 
 ```bash
-pidash status
+karma-team status
 ```
 
 You should see `connected` and your cloud URL. Equivalently, open the web UI → **Runners** tab; the new runner appears with a green **online** badge within a few seconds.
@@ -74,7 +74,7 @@ You should see `connected` and your cloud URL. Equivalently, open the web UI →
 ## 5. Attach the TUI dashboard
 
 ```bash
-pidash tui
+karma-team tui
 ```
 
 Four tabs:
@@ -106,16 +106,16 @@ Pending approvals expire after 10 minutes; the server then cancels the run autom
 
 ## 7. Day-to-day
 
-- **Your working directory** lives at `$TMPDIR/.pidash` by default. Change with `pidash configure --working-dir /path/to/repo` or the Config tab. Runs reuse this directory; Codex is expected to reset/stash/checkout at the start of each task.
-- **Logs** are in `~/.local/share/pidash/logs/`.
-- **Per-run transcripts** are stored as JSONL in `~/.local/share/pidash/history/runs/`.
+- **Your working directory** lives at `$TMPDIR/.karma-team` by default. Change with `karma-team configure --working-dir /path/to/repo` or the Config tab. Runs reuse this directory; Codex is expected to reset/stash/checkout at the start of each task.
+- **Logs** are in `~/.local/share/karma-team/logs/`.
+- **Per-run transcripts** are stored as JSONL in `~/.local/share/karma-team/history/runs/`.
 
 ## 8. Upgrading
 
 ```bash
-brew upgrade pidash
-pidash service stop
-pidash service start
+brew upgrade karma-team
+karma-team service stop
+karma-team service start
 ```
 
 A protocol version bump will be announced in the release notes. The daemon logs a warning if the server expects a newer version; in that case, upgrade.
@@ -125,9 +125,9 @@ A protocol version bump will be announced in the release notes. The daemon logs 
 If you suspect your runner secret has leaked:
 
 ```bash
-pidash rotate
-pidash service stop
-pidash service start
+karma-team rotate
+karma-team service stop
+karma-team service start
 ```
 
 The old secret is invalidated immediately. No downtime on the runner record in the cloud — just a forced WS reconnect with the new secret.
@@ -135,16 +135,16 @@ The old secret is invalidated immediately. No downtime on the runner record in t
 ## 10. Removing
 
 ```bash
-pidash service stop
-pidash service uninstall
-pidash remove
+karma-team service stop
+karma-team service uninstall
+karma-team remove
 ```
 
-This deregisters the runner in the cloud, deletes local credentials and config, and stops the agent. Your transcripts under `~/.local/share/pidash/history/` are NOT deleted automatically — remove them manually if you want.
+This deregisters the runner in the cloud, deletes local credentials and config, and stops the agent. Your transcripts under `~/.local/share/karma-team/history/` are NOT deleted automatically — remove them manually if you want.
 
 ## Troubleshooting
 
-**`status` shows disconnected** → daemon isn't running. Check `pidash service status`. If the unit is loaded but not active, `service start` it. If systemd says "failed", check `journalctl --user -u pidash`.
+**`status` shows disconnected** → daemon isn't running. Check `karma-team service status`. If the unit is loaded but not active, `service start` it. If systemd says "failed", check `journalctl --user -u karma-team`.
 
 **`doctor` says `codex-auth: unable to confirm`** → run `codex login`. Re-run `doctor` to confirm.
 

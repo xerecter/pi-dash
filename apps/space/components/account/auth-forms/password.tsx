@@ -7,12 +7,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { Eye, EyeOff, XCircle } from "lucide-react";
-// pi dash imports
-import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { AuthService } from "@pi-dash/services";
-import { Input, Spinner, PasswordStrengthIndicator } from "@pi-dash/ui";
-import { getPasswordStrength } from "@pi-dash/utils";
+// karma-team imports
+import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { AuthService } from "@karma-team/services";
+import { Input, Spinner, PasswordStrengthIndicator } from "@karma-team/ui";
+import { getPasswordStrength } from "@karma-team/utils";
 // types
 import { EAuthModes, EAuthSteps } from "@/types/auth";
 

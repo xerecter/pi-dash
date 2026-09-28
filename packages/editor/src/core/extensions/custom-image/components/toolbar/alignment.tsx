@@ -5,10 +5,10 @@
  */
 
 import { useEffect, useRef, useState } from "react";
-// pi dash imports
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
+// karma-team imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
 // local imports
 import type { TCustomImageAlignment } from "../../types";
 import { IMAGE_ALIGNMENT_OPTIONS } from "../../utils";

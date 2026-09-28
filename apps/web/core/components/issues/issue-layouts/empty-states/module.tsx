@@ -7,13 +7,13 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { ISearchIssueResponse } from "@pi-dash/types";
-import { EIssuesStoreType, EUserProjectRoles } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { ISearchIssueResponse } from "@karma-team/types";
+import { EIssuesStoreType, EUserProjectRoles } from "@karma-team/types";
 // components
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 // hooks
@@ -30,7 +30,7 @@ export const ModuleEmptyState = observer(function ModuleEmptyState() {
   const moduleId = routerModuleId ? routerModuleId.toString() : undefined;
   // states
   const [moduleIssuesListModal, setModuleIssuesListModal] = useState(false);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { issues } = useIssues(EIssuesStoreType.MODULE);

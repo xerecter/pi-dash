@@ -17,7 +17,7 @@ const { updateComment, removeComment, copyCommentLink, reactionIds, userReaction
   ACCESS: { INTERNAL: "INTERNAL", EXTERNAL: "EXTERNAL" } as const,
 }));
 
-vi.mock("@pi-dash/i18n", () => ({
+vi.mock("@karma-team/i18n", () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
@@ -25,10 +25,10 @@ vi.mock("@/hooks/store/user", () => ({
   useUser: () => ({ data: { id: "user-1" } }),
 }));
 
-vi.mock("@pi-dash/constants", () => ({ EIssueCommentAccessSpecifier: ACCESS }));
-vi.mock("@pi-dash/types", () => ({ EIssueCommentAccessSpecifier: ACCESS }));
+vi.mock("@karma-team/constants", () => ({ EIssueCommentAccessSpecifier: ACCESS }));
+vi.mock("@karma-team/types", () => ({ EIssueCommentAccessSpecifier: ACCESS }));
 
-vi.mock("@pi-dash/utils", () => ({
+vi.mock("@karma-team/utils", () => ({
   cn: (...args: unknown[]) => args.filter((a) => typeof a === "string").join(" "),
   getFileURL: (x: unknown) => x,
   calculateTimeAgo: () => "just now",
@@ -36,19 +36,19 @@ vi.mock("@pi-dash/utils", () => ({
   renderFormattedTime: () => "12:00",
 }));
 
-vi.mock("@pi-dash/propel/icon-button", () => ({
+vi.mock("@karma-team/propel/icon-button", () => ({
   IconButton: ({ icon: _icon, ...props }: { icon?: unknown } & React.ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button aria-label="comment actions" {...props} />
   ),
 }));
 
-vi.mock("@pi-dash/propel/icons", () => {
+vi.mock("@karma-team/propel/icons", () => {
   // eslint-disable-next-line unicorn/consistent-function-scoping -- inside vi.mock factory; cannot hoist out
   const Icon = (props: React.SVGProps<SVGSVGElement>) => <svg {...props} />;
   return { LinkIcon: Icon, GlobeIcon: Icon, LockIcon: Icon, EditIcon: Icon, TrashIcon: Icon };
 });
 
-vi.mock("@pi-dash/ui", async () => {
+vi.mock("@karma-team/ui", async () => {
   const { useState } = await import("react");
   // eslint-disable-next-line unicorn/consistent-function-scoping -- inside vi.mock factory
   const CustomMenu = ({ customButton, children }: { customButton: React.ReactNode; children: React.ReactNode }) => {

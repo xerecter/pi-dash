@@ -5,9 +5,9 @@
  */
 
 import Link from "next/link";
-// pi dash packages
-import type { TAdminAuthErrorInfo } from "@pi-dash/constants";
-import { SUPPORT_EMAIL, EAdminAuthErrorCodes } from "@pi-dash/constants";
+// karma-team packages
+import type { TAdminAuthErrorInfo } from "@karma-team/constants";
+import { SUPPORT_EMAIL, EAdminAuthErrorCodes } from "@karma-team/constants";
 
 export enum EErrorAlertType {
   BANNER_ALERT = "BANNER_ALERT",

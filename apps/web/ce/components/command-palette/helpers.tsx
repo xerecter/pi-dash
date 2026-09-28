@@ -5,18 +5,18 @@
  */
 
 import { LayoutGrid } from "lucide-react";
-// pi dash imports
-import { CycleIcon, ModuleIcon, PageIcon, ProjectIcon, ViewsIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { CycleIcon, ModuleIcon, PageIcon, ProjectIcon, ViewsIcon } from "@karma-team/propel/icons";
 import type {
   IWorkspaceDefaultSearchResult,
   IWorkspaceIssueSearchResult,
   IWorkspacePageSearchResult,
   IWorkspaceProjectSearchResult,
   IWorkspaceSearchResult,
-} from "@pi-dash/types";
-import { generateWorkItemLink } from "@pi-dash/utils";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+} from "@karma-team/types";
+import { generateWorkItemLink } from "@karma-team/utils";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 
 export type TCommandGroups = {
   [key: string]: {

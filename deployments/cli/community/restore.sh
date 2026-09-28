@@ -57,22 +57,22 @@ function restoreData() {
     local BACKUP_FOLDER=${1:-$PWD}
 
     local dockerServiceStatus
-    dockerServiceStatus=$($COMPOSE_CMD ls --filter name=pi-dash-app --format=json | jq -r .[0].Status)
+    dockerServiceStatus=$($COMPOSE_CMD ls --filter name=karma-team-app --format=json | jq -r .[0].Status)
     local dockerServicePrefix
     dockerServicePrefix="running"
 
     if [[ $dockerServiceStatus == $dockerServicePrefix* ]]; then
-        echo "Pi Dash App is running. Please STOP the Pi Dash App before restoring data."
+        echo "karma-team App is running. Please STOP the karma-team App before restoring data."
         exit 1
     fi
 
     local volume_suffix
     volume_suffix="_pgdata|_redisdata|_uploads|_rabbitmq_data"
     local volumes
-    volumes=$(docker volume ls -f "name=pi-dash-app" --format "{{.Name}}" | grep -E "$volume_suffix")
+    volumes=$(docker volume ls -f "name=karma-team-app" --format "{{.Name}}" | grep -E "$volume_suffix")
     # Check if there are any matching volumes
     if [ -z "$volumes" ]; then
-        echo ".....No volumes found starting with 'pi-dash-app'"
+        echo ".....No volumes found starting with 'karma-team-app'"
         exit 1
     fi
     
@@ -85,7 +85,7 @@ function restoreData() {
             restoreFileName="${restoreFileName%.tar.gz}"
 
             local restoreVolName
-            restoreVolName="pi-dash-app_${restoreFileName}"
+            restoreVolName="karma-team-app_${restoreFileName}"
             echo "Found $BACKUP_FILE"
 
             local docVol

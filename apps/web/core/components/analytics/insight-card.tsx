@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-// pi dash package imports
+// karma-team package imports
 import React from "react";
-import type { IAnalyticsResponseFields } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
+import type { IAnalyticsResponseFields } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
 
 export type InsightCardProps = {
   data?: IAnalyticsResponseFields;

@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import { Tooltip } from "@karma-team/propel/tooltip";
 
 type TIssueLabelPill = { name?: string; color?: string };
 

@@ -5,8 +5,8 @@
  */
 
 // types
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { IModule, ILinkDetails, ModuleLink, TIssuesResponse } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+import type { IModule, ILinkDetails, ModuleLink, TIssuesResponse } from "@karma-team/types";
 // services
 import { APIService } from "@/services/api.service";
 

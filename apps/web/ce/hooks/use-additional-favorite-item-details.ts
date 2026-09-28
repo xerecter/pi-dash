@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { IFavorite } from "@pi-dash/types";
+// karma-team imports
+import type { IFavorite } from "@karma-team/types";
 // components
 import { getFavoriteItemIcon } from "@/components/workspace/sidebar/favorites/favorite-items/common";
 

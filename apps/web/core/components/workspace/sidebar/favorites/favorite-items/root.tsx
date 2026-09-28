@@ -17,10 +17,10 @@ import { setCustomNativeDragPreview } from "@atlaskit/pragmatic-drag-and-drop/el
 import { attachInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 import { observer } from "mobx-react";
 import { createRoot } from "react-dom/client";
-// pi dash imports
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import type { IFavorite, InstructionType } from "@pi-dash/types";
-import { DropIndicator } from "@pi-dash/ui";
+// karma-team imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import type { IFavorite, InstructionType } from "@karma-team/types";
+import { DropIndicator } from "@karma-team/ui";
 // hooks
 import { useFavoriteItemDetails } from "@/hooks/use-favorite-item-details";
 // local imports

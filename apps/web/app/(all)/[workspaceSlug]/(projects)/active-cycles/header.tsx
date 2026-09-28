@@ -5,14 +5,14 @@
  */
 
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import { CycleIcon } from "@pi-dash/propel/icons";
-import { Breadcrumbs, Header } from "@pi-dash/ui";
+import { CycleIcon } from "@karma-team/propel/icons";
+import { Breadcrumbs, Header } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
-// pi dash web components
-import { UpgradeBadge } from "@/pi-dash-web/components/workspace/upgrade-badge";
+// karma-team web components
+import { UpgradeBadge } from "@/karma-team-web/components/workspace/upgrade-badge";
 
 export const WorkspaceActiveCycleHeader = observer(function WorkspaceActiveCycleHeader() {
   const { t } = useTranslation();

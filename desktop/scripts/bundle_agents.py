@@ -31,16 +31,16 @@ def assets(target):
     archive_suffix = ".zip" if windows else ".tar.xz"
     return [
         (
-            "The-AI-Republic/pi-dash",
-            f"pidash-{target}{archive_suffix}",
-            f"pidash{suffix}",
-            f"pidash{suffix}",
+            "xerecter/karma-team",
+            f"karma-team-{target}{archive_suffix}",
+            f"karma-team{suffix}",
+            f"karma-team{suffix}",
         ),
         (
             "openai/codex",
             f"codex-{engine_target}{suffix}.tar.gz",
             f"codex-{engine_target}{suffix}",
-            f"pidash-agent-engine{suffix}",
+            f"karma-team-agent-engine{suffix}",
         ),
     ]
 
@@ -52,7 +52,7 @@ def download(repo, tag, asset):
     digest = next((a.get("digest") for a in metadata["assets"] if a["name"] == asset), None)
     if not digest or not digest.startswith("sha256:"):
         raise ValueError(f"Missing SHA-256 digest for {repo}@{tag}/{asset}")
-    with tempfile.TemporaryDirectory(prefix="pidash-agent-asset-") as directory:
+    with tempfile.TemporaryDirectory(prefix="karma-team-agent-asset-") as directory:
         subprocess.run(
             [
                 "gh",
@@ -102,7 +102,7 @@ def executable_bytes(payload, archive, member):
 def stage(target, runner_tag, engine_tag, output):
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
-    with tempfile.TemporaryDirectory(prefix="pidash-agent-slices-") as directory:
+    with tempfile.TemporaryDirectory(prefix="karma-team-agent-slices-") as directory:
         slices = {}
         for architecture in targets(target):
             for repo, archive, member, destination in assets(architecture):

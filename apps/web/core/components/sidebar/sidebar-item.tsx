@@ -5,7 +5,7 @@
  */
 
 import Link from "next/link";
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 // ============================================================================
 // TYPES

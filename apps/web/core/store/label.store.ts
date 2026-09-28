@@ -8,9 +8,9 @@ import { set, sortBy } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { IIssueLabel, IIssueLabelTree } from "@pi-dash/types";
+import type { IIssueLabel, IIssueLabelTree } from "@karma-team/types";
 // helpers
-import { buildTree } from "@pi-dash/utils";
+import { buildTree } from "@karma-team/utils";
 // services
 import { IssueLabelService } from "@/services/issue";
 // store

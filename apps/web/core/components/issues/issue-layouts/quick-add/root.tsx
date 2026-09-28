@@ -10,14 +10,14 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import type { UseFormRegister } from "react-hook-form";
 import { useForm } from "react-hook-form";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { PlusIcon } from "@pi-dash/propel/icons";
-import { setPromiseToast } from "@pi-dash/propel/toast";
-import type { IProject, TIssue, EIssueLayoutTypes } from "@pi-dash/types";
-import { cn, createIssuePayload } from "@pi-dash/utils";
-// pi dash web imports
-import { QuickAddIssueFormRoot } from "@/pi-dash-web/components/issues/quick-add";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { PlusIcon } from "@karma-team/propel/icons";
+import { setPromiseToast } from "@karma-team/propel/toast";
+import type { IProject, TIssue, EIssueLayoutTypes } from "@karma-team/types";
+import { cn, createIssuePayload } from "@karma-team/utils";
+// karma-team web imports
+import { QuickAddIssueFormRoot } from "@/karma-team-web/components/issues/quick-add";
 // local imports
 import { CreateIssueToastActionItems } from "../../create-issue-toast-action-items";
 

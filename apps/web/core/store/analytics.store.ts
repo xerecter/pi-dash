@@ -5,8 +5,8 @@
  */
 
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
-import { ANALYTICS_DURATION_FILTER_OPTIONS } from "@pi-dash/constants";
-import type { TAnalyticsTabsBase } from "@pi-dash/types";
+import { ANALYTICS_DURATION_FILTER_OPTIONS } from "@karma-team/constants";
+import type { TAnalyticsTabsBase } from "@karma-team/types";
 
 type DurationType = (typeof ANALYTICS_DURATION_FILTER_OPTIONS)[number]["value"];
 

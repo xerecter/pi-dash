@@ -10,15 +10,15 @@ import Link from "next/link";
 
 import useSWR, { mutate } from "swr";
 import { CheckCircle2 } from "lucide-react";
-// pi dash imports
-import { ROLE } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import { ROLE } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // types
-import { Button } from "@pi-dash/propel/button";
-import { PiDashLogo } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IWorkspaceMemberInvitation } from "@pi-dash/types";
-import { truncateText } from "@pi-dash/utils";
+import { Button } from "@karma-team/propel/button";
+import { KarmaTeamLogo } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IWorkspaceMemberInvitation } from "@karma-team/types";
+import { truncateText } from "@karma-team/utils";
 // assets
 import emptyInvitation from "@/app/assets/empty-state/invitation.svg?url";
 // components
@@ -31,7 +31,7 @@ import { useUser, useUserProfile } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
 // services
 import { AuthenticationWrapper } from "@/lib/wrappers/authentication-wrapper";
-// pi dash web services
+// karma-team web services
 import { WorkspaceService } from "@/services/workspace.service";
 
 const workspaceService = new WorkspaceService();
@@ -117,7 +117,7 @@ function UserInvitationsPage() {
             href="/"
             className="absolute top-1/2 left-5 z-10 grid -translate-y-1/2 place-items-center px-3 sm:top-12 sm:left-1/2 sm:-translate-x-[15px] sm:translate-y-0 sm:px-0 sm:py-5 md:left-1/3"
           >
-            <PiDashLogo className="h-9 w-auto text-primary" />
+            <KarmaTeamLogo className="h-9 w-auto text-primary" />
           </Link>
           <div className="absolute top-1/4 right-4 -translate-y-1/2 text-13 text-primary sm:fixed sm:top-12 sm:right-16 sm:translate-y-0 sm:py-5">
             {currentUser?.email}

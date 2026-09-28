@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { IAutoPMSettings } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+import type { IAutoPMSettings } from "@karma-team/types";
 import { APIService } from "../api.service";
 
 // "Auto Project Management" client (internally: loop). Read the instance's

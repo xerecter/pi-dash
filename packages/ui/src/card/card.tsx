@@ -35,6 +35,6 @@ const Card = React.forwardRef(function Card(props: CardProps, ref: React.Forward
   );
 });
 
-Card.displayName = "pi-dash-ui-card";
+Card.displayName = "karma-team-ui-card";
 
 export { Card, ECardVariant, ECardSpacing, ECardDirection };

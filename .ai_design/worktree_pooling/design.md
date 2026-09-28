@@ -1,6 +1,6 @@
 # Worktree Pooling — Design
 
-A `pidash` daemon manages a **pool of git worktrees per work dir**, decoupling
+A `karma-team` daemon manages a **pool of git worktrees per work dir**, decoupling
 runners (agent configurations) from working directories (execution resources).
 N runners can share one work dir; concurrency is bounded by the pool size, not
 the runner count. When every worktree is in use, assigned runs **wait in a
@@ -16,7 +16,7 @@ unchanged.
 
 The mental model (used throughout this doc):
 
-> Pi Dash cloud is the **boss**, an issue is a **job task**, a runner is an
+> karma-team cloud is the **boss**, an issue is a **job task**, a runner is an
 > **employee**, a work dir is an **office**, and a worktree is a **desk**. The
 > boss assigns tasks to employees and keeps the books; the office manages its
 > own desks. An employee with a task but no free desk waits — visibly, on the
@@ -98,7 +98,7 @@ user can keep using it by hand.
 ### 4.2 Initialization and lazy growth
 
 The pool is initialized when the first runner binds to the work dir (daemon
-startup or `pidash runner add`). Initialization verifies the canonical clone
+startup or `karma-team runner add`). Initialization verifies the canonical clone
 exists (clone it via the existing `workspace::resolve` path if the dir is
 empty), runs `git worktree prune`, and reaps stale locks (§8). It does **not**
 materialize worktrees upfront.
@@ -135,7 +135,7 @@ always released. Release runs, in order:
 
 1. **Salvage (failed/crashed/cancelled runs only):** if the tree is dirty,
    commit everything to the run's work branch as a WIP commit
-   (`wip(pidash): salvaged working state from <terminal-status> run <run_id>`)
+   (`wip(karma-team): salvaged working state from <terminal-status> run <run_id>`)
    and push it, best-effort. A failed run's tree is debugging evidence;
    recycling the desk must never destroy it. Salvage failure is logged loudly
    but does not block release.
@@ -185,7 +185,7 @@ a branch lock blocks the head run.
 **Enqueue.** When a `RunnerLoop` receives `Assign` and lease acquisition
 fails, it enqueues the run and reports the waiting state to the cloud (§6.1).
 It does **not** post `accept` — the accept lifecycle endpoint transitions the
-run to `RUNNING` (`apps/api/pi_dash/runner/views/run_endpoints.py`,
+run to `RUNNING` (`apps/api/karma_team/runner/views/run_endpoints.py`,
 `RunAcceptEndpoint`), which would make a desk-less run look live. `accept` is
 posted at lease acquisition instead. The instance's status stays `Busy` (it
 is single-tenant and committed to this run).
@@ -218,11 +218,11 @@ and does not matter.
 ## 6. Cloud touchpoints
 
 Deliberately minimal — the boss's books, not the office's floor plan. These
-land in the Django repo (`apps/api/pi_dash/runner/`).
+land in the Django repo (`apps/api/karma_team/runner/`).
 
 ### 6.1 New run status: `WAITING_FOR_WORKTREE`
 
-`AgentRunStatus` (`apps/api/pi_dash/runner/models.py:185`) gains:
+`AgentRunStatus` (`apps/api/karma_team/runner/models.py:185`) gains:
 
 ```python
 WAITING_FOR_WORKTREE = "waiting_for_worktree", "Waiting for Worktree"
@@ -268,7 +268,7 @@ The new status must join the hard-coded status sets, or queued runs fall
 through the cloud's bookkeeping:
 
 - **`NON_TERMINAL_STATUSES` and `BUSY_STATUSES`**
-  (`apps/api/pi_dash/runner/services/matcher.py:50-66`): both. A queued run
+  (`apps/api/karma_team/runner/services/matcher.py:50-66`): both. A queued run
   occupies its single-tenant runner and must block pod deletion exactly like
   `ASSIGNED`.
 - **Heartbeat reaper** (`session_service.py`, `_reap_stale_runs`): the reaper
@@ -286,7 +286,7 @@ through the cloud's bookkeeping:
 
 Today, session open only _resumes_: the runner reports `in_flight_run` and
 the cloud builds a resume ack for it
-(`apps/api/pi_dash/runner/views/sessions.py:204`). Nothing pushes work the
+(`apps/api/karma_team/runner/views/sessions.py:204`). Nothing pushes work the
 runner doesn't already know about. That is insufficient here: after a daemon
 restart, the local queue is gone and the runner does not know its queued run
 exists.
@@ -309,7 +309,7 @@ The status object gains an optional field:
 ```
 
 The poll handler stores it on the runner row.
-`select_runner_in_pod` (`apps/api/pi_dash/runner/services/matcher.py:96`)
+`select_runner_in_pod` (`apps/api/karma_team/runner/services/matcher.py:96`)
 uses it as a **preference, not a gate**: among eligible idle runners, prefer
 one whose office reports a free desk; fall back to today's freshest-heartbeat
 choice (`-last_heartbeat_at`, newest first). The matcher never refuses to
@@ -324,7 +324,7 @@ case.
 # config.toml
 
 [daemon]
-cloud_url = "https://cloud.pidash.so"
+cloud_url = "https://cloud.karma-team.so"
 
 [[workdir]]
 name = "main-repo"
@@ -334,7 +334,7 @@ clean_mode = "keep-ignored"            # or "allowlist" or "full" (§4.4)
 # keep_paths = ["node_modules/**"]     # allowlist mode only
 setup_command = "pnpm install"         # optional; runs once per new worktree,
                                        # and after every `full` clean
-# worktrees_dir = "/big-disk/pidash-worktrees/main-repo"   # optional override
+# worktrees_dir = "/big-disk/karma-team-worktrees/main-repo"   # optional override
 
 [[runner]]
 name = "codex-main"
@@ -366,7 +366,7 @@ kind = "claude_code"
 **Migration.** Per the multi-runner rollout (§13 there), there are no
 production runner users; no compatibility shim is built. On first run with the
 new schema, the daemon refuses a config containing `[runner.workspace]` with a
-clear message, and `pidash configure --migrate-workdirs` rewrites it: each
+clear message, and `karma-team configure --migrate-workdirs` rewrites it: each
 distinct `working_dir` becomes a `[[workdir]]` named after the runner (or
 dir basename), `pool_size = 2`, and runners get `workdir = <name>` references.
 
@@ -392,28 +392,28 @@ The local queue needs no crash handling — it is rebuilt from cloud state
 
 ## 9. Failure semantics
 
-| Scenario                                                 | Behaviour                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Pool exhausted on `Assign`                               | Run enqueues; `RunQueued` → cloud shows `WAITING_FOR_WORKTREE`. Never fails for capacity.                                                                                                                                                                                                                                                                                                                                                                                           |
-| Run's branch leased by another worktree                  | Run enqueues (or is bypassed at dequeue) until the branch lock frees. Serializes same-branch follow-ups.                                                                                                                                                                                                                                                                                                                                                                            |
-| Run's branch checked out in the canonical clone          | Same as above, but the lock may never free — surfaced in `pidash status` and daemon logs ("branch X held by canonical clone; park it").                                                                                                                                                                                                                                                                                                                                             |
-| Cancel while queued                                      | Dequeued, `RunCancelled` emitted immediately.                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| Run fails / agent crashes with dirty tree                | Salvage WIP commit pushed to the work branch (best-effort), then clean and release. Evidence preserved, desk recycled.                                                                                                                                                                                                                                                                                                                                                              |
-| Daemon crash mid-run                                     | On restart: stale locks reaped (salvage + clean), queue rebuilt from cloud re-delivery. In-flight runs are lost as today (run fails cloud-side via lease expiry).                                                                                                                                                                                                                                                                                                                   |
-| `setup_command` fails on a new worktree                  | One retry with backoff; on second failure the waiting run fails terminally (`RunFailed`, reason `WorkspaceSetup` — matching today's `supervisor.rs` resolve-failure path) and the **work dir is marked unhealthy**: no new leases, queued runs fail fast with the same reason, state surfaced in `pidash status`/TUI. Cleared by config reload or an explicit retry verb. A broken work dir is a config error, not capacity contention — it must never present as an eternal queue. |
-| Two runs race for the last worktree                      | Lease acquisition is serialized per work dir (single async owner task); no race exists.                                                                                                                                                                                                                                                                                                                                                                                             |
-| `pool_size` lowered below live worktree count (TUI edit) | Existing leases finish; surplus clean worktrees are removed on release until the count fits.                                                                                                                                                                                                                                                                                                                                                                                        |
-| `RemoveRunner` while its run is queued                   | Queued run cancelled and reported; lease never acquired; other queue entries unaffected.                                                                                                                                                                                                                                                                                                                                                                                            |
-| Stale `free_worktrees` hint in heartbeat                 | Matcher may pick a deskless runner; run queues locally. Cost is latency, never correctness.                                                                                                                                                                                                                                                                                                                                                                                         |
+| Scenario                                                 | Behaviour                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Pool exhausted on `Assign`                               | Run enqueues; `RunQueued` → cloud shows `WAITING_FOR_WORKTREE`. Never fails for capacity.                                                                                                                                                                                                                                                                                                                                                                                               |
+| Run's branch leased by another worktree                  | Run enqueues (or is bypassed at dequeue) until the branch lock frees. Serializes same-branch follow-ups.                                                                                                                                                                                                                                                                                                                                                                                |
+| Run's branch checked out in the canonical clone          | Same as above, but the lock may never free — surfaced in `karma-team status` and daemon logs ("branch X held by canonical clone; park it").                                                                                                                                                                                                                                                                                                                                             |
+| Cancel while queued                                      | Dequeued, `RunCancelled` emitted immediately.                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| Run fails / agent crashes with dirty tree                | Salvage WIP commit pushed to the work branch (best-effort), then clean and release. Evidence preserved, desk recycled.                                                                                                                                                                                                                                                                                                                                                                  |
+| Daemon crash mid-run                                     | On restart: stale locks reaped (salvage + clean), queue rebuilt from cloud re-delivery. In-flight runs are lost as today (run fails cloud-side via lease expiry).                                                                                                                                                                                                                                                                                                                       |
+| `setup_command` fails on a new worktree                  | One retry with backoff; on second failure the waiting run fails terminally (`RunFailed`, reason `WorkspaceSetup` — matching today's `supervisor.rs` resolve-failure path) and the **work dir is marked unhealthy**: no new leases, queued runs fail fast with the same reason, state surfaced in `karma-team status`/TUI. Cleared by config reload or an explicit retry verb. A broken work dir is a config error, not capacity contention — it must never present as an eternal queue. |
+| Two runs race for the last worktree                      | Lease acquisition is serialized per work dir (single async owner task); no race exists.                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `pool_size` lowered below live worktree count (TUI edit) | Existing leases finish; surplus clean worktrees are removed on release until the count fits.                                                                                                                                                                                                                                                                                                                                                                                            |
+| `RemoveRunner` while its run is queued                   | Queued run cancelled and reported; lease never acquired; other queue entries unaffected.                                                                                                                                                                                                                                                                                                                                                                                                |
+| Stale `free_worktrees` hint in heartbeat                 | Matcher may pick a deskless runner; run queues locally. Cost is latency, never correctness.                                                                                                                                                                                                                                                                                                                                                                                             |
 
 ## 10. CLI / TUI surface
 
-- `pidash workdir add --name main-repo --path ~/work/main [--pool-size N]
+- `karma-team workdir add --name main-repo --path ~/work/main [--pool-size N]
 [--clean-mode keep-ignored|full] [--setup-command "pnpm install"]` — create
-  the entity; `pidash workdir list` / `remove` round it out. `remove` refuses
+  the entity; `karma-team workdir list` / `remove` round it out. `remove` refuses
   while any runner references the work dir.
-- `pidash runner add --workdir main-repo ...` — replaces `--working-dir`.
-- `pidash status` shows, per work dir: pool occupancy (`2/2 desks busy`),
+- `karma-team runner add --workdir main-repo ...` — replaces `--working-dir`.
+- `karma-team status` shows, per work dir: pool occupancy (`2/2 desks busy`),
   queue depth, and per-worktree lease holders.
 - **TUI**: the work-dir view exposes `pool_size` (the user-requested knob),
   `clean_mode`, and `setup_command` for editing; a pool panel shows desks,
@@ -483,11 +483,11 @@ correctly, rather than migrating later.
 | `src/daemon/supervisor.rs`      | `RunnerLoop` acquires a lease before spawning the agent bridge; enqueue path; dequeue-on-release wakeups; cancel-dequeue.          |
 | `src/cloud/protocol.rs`         | `ClientMsg::RunQueued { run_id, queue_position }` variant.                                                                         |
 | `src/cloud/http.rs`             | Dispatch `RunQueued` via `post_run_lifecycle(…, "queued", …)`; `free_worktrees` in the poll status body; 404 feature-detect (§15). |
-| `src/cli/{runner,configure}.rs` | `pidash workdir` verbs; `runner add --workdir`; `--migrate-workdirs`.                                                              |
+| `src/cli/{runner,configure}.rs` | `karma-team workdir` verbs; `runner add --workdir`; `--migrate-workdirs`.                                                          |
 | `src/ipc/protocol.rs`           | `StatusSnapshot` gains per-work-dir pool/queue info.                                                                               |
 | `src/tui/*`                     | Work-dir view: pool panel, `pool_size` editing.                                                                                    |
 
-### Cloud (`apps/api/pi_dash/runner/`)
+### Cloud (`apps/api/karma_team/runner/`)
 
 | File                          | Change                                                                                                              |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------- |

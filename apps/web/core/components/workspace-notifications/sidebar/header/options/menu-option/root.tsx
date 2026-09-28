@@ -7,16 +7,16 @@
 import type { ReactNode } from "react";
 import { observer } from "mobx-react";
 import { CheckCircle, Clock, MoreVertical } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-// pi dash imports
-import { ArchiveIcon, CheckIcon } from "@pi-dash/propel/icons";
-import type { TNotificationFilter } from "@pi-dash/types";
-import { PopoverMenu } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+// karma-team imports
+import { ArchiveIcon, CheckIcon } from "@karma-team/propel/icons";
+import type { TNotificationFilter } from "@karma-team/types";
+import { PopoverMenu } from "@karma-team/ui";
 // hooks
 import { useWorkspaceNotifications } from "@/hooks/store/notifications";
 // local imports
 import { NotificationMenuOptionItem } from "./menu-item";
-import { IconButton } from "@pi-dash/propel/icon-button";
+import { IconButton } from "@karma-team/propel/icon-button";
 
 export type TPopoverMenuOptions = {
   key: string;

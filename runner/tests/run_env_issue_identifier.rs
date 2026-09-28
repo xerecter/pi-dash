@@ -1,9 +1,11 @@
-//! `PIDASH_ISSUE_IDENTIFIER` plumbing: the `assign` wire field decodes (and
+//! `KARMA_TEAM_ISSUE_IDENTIFIER` plumbing: the `assign` wire field decodes (and
 //! stays optional for older clouds), and a run scope exports it onto every
 //! agent subprocess.
 
-use pidash::cloud::protocol::{FailureReason, ServerMsg};
-use pidash::util::shell::{ISSUE_IDENTIFIER_ENV, RUN_ENV, RUN_ID_ENV, RunEnv, login_shell_command};
+use karma_team::cloud::protocol::{FailureReason, ServerMsg};
+use karma_team::util::shell::{
+    ISSUE_IDENTIFIER_ENV, RUN_ENV, RUN_ID_ENV, RunEnv, login_shell_command,
+};
 use std::ffi::OsString;
 use tokio::process::Command;
 use uuid::Uuid;

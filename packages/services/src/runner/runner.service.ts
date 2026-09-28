@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 import type {
   IAgentRun,
   IAgentRunPage,
@@ -17,11 +17,11 @@ import type {
   IDevMachine,
   IRunner,
   TApprovalDecision,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 import { APIService } from "../api.service";
 
 /**
- * Pi Dash runner web-app API client. Session-authenticated; mounted at
+ * karma-team runner web-app API client. Session-authenticated; mounted at
  * /api/runners/ on the Django server.
  */
 export class RunnerService extends APIService {

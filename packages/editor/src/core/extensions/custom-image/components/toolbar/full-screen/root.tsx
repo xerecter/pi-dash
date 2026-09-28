@@ -6,8 +6,8 @@
 
 import { Maximize } from "lucide-react";
 import { useEffect, useState } from "react";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
 // local imports
 import { ImageFullScreenModal } from "./modal";
 

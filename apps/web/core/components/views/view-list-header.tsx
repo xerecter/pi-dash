@@ -8,18 +8,18 @@ import React, { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 // icons
 import { ListFilter } from "lucide-react";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-// pi dash helpers
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+// karma-team helpers
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useProjectView } from "@/hooks/store/use-project-view";
 import { FiltersDropdown } from "../issues/issue-layouts/filters";
 import { ViewFiltersSelection } from "./filters/filter-selection";
 import { ViewOrderByDropdown } from "./filters/order-by";
-import { IconButton } from "@pi-dash/propel/icon-button";
+import { IconButton } from "@karma-team/propel/icon-button";
 
 export const ViewListHeader = observer(function ViewListHeader() {
   // states

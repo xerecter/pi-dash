@@ -6,13 +6,13 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TIssueServiceType, TWorkItemWidgets } from "@pi-dash/types";
+// karma-team imports
+import type { TIssueServiceType, TWorkItemWidgets } from "@karma-team/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// Pi Dash-web
-import { WorkItemAdditionalWidgetCollapsibles } from "@/pi-dash-web/components/issues/issue-detail-widgets/collapsibles";
-import { useTimeLineRelationOptions } from "@/pi-dash-web/components/relations";
+// karma-team-web
+import { WorkItemAdditionalWidgetCollapsibles } from "@/karma-team-web/components/issues/issue-detail-widgets/collapsibles";
+import { useTimeLineRelationOptions } from "@/karma-team-web/components/relations";
 // local imports
 import { AttachmentsCollapsible } from "./attachments";
 import { LinksCollapsible } from "./links";

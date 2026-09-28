@@ -8,17 +8,17 @@ import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "react-router";
 import useSWR, { useSWRConfig } from "swr";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 import type {
   IPromptCompiledResponse,
   IPromptSectionListResponse,
   IResolvedSection,
   TPromptKind,
   TPromptScope,
-} from "@pi-dash/types";
-import { AlertModalCore, Badge, Button } from "@pi-dash/ui";
+} from "@karma-team/types";
+import { AlertModalCore, Badge, Button } from "@karma-team/ui";
 import { PageHead } from "@/components/core/page-title";
 import { usePromptSection } from "@/hooks/store/use-prompt-section";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -511,7 +511,7 @@ function SourceBadge({ source }: { source: string }) {
     );
   return (
     <Badge variant="accent-neutral" size="sm">
-      {t("Pi Dash default")}
+      {t("karma-team default")}
     </Badge>
   );
 }
@@ -690,7 +690,7 @@ function SectionEditor({
         content={
           scope === "workspace"
             ? t(
-                "New agent runs in this workspace will use the Pi Dash default for this section, for every member. This can't be undone."
+                "New agent runs in this workspace will use the karma-team default for this section, for every member. This can't be undone."
               )
             : t("Runs you trigger will use the shared default for this section again. This can't be undone.")
         }

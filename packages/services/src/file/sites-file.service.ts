@@ -4,20 +4,20 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { API_BASE_URL } from "@pi-dash/constants";
+// karma-team imports
+import { API_BASE_URL } from "@karma-team/constants";
 // local services
-import type { TFileEntityInfo, TFileSignedURLResponse } from "@pi-dash/types";
+import type { TFileEntityInfo, TFileSignedURLResponse } from "@karma-team/types";
 import { FileUploadService } from "./file-upload.service";
 // helpers
 import { FileService } from "./file.service";
 import { generateFileUploadPayload, getAssetIdFromUrl, getFileMetaDataForUpload } from "./helper";
 
 /**
- * Service class for managing file operations within pi dash sites application.
+ * Service class for managing file operations within karma-team sites application.
  * Extends FileService to manage file-related operations.
  * @extends {FileService}
- * @remarks This service is only available for pi dash sites
+ * @remarks This service is only available for karma-team sites
  */
 export class SitesFileService extends FileService {
   private cancelSource: any;

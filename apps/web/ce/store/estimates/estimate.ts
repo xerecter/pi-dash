@@ -12,8 +12,8 @@ import type {
   IEstimate as IEstimateType,
   IEstimatePoint as IEstimatePointType,
   TEstimateSystemKeys,
-} from "@pi-dash/types";
-// pi dash web services
+} from "@karma-team/types";
+// karma-team web services
 import estimateService from "@/services/estimate.service";
 // store
 import type { IEstimatePoint } from "@/store/estimates/estimate-point";

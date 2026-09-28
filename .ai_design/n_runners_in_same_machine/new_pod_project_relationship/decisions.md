@@ -24,7 +24,7 @@ Closed questions for the refactor in `./design.md`. Answers locked; rationale pr
 
 **Decision**: **wipe pod / runner / agent_run; NULL `issues.assigned_pod_id` first; backfill default pods for every existing Project**.
 
-The reason this is more complex than just "wipe" is that `Issue.assigned_pod` is `on_delete=PROTECT` (apps/api/pi_dash/db/models/issue.py:183). A naive `DELETE FROM pod` errors on FK violation as long as any issue references a pod. So the order is:
+The reason this is more complex than just "wipe" is that `Issue.assigned_pod` is `on_delete=PROTECT` (apps/api/karma_team/db/models/issue.py:183). A naive `DELETE FROM pod` errors on FK violation as long as any issue references a pod. So the order is:
 
 1. `UPDATE issues SET assigned_pod_id = NULL` (or rewrite to project default — see below).
 2. `DELETE FROM agent_run; DELETE FROM runner; DELETE FROM pod;` (FK-respecting order).
@@ -47,7 +47,7 @@ The reason this is more complex than just "wipe" is that `Issue.assigned_pod` is
 
 Default pod for project `firstdream-WEB` → `firstdream-WEB_pod_1`. User adds a beefy tier → `firstdream-WEB_beefy`. User renames it later → `firstdream-WEB_us_east` (still has the prefix).
 
-**Why prefix is mandatory**: pod names appear in CLI args (`pidash token add-runner --pod ...`). The prefix makes a name globally unique across the workspace and immediately identifies the project — no need to also pass `--project` to disambiguate. Also makes db-side debug queries readable.
+**Why prefix is mandatory**: pod names appear in CLI args (`karma-team token add-runner --pod ...`). The prefix makes a name globally unique across the workspace and immediately identifies the project — no need to also pass `--project` to disambiguate. Also makes db-side debug queries readable.
 
 **Why reserve `pod_\d+` for auto-gen**: avoids the "user named their pod `pod_1` and now it collides with the auto-created default" edge case.
 
@@ -75,7 +75,7 @@ Default pod for project `firstdream-WEB` → `firstdream-WEB_pod_1`. User adds a
 
 **Why not auto-pick**: a user's first CLI invocation is also when they're learning the model. Auto-magic that "just works" today and breaks the day they add a second project is the worst of both worlds. We surface the project as a first-class concept from day one.
 
-**The practical mitigation**: `pidash token list-projects` lists the workspace's projects with their identifiers in one call. The user copies one and pastes it.
+**The practical mitigation**: `karma-team token list-projects` lists the workspace's projects with their identifiers in one call. The user copies one and pastes it.
 
 **Affects**: design.md §9.1, §9.2, §9.3.
 
@@ -128,7 +128,7 @@ Each has different implications for the issue-create form, the orchestration cod
 
 **Question**: if pods are the routing unit, should approval policy / agent kind / model defaults live on the pod instead of the runner? That would let "all my beefy pod runners" share one policy.
 
-**Decision**: **no, keep them per-runner.** Pods are runner _groupings_, not configuration containers. A runner's behaviour is set at registration and changes via `pidash configure` flags or cloud `ConfigPush` — both of those land on the runner row, not the pod.
+**Decision**: **no, keep them per-runner.** Pods are runner _groupings_, not configuration containers. A runner's behaviour is set at registration and changes via `karma-team configure` flags or cloud `ConfigPush` — both of those land on the runner row, not the pod.
 
 **Why not pod-level**: it's a different problem (config inheritance / templating) that complicates an already significant refactor. Punted; if the pattern emerges, a pod-level config layer can be added with each-runner-overrides-pod semantics, without changing today's schema.
 
@@ -153,8 +153,8 @@ This does **not** reintroduce the workspace-wide pod (which would require allowi
 
 **Where the fallback lives**:
 
-- `apps/api/pi_dash/runner/models.py:Runner.save` — runner creation.
-- `apps/api/pi_dash/runner/models.py:AgentRun.save` — agent-run creation when no `work_item` is set.
-- `apps/api/pi_dash/runner/services/validation.py:_resolve_pod` — REST run-creation path.
+- `apps/api/karma_team/runner/models.py:Runner.save` — runner creation.
+- `apps/api/karma_team/runner/models.py:AgentRun.save` — agent-run creation when no `work_item` is set.
+- `apps/api/karma_team/runner/services/validation.py:_resolve_pod` — REST run-creation path.
 
 **Affects**: design.md §3 (the strict reading is the spec; the fallback is a documented compromise). If a follow-up tightens this — by rewriting all direct-ORM callers and dropping the fallback — that's a clean change with no schema implication.

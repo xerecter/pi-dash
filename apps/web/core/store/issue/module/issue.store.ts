@@ -13,9 +13,9 @@ import type {
   IssuePaginationOptions,
   TIssuesResponse,
   TBulkOperationsPayload,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // helpers
-import { getDistributionPathsPostUpdate } from "@pi-dash/utils";
+import { getDistributionPathsPostUpdate } from "@karma-team/utils";
 import type { IBaseIssuesStore } from "../helpers/base-issues.store";
 import { BaseIssuesStore } from "../helpers/base-issues.store";
 //

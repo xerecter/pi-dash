@@ -5,10 +5,10 @@
  */
 
 import useSWR from "swr";
-// pi dash web imports
+// karma-team web imports
 import { WORKSPACE_ESTIMATES, WORKSPACE_CYCLES, WORKSPACE_LABELS, WORKSPACE_MODULES } from "@/constants/fetch-keys";
-import { useWorkspaceIssuePropertiesExtended } from "@/pi-dash-web/hooks/use-workspace-issue-properties-extended";
-// pi dash imports
+import { useWorkspaceIssuePropertiesExtended } from "@/karma-team-web/hooks/use-workspace-issue-properties-extended";
+// karma-team imports
 import { useProjectEstimates } from "./store/estimates";
 import { useCycle } from "./store/use-cycle";
 import { useLabel } from "./store/use-label";

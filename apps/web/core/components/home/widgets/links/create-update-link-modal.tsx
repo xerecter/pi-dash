@@ -7,12 +7,12 @@
 import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-// pi dash types
-// pi dash ui
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { TLinkEditableFields } from "@pi-dash/types";
-import { Input, ModalCore } from "@pi-dash/ui";
+// karma-team types
+// karma-team ui
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { TLinkEditableFields } from "@karma-team/types";
+import { Input, ModalCore } from "@karma-team/ui";
 import type { TLinkOperations } from "./use-links";
 
 export type TLinkOperationsModal = Exclude<TLinkOperations, "remove">;

@@ -17,7 +17,7 @@ Add this package as a dependency in package.json
 ```typescript
 dependency: {
     ...
-    @pi-dash/logger":"*",
+    @karma-team/logger":"*",
     ...
 }
 ```
@@ -25,7 +25,7 @@ dependency: {
 ### Importing the Logger
 
 ```typescript
-import { logger, requestLogger } from "@pi-dash/logger";
+import { logger, requestLogger } from "@karma-team/logger";
 ```
 
 ### Usage

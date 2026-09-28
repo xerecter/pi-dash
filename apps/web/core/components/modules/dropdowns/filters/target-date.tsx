@@ -6,10 +6,10 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash constants
-import { DATE_AFTER_FILTER_OPTIONS } from "@pi-dash/constants";
+// karma-team constants
+import { DATE_AFTER_FILTER_OPTIONS } from "@karma-team/constants";
 // components
-import { isInDateFormat } from "@pi-dash/utils";
+import { isInDateFormat } from "@karma-team/utils";
 import { DateFilterModal } from "@/components/core/filters/date-filter-modal";
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 // helpers

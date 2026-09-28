@@ -6,8 +6,8 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { EIssueServiceType } from "@pi-dash/types";
+// karma-team imports
+import { EIssueServiceType } from "@karma-team/types";
 // components
 import type { TPowerKPageType } from "@/components/power-k/core/types";
 // hooks

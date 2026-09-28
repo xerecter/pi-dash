@@ -6,13 +6,13 @@
 
 import { renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { IAgentChatEvent } from "@pi-dash/types";
+import type { IAgentChatEvent } from "@karma-team/types";
 
 const { getChatTransport } = vi.hoisted(() => ({
   getChatTransport: vi.fn(),
 }));
 
-vi.mock("@pi-dash/services", () => ({
+vi.mock("@karma-team/services", () => ({
   getChatTransport,
 }));
 

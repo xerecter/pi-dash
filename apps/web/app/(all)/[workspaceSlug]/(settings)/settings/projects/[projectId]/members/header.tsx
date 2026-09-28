@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { PROJECT_SETTINGS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Breadcrumbs } from "@pi-dash/ui";
+// karma-team imports
+import { PROJECT_SETTINGS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Breadcrumbs } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { SettingsPageHeader } from "@/components/settings/page-header";

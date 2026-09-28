@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { EIssueLayoutTypes } from "@pi-dash/types";
+import { EIssueLayoutTypes } from "@karma-team/types";
 
 export type TIssueLayout = "list" | "kanban" | "calendar" | "spreadsheet" | "gantt";
 

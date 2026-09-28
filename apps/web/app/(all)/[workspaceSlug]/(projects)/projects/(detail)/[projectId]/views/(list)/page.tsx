@@ -7,13 +7,13 @@
 import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { EViewAccess, TViewFilterProps } from "@pi-dash/types";
-import { EUserProjectRoles } from "@pi-dash/types";
-import { Header, EHeaderVariant } from "@pi-dash/ui";
-import { calculateTotalFilters } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { EViewAccess, TViewFilterProps } from "@karma-team/types";
+import { EUserProjectRoles } from "@karma-team/types";
+import { Header, EHeaderVariant } from "@karma-team/ui";
+import { calculateTotalFilters } from "@karma-team/utils";
 // assets
 import darkViewsAsset from "@/app/assets/empty-state/disabled-feature/views-dark.webp?url";
 import lightViewsAsset from "@/app/assets/empty-state/disabled-feature/views-light.webp?url";
@@ -35,7 +35,7 @@ function ProjectViewsPage({ params }: Route.ComponentProps) {
   const { workspaceSlug, projectId } = params;
   // theme hook
   const { resolvedTheme } = useTheme();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store
   const { getProjectById, currentProjectDetails } = useProject();
@@ -72,7 +72,9 @@ function ProjectViewsPage({ params }: Route.ComponentProps) {
       <div className="flex h-full w-full items-center justify-center">
         <DetailedEmptyState
           title={t("Views are not enabled for the project.")}
-          description={t("Views are the building blocks of your project. Enable views from project settings to start using them.")}
+          description={t(
+            "Views are the building blocks of your project. Enable views from project settings to start using them."
+          )}
           assetPath={resolvedPath}
           primaryButton={{
             text: t("Manage features"),

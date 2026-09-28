@@ -6,8 +6,8 @@
 
 import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { Editor } from "@tiptap/react";
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 // components
 import { DocumentContentLoader, EditorContainer, EditorContentWrapper } from "@/components/editors";
 import { BlockMenu, EditorBubbleMenu } from "@/components/menus";

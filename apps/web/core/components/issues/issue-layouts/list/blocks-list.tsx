@@ -6,7 +6,7 @@
 
 import type { MutableRefObject } from "react";
 // components
-import type { TIssue, IIssueDisplayProperties, TIssueMap, TGroupedIssues } from "@pi-dash/types";
+import type { TIssue, IIssueDisplayProperties, TIssueMap, TGroupedIssues } from "@karma-team/types";
 // hooks
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 // types

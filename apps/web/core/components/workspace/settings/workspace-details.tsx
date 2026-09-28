@@ -7,23 +7,23 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-// Pi Dash Imports
-import { ORGANIZATION_SIZE, EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { EditIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IWorkspace } from "@pi-dash/types";
-import { CustomSelect, Input } from "@pi-dash/ui";
-import { cn, copyUrlToClipboard, getFileURL, validateWorkspaceName } from "@pi-dash/utils";
+// karma-team Imports
+import { ORGANIZATION_SIZE, EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { EditIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IWorkspace } from "@karma-team/types";
+import { CustomSelect, Input } from "@karma-team/ui";
+import { cn, copyUrlToClipboard, getFileURL, validateWorkspaceName } from "@karma-team/utils";
 // components
 import { WorkspaceImageUploadModal } from "@/components/core/modals/workspace-image-upload-modal";
 import { TimezoneSelect } from "@/components/global/timezone-select";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserPermissions } from "@/hooks/store/user";
-// pi dash web components
-import { DeleteWorkspaceSection } from "@/pi-dash-web/components/workspace/delete-workspace-section";
+// karma-team web components
+import { DeleteWorkspaceSection } from "@/karma-team-web/components/workspace/delete-workspace-section";
 
 const defaultValues: Partial<IWorkspace> = {
   name: "",
@@ -215,9 +215,7 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
               {errors.name && <p className="text-caption-sm-regular text-danger-primary">{errors.name.message}</p>}
             </div>
             <div className="flex flex-col gap-2">
-              <h4 className="text-body-sm-medium text-tertiary">
-                {t("Company size")}
-              </h4>
+              <h4 className="text-body-sm-medium text-tertiary">{t("Company size")}</h4>
               <Controller
                 name="organization_size"
                 control={control}
@@ -225,10 +223,7 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
                   <CustomSelect
                     value={value}
                     onChange={onChange}
-                    label={
-                      ORGANIZATION_SIZE.find((c) => c === value) ??
-                      t("Select organization size")
-                    }
+                    label={ORGANIZATION_SIZE.find((c) => c === value) ?? t("Select organization size")}
                     buttonClassName="border border-subtle bg-layer-2 !shadow-none !rounded-md"
                     input
                     disabled={!isAdmin}
@@ -266,9 +261,7 @@ export const WorkspaceDetails = observer(function WorkspaceDetails() {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <h4 className="text-body-sm-medium text-tertiary">
-                {t("Workspace Timezone")}
-              </h4>
+              <h4 className="text-body-sm-medium text-tertiary">{t("Workspace Timezone")}</h4>
               <Controller
                 name="timezone"
                 control={control}

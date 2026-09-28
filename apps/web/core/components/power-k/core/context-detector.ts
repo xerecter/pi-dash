@@ -5,8 +5,8 @@
  */
 
 import type { Params } from "react-router";
-// pi dash web imports
-import { detectExtendedContextFromURL } from "@/pi-dash-web/components/command-palette/power-k/context-detector";
+// karma-team web imports
+import { detectExtendedContextFromURL } from "@/karma-team-web/components/command-palette/power-k/context-detector";
 // local imports
 import type { TPowerKContextType } from "./types";
 

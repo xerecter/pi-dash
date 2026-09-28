@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // ui icons
 import {
   CycleIcon,
@@ -20,8 +20,8 @@ import {
   UserCirclePropertyIcon,
   EstimatePropertyIcon,
   ParentPropertyIcon,
-} from "@pi-dash/propel/icons";
-import { cn, getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@pi-dash/utils";
+} from "@karma-team/propel/icons";
+import { cn, getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@karma-team/utils";
 import { Container } from "lucide-react";
 // components
 import { DateDropdown } from "@/components/dropdowns/date";
@@ -43,12 +43,12 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
-// pi dash web components
-import { WorkItemAdditionalSidebarProperties } from "@/pi-dash-web/components/issues/issue-details/additional-properties";
-import { IssueParentSelectRoot } from "@/pi-dash-web/components/issues/issue-details/parent-select-root";
-import { DateAlert } from "@/pi-dash-web/components/issues/issue-details/sidebar/date-alert";
-import { TransferHopInfo } from "@/pi-dash-web/components/issues/issue-details/sidebar/transfer-hop-info";
-import { IssueWorklogProperty } from "@/pi-dash-web/components/issues/worklog/property";
+// karma-team web components
+import { WorkItemAdditionalSidebarProperties } from "@/karma-team-web/components/issues/issue-details/additional-properties";
+import { IssueParentSelectRoot } from "@/karma-team-web/components/issues/issue-details/parent-select-root";
+import { DateAlert } from "@/karma-team-web/components/issues/issue-details/sidebar/date-alert";
+import { TransferHopInfo } from "@/karma-team-web/components/issues/issue-details/sidebar/transfer-hop-info";
+import { IssueWorklogProperty } from "@/karma-team-web/components/issues/worklog/property";
 import type { TIssueOperations } from "../issue-detail";
 import { IssueCycleSelect } from "../issue-detail/cycle-select";
 import { IssueLabel } from "../issue-detail/label";
@@ -160,7 +160,7 @@ export const PeekOverviewProperties = observer(function PeekOverviewProperties(p
                 userIds={createdByDetails?.display_name.includes("-intake") ? null : createdByDetails?.id}
               />
               <span className="grow truncate text-body-xs-medium leading-5 text-secondary">
-                {createdByDetails?.display_name.includes("-intake") ? "Pi Dash" : createdByDetails?.display_name}
+                {createdByDetails?.display_name.includes("-intake") ? "karma-team" : createdByDetails?.display_name}
               </span>
             </SidebarPropertyListItem>
           )}

@@ -1,21 +1,21 @@
-# Pi Dash Workflow Handbook (Default Prompt Template)
+# karma-team Workflow Handbook (Default Prompt Template)
 
 This is the **content** of the default coding-task prompt template — the workflow rules, per-state routing, workpad format, and done-signal schema that get rendered into the prompt string sent to Codex for every `AgentRun`.
 
 It is a companion to `prompt-system-design.md`, which specifies the **system** that renders this content (Jinja2, `PromptTemplate` model, lifecycle). This doc is data, not code: it should evolve as we learn what instructions produce reliable agent behavior.
 
-At seed time this document's body (the ruled-off section in §4 below) is written verbatim into `apps/api/pi_dash/prompting/templates/default.j2` and inserted as the global default `PromptTemplate` row.
+At seed time this document's body (the ruled-off section in §4 below) is written verbatim into `apps/api/karma_team/prompting/templates/default.j2` and inserted as the global default `PromptTemplate` row.
 
 ---
 
 ## 1. What this handbook is for
 
-Borrowing from Symphony: the prompt is not a task description. It is a **standard operating procedure** for an autonomous coding agent working on a Pi Dash issue. Dynamic fields only identify *which issue* this run is about. The same handbook ships on every prompt; the agent routes its behavior based on `issue.state_group`.
+Borrowing from Symphony: the prompt is not a task description. It is a **standard operating procedure** for an autonomous coding agent working on a karma-team issue. Dynamic fields only identify _which issue_ this run is about. The same handbook ships on every prompt; the agent routes its behavior based on `issue.state_group`.
 
 The handbook teaches the agent:
 
 1. Which issue it is working on (the dynamic slice).
-2. How Pi Dash's state machine works and what to do in each state.
+2. How karma-team's state machine works and what to do in each state.
 3. How to maintain a structured **Agent Workpad** comment on the issue as its persistent scratchpad.
 4. Where the quality bar is (validation, acceptance criteria).
 5. How to report progress using explicit milestones and current phase, rather than a guessed percent.
@@ -29,22 +29,22 @@ The handbook teaches the agent:
 
 Everything the template can reference is in the context dict specified in `prompt-system-design.md` §5. A quick cheat sheet:
 
-| Variable                      | Example                                              |
-| ----------------------------- | ---------------------------------------------------- |
-| `{{ issue.identifier }}`      | `WEB-42`                                             |
-| `{{ issue.title }}`           | `Turn home page button blue`                         |
-| `{{ issue.description }}`     | raw markdown                                         |
-| `{{ issue.state }}`           | `In Progress`                                        |
-| `{{ issue.state_group }}`     | `started`                                            |
-| `{{ issue.priority }}`        | `medium`                                             |
-| `{{ issue.labels }}`          | `["frontend", "ui"]`                                 |
-| `{{ issue.assignees }}`       | `["Rich Liu"]`                                       |
-| `{{ issue.url }}`             | `https://<host>/<ws>/projects/<p>/issues/<id>`       |
-| `{{ workspace.slug }}`        | `acme`                                               |
-| `{{ project.identifier }}`    | `WEB`                                                |
-| `{{ repo.url }}`              | `git@github.com:acme/web.git` (may be empty)         |
-| `{{ repo.base_branch }}`      | `main` (may be empty)                                |
-| `{{ run.attempt }}`           | `1`                                                  |
+| Variable                   | Example                                        |
+| -------------------------- | ---------------------------------------------- |
+| `{{ issue.identifier }}`   | `WEB-42`                                       |
+| `{{ issue.title }}`        | `Turn home page button blue`                   |
+| `{{ issue.description }}`  | raw markdown                                   |
+| `{{ issue.state }}`        | `In Progress`                                  |
+| `{{ issue.state_group }}`  | `started`                                      |
+| `{{ issue.priority }}`     | `medium`                                       |
+| `{{ issue.labels }}`       | `["frontend", "ui"]`                           |
+| `{{ issue.assignees }}`    | `["Rich Liu"]`                                 |
+| `{{ issue.url }}`          | `https://<host>/<ws>/projects/<p>/issues/<id>` |
+| `{{ workspace.slug }}`     | `acme`                                         |
+| `{{ project.identifier }}` | `WEB`                                          |
+| `{{ repo.url }}`           | `git@github.com:acme/web.git` (may be empty)   |
+| `{{ repo.base_branch }}`   | `main` (may be empty)                          |
+| `{{ run.attempt }}`        | `1`                                            |
 
 State groups the handbook branches on: `backlog | unstarted | started | completed | cancelled`.
 
@@ -52,19 +52,19 @@ State groups the handbook branches on: `backlog | unstarted | started | complete
 
 ## 3. State-machine contract
 
-Pi Dash ships a fixed `StateGroup` enum (`backlog | unstarted | started | completed | cancelled | triage`), with per-project state names. The default project states map to groups as follows:
+karma-team ships a fixed `StateGroup` enum (`backlog | unstarted | started | completed | cancelled | triage`), with per-project state names. The default project states map to groups as follows:
 
-| Default state name | Group         | Agent expectation                                                            |
-| ------------------ | ------------- | ---------------------------------------------------------------------------- |
-| `Backlog`          | `backlog`     | **Out of scope.** Agent must not modify. Stop and wait for human triage.     |
-| `Todo`             | `unstarted`   | Queued and ready, but not yet delegated.                                     |
-| `In Progress`      | `started`     | Default delegated execution state.                                           |
-| `Done`             | `completed`   | Terminal. Agent does nothing.                                                |
-| `Cancelled`        | `cancelled`   | Terminal. Agent does nothing.                                                |
+| Default state name | Group       | Agent expectation                                                        |
+| ------------------ | ----------- | ------------------------------------------------------------------------ |
+| `Backlog`          | `backlog`   | **Out of scope.** Agent must not modify. Stop and wait for human triage. |
+| `Todo`             | `unstarted` | Queued and ready, but not yet delegated.                                 |
+| `In Progress`      | `started`   | Default delegated execution state.                                       |
+| `Done`             | `completed` | Terminal. Agent does nothing.                                            |
+| `Cancelled`        | `cancelled` | Terminal. Agent does nothing.                                            |
 
 Workspaces may define additional states within the `started` group (e.g. a `"Review"` state). The stable contract is the state group, not the literal state name. In the default workflow the delegated execution state is named `In Progress`; in custom workflows, equivalent semantics may be carried by another `started`-group state. Review-state handling is an explicit open question (`prompt-system-design.md` §9 Q4).
 
-In Pi Dash, moving an issue into the delegated execution state is the handoff to the coding agent. The handbook therefore assumes the run has already been created by orchestration before the prompt is delivered.
+In karma-team, moving an issue into the delegated execution state is the handoff to the coding agent. The handbook therefore assumes the run has already been created by orchestration before the prompt is delivered.
 
 The agent reports its **requested** next state via the done signal (§6). The cloud-side done-signal handler decides whether to honor it.
 
@@ -72,10 +72,10 @@ The agent reports its **requested** next state via the done signal (§6). The cl
 
 ## 4. The default template
 
-Below is the Jinja2 template body that gets seeded into `PromptTemplate` for the global default. Preserve the exact text, including the fenced code blocks and whitespace — the agent relies on structural markers (e.g. `## Agent Workpad`, the ```pi-dash-done``` fence) for round-tripping.
+Below is the Jinja2 template body that gets seeded into `PromptTemplate` for the global default. Preserve the exact text, including the fenced code blocks and whitespace — the agent relies on structural markers (e.g. `## Agent Workpad`, the `karma-team-done` fence) for round-tripping.
 
-````jinja
-You are an autonomous coding agent working on Pi Dash issue `{{ issue.identifier }}`.
+`````jinja
+You are an autonomous coding agent working on karma-team issue `{{ issue.identifier }}`.
 
 Issue context:
 - Identifier: {{ issue.identifier }}
@@ -114,7 +114,7 @@ Repository:
 You have access to:
 - Shell execution in the repository working directory.
 - Git operations against the configured remote.
-- The Pi Dash API for reading/writing issues, comments, and state. Use it to find and update the Agent Workpad comment and to request state transitions via the done signal (do not transition state yourself via the API — request it in the done signal).
+- The karma-team API for reading/writing issues, comments, and state. Use it to find and update the Agent Workpad comment and to request state transitions via the done signal (do not transition state yourself via the API — request it in the done signal).
 
 If any required tool is missing, stop and emit a done signal with `status: "blocked"` naming the missing capability.
 
@@ -276,15 +276,15 @@ Use this exact structure for the `## Agent Workpad` comment and keep it updated 
 ### Confusions
 
 - <only include if something was confusing during execution>
-````
+`````
 
 ## Done signal
 
-Your final turn message **must** include a fenced code block tagged `pi-dash-done` containing a single JSON object. This is the only channel by which you communicate the run's outcome back to Pi Dash. The runner forwards this block verbatim; the cloud parses it and decides what to do next.
+Your final turn message **must** include a fenced code block tagged `karma-team-done` containing a single JSON object. This is the only channel by which you communicate the run's outcome back to karma-team. The runner forwards this block verbatim; the cloud parses it and decides what to do next.
 
 Schema:
 
-```pi-dash-done
+```karma-team-done
 {
   "status": "completed" | "blocked" | "noop",
   "summary": "one- or two-sentence human-readable summary",
@@ -326,6 +326,7 @@ Schema:
 ```
 
 Rules:
+
 - Emit the block exactly once, in your final message of the run.
 - If `status` is `"blocked"`, `state_transition.requested_group` must be `null` or unchanged; populate `blockers`.
 - If `autonomy.safe_to_continue` is `false`, that is strong evidence the run outcome should be `"blocked"`, but `status` remains the authoritative field parsed by the cloud.
@@ -342,7 +343,8 @@ This is follow-up attempt #{{ run.attempt }} on the same issue. A prior run did 
 1. Read the existing `## Agent Workpad` comment end-to-end and use it as your starting point.
 2. Do not repeat investigation or validation already recorded there unless the repo state has diverged from what the workpad describes.
 3. Do not restart from scratch. Resume from where the prior attempt left off.
-{% endif %}
+   {% endif %}
+
 ````
 
 ---
@@ -352,10 +354,10 @@ This is follow-up attempt #{{ run.attempt }} on the same issue. A prior run did 
 This handbook is expected to change. Guidelines:
 
 - **Keep the dynamic slice small.** If you find yourself templating large static paragraphs with `{% if %}` to switch by state, prefer to embed the instructions for all states in the prose and let the agent route via Step 0. This is Symphony's pattern and it produces more stable behavior than template branching.
-- **Add variables sparingly.** A new Jinja variable is a contract with every template a workspace has authored. Prefer having the agent fetch context via the Pi Dash API over exposing more fields.
+- **Add variables sparingly.** A new Jinja variable is a contract with every template a workspace has authored. Prefer having the agent fetch context via the karma-team API over exposing more fields.
 - **Measure changes.** When editing the default handbook, keep a changelog (in commit messages is fine) noting what problem the change addresses. "Tweaked for clarity" drifts over time.
 - **Resist instruction creep.** Each rule added makes the next rule less likely to be followed. If a rule is covered by a stronger rule already in the handbook, don't add it.
-- **Preserve the structural markers.** `## Agent Workpad` and the ```pi-dash-done``` fence tag are load-bearing. Anything that parses agent output depends on them.
+- **Preserve the structural markers.** `## Agent Workpad` and the ```karma-team-done``` fence tag are load-bearing. Anything that parses agent output depends on them.
 
 ---
 
@@ -363,4 +365,5 @@ This handbook is expected to change. Guidelines:
 
 - `0.3.0` — Makes `status` the authoritative done-signal outcome, treats autonomy as explanatory metadata, preserves issue description markdown, replaces ambiguous resume wording with follow-up runs, and allows optional PR-related checkpoints to be marked `n/a`.
 - `0.2.0` — Replaces percent-style progress with explicit phase + milestone checkpoints, and adds a structured autonomy/escalation model (`score`, `type`, `reason`, `question_for_human`, `safe_to_continue`) so async runs can surface ambiguity without exploding the issue state machine.
-- `0.1.0` — Initial draft. Borrows structure from Symphony's `WORKFLOW.md`, adapts state map to Pi Dash's `StateGroup` enum, replaces PR/GitHub-specific PR-feedback-sweep flow with a generic validation loop (Pi Dash does not presume a GitHub-centric workflow in MVP), introduces the `pi-dash-done` done-signal schema.
+- `0.1.0` — Initial draft. Borrows structure from Symphony's `WORKFLOW.md`, adapts state map to karma-team's `StateGroup` enum, replaces PR/GitHub-specific PR-feedback-sweep flow with a generic validation loop (karma-team does not presume a GitHub-centric workflow in MVP), introduces the `karma-team-done` done-signal schema.
+````

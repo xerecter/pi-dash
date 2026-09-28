@@ -8,12 +8,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 // icons
 import { Eye, EyeOff } from "lucide-react";
-// pi dash internal packages
-import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { AuthService } from "@pi-dash/services";
-import { Checkbox, Input, PasswordStrengthIndicator, Spinner } from "@pi-dash/ui";
-import { getPasswordStrength, validatePersonName, validateCompanyName } from "@pi-dash/utils";
+// karma-team internal packages
+import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { AuthService } from "@karma-team/services";
+import { Checkbox, Input, PasswordStrengthIndicator, Spinner } from "@karma-team/ui";
+import { getPasswordStrength, validatePersonName, validateCompanyName } from "@karma-team/utils";
 // components
 import { AuthHeader } from "@/app/(all)/(home)/auth-header";
 import { Banner } from "../common/banner";
@@ -147,8 +147,8 @@ export function InstanceSetupForm() {
       <div className="mt-10 flex w-full flex-grow flex-col items-center justify-center py-6">
         <div className="relative flex w-full max-w-[22.5rem] flex-col gap-6">
           <FormHeader
-            heading="Setup your Pi Dash Instance"
-            subHeading="Post setup you will be able to manage this Pi Dash instance."
+            heading="Setup your karma-team Instance"
+            subHeading="Post setup you will be able to manage this karma-team instance."
           />
           {errorData.type &&
             errorData?.message &&
@@ -360,10 +360,10 @@ export function InstanceSetupForm() {
                 />
               </div>
               <label className="cursor-pointer text-13 font-medium text-tertiary" htmlFor="is_telemetry_enabled">
-                Allow Pi Dash to anonymously collect usage events.{" "}
+                Allow karma-team to anonymously collect usage events.{" "}
                 <a
                   tabIndex={-1}
-                  href="https://github.com/The-AI-Republic/pi-dash#readme"
+                  href="https://github.com/xerecter/karma-team#readme"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-blue-500 hover:text-blue-600 flex-shrink-0 text-13 font-medium"

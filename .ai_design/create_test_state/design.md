@@ -550,7 +550,7 @@ section list mirroring `KIND_REVIEW`:
 KIND_TEST: (
     "test-intro",
     "session-framing",
-    "pidash-cli",
+    "karma-team-cli",
     "test-cycle",
     "guardrails",
     "ending-run",
@@ -610,7 +610,7 @@ Step 2 — Run the test cycle (uniform across kinds):
   iv.  Collect evidence (test output, coverage, logs, screenshots).
   v.   Validate your findings — re-run / confirm; never report a
        hallucinated failure.
-  vi.  Post a STRUCTURED results comment to the pidash issue:
+  vi.  Post a STRUCTURED results comment to the karma-team issue:
         - Kind detected and what was tested (scope).
         - Method — commands run / flows exercised.
         - Result — pass/fail per acceptance criterion, with evidence.
@@ -641,8 +641,8 @@ Seed and migration (mirroring review):
 
 ### 5.1 Results come back as comments — no new plumbing
 
-The runner already authors pidash comments as the agent bot
-(`pidash comment add … --as-agent … --agent-run-id …`). Results-as-
+The runner already authors karma-team comments as the agent bot
+(`karma-team comment add … --as-agent … --agent-run-id …`). Results-as-
 comments needs no new machinery — the prompt just instructs the
 structured summary comment above each pass (kind, method, per-
 criterion result + evidence, defects + disposition).
@@ -853,7 +853,7 @@ dropped.
 Minimal v1 surface. The **In Test** column already renders — the
 review work updated the hard-coded state-group enumerations
 (`packages/constants/src/state.ts`,
-`apps/api/pi_dash/space/utils/grouper.py`, `api/views/issue.py`,
+`apps/api/karma_team/space/utils/grouper.py`, `api/views/issue.py`,
 `utils/order_queryset.py`) when it added the `review` group; confirm
 the `test` group is present in each (it should be, since In Test was
 seeded — verify during impl, add any missing arm). The issue-detail

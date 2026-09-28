@@ -8,13 +8,13 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 import { EyeIcon, TriangleAlert } from "lucide-react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TPageVersion } from "@pi-dash/types";
-import { renderFormattedDate, renderFormattedTime } from "@pi-dash/utils";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TPageVersion } from "@karma-team/types";
+import { renderFormattedDate, renderFormattedTime } from "@karma-team/utils";
 // helpers
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
 // local imports
 import type { TVersionEditorProps } from "./editor";
 

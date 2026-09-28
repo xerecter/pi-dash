@@ -6,10 +6,10 @@
 
 import { observer } from "mobx-react";
 import { ArchiveRestore } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { ArchiveIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { ArchiveIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 // store
 import type { INotification } from "@/store/notifications/notification";
 // local imports
@@ -43,9 +43,7 @@ export const NotificationItemArchiveOption = observer(function NotificationItemA
 
   return (
     <NotificationItemOptionButton
-      tooltipContent={
-        data.archived_at ? t("Un archive") : t("Archive")
-      }
+      tooltipContent={data.archived_at ? t("Un archive") : t("Archive")}
       callBack={handleNotificationUpdate}
     >
       {data.archived_at ? (

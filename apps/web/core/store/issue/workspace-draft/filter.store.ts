@@ -7,9 +7,9 @@
 import { isEmpty, set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// Pi Dash Imports
-import type { TSupportedFilterTypeForUpdate } from "@pi-dash/constants";
-import { EIssueFilterType } from "@pi-dash/constants";
+// karma-team Imports
+import type { TSupportedFilterTypeForUpdate } from "@karma-team/constants";
+import { EIssueFilterType } from "@karma-team/constants";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
@@ -19,9 +19,9 @@ import type {
   IssuePaginationOptions,
   TWorkItemFilterExpression,
   TSupportedFilterForUpdate,
-} from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { handleIssueQueryParamsByLayout } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { handleIssueQueryParamsByLayout } from "@karma-team/utils";
 // services
 import { IssueFiltersService } from "@/services/issue_filter.service";
 // helpers

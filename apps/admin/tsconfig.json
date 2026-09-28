@@ -1,5 +1,5 @@
 {
-  "extends": "@pi-dash/typescript-config/react-router.json",
+  "extends": "@karma-team/typescript-config/react-router.json",
   "compilerOptions": {
     "noImplicitOverride": false,
     "exactOptionalPropertyTypes": false,

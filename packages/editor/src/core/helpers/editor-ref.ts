@@ -8,8 +8,8 @@ import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { Editor } from "@tiptap/core";
 import { DOMSerializer } from "@tiptap/pm/model";
 import * as Y from "yjs";
-// pi dash imports
-import { convertHTMLToMarkdown } from "@pi-dash/utils";
+// karma-team imports
+import { convertHTMLToMarkdown } from "@karma-team/utils";
 // components
 import { getEditorMenuItems } from "@/components/menus";
 // constants
@@ -109,7 +109,7 @@ export const getEditorRefHelpers = (args: TArgs): EditorRefApi => {
         event.preventDefault();
         event.clipboardData?.setData("text/plain", markdown);
         event.clipboardData?.setData("text/html", html);
-        event.clipboardData?.setData("text/pi-dash-editor-html", html);
+        event.clipboardData?.setData("text/karma-team-editor-html", html);
         document.removeEventListener("copy", copyHandler);
       };
 

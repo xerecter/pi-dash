@@ -7,12 +7,12 @@
 //ui
 import { ArrowDownWideNarrow, ArrowUpNarrowWide, CheckIcon, ChevronDownIcon, Eraser, MoveRight } from "lucide-react";
 // constants
-import { SPREADSHEET_PROPERTY_DETAILS } from "@pi-dash/constants";
+import { SPREADSHEET_PROPERTY_DETAILS } from "@karma-team/constants";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // types
-import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, TIssueOrderByOptions } from "@pi-dash/types";
-import { CustomMenu, Row } from "@pi-dash/ui";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, TIssueOrderByOptions } from "@karma-team/types";
+import { CustomMenu, Row } from "@karma-team/ui";
 import useLocalStorage from "@/hooks/use-local-storage";
 import { SpreadSheetPropertyIcon } from "../../utils";
 
@@ -56,7 +56,9 @@ export function HeaderColumn(props: Props) {
         <Row className="flex w-full cursor-pointer items-center justify-between gap-1.5 py-2 text-13 text-secondary hover:text-primary">
           <div className="flex items-center gap-1.5">
             {<SpreadSheetPropertyIcon iconKey={propertyDetails.icon} className="h-4 w-4 text-placeholder" />}
-            {property === "sub_issue_count" && isEpic ? t("{count, plural, one {Work item} other {Work items}}", { count: 2 }) : t(propertyDetails.i18n_title)}
+            {property === "sub_issue_count" && isEpic
+              ? t("{count, plural, one {Work item} other {Work items}}", { count: 2 })
+              : t(propertyDetails.i18n_title)}
           </div>
           <div className="ml-3 flex">
             {activeSortingProperty === property && (

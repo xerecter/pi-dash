@@ -5,9 +5,9 @@
  */
 
 import { useMemo } from "react";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TProjectLink } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TProjectLink } from "@karma-team/types";
 import { useHome } from "@/hooks/store/use-home";
 
 export type TLinkOperations = {

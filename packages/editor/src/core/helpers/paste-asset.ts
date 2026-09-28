@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { assetDuplicationHandlers } from "@/pi-dash-editor/helpers/asset-duplication";
+import { assetDuplicationHandlers } from "@/karma-team-editor/helpers/asset-duplication";
 
 // Utility function to process HTML content with all registered handlers
 export const processAssetDuplication = (htmlContent: string): { processedHtml: string } => {

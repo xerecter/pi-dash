@@ -7,11 +7,11 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { Link } from "react-router";
-// pi dash imports
-import { ROLE } from "@pi-dash/constants";
-import { Popover } from "@pi-dash/propel/popover";
-import { Avatar } from "@pi-dash/ui";
-import { cn, getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { ROLE } from "@karma-team/constants";
+import { Popover } from "@karma-team/propel/popover";
+import { Avatar } from "@karma-team/ui";
+import { cn, getFileURL } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useUser } from "@/hooks/store/user";

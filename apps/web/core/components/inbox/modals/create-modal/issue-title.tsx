@@ -5,13 +5,13 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { ETabIndices } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TIssue } from "@pi-dash/types";
-import { Input } from "@pi-dash/ui";
+// karma-team imports
+import { ETabIndices } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { TIssue } from "@karma-team/types";
+import { Input } from "@karma-team/ui";
 // helpers
-import { getTabIndex } from "@pi-dash/utils";
+import { getTabIndex } from "@karma-team/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 

@@ -8,9 +8,9 @@ import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 // lib
-import { stringToEmoji } from "@pi-dash/propel/emoji-icon-picker";
-import { EmojiReactionGroup, EmojiReactionPicker } from "@pi-dash/propel/emoji-reaction";
-import type { EmojiReactionType } from "@pi-dash/propel/emoji-reaction";
+import { stringToEmoji } from "@karma-team/propel/emoji-icon-picker";
+import { EmojiReactionGroup, EmojiReactionPicker } from "@karma-team/propel/emoji-reaction";
+import type { EmojiReactionType } from "@karma-team/propel/emoji-reaction";
 // helpers
 import { groupReactions } from "@/helpers/emoji.helper";
 import { queryParamGenerator } from "@/helpers/query-param-generator";

@@ -7,9 +7,9 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-// pi dash internal packages
-import { setPromiseToast } from "@pi-dash/propel/toast";
-import { Loader, ToggleSwitch } from "@pi-dash/ui";
+// karma-team internal packages
+import { setPromiseToast } from "@karma-team/propel/toast";
+import { Loader, ToggleSwitch } from "@karma-team/ui";
 // assets
 import giteaLogo from "@/app/assets/logos/gitea-logo.svg?url";
 // components
@@ -69,7 +69,7 @@ const InstanceGiteaAuthenticationPage = observer(function InstanceGiteaAuthentic
       customHeader={
         <AuthenticationMethodCard
           name="Gitea"
-          description="Allow members to login or sign up to pi dash with their Gitea accounts."
+          description="Allow members to login or sign up to karma-team with their Gitea accounts."
           icon={<img src={giteaLogo} height={24} width={24} alt="Gitea Logo" />}
           config={
             <ToggleSwitch

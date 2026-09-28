@@ -6,18 +6,18 @@
 
 import { useRef } from "react";
 import { observer } from "mobx-react";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { PageIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { getPageName } from "@pi-dash/utils";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { PageIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { getPageName } from "@karma-team/utils";
 // components
 import { ListItem } from "@/components/core/list";
 import { BlockItemAction } from "@/components/pages/list/block-item-action";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web hooks
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
-import { usePage } from "@/pi-dash-web/hooks/store";
+// karma-team web hooks
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
+import { usePage } from "@/karma-team-web/hooks/store";
 
 type TPageListBlock = {
   pageId: string;

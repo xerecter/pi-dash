@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 import { Clock, FileStack, MoreHorizontal, PanelLeft, MoveRight } from "lucide-react";
-import { IconButton, getIconButtonStyling } from "@pi-dash/propel/icon-button";
+import { IconButton, getIconButtonStyling } from "@karma-team/propel/icon-button";
 import {
   LinkIcon,
   NewTabIcon,
@@ -15,11 +15,11 @@ import {
   ChevronUpIcon,
   CheckCircleFilledIcon,
   CloseCircleFilledIcon,
-} from "@pi-dash/propel/icons";
-import type { TNameDescriptionLoader } from "@pi-dash/types";
+} from "@karma-team/propel/icons";
+import type { TNameDescriptionLoader } from "@karma-team/types";
 
-import { Header, CustomMenu, EHeaderVariant } from "@pi-dash/ui";
-import { cn, findHowManyDaysLeft, generateWorkItemLink } from "@pi-dash/utils";
+import { Header, CustomMenu, EHeaderVariant } from "@karma-team/ui";
+import { cn, findHowManyDaysLeft, generateWorkItemLink } from "@karma-team/utils";
 // components
 import { NameDescriptionUpdateStatus } from "@/components/issues/issue-update-status";
 // hooks

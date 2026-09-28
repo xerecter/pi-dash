@@ -5,8 +5,8 @@
  */
 
 // helpers
-import { STICKIES_PER_PAGE, API_BASE_URL } from "@pi-dash/constants";
-import type { TSticky } from "@pi-dash/types";
+import { STICKIES_PER_PAGE, API_BASE_URL } from "@karma-team/constants";
+import type { TSticky } from "@karma-team/types";
 // services
 import { APIService } from "@/services/api.service";
 

@@ -4,6 +4,6 @@
  * See the LICENSE file for details.
  */
 
-import type { IIssueDisplayFilterOptions } from "@pi-dash/types";
+import type { IIssueDisplayFilterOptions } from "@karma-team/types";
 
 export const getEnabledDisplayFilters = (displayFilters: IIssueDisplayFilterOptions) => displayFilters;

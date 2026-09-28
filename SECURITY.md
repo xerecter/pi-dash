@@ -1,6 +1,6 @@
 # Security policy
 
-This document outlines the security protocols and vulnerability reporting guidelines for the Pi Dash project. Ensuring the security of our systems is a top priority, and while we work diligently to maintain robust protection, vulnerabilities may still occur. We highly value the community’s role in identifying and reporting security concerns to uphold the integrity of our systems and safeguard our users.
+This document outlines the security protocols and vulnerability reporting guidelines for the karma-team project. Ensuring the security of our systems is a top priority, and while we work diligently to maintain robust protection, vulnerabilities may still occur. We highly value the community’s role in identifying and reporting security concerns to uphold the integrity of our systems and safeguard our users.
 
 ## Reporting a vulnerability
 
@@ -26,7 +26,7 @@ While we appreciate all efforts to assist in improving our security, please note
 
 ## Our commitment
 
-At Pi Dash, we are committed to maintaining transparent and collaborative communication throughout the vulnerability resolution process. Here's what you can expect from us:
+At karma-team, we are committed to maintaining transparent and collaborative communication throughout the vulnerability resolution process. Here's what you can expect from us:
 
 - **Response Time** <br/>
   We will acknowledge receipt of your vulnerability report within three business days and provide an estimated timeline for resolution.
@@ -39,4 +39,4 @@ At Pi Dash, we are committed to maintaining transparent and collaborative commun
 - **Timely Resolution** <br/>
   We are committed to working closely with you throughout the resolution process, providing timely updates as necessary. Our goal is to address all reported vulnerabilities swiftly, and we will actively engage with you to coordinate a responsible disclosure once the issue is fully resolved.
 
-We appreciate your help in ensuring the security of our platform. Your contributions are crucial to protecting our users and maintaining a secure environment. Thank you for working with us to keep Pi Dash safe.
+We appreciate your help in ensuring the security of our platform. Your contributions are crucial to protecting our users and maintaining a secure environment. Thank you for working with us to keep karma-team safe.

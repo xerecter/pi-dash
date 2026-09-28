@@ -6,7 +6,7 @@
 
 import type { ReactNode, MutableRefObject } from "react";
 import React, { useState, useRef, useEffect } from "react";
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   defaultHeight?: string;

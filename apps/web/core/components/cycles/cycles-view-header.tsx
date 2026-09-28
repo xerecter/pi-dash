@@ -7,13 +7,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { ListFilter } from "lucide-react";
-// pi dash imports
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { useTranslation } from "@pi-dash/i18n";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-import type { TCycleFilters } from "@pi-dash/types";
-import { cn, calculateTotalFilters } from "@pi-dash/utils";
+// karma-team imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { useTranslation } from "@karma-team/i18n";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+import type { TCycleFilters } from "@karma-team/types";
+import { cn, calculateTotalFilters } from "@karma-team/utils";
 // components
 import { FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 // hooks

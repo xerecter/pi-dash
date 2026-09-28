@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-import { WEBSITE_URL } from "@pi-dash/constants";
+import { WEBSITE_URL } from "@karma-team/constants";
 // assets
-import { PiDashLogo } from "@pi-dash/propel/icons";
+import { KarmaTeamLogo } from "@karma-team/propel/icons";
 
 type TPoweredBy = {
   disabled?: boolean;
@@ -25,9 +25,9 @@ export function PoweredBy(props: TPoweredBy) {
       target="_blank"
       rel="noreferrer noopener"
     >
-      <PiDashLogo className="h-3 w-auto text-primary" />
+      <KarmaTeamLogo className="h-3 w-auto text-primary" />
       <div className="text-11">
-        Powered by <span className="font-semibold">Pi Dash Publish</span>
+        Powered by <span className="font-semibold">karma-team Publish</span>
       </div>
     </a>
   );

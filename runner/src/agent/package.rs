@@ -19,7 +19,7 @@ struct Manifest {
     executable: PathBuf,
 }
 
-/// A validated local entry point compatible with one of Pi Dash's bridges.
+/// A validated local entry point compatible with one of karma-team's bridges.
 ///
 /// `protocol` describes the CLI/wire contract, not the package's vendor. For
 /// example, a developer's own engine can implement the Codex app-server

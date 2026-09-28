@@ -5,12 +5,12 @@
  */
 
 import { useState } from "react";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import { Button } from "@pi-dash/propel/button";
-import { TrashIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { Button } from "@karma-team/propel/button";
+import { TrashIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // hooks
 import { useUser } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -74,7 +74,9 @@ export function DeactivateAccountModal(props: Props) {
             <div>
               <h3 className="my-4 text-20 leading-6 font-medium text-primary">{t("Deactivate your account")}</h3>
               <p className="mt-6 list-disc pr-4 text-14 font-regular text-secondary">
-                {t("Once deactivated, you can't be assigned work items and be billed for your workspace. To reactivate your account, you will need an invite to a workspace at this email address.")}
+                {t(
+                  "Once deactivated, you can't be assigned work items and be billed for your workspace. To reactivate your account, you will need an invite to a workspace at this email address."
+                )}
               </p>
             </div>
           </div>

@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TEstimateSystems } from "@pi-dash/types";
+// karma-team imports
+import type { TEstimateSystems } from "@karma-team/types";
 
 export const MAX_ESTIMATE_POINT_INPUT_LENGTH = 20;
 

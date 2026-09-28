@@ -8,7 +8,7 @@ import React, { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // hooks
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useUserPermissions } from "@/hooks/store/user";
 // components

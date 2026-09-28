@@ -4,15 +4,15 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TSaveViewOptions, TUpdateViewOptions } from "@pi-dash/constants";
-import type { IWorkItemFilterInstance } from "@pi-dash/shared-state";
+// karma-team imports
+import type { TSaveViewOptions, TUpdateViewOptions } from "@karma-team/constants";
+import type { IWorkItemFilterInstance } from "@karma-team/shared-state";
 import type {
   EIssuesStoreType,
   IIssueFilters,
   TWorkItemFilterExpression,
   TWorkItemFilterProperty,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 
 export type TSharedWorkItemFiltersProps = {
   entityType: EIssuesStoreType; // entity type (project, cycle, workspace, teamspace, etc)

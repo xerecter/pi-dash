@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { IWorkItemPeekOverview } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import type { IWorkItemPeekOverview } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 import { IssuePeekOverview } from "@/components/issues/peek-overview";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import type { TPeekIssue } from "@/store/issue/issue-details/root.store";

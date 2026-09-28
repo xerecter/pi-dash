@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { logger } from "@pi-dash/logger";
+import { logger } from "@karma-team/logger";
 import { AppError } from "@/lib/errors";
 import { Server } from "./server";
 

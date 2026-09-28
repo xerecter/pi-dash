@@ -1,8 +1,8 @@
 # 08 — Cloud ↔ Runner Protocol
 
-This is the one **external, versioned contract** in Pi Dash. The web frontend ↔ Django REST surface ships together and can change freely. The runner does not — it lives on user machines, may be running an older release than the cloud, and must keep working long enough to auto-update.
+This is the one **external, versioned contract** in karma-team. The web frontend ↔ Django REST surface ships together and can change freely. The runner does not — it lives on user machines, may be running an older release than the cloud, and must keep working long enough to auto-update.
 
-The schema lives in `runner/src/cloud/protocol.rs` (Rust side) and is consumed by `apps/api/pi_dash/runner/views/sessions.py` and friends (Django side). Both sides ship together when version bumps happen — but they tolerate version skew for the auto-update grace period.
+The schema lives in `runner/src/cloud/protocol.rs` (Rust side) and is consumed by `apps/api/karma_team/runner/views/sessions.py` and friends (Django side). Both sides ship together when version bumps happen — but they tolerate version skew for the auto-update grace period.
 
 ## Wire version
 
@@ -13,7 +13,7 @@ History:
 - **v1 – v3** — WebSocket transport. Long-lived connection from runner to cloud carrying session frames and run dispatches.
 - **v4** — moved to **per-runner HTTPS long-poll**. The dev machine authenticates per request with its shared `MachineToken`; the specific runner is identified by URL `runner_id` or `X-Runner-Id`. No persistent WS connection from the runner side.
 
-The Channels WebSocket routing in `apps/api/pi_dash/runner/routing.py` still exists for backward compatibility and for editor channels — but new runners ride on the HTTP path.
+The Channels WebSocket routing in `apps/api/karma_team/runner/routing.py` still exists for backward compatibility and for editor channels — but new runners ride on the HTTP path.
 
 **Bump the wire version on incompatible shape changes only.** Additive optional fields don't need a bump. Removing or repurposing a required field does.
 
@@ -31,15 +31,15 @@ Both version envs are optional. In non-Cloud environments, leave them unset to s
 
 ## Auto-update advisory states
 
-What the runner shows in TUI / `pidash status` based on the welcome contents:
+What the runner shows in TUI / `karma-team status` based on the welcome contents:
 
-| Running version vs. cloud advisory                 | Banner                                                           |
-| -------------------------------------------------- | ---------------------------------------------------------------- |
-| `>= latest_announced` and `>= min_required`        | (nothing)                                                        |
-| `< latest_announced`, swap already on disk         | yellow `⚠ Restart to apply vX.Y.Z`                               |
-| `< latest_announced`, auto-update on, swap pending | yellow `⚠ Update vX.Y.Z pending swap`                            |
-| `< latest_announced`, auto-update off              | yellow `⚠ Update vX.Y.Z available — run pidash update --restart` |
-| `< min_required`                                   | red `⛔ Update required: cloud floor vX.Y.Z`                     |
+| Running version vs. cloud advisory                 | Banner                                                               |
+| -------------------------------------------------- | -------------------------------------------------------------------- |
+| `>= latest_announced` and `>= min_required`        | (nothing)                                                            |
+| `< latest_announced`, swap already on disk         | yellow `⚠ Restart to apply vX.Y.Z`                                   |
+| `< latest_announced`, auto-update on, swap pending | yellow `⚠ Update vX.Y.Z pending swap`                                |
+| `< latest_announced`, auto-update off              | yellow `⚠ Update vX.Y.Z available — run karma-team update --restart` |
+| `< min_required`                                   | red `⛔ Update required: cloud floor vX.Y.Z`                         |
 
 The toggle lives in TUI → General → Daemon settings → `auto_update`. Default **on**.
 
@@ -47,14 +47,14 @@ The toggle lives in TUI → General → Daemon settings → `auto_update`. Defau
 
 The runner does **not** carry a per-runner password. Authentication is a dev-machine token model:
 
-1. **MachineToken** — issued during `pidash auth login`, stored once in `[cli].token`.
+1. **MachineToken** — issued during `karma-team auth login`, stored once in `[cli].token`.
 2. **Runner identity** — URL `runner_id` for runner/session endpoints, or `X-Runner-Id` for run/chat lifecycle posts.
 
-`pidash runner add` uses the MachineToken to create a new runner row under the current dev machine; it does not mint a separate runtime credential per runner.
+`karma-team runner add` uses the MachineToken to create a new runner row under the current dev machine; it does not mint a separate runtime credential per runner.
 
 See [11 — Authentication](./11-authentication.md) for the full flow.
 
-## Endpoints (Django side, `pi_dash/runner/`)
+## Endpoints (Django side, `karma_team/runner/`)
 
 | URL path                                 | Purpose                                                     |
 | ---------------------------------------- | ----------------------------------------------------------- |
@@ -65,7 +65,7 @@ See [11 — Authentication](./11-authentication.md) for the full flow.
 | `POST /api/v1/runner/enroll/...`         | Device-code enrollment endpoints                            |
 | `GET/POST /api/runners/...`              | Web-UI side of runner admin (CRUD, "add connection" tokens) |
 
-Schemas are typed in `pi_dash/runner/serializers.py` and mirrored in `runner/src/cloud/protocol.rs`. Treat the two as the contract.
+Schemas are typed in `karma_team/runner/serializers.py` and mirrored in `runner/src/cloud/protocol.rs`. Treat the two as the contract.
 
 ## Versioning discipline
 
@@ -78,5 +78,5 @@ Schemas are typed in `pi_dash/runner/serializers.py` and mirrored in `runner/src
 
 - `runner/src/cloud/protocol.rs` — the authoritative schema
 - [07 — Runner architecture](./07-runner-architecture.md) — what consumes this protocol on the runner side
-- [06 — Backend architecture](./06-backend-architecture.md) — `pi_dash/runner/` is the cloud side
+- [06 — Backend architecture](./06-backend-architecture.md) — `karma_team/runner/` is the cloud side
 - [15 — Releasing](./15-releasing.md) — how the version envs get set on cloud after a runner tag

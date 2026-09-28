@@ -5,20 +5,20 @@
  */
 
 import React, { useState } from "react";
-// pi dash constants
-import type { EIssueCommentAccessSpecifier } from "@pi-dash/constants";
-// pi dash editor
-import { LiteTextEditorWithRef } from "@pi-dash/editor";
-import type { EditorRefApi, ILiteTextEditorProps, TFileHandler } from "@pi-dash/editor";
+// karma-team constants
+import type { EIssueCommentAccessSpecifier } from "@karma-team/constants";
+// karma-team editor
+import { LiteTextEditorWithRef } from "@karma-team/editor";
+import type { EditorRefApi, ILiteTextEditorProps, TFileHandler } from "@karma-team/editor";
 // components
-import type { TSticky } from "@pi-dash/types";
+import type { TSticky } from "@karma-team/types";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useEditorConfig } from "@/hooks/editor";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
-// pi dash web hooks
-import { useEditorFlagging } from "@/pi-dash-web/hooks/use-editor-flagging";
+// karma-team web hooks
+import { useEditorFlagging } from "@/karma-team-web/hooks/use-editor-flagging";
 import { StickyEditorToolbar } from "./toolbar";
 
 interface StickyEditorWrapperProps extends Omit<

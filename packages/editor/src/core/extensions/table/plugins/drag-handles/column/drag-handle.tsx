@@ -19,8 +19,8 @@ import {
 import type { Editor } from "@tiptap/core";
 import { Ellipsis } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // extensions

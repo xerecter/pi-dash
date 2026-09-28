@@ -4,13 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import { useTranslation } from "@pi-dash/i18n";
-import { CloseIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TProjectAppliedDisplayFilterKeys, TProjectFilters } from "@pi-dash/types";
-import { EHeaderVariant, Header, Tag } from "@pi-dash/ui";
-import { replaceUnderscoreIfSnakeCase } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { CloseIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TProjectAppliedDisplayFilterKeys, TProjectFilters } from "@karma-team/types";
+import { EHeaderVariant, Header, Tag } from "@karma-team/ui";
+import { replaceUnderscoreIfSnakeCase } from "@karma-team/utils";
 // local imports
 import { AppliedAccessFilters } from "./access";
 import { AppliedDateFilters } from "./date";
@@ -98,7 +98,9 @@ export function ProjectAppliedFiltersList(props: Props) {
         {/* Applied display filters */}
         {appliedDisplayFilters.length > 0 && (
           <Tag key="project_display_filters">
-            <span className="text-11 text-tertiary">{t("{count, plural, one {Project} other {Projects}}", { count: 2 })}</span>
+            <span className="text-11 text-tertiary">
+              {t("{count, plural, one {Project} other {Projects}}", { count: 2 })}
+            </span>
             <AppliedProjectDisplayFilters
               editable={isEditingAllowed}
               values={appliedDisplayFilters}

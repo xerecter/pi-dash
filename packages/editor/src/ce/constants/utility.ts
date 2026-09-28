@@ -4,11 +4,11 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { ADDITIONAL_EXTENSIONS } from "@pi-dash/utils";
-import { CORE_EXTENSIONS } from "@pi-dash/utils";
-// pi dash editor imports
-import type { ExtensionFileSetStorageKey } from "@/pi-dash-editor/types/storage";
+// karma-team imports
+import type { ADDITIONAL_EXTENSIONS } from "@karma-team/utils";
+import { CORE_EXTENSIONS } from "@karma-team/utils";
+// karma-team editor imports
+import type { ExtensionFileSetStorageKey } from "@/karma-team-editor/types/storage";
 
 export type NodeFileMapType = Partial<
   Record<

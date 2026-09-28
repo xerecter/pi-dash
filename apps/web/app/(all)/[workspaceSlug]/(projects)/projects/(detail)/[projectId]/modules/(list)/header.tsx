@@ -6,13 +6,13 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel, MODULE_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel, MODULE_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import { Button } from "@pi-dash/propel/button";
-import { ModuleIcon } from "@pi-dash/propel/icons";
-import { Breadcrumbs, Header } from "@pi-dash/ui";
+import { Button } from "@karma-team/propel/button";
+import { ModuleIcon } from "@karma-team/propel/icons";
+import { Breadcrumbs, Header } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { ModuleViewHeader } from "@/components/modules";
@@ -21,8 +21,8 @@ import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
-// pi dash web imports
-import { CommonProjectBreadcrumbs } from "@/pi-dash-web/components/breadcrumbs/common";
+// karma-team web imports
+import { CommonProjectBreadcrumbs } from "@/karma-team-web/components/breadcrumbs/common";
 
 export const ModulesListHeader = observer(function ModulesListHeader() {
   // router

@@ -8,10 +8,10 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
 import useSWR from "swr";
-// pi dash internal packages
-import { setPromiseToast } from "@pi-dash/propel/toast";
-import { Loader, ToggleSwitch } from "@pi-dash/ui";
-import { resolveGeneralTheme } from "@pi-dash/utils";
+// karma-team internal packages
+import { setPromiseToast } from "@karma-team/propel/toast";
+import { Loader, ToggleSwitch } from "@karma-team/ui";
+import { resolveGeneralTheme } from "@karma-team/utils";
 // assets
 import githubLightModeImage from "@/app/assets/logos/github-black.png?url";
 import githubDarkModeImage from "@/app/assets/logos/github-white.png?url";
@@ -77,7 +77,7 @@ const InstanceGithubAuthenticationPage = observer(function InstanceGithubAuthent
       customHeader={
         <AuthenticationMethodCard
           name="GitHub"
-          description="Allow members to login or sign up to pi dash with their GitHub accounts."
+          description="Allow members to login or sign up to karma-team with their GitHub accounts."
           icon={
             <img
               src={resolveGeneralTheme(resolvedTheme) === "dark" ? githubDarkModeImage : githubLightModeImage}

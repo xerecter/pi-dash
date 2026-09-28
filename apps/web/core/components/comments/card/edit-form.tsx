@@ -7,11 +7,11 @@
 import { useEffect, useRef } from "react";
 import { observer } from "mobx-react";
 import { useForm } from "react-hook-form";
-import type { EditorRefApi } from "@pi-dash/editor";
-import { CheckIcon, CloseIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import type { TCommentsOperations, TIssueComment } from "@pi-dash/types";
-import { cn, isCommentEmpty } from "@pi-dash/utils";
+import type { EditorRefApi } from "@karma-team/editor";
+import { CheckIcon, CloseIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import type { TCommentsOperations, TIssueComment } from "@karma-team/types";
+import { cn, isCommentEmpty } from "@karma-team/utils";
 // components
 import { LiteTextEditor } from "@/components/editor/lite-text";
 

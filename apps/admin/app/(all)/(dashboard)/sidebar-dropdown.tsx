@@ -9,11 +9,11 @@ import { observer } from "mobx-react";
 import { useTheme as useNextTheme } from "next-themes";
 import { LogOut, UserCog2, Palette } from "lucide-react";
 import { Menu, Transition } from "@headlessui/react";
-// pi dash internal packages
-import { API_BASE_URL } from "@pi-dash/constants";
-import { AuthService } from "@pi-dash/services";
-import { Avatar } from "@pi-dash/ui";
-import { getFileURL, cn } from "@pi-dash/utils";
+// karma-team internal packages
+import { API_BASE_URL } from "@karma-team/constants";
+import { AuthService } from "@karma-team/services";
+import { Avatar } from "@karma-team/ui";
+import { getFileURL, cn } from "@karma-team/utils";
 // hooks
 import { useTheme, useUser } from "@/hooks/store";
 

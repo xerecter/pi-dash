@@ -6,11 +6,11 @@
 
 import { Command } from "cmdk";
 import { observer } from "mobx-react";
-// pi dash imports
-import { MODULE_STATUS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { ModuleStatusIcon } from "@pi-dash/propel/icons";
-import type { TModuleStatus } from "@pi-dash/types";
+// karma-team imports
+import { MODULE_STATUS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { ModuleStatusIcon } from "@karma-team/propel/icons";
+import type { TModuleStatus } from "@karma-team/types";
 // local imports
 import { PowerKModalCommandItem } from "../../../modal/command-item";
 

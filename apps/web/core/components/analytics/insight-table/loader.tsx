@@ -6,8 +6,8 @@
 
 import * as React from "react";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@pi-dash/propel/table";
-import { Loader } from "@pi-dash/ui";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@karma-team/propel/table";
+import { Loader } from "@karma-team/ui";
 
 interface TableSkeletonProps {
   columns: ColumnDef<any>[];

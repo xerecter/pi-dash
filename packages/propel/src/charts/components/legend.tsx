@@ -6,8 +6,8 @@
 
 import React from "react";
 import type { LegendProps } from "recharts";
-// pi dash imports
-import type { TChartLegend } from "@pi-dash/types";
+// karma-team imports
+import type { TChartLegend } from "@karma-team/types";
 import { cn } from "../../utils/classname";
 
 export const getLegendProps = (args: TChartLegend): LegendProps => {

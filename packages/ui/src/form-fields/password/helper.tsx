@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { E_PASSWORD_STRENGTH } from "@pi-dash/constants";
+import { E_PASSWORD_STRENGTH } from "@karma-team/constants";
 
 export interface StrengthInfo {
   message: string;

@@ -7,11 +7,11 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// Pi Dash imports
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IState } from "@pi-dash/types";
+// karma-team imports
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IState } from "@karma-team/types";
 // ui
-import { AlertModalCore } from "@pi-dash/ui";
+import { AlertModalCore } from "@karma-team/ui";
 // hooks
 import { useProjectState } from "@/hooks/store/use-project-state";
 

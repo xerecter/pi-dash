@@ -6,16 +6,16 @@
 
 import { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { ProjectIcon } from "@pi-dash/propel/icons";
-import type { ICustomSearchSelectOption } from "@pi-dash/types";
-import { CustomSearchSelect } from "@pi-dash/ui";
+// karma-team imports
+import { ProjectIcon } from "@karma-team/propel/icons";
+import type { ICustomSearchSelectOption } from "@karma-team/types";
+import { CustomSearchSelect } from "@karma-team/ui";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
-// pi dash web imports
-import { useNavigationItems } from "@/pi-dash-web/components/navigations";
+// karma-team web imports
+import { useNavigationItems } from "@/karma-team-web/components/navigations";
 // local imports
 import { SwitcherLabel } from "../common/switcher-label";
 import { ProjectHeaderButton } from "./project-header-button";

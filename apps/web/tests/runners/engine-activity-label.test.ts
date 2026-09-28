@@ -15,7 +15,7 @@
 
 import { describe, expect, it } from "vitest";
 import { engineActivityLabel } from "@/app/(all)/[workspaceSlug]/runners/chat/[runnerId]/page";
-import type { IAgentChatEvent } from "@pi-dash/types";
+import type { IAgentChatEvent } from "@karma-team/types";
 
 function raw(method: string, params: Record<string, unknown> = {}): IAgentChatEvent {
   return {

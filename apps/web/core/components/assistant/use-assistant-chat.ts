@@ -6,8 +6,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import useSWR, { useSWRConfig } from "swr";
-import { AssistantService, createApiEventSource } from "@pi-dash/services";
-import type { IAssistantEvent, IAssistantMessage, IAssistantSkippedServer } from "@pi-dash/types";
+import { AssistantService, createApiEventSource } from "@karma-team/services";
+import type { IAssistantEvent, IAssistantMessage, IAssistantSkippedServer } from "@karma-team/types";
 import { bySeq, latestRealMessage, withNotice, type ById } from "@/components/assistant/notices";
 
 const service = new AssistantService();

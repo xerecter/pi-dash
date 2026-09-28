@@ -8,9 +8,9 @@ import { useMemo } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
 // components
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import type { IState, TStateOperationsCallbacks } from "@pi-dash/types";
-import { EUserProjectRoles } from "@pi-dash/types";
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import type { IState, TStateOperationsCallbacks } from "@karma-team/types";
+import { EUserProjectRoles } from "@karma-team/types";
 import { ProjectStateLoader, GroupList } from "@/components/project-states";
 // hooks
 import { useProject } from "@/hooks/store/use-project";

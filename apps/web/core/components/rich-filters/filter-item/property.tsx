@@ -5,11 +5,11 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { cn } from "@pi-dash/propel/utils";
-import type { IFilterInstance } from "@pi-dash/shared-state";
-import type { TExternalFilter, TFilterProperty, TSupportedOperators } from "@pi-dash/types";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { cn } from "@karma-team/propel/utils";
+import type { IFilterInstance } from "@karma-team/shared-state";
+import type { TExternalFilter, TFilterProperty, TSupportedOperators } from "@karma-team/types";
 // local imports
 import { AddFilterDropdown } from "../add-filters/dropdown";
 import { COMMON_FILTER_ITEM_BORDER_CLASSNAME } from "../shared";

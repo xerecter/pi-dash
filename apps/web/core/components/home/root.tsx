@@ -7,14 +7,14 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-// pi dash imports
-import { ContentWrapper } from "@pi-dash/ui";
+// karma-team imports
+import { ContentWrapper } from "@karma-team/ui";
 // hooks
 import { useHome } from "@/hooks/store/use-home";
 import { useUserProfile, useUser } from "@/hooks/store/user";
-// pi dash web imports
-import { HomePeekOverviewsRoot } from "@/pi-dash-web/components/home";
-import { TourRoot } from "@/pi-dash-web/components/onboarding/tour/root";
+// karma-team web imports
+import { HomePeekOverviewsRoot } from "@/karma-team-web/components/home";
+import { TourRoot } from "@/karma-team-web/components/onboarding/tour/root";
 // local imports
 import { AssistantHomeWidget } from "@/components/assistant/home-widget";
 import { DashboardWidgets } from "./home-dashboard-widgets";

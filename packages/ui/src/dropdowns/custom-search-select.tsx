@@ -9,11 +9,11 @@ import { Info } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { usePopper } from "react-popper";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { CheckIcon, SearchIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-// pi dash imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { CheckIcon, SearchIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+// karma-team imports
 // local imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import { Tooltip } from "@karma-team/propel/tooltip";
 import { useDropdownKeyDown } from "../hooks/use-dropdown-key-down";
 import { cn } from "../utils";
 import type { ICustomSearchSelectProps } from "./helper";

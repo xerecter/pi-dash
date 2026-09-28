@@ -5,8 +5,8 @@
  */
 
 // types
-import { logger } from "@pi-dash/logger";
-import type { IUser } from "@pi-dash/types";
+import { logger } from "@karma-team/logger";
+import type { IUser } from "@karma-team/types";
 // services
 import { AppError } from "@/lib/errors";
 import { APIService } from "@/services/api.service";

@@ -6,8 +6,8 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { DEFAULT_GLOBAL_VIEWS_LIST } from "@pi-dash/constants";
+// karma-team imports
+import { DEFAULT_GLOBAL_VIEWS_LIST } from "@karma-team/constants";
 // components
 import { PageHead } from "@/components/core/page-title";
 import { AllIssueLayoutRoot } from "@/components/issues/issue-layouts/roots/all-issue-layout-root";

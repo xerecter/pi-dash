@@ -7,11 +7,11 @@
 import { useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { createPortal } from "react-dom";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
-import type { TNameDescriptionLoader } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
+import type { TNameDescriptionLoader } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import useKeypress from "@/hooks/use-keypress";

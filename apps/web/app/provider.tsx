@@ -7,12 +7,12 @@
 import { lazy, Suspense } from "react";
 import { useTheme } from "next-themes";
 import { SWRConfig } from "swr";
-// Pi Dash Imports
-import { WEB_SWR_CONFIG } from "@pi-dash/constants";
-import { TranslationProvider } from "@pi-dash/i18n";
-import { Toast } from "@pi-dash/propel/toast";
+// karma-team Imports
+import { WEB_SWR_CONFIG } from "@karma-team/constants";
+import { TranslationProvider } from "@karma-team/i18n";
+import { Toast } from "@karma-team/propel/toast";
 // helpers
-import { resolveGeneralTheme } from "@pi-dash/utils";
+import { resolveGeneralTheme } from "@karma-team/utils";
 // mobx store provider
 import { StoreProvider } from "@/lib/store-context";
 import { AgentRuntime } from "@/components/agent-runtime";

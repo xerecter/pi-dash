@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { ChartDataType, IBlockUpdateData, IGanttBlock } from "@pi-dash/types";
+import type { ChartDataType, IBlockUpdateData, IGanttBlock } from "@karma-team/types";
 
 export const handleOrderChange = (
   draggingBlockId: string | undefined,

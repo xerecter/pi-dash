@@ -6,8 +6,8 @@
 
 import type { Control, FieldPath, FieldValues } from "react-hook-form";
 import { Controller } from "react-hook-form";
-// pi dash internal packages
-import { ToggleSwitch } from "@pi-dash/ui";
+// karma-team internal packages
+import { ToggleSwitch } from "@karma-team/ui";
 
 type Props<T extends FieldValues = FieldValues> = {
   control: Control<T>;

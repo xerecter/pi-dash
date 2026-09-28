@@ -1,5 +1,5 @@
-import type { TPlacement } from "@pi-dash/propel/utils/placement";
-import type { TIssue } from "@pi-dash/types";
+import type { TPlacement } from "@karma-team/propel/utils/placement";
+import type { TIssue } from "@karma-team/types";
 
 export interface IQuickActionProps {
   parentRef: React.RefObject<HTMLElement>;

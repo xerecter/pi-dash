@@ -1,12 +1,12 @@
-# Pi Dash Runner — CLI Restructure & Install Flow
+# karma-team Runner — CLI Restructure & Install Flow
 
 Purpose:
 
-- clean up the `pidash` CLI so service-lifecycle verbs (`start`/`stop`/`restart`/`status`) are top-level, consistent, and symmetric
-- make `pidash install` the single install-time entry point and wire it to `configure` on fresh machines
+- clean up the `karma-team` CLI so service-lifecycle verbs (`start`/`stop`/`restart`/`status`) are top-level, consistent, and symmetric
+- make `karma-team install` the single install-time entry point and wire it to `configure` on fresh machines
 - tighten the `config.toml` schema: required fields fail fast, optional fields default sensibly
 - pin `runner.name` rules (charset, defaulting, per-workspace uniqueness) while keeping the cloud wire identifier (`runner_id`) as a stable UUID
-- close the `pidash remove` crash-loop gap so removal is actually clean
+- close the `karma-team remove` crash-loop gap so removal is actually clean
 
 Scope:
 
@@ -33,18 +33,18 @@ Related docs:
 
 One binary, two roles:
 
-- **`pidash` (the CLI)** — the binary. Most invocations are fire-once, short-lived.
-- **the runner / the daemon** — the one long-lived process that the CLI can spawn. Entered via the hidden `pidash __run` subcommand (replaces today's `pidash start` implementation). All other subcommands are either daemon-clients (talk to the runner over the Unix IPC socket) or standalone utilities (cloud HTTP API, local files).
+- **`karma-team` (the CLI)** — the binary. Most invocations are fire-once, short-lived.
+- **the runner / the daemon** — the one long-lived process that the CLI can spawn. Entered via the hidden `karma-team __run` subcommand (replaces today's `karma-team start` implementation). All other subcommands are either daemon-clients (talk to the runner over the Unix IPC socket) or standalone utilities (cloud HTTP API, local files).
 
-There is exactly one daemon per machine. No other `pidash` subcommand runs long-lived.
+There is exactly one daemon per machine. No other `karma-team` subcommand runs long-lived.
 
 ## Background
 
 Today's shape has three problems that motivate this redesign:
 
-1. **Verb inconsistency.** `pidash start` is the foreground daemon; `pidash service start` is the OS-service start. `start` and `stop` live at different levels. Users encounter this immediately and it erodes trust.
-2. **No fresh-install flow.** `pidash service install` writes the unit and `systemctl --user enable`s it even when there are no credentials. On next boot the service enters a crash loop. There is no interactive bridge from "install" to "configure."
-3. **`pidash remove` leaves the service behind.** It deregisters from the cloud and wipes local files, but the installed unit stays. systemd/launchd then crash-loop on missing credentials.
+1. **Verb inconsistency.** `karma-team start` is the foreground daemon; `karma-team service start` is the OS-service start. `start` and `stop` live at different levels. Users encounter this immediately and it erodes trust.
+2. **No fresh-install flow.** `karma-team service install` writes the unit and `systemctl --user enable`s it even when there are no credentials. On next boot the service enters a crash loop. There is no interactive bridge from "install" to "configure."
+3. **`karma-team remove` leaves the service behind.** It deregisters from the cloud and wipes local files, but the installed unit stays. systemd/launchd then crash-loop on missing credentials.
 
 Underneath that sit a few smaller but related gaps: `runner.name` has no defaulting or charset rules, the `config.toml` schema doesn't distinguish required from optional fields, and the release pipeline has no published binaries yet so the install story is source-build only.
 
@@ -52,23 +52,23 @@ Underneath that sit a few smaller but related gaps: `runner.name` has no default
 
 ### 1. User-visible command surface
 
-| Command                                                        | Behavior                                                                                                                                                                                          |
-| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pidash install`                                               | Writes the OS service unit; on fresh install (no existing `config.toml`) with a TTY, chains into `pidash configure` interactively; enables and starts the service only after `configure` succeeds |
-| `pidash uninstall`                                             | Stops the service, disables it, deletes the unit file                                                                                                                                             |
-| `pidash start`                                                 | Starts the installed service (`systemctl --user start pidash` / `launchctl kickstart`)                                                                                                            |
-| `pidash stop`                                                  | Stops the installed service                                                                                                                                                                       |
-| `pidash restart`                                               | Stop + start                                                                                                                                                                                      |
-| `pidash status`                                                | Service status (from systemctl/launchctl) **plus** runtime status (from IPC) in one output                                                                                                        |
-| `pidash configure`                                             | Register with cloud; write `config.toml` + `credentials.toml`                                                                                                                                     |
-| `pidash remove`                                                | Deregister from cloud, delete local config/creds, **and** uninstall the service                                                                                                                   |
-| `pidash doctor`                                                | Preflight checks (codex installed + logged in, git configured, cloud reachable)                                                                                                                   |
-| `pidash tui`                                                   | Interactive UI attached to the running daemon over IPC                                                                                                                                            |
-| `pidash rotate`                                                | Rotate the runner credential                                                                                                                                                                      |
-| `pidash issue` / `comment` / `state` / `resolve` / `workspace` | Cloud API clients (unchanged by this design)                                                                                                                                                      |
-| `pidash __run`                                                 | **Hidden.** What systemd/launchd execs. Excluded from `--help` via `#[command(hide = true)]`. Not a supported user-facing verb                                                                    |
+| Command                                                            | Behavior                                                                                                                                                                                              |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `karma-team install`                                               | Writes the OS service unit; on fresh install (no existing `config.toml`) with a TTY, chains into `karma-team configure` interactively; enables and starts the service only after `configure` succeeds |
+| `karma-team uninstall`                                             | Stops the service, disables it, deletes the unit file                                                                                                                                                 |
+| `karma-team start`                                                 | Starts the installed service (`systemctl --user start karma-team` / `launchctl kickstart`)                                                                                                            |
+| `karma-team stop`                                                  | Stops the installed service                                                                                                                                                                           |
+| `karma-team restart`                                               | Stop + start                                                                                                                                                                                          |
+| `karma-team status`                                                | Service status (from systemctl/launchctl) **plus** runtime status (from IPC) in one output                                                                                                            |
+| `karma-team configure`                                             | Register with cloud; write `config.toml` + `credentials.toml`                                                                                                                                         |
+| `karma-team remove`                                                | Deregister from cloud, delete local config/creds, **and** uninstall the service                                                                                                                       |
+| `karma-team doctor`                                                | Preflight checks (codex installed + logged in, git configured, cloud reachable)                                                                                                                       |
+| `karma-team tui`                                                   | Interactive UI attached to the running daemon over IPC                                                                                                                                                |
+| `karma-team rotate`                                                | Rotate the runner credential                                                                                                                                                                          |
+| `karma-team issue` / `comment` / `state` / `resolve` / `workspace` | Cloud API clients (unchanged by this design)                                                                                                                                                          |
+| `karma-team __run`                                                 | **Hidden.** What systemd/launchd execs. Excluded from `--help` via `#[command(hide = true)]`. Not a supported user-facing verb                                                                        |
 
-Dropped: the `pidash service <subcommand>` subgroup disappears entirely. No deprecated alias — no releases have shipped, so nothing to break.
+Dropped: the `karma-team service <subcommand>` subgroup disappears entirely. No deprecated alias — no releases have shipped, so nothing to break.
 
 Rationale:
 
@@ -78,11 +78,11 @@ Rationale:
 
 ### 2. Fresh-install gate
 
-`pidash install` behavior:
+`karma-team install` behavior:
 
 1. Writes the service unit (systemd user unit on Linux, LaunchAgent on macOS) — but does **not** enable or start it yet.
 2. Determines `fresh = !config.toml.exists() || !config.toml.is_valid()`.
-3. If `fresh` and stdin is a TTY and `--no-configure` was not passed → chain into `pidash configure` interactively.
+3. If `fresh` and stdin is a TTY and `--no-configure` was not passed → chain into `karma-team configure` interactively.
 4. If `configure` succeeds (or config was already valid) → enable + start the service.
 5. If `fresh` and non-TTY (CI, ansible, Docker build) or `--no-configure` → print next-step hint, exit without enabling. Nothing auto-starts a runner that isn't configured.
 
@@ -105,11 +105,11 @@ Strict required fields (no serde default, daemon start fails fast if missing):
 Optional (with defaults):
 
 - `runner.name` — defaulted, see §5
-- `runner.workspace_slug` — optional; UX subcommands (`issue`, `comment`, etc.) surface a "rerun `pidash configure`" error when missing (existing behavior, preserved)
+- `runner.workspace_slug` — optional; UX subcommands (`issue`, `comment`, etc.) surface a "rerun `karma-team configure`" error when missing (existing behavior, preserved)
 - `approval_policy.*` — existing defaults
 - `logging.*` — existing defaults
 
-When `__run` loads a config missing a required field, it exits immediately with a message pointing at `pidash configure`. No partial boot, no silent degradation.
+When `__run` loads a config missing a required field, it exits immediately with a message pointing at `karma-team configure`. No partial boot, no silent degradation.
 
 ### 4. Credentials at start — required
 
@@ -119,21 +119,21 @@ Reasons:
 
 - The fresh-install gate (§2) guarantees `configure` runs before the service is enabled, so the daemon never sees missing creds in the normal flow.
 - Lazy mode would add an `Unregistered` state to IPC, status, TUI, and tests — surface area for little benefit.
-- Manual deletion of `credentials.toml` is a self-inflicted wound. Fast-failing with a log pointing at `pidash configure` is the right signal; a silent idle runner is not.
-- `pidash remove` now stops + uninstalls the service (see §6), so the "deregistered but service still installed → crash loop" scenario goes away at its root.
+- Manual deletion of `credentials.toml` is a self-inflicted wound. Fast-failing with a log pointing at `karma-team configure` is the right signal; a silent idle runner is not.
+- `karma-team remove` now stops + uninstalls the service (see §6), so the "deregistered but service still installed → crash loop" scenario goes away at its root.
 
 `__run` keeps the eager `load_all(paths)?` call but with a better error message:
 
 ```
-error: no credentials found at ~/.config/pidash/credentials.toml
-hint:  run `pidash configure` to register this runner, or `pidash install` to set up the service for the first time
+error: no credentials found at ~/.config/karma-team/credentials.toml
+hint:  run `karma-team configure` to register this runner, or `karma-team install` to set up the service for the first time
 ```
 
 ### 5. `runner.name` rules
 
 **Charset.** `[A-Za-z0-9_-]` only. No spaces. No other characters. Validated on both client (reject bad `--name` input in `configure`) and server (defense in depth).
 
-**Default.** When `configure` is invoked without an explicit `--name`, generate `pidash_runner_<3 random chars from [A-Za-z0-9]>`. 62³ ≈ 238k names — ample for the per-workspace collision domain (see below).
+**Default.** When `configure` is invoked without an explicit `--name`, generate `karma_team_runner_<3 random chars from [A-Za-z0-9]>`. 62³ ≈ 238k names — ample for the per-workspace collision domain (see below).
 
 **Uniqueness scope — per workspace, not global.** The cloud DB enforces `UNIQUE(workspace_id, runner_name)`. `my-laptop` in workspace A can coexist with `my-laptop` in workspace B.
 
@@ -148,9 +148,9 @@ hint:  run `pidash configure` to register this runner, or `pidash install` to se
 - Explicit `--name foo` that collides with an existing runner in the same workspace → loud error, exit non-zero. Do not silently rename user-provided input.
 - Auto-generated default that collides → retry with a fresh random suffix up to 5 times, then error. 62³ with ≤5 retries gives a negligible failure probability even at thousands of runners per workspace.
 
-Wire shape of the register endpoint (`apps/api/pi_dash/runner/views/register.py`): accepts `name` in the payload, validates charset, returns `409 Conflict` with `{"error": "runner_name_taken"}` on collision so the runner can decide whether to retry (default case) or surface the error (explicit `--name` case).
+Wire shape of the register endpoint (`apps/api/karma_team/runner/views/register.py`): accepts `name` in the payload, validates charset, returns `409 Conflict` with `{"error": "runner_name_taken"}` on collision so the runner can decide whether to retry (default case) or surface the error (explicit `--name` case).
 
-### 6. `pidash remove` cleanup extension
+### 6. `karma-team remove` cleanup extension
 
 Current `remove` (`runner/src/cli/remove.rs`):
 
@@ -166,14 +166,14 @@ Extended `remove`:
 
 Ordering: service-first so the daemon isn't still talking to the cloud when we tell the cloud to forget it, and isn't holding the IPC socket when we delete local state.
 
-This closes the crash-loop hole — after `pidash remove`, the machine is clean.
+This closes the crash-loop hole — after `karma-team remove`, the machine is clean.
 
 ### 7. Auto-start on reboot
 
 No code change to the unit generators — they already set the right restart policy. Documentation change only.
 
 - **macOS**: existing LaunchAgent has `RunAtLoad=true` + `KeepAlive=true`. Starts at user login, restarts on crash. No extra step needed. A system-boot-before-login start would require a LaunchDaemon — **not in scope**.
-- **Linux**: existing systemd user unit has `Restart=on-failure` and is `enable`d. Starts at user login by default. For **boot-before-login** auto-start, the user must run `sudo loginctl enable-linger $USER` once. `pidash install` prints this hint after a successful install, but does not run `sudo` itself.
+- **Linux**: existing systemd user unit has `Restart=on-failure` and is `enable`d. Starts at user login by default. For **boot-before-login** auto-start, the user must run `sudo loginctl enable-linger $USER` once. `karma-team install` prints this hint after a successful install, but does not run `sudo` itself.
 
 ### 8. Supported OS matrix (documentation truth)
 
@@ -203,11 +203,11 @@ Three PRs, reviewable independently:
 
 ### PR 2 — Install flow + config strictness + remove cleanup
 
-- [ ] `pidash install` gates enable/start on config validity; TTY → chains into `configure`; non-TTY → prints next-step hint
+- [ ] `karma-team install` gates enable/start on config validity; TTY → chains into `configure`; non-TTY → prints next-step hint
 - [ ] `--no-configure` flag on `install`
 - [ ] Required-field validation on `Config` deserialization; clear error message from `__run` on missing field
-- [ ] Helpful error on missing credentials at `__run` entry, pointing at `pidash configure`
-- [ ] `pidash remove` extended to stop + uninstall service before deleting local state
+- [ ] Helpful error on missing credentials at `__run` entry, pointing at `karma-team configure`
+- [ ] `karma-team remove` extended to stop + uninstall service before deleting local state
 - [ ] Print `loginctl enable-linger` hint on successful Linux install
 - [ ] Integration test: fresh install + configure + start + status + remove cycle on a tmpdir config
 
@@ -216,7 +216,7 @@ Three PRs, reviewable independently:
 Runner side:
 
 - [ ] Charset validator on `runner.name` (client-side rejection of invalid `--name foo`)
-- [ ] Default generator: `pidash_runner_<3 chars [A-Za-z0-9]>`
+- [ ] Default generator: `karma_team_runner_<3 chars [A-Za-z0-9]>`
 - [ ] `configure` retries up to 5 times on `409 runner_name_taken` when the name was auto-generated; fails loudly when the name was user-supplied
 
 Cloud side (`apps/api/`):
@@ -233,12 +233,12 @@ There are no public releases yet, so the only population we need to worry about 
 For anyone with the current `ExecStart={exe} start` unit installed:
 
 ```
-pidash uninstall     # old binary still works, removes the stale unit
+karma-team uninstall     # old binary still works, removes the stale unit
 # pull, rebuild, reinstall
-pidash install
+karma-team install
 ```
 
-We do not attempt in-place unit rewriting from the new binary. Users run `uninstall` with the old binary first because the new `pidash start` means "start the service," which would infinite-loop against the old unit. `pidash install` from the new binary writes the correct `ExecStart={exe} __run` line.
+We do not attempt in-place unit rewriting from the new binary. Users run `uninstall` with the old binary first because the new `karma-team start` means "start the service," which would infinite-loop against the old unit. `karma-team install` from the new binary writes the correct `ExecStart={exe} __run` line.
 
 Release notes for whatever first-published version bundles these changes must call out this two-step upgrade explicitly.
 
@@ -247,7 +247,7 @@ Release notes for whatever first-published version bundles these changes must ca
 Runner:
 
 - **Unit.** Charset validator for `runner.name`, required-field validation on `Config`, random-name generator distribution, retry-on-conflict loop.
-- **Integration.** `tests/pidash_cli_contract.rs` extended: presence of new top-level verbs, `__run` hidden from help, `service` subgroup absent.
+- **Integration.** `tests/karma_team_cli_contract.rs` extended: presence of new top-level verbs, `__run` hidden from help, `service` subgroup absent.
 - **Manual QA.** Fresh install on a scratch macOS machine + a scratch Linux VM: install → chained configure → service running → `status` shows connected → `remove` leaves machine clean.
 
 Cloud:

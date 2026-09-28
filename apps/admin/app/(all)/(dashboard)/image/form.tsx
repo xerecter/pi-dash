@@ -5,9 +5,9 @@
  */
 
 import { useForm } from "react-hook-form";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IFormattedInstanceConfiguration, TInstanceImageConfigurationKeys } from "@pi-dash/types";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IFormattedInstanceConfiguration, TInstanceImageConfigurationKeys } from "@karma-team/types";
 // components
 import { ControllerInput } from "@/components/common/controller-input";
 // hooks

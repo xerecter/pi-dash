@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { IModule, TFilterProperty } from "@pi-dash/types";
-import { EQUALITY_OPERATOR, COLLECTION_OPERATOR } from "@pi-dash/types";
+// karma-team imports
+import type { IModule, TFilterProperty } from "@karma-team/types";
+import { EQUALITY_OPERATOR, COLLECTION_OPERATOR } from "@karma-team/types";
 // local imports
 import type { TCreateFilterConfigParams, IFilterIconConfig, TCreateFilterConfig } from "../../../rich-filters";
 import { createFilterConfig, getMultiSelectConfig, createOperatorConfigEntry } from "../../../rich-filters";

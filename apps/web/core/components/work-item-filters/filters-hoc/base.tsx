@@ -7,15 +7,15 @@
 import { useEffect, useMemo } from "react";
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
-// pi dash imports
-import type { TSaveViewOptions, TUpdateViewOptions } from "@pi-dash/constants";
-import type { IWorkItemFilterInstance } from "@pi-dash/shared-state";
-import type { IIssueFilters, TWorkItemFilterExpression } from "@pi-dash/types";
+// karma-team imports
+import type { TSaveViewOptions, TUpdateViewOptions } from "@karma-team/constants";
+import type { IWorkItemFilterInstance } from "@karma-team/shared-state";
+import type { IIssueFilters, TWorkItemFilterExpression } from "@karma-team/types";
 // store hooks
 import { useWorkItemFilters } from "@/hooks/store/work-item-filters/use-work-item-filters";
-// pi dash web imports
-import type { TWorkItemFiltersEntityProps } from "@/pi-dash-web/hooks/work-item-filters/use-work-item-filters-config";
-import { useWorkItemFiltersConfig } from "@/pi-dash-web/hooks/work-item-filters/use-work-item-filters-config";
+// karma-team web imports
+import type { TWorkItemFiltersEntityProps } from "@/karma-team-web/hooks/work-item-filters/use-work-item-filters-config";
+import { useWorkItemFiltersConfig } from "@/karma-team-web/hooks/work-item-filters/use-work-item-filters-config";
 // local imports
 import type { TSharedWorkItemFiltersHOCProps, TSharedWorkItemFiltersProps } from "./shared";
 

@@ -7,8 +7,8 @@
 import React, { useState } from "react";
 import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
-import { EAuthModes, EAuthSteps } from "@pi-dash/constants";
-import type { IEmailCheckData } from "@pi-dash/types";
+import { EAuthModes, EAuthSteps } from "@karma-team/constants";
+import type { IEmailCheckData } from "@karma-team/types";
 // helpers
 import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
 import { authErrorHandler } from "@/helpers/authentication.helper";

@@ -33,8 +33,8 @@ import {
   TableRow,
   UtilityExtension,
 } from "@/extensions";
-// pi dash editor extensions
-import { CoreEditorAdditionalExtensions } from "@/pi-dash-editor/extensions";
+// karma-team editor extensions
+import { CoreEditorAdditionalExtensions } from "@/karma-team-editor/extensions";
 // types
 import type { IEditorProps } from "@/types";
 // local imports

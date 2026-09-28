@@ -16,9 +16,9 @@ import type {
   TCycleEstimateDistribution,
   TCycleDistribution,
   TCycleEstimateType,
-} from "@pi-dash/types";
-import type { DistributionUpdates } from "@pi-dash/utils";
-import { orderCycles, shouldFilterCycle, getDate, updateDistribution } from "@pi-dash/utils";
+} from "@karma-team/types";
+import type { DistributionUpdates } from "@karma-team/utils";
+import { orderCycles, shouldFilterCycle, getDate, updateDistribution } from "@karma-team/utils";
 // helpers
 // services
 import { CycleService } from "@/services/cycle.service";

@@ -9,12 +9,12 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // icons
 import { ListFilter } from "lucide-react";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-// pi dash helpers
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+// karma-team helpers
 // types
-import type { TCycleFilters } from "@pi-dash/types";
-import { cn, calculateTotalFilters } from "@pi-dash/utils";
+import type { TCycleFilters } from "@karma-team/types";
+import { cn, calculateTotalFilters } from "@karma-team/utils";
 // components
 import { ArchiveTabsList } from "@/components/archives";
 import { FiltersDropdown } from "@/components/issues/issue-layouts/filters";

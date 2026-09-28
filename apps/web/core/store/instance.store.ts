@@ -6,7 +6,7 @@
 
 import { observable, action, makeObservable, runInAction } from "mobx";
 // types
-import type { IInstance, IInstanceConfig } from "@pi-dash/types";
+import type { IInstance, IInstanceConfig } from "@karma-team/types";
 // services
 import { InstanceService } from "@/services/instance.service";
 

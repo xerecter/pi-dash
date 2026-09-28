@@ -19,17 +19,17 @@ import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { usePopper } from "react-popper";
 import { XCircle } from "lucide-react";
 import { Listbox } from "@headlessui/react";
-// pi dash imports
-import type { EUserPermissions } from "@pi-dash/constants";
-import { ROLE, ROLE_DETAILS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import type { EUserPermissions } from "@karma-team/constants";
+import { ROLE, ROLE_DETAILS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // types
-import { Button } from "@pi-dash/propel/button";
-import { PlusIcon, CheckIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IUser, IWorkspace } from "@pi-dash/types";
+import { Button } from "@karma-team/propel/button";
+import { PlusIcon, CheckIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IUser, IWorkspace } from "@karma-team/types";
 // ui
-import { Input, Spinner } from "@pi-dash/ui";
+import { Input, Spinner } from "@karma-team/ui";
 // services
 import { WorkspaceService } from "@/services/workspace.service";
 // components
@@ -340,7 +340,7 @@ export function InviteMembers(props: Props) {
           <div className="mx-auto w-4/5 space-y-1 py-4 text-center">
             <h3 className="text-24 font-bold text-primary">Invite your teammates</h3>
             <p className="font-medium text-placeholder">
-              Work in pi dash happens best with your team. Invite them now to use Pi Dash to its potential.
+              Work in karma-team happens best with your team. Invite them now to use karma-team to its potential.
             </p>
           </div>
           <form

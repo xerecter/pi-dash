@@ -6,10 +6,10 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import { DueDatePropertyIcon } from "@pi-dash/propel/icons";
+import { DueDatePropertyIcon } from "@karma-team/propel/icons";
 // types
-import type { TIssue } from "@pi-dash/types";
-import { cn, getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@pi-dash/utils";
+import type { TIssue } from "@karma-team/types";
+import { cn, getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@karma-team/utils";
 // components
 import { DateDropdown } from "@/components/dropdowns/date";
 // helpers

@@ -7,7 +7,7 @@
 import { clsx } from "clsx";
 import type { ClassValue } from "clsx";
 import { extendTailwindMerge } from "tailwind-merge";
-import type { CompleteOrEmpty } from "@pi-dash/types";
+import type { CompleteOrEmpty } from "@karma-team/types";
 
 // Support email can be configured by the application
 export const getSupportEmail = (defaultEmail: string = ""): string => defaultEmail;

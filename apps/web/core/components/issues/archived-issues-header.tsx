@@ -6,12 +6,12 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { EIssueFilterType, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { EHeaderVariant, Header } from "@pi-dash/ui";
+// karma-team imports
+import { EIssueFilterType, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { EHeaderVariant, Header } from "@karma-team/ui";
 // components
 import { ArchiveTabsList } from "@/components/archives";
 import { DisplayFiltersSelection, FiltersDropdown } from "@/components/issues/issue-layouts/filters";

@@ -25,7 +25,7 @@ use super::super::app::AppData;
 use super::super::event::AppEvent;
 use super::super::input::keymap::Context;
 use super::super::view::focus::{
-    border_style, dived_marker, is_focused, is_in_path, FocusNode, FocusPath,
+    FocusNode, FocusPath, border_style, dived_marker, is_focused, is_in_path,
 };
 use super::super::view::tab::{Tab, TabCtx, TabKind};
 use super::super::view::{CardId, KeyHandled};
@@ -66,7 +66,9 @@ impl RegisterForm {
     pub fn new(default_host: String) -> Self {
         Self {
             cloud_url: TextArea::with_text("http://localhost"),
-            token: TextArea::new().masked(true).placeholder("paste enrollment token"),
+            token: TextArea::new()
+                .masked(true)
+                .placeholder("paste enrollment token"),
             host_label: TextArea::with_text(default_host),
             busy: false,
             error: None,
@@ -245,7 +247,8 @@ impl Tab for GeneralTab {
             .split(area);
         service_card(data, is_focused(focus, CARD_SERVICE)).render(chunks[0], buf);
         connection_card(data, is_focused(focus, CARD_CONNECTION)).render(chunks[1], buf);
-        self.daemon_settings_card(data, focus).render(chunks[2], buf);
+        self.daemon_settings_card(data, focus)
+            .render(chunks[2], buf);
         hotkeys_card(data, is_focused(focus, CARD_HOTKEYS)).render(chunks[3], buf);
     }
 
@@ -264,9 +267,7 @@ impl Tab for GeneralTab {
         // typing to the corresponding TextArea. Submit Enter routes
         // SubmitRegister; Esc clears the form error.
         if let Some(reg) = self.register.as_mut()
-            && let Some(reg_focus) = focus
-                .current()
-                .and_then(Self::register_focus_for_item)
+            && let Some(reg_focus) = focus.current().and_then(Self::register_focus_for_item)
         {
             {
                 if let Some(area) = reg.focused_textarea_mut(reg_focus) {
@@ -275,9 +276,7 @@ impl Tab for GeneralTab {
                         return KeyHandled::Consumed;
                     }
                 }
-                if key.code == KeyCode::Char('c')
-                    && key.modifiers.contains(KeyModifiers::CONTROL)
-                {
+                if key.code == KeyCode::Char('c') && key.modifiers.contains(KeyModifiers::CONTROL) {
                     return KeyHandled::NotConsumed;
                 }
                 return match (key.code, reg_focus) {
@@ -430,12 +429,7 @@ impl GeneralTab {
         let Some(cfg) = ctx.data.config_working.as_mut() else {
             return;
         };
-        match fields::set_text_value(
-            cfg,
-            fields::FieldId::LogRetentionDays,
-            &text,
-            runner_idx,
-        ) {
+        match fields::set_text_value(cfg, fields::FieldId::LogRetentionDays, &text, runner_idx) {
             Ok(()) => {
                 ctx.data.config_edit_error = None;
             }
@@ -473,8 +467,10 @@ impl GeneralTab {
                     .fg(Color::Yellow)
                     .add_modifier(Modifier::BOLD),
             )),
-            Line::from("Recommended setup: run `pidash auth login --url <URL>` outside the TUI,"),
-            Line::from("then run `pidash runner add --project <PROJECT>`."),
+            Line::from(
+                "Recommended setup: run `karma-team auth login --url <URL>` outside the TUI,",
+            ),
+            Line::from("then run `karma-team runner add --project <PROJECT>`."),
             Line::from("Use this legacy token form only for compatibility/revive flows."),
             Line::raw(""),
         ];
@@ -501,7 +497,7 @@ impl GeneralTab {
             Style::default().add_modifier(Modifier::DIM),
         )));
         lines.push(Line::from(Span::styled(
-            "Enrollment-token setup is deprecated; new runners should use `pidash runner add`.",
+            "Enrollment-token setup is deprecated; new runners should use `karma-team runner add`.",
             Style::default().add_modifier(Modifier::DIM),
         )));
         if let Some(e) = &reg.error {
@@ -560,7 +556,10 @@ impl GeneralTab {
             Style::default().fg(Color::Gray)
         };
         let retention_value = if editing {
-            format!("{}▊", self.edit_buffer.as_ref().map(|b| b.text()).unwrap_or(""))
+            format!(
+                "{}▊",
+                self.edit_buffer.as_ref().map(|b| b.text()).unwrap_or("")
+            )
         } else {
             cfg.daemon.log_retention_days.to_string()
         };
@@ -584,7 +583,10 @@ impl GeneralTab {
             ),
             Span::styled(cfg.daemon.log_level.clone(), log_level_style),
             if log_level_focused {
-                Span::styled("   [Enter cycles]".to_string(), Style::default().add_modifier(Modifier::DIM))
+                Span::styled(
+                    "   [Enter cycles]".to_string(),
+                    Style::default().add_modifier(Modifier::DIM),
+                )
             } else {
                 Span::raw("")
             },
@@ -596,7 +598,10 @@ impl GeneralTab {
             ),
             Span::styled(retention_value, retention_style),
             if log_retention_focused && !editing {
-                Span::styled("   [Enter edits]".to_string(), Style::default().add_modifier(Modifier::DIM))
+                Span::styled(
+                    "   [Enter edits]".to_string(),
+                    Style::default().add_modifier(Modifier::DIM),
+                )
             } else {
                 Span::raw("")
             },
@@ -766,13 +771,11 @@ fn update_advisory_line(adv: &crate::ipc::protocol::UpdateAdvisory) -> Option<Li
         } else if adv.auto_update_enabled {
             format!("⛔ Update required: cloud floor v{min}; swap pending")
         } else {
-            format!("⛔ Update required: cloud floor v{min} — run `pidash update --restart`")
+            format!("⛔ Update required: cloud floor v{min} — run `karma-team update --restart`")
         };
         return Some(Line::from(Span::styled(
             msg,
-            Style::default()
-                .fg(Color::Red)
-                .add_modifier(Modifier::BOLD),
+            Style::default().fg(Color::Red).add_modifier(Modifier::BOLD),
         )));
     }
     if let Some(latest) = adv.latest_announced.as_deref()
@@ -784,7 +787,7 @@ fn update_advisory_line(adv: &crate::ipc::protocol::UpdateAdvisory) -> Option<Li
         } else if adv.auto_update_enabled {
             format!("⚠ Update v{latest} pending swap (running v{running})")
         } else {
-            format!("⚠ Update v{latest} available — run `pidash update --restart`")
+            format!("⚠ Update v{latest} available — run `karma-team update --restart`")
         };
         return Some(Line::from(Span::styled(
             msg,
@@ -834,7 +837,11 @@ fn form_line(label: &str, value: &str, focused: bool) -> Line<'static> {
         Span::styled(
             format!(" {marker} "),
             Style::default()
-                .fg(if focused { Color::Cyan } else { Color::DarkGray })
+                .fg(if focused {
+                    Color::Cyan
+                } else {
+                    Color::DarkGray
+                })
                 .add_modifier(Modifier::BOLD),
         ),
         Span::raw(format!("{label} ")),
@@ -854,7 +861,10 @@ fn submit_line(focused: bool, busy: bool) -> Line<'static> {
             .fg(Color::Green)
             .add_modifier(Modifier::BOLD)
     };
-    Line::from(vec![Span::raw("   "), Span::styled(label.to_string(), style)])
+    Line::from(vec![
+        Span::raw("   "),
+        Span::styled(label.to_string(), style),
+    ])
 }
 
 fn mask_token(raw: &str) -> String {
@@ -875,7 +885,13 @@ fn default_hostname() -> String {
 pub async fn submit_register(
     paths: &crate::util::paths::Paths,
     snap: RegisterFormSnapshot,
-) -> Result<(crate::config::schema::Config, crate::service::reload::ReloadOutcome), String> {
+) -> Result<
+    (
+        crate::config::schema::Config,
+        crate::service::reload::ReloadOutcome,
+    ),
+    String,
+> {
     let cloud_url = snap.cloud_url.trim().to_string();
     let token = snap.token.trim().to_string();
     let host_label = snap.host_label.trim().to_string();
@@ -937,7 +953,8 @@ pub async fn submit_register(
         runners: vec![new_runner_block],
         cli: None,
     };
-    crate::config::file::write_config(paths, &cfg).map_err(|e| format!("writing config.toml: {e:#}"))?;
+    crate::config::file::write_config(paths, &cfg)
+        .map_err(|e| format!("writing config.toml: {e:#}"))?;
     let creds = crate::config::schema::Credentials {
         connection_id: resp.runner_id,
         connection_secret: String::new(),

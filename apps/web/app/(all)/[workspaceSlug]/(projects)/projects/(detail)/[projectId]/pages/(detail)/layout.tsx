@@ -9,8 +9,8 @@ import { Outlet } from "react-router";
 import useSWR from "swr";
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
-// pi dash web hooks
-import { EPageStoreType, usePageStore } from "@/pi-dash-web/hooks/store";
+// karma-team web hooks
+import { EPageStoreType, usePageStore } from "@/karma-team-web/hooks/store";
 // local components
 import type { Route } from "./+types/layout";
 import { PageDetailsHeader } from "./header";

@@ -5,7 +5,7 @@
  */
 
 import { makeObservable } from "mobx";
-import type { TIssueServiceType } from "@pi-dash/types";
+import type { TIssueServiceType } from "@karma-team/types";
 import type { IIssueDetail as IIssueDetailCore } from "@/store/issue/issue-details/root.store";
 import { IssueDetail as IssueDetailCore } from "@/store/issue/issue-details/root.store";
 import type { IIssueRootStore } from "@/store/issue/root.store";

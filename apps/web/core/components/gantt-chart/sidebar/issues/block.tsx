@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import type { IGanttBlock } from "@pi-dash/types";
-import { Row } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type { IGanttBlock } from "@karma-team/types";
+import { Row } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { MultipleSelectEntityAction } from "@/components/core/multiple-select";
 import { IssueGanttSidebarBlock } from "@/components/issues/issue-layouts/gantt/blocks";

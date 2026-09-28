@@ -7,8 +7,8 @@
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { cn } from "@karma-team/utils";
 
 interface IContentOverflowWrapper {
   children: ReactNode;

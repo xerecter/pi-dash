@@ -6,11 +6,11 @@ use tokio::process::Command;
 use super::BootStartOutcome;
 use crate::util::paths::Paths;
 
-const UNIT_NAME: &str = "pidash.service";
+const UNIT_NAME: &str = "karma-team.service";
 
 /// Write the unit file and reload the systemd user manager. Does NOT enable
-/// or start the unit — that's a separate step so `pidash install` can gate
-/// it on `pidash configure` completing first.
+/// or start the unit — that's a separate step so `karma-team install` can gate
+/// it on `karma-team configure` completing first.
 pub async fn write_unit(paths: &Paths) -> Result<()> {
     let unit_path = unit_path()?;
     if let Some(parent) = unit_path.parent() {
@@ -32,34 +32,29 @@ pub async fn write_unit(paths: &Paths) -> Result<()> {
 /// Render the user-unit body. Deliberately does NOT set `XDG_RUNTIME_DIR`:
 /// systemd's user manager already exports it as `/run/user/$UID`, and the
 /// daemon + CLI client both derive the socket path from that via
-/// `ProjectDirs`. Overriding it here once caused a double `pidash/` path
+/// `ProjectDirs`. Overriding it here once caused a double `karma-team/` path
 /// component and left the client unable to reach the daemon.
 ///
 /// `path_env`, when `Some`, is rendered as an `Environment=PATH=...` line
 /// so the daemon (and every subprocess it forks) inherits the operator's
 /// interactive PATH instead of `systemd --user`'s minimal default. See
 /// `service::capture_install_time_path` for the full rationale.
-fn render_unit(
-    exe: &str,
-    config_dir: &str,
-    data_dir: &str,
-    path_env: Option<&str>,
-) -> String {
+fn render_unit(exe: &str, config_dir: &str, data_dir: &str, path_env: Option<&str>) -> String {
     let path_line = match path_env {
         Some(p) => format!("\nEnvironment=\"PATH={}\"", systemd_double_quoted_escape(p)),
         None => String::new(),
     };
     format!(
         r#"[Unit]
-Description=Pi Dash Runner
+Description=karma-team Runner
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
 ExecStart={exe} __run
-Environment=PIDASH_CONFIG_DIR={config_dir}
-Environment=PIDASH_DATA_DIR={data_dir}{path_line}
+Environment=KARMA_TEAM_CONFIG_DIR={config_dir}
+Environment=KARMA_TEAM_DATA_DIR={data_dir}{path_line}
 Restart=on-failure
 RestartSec=5
 
@@ -115,12 +110,12 @@ pub async fn uninstall(_: &Paths) -> Result<()> {
     Ok(())
 }
 
-/// Self-heal for `pidash restart`: rewrite the unit when it's gone.
+/// Self-heal for `karma-team restart`: rewrite the unit when it's gone.
 ///
 /// `write_unit` already runs `daemon-reload`, so a unit rewritten here is
 /// visible to the manager by the time the caller reaches `enable_and_start`
 /// — which matters, because that step runs `systemctl --user enable`, and
-/// enable is what fails with "Unit file pidash.service does not exist."
+/// enable is what fails with "Unit file karma-team.service does not exist."
 pub(crate) async fn rewrite_unit_if_missing(paths: &Paths) -> Result<bool> {
     super::rewrite_unit_if_absent(&unit_path()?, || write_unit(paths)).await
 }
@@ -168,7 +163,7 @@ pub async fn enable_linger() -> Result<()> {
     Ok(())
 }
 
-/// Best-effort: enable linger so `pidash.service` survives reboot without a
+/// Best-effort: enable linger so `karma-team.service` survives reboot without a
 /// login. Never fails the caller — every branch that can't apply linger maps
 /// to an outcome the caller prints as a hint. Skips the sudo call entirely
 /// when there's no TTY (sudo would hang or fail on non-interactive runs).
@@ -241,12 +236,12 @@ mod tests {
     fn unit_body_does_not_set_xdg_runtime_dir() {
         // Regression: setting XDG_RUNTIME_DIR to the project-scoped runtime
         // dir caused `ProjectDirs::runtime_dir()` inside the daemon to append
-        // `pidash/` a second time, producing a socket path the CLI client
+        // `karma-team/` a second time, producing a socket path the CLI client
         // couldn't reach.
         let body = render_unit(
-            "/home/user/.cargo/bin/pidash",
-            "/home/user/.config/pidash",
-            "/home/user/.local/share/pidash",
+            "/home/user/.cargo/bin/karma-team",
+            "/home/user/.config/karma-team",
+            "/home/user/.local/share/karma-team",
             None,
         );
         assert!(
@@ -257,15 +252,25 @@ mod tests {
 
     #[test]
     fn unit_body_includes_exec_start_and_dirs() {
-        let body = render_unit("/bin/pidash", "/etc/pidash", "/var/lib/pidash", None);
-        assert!(body.contains("ExecStart=/bin/pidash __run"));
-        assert!(body.contains("Environment=PIDASH_CONFIG_DIR=/etc/pidash"));
-        assert!(body.contains("Environment=PIDASH_DATA_DIR=/var/lib/pidash"));
+        let body = render_unit(
+            "/bin/karma-team",
+            "/etc/karma-team",
+            "/var/lib/karma-team",
+            None,
+        );
+        assert!(body.contains("ExecStart=/bin/karma-team __run"));
+        assert!(body.contains("Environment=KARMA_TEAM_CONFIG_DIR=/etc/karma-team"));
+        assert!(body.contains("Environment=KARMA_TEAM_DATA_DIR=/var/lib/karma-team"));
     }
 
     #[test]
     fn unit_body_omits_path_when_not_captured() {
-        let body = render_unit("/bin/pidash", "/etc/pidash", "/var/lib/pidash", None);
+        let body = render_unit(
+            "/bin/karma-team",
+            "/etc/karma-team",
+            "/var/lib/karma-team",
+            None,
+        );
         assert!(
             !body.contains("Environment=\"PATH=") && !body.contains("Environment=PATH="),
             "unit body must not declare PATH when path_env is None; got:\n{body}"
@@ -275,15 +280,13 @@ mod tests {
     #[test]
     fn unit_body_bakes_in_path_when_provided() {
         let body = render_unit(
-            "/bin/pidash",
-            "/etc/pidash",
-            "/var/lib/pidash",
+            "/bin/karma-team",
+            "/etc/karma-team",
+            "/var/lib/karma-team",
             Some("/home/user/.local/bin:/usr/local/bin:/usr/bin"),
         );
         assert!(
-            body.contains(
-                "Environment=\"PATH=/home/user/.local/bin:/usr/local/bin:/usr/bin\""
-            ),
+            body.contains("Environment=\"PATH=/home/user/.local/bin:/usr/local/bin:/usr/bin\""),
             "unit body must include captured PATH; got:\n{body}"
         );
     }

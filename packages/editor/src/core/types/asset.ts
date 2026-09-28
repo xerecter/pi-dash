@@ -6,8 +6,8 @@
 
 // constants
 import type { CORE_EXTENSIONS } from "@/constants/extension";
-// pi dash editor imports
-import type { TAdditionalEditorAsset } from "@/pi-dash-editor/types/asset";
+// karma-team editor imports
+import type { TAdditionalEditorAsset } from "@/karma-team-editor/types/asset";
 
 export type TEditorImageAsset = {
   href: string;

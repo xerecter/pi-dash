@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import type { EProductSubscriptionEnum, IPaymentProduct, TSubscriptionPrice } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import type { EProductSubscriptionEnum, IPaymentProduct, TSubscriptionPrice } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
 // local imports
 import { DiscountInfo } from "./discount-info";
 
@@ -19,7 +19,7 @@ export type TCheckoutParams = {
 };
 
 type Props = {
-  piDashName: string;
+  karmaTeamName: string;
   planVariant: EProductSubscriptionEnum;
   isLoading?: boolean;
   product: IPaymentProduct | undefined;
@@ -34,7 +34,7 @@ type Props = {
 
 export const PlanCheckoutButton = observer(function PlanCheckoutButton(props: Props) {
   const {
-    piDashName,
+    karmaTeamName,
     planVariant,
     isLoading,
     product,
@@ -88,7 +88,9 @@ export const PlanCheckoutButton = observer(function PlanCheckoutButton(props: Pr
             }}
             disabled={!!upgradeLoaderType}
           >
-            {upgradeLoaderType === planVariant ? "Redirecting to Stripe" : (upgradeCTA ?? `Upgrade to ${piDashName}`)}
+            {upgradeLoaderType === planVariant
+              ? "Redirecting to Stripe"
+              : (upgradeCTA ?? `Upgrade to ${karmaTeamName}`)}
           </Button>
           {isTrialAllowed && !isSelfHosted && (
             <div className="mt-1 h-3">

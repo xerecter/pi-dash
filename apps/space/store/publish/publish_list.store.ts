@@ -6,9 +6,9 @@
 
 import { set } from "lodash-es";
 import { makeObservable, observable, runInAction, action } from "mobx";
-// pi dash imports
-import { SitesProjectPublishService } from "@pi-dash/services";
-import type { TProjectPublishSettings } from "@pi-dash/types";
+// karma-team imports
+import { SitesProjectPublishService } from "@karma-team/services";
+import type { TProjectPublishSettings } from "@karma-team/types";
 // store
 import { PublishStore } from "@/store/publish/publish.store";
 import type { RootStore } from "@/store/root.store";

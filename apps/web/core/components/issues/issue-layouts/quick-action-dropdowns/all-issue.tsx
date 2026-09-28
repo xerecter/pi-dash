@@ -8,17 +8,17 @@ import { useState } from "react";
 import { omit } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { ARCHIVABLE_STATE_GROUPS } from "@pi-dash/constants";
-import type { TIssue } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { ContextMenu, CustomMenu } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { ARCHIVABLE_STATE_GROUPS } from "@karma-team/constants";
+import type { TIssue } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { ContextMenu, CustomMenu } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
-// pi-dash-web components
-import { DuplicateWorkItemModal } from "@/pi-dash-web/components/issues/issue-layouts/quick-action-dropdowns";
+// karma-team-web components
+import { DuplicateWorkItemModal } from "@/karma-team-web/components/issues/issue-layouts/quick-action-dropdowns";
 // helper
 import { ArchiveIssueModal } from "../../archive-issue-modal";
 import { DeleteIssueModal } from "../../delete-issue-modal";

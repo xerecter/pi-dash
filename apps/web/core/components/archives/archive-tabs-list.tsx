@@ -8,7 +8,7 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 // types
-import type { IProject } from "@pi-dash/types";
+import type { IProject } from "@karma-team/types";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 

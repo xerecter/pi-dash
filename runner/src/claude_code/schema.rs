@@ -23,7 +23,7 @@ pub enum StreamEvent {
     /// harness back to the model. Useful for transcripts.
     User(UserEvent),
     /// `{"type":"stream_event","event":{...}}` — raw Anthropic streaming
-    /// events such as `content_block_delta`. These are what let Pi Dash show
+    /// events such as `content_block_delta`. These are what let karma-team show
     /// assistant text before the terminal `assistant` / `result` frames.
     Stream(StreamJsonEvent),
     /// `{"type":"result","subtype":"success|error_max_turns|error_during_execution",

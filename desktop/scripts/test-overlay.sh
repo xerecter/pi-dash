@@ -8,16 +8,16 @@
 #
 #   test-overlay.sh [extra-dir ...]
 #
-# PIDASH_DESKTOP_EXTRA_OVERLAYS is honoured exactly as in dev-prep.sh, and
+# KARMA_TEAM_DESKTOP_EXTRA_OVERLAYS is honoured exactly as in dev-prep.sh, and
 # each extra-dir is applied last — an edition passes its own test files that
-# way. Shares desktop/.dev-tree/ (or PIDASH_DESKTOP_DEV_TREE) and its
+# way. Shares desktop/.dev-tree/ (or KARMA_TEAM_DESKTOP_DEV_TREE) and its
 # node_modules with dev-prep.sh.
 
 set -euo pipefail
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 DESKTOP_DIR="$( dirname "$SCRIPT_DIR" )"
-DEV_TREE="${PIDASH_DESKTOP_DEV_TREE:-$DESKTOP_DIR/.dev-tree}"
+DEV_TREE="${KARMA_TEAM_DESKTOP_DEV_TREE:-$DESKTOP_DIR/.dev-tree}"
 
 bash "$SCRIPT_DIR/merge-web-tree.sh" "$DEV_TREE" "$@"
 

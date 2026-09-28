@@ -5,13 +5,13 @@
  */
 
 import { isEmpty } from "lodash-es";
-// pi dash constants
-import type { EIssueFilterType } from "@pi-dash/constants";
+// karma-team constants
+import type { EIssueFilterType } from "@karma-team/constants";
 import {
   EIssueGroupByToServerOptions,
   EServerGroupByToFilterOptions,
   ENABLE_ISSUE_DEPENDENCIES,
-} from "@pi-dash/constants";
+} from "@karma-team/constants";
 import type {
   EIssuesStoreType,
   IIssueDisplayFilterOptions,
@@ -24,13 +24,13 @@ import type {
   TIssueParams,
   TStaticViewTypes,
   TWorkItemFilterExpression,
-} from "@pi-dash/types";
-import { EIssueLayoutTypes } from "@pi-dash/types";
+} from "@karma-team/types";
+import { EIssueLayoutTypes } from "@karma-team/types";
 // helpers
-import { getComputedDisplayFilters, getComputedDisplayProperties } from "@pi-dash/utils";
+import { getComputedDisplayFilters, getComputedDisplayProperties } from "@karma-team/utils";
 // lib
 import { storage } from "@/lib/local-storage";
-import { getEnabledDisplayFilters } from "@/pi-dash-web/store/issue/helpers/filter-utils";
+import { getEnabledDisplayFilters } from "@/karma-team-web/store/issue/helpers/filter-utils";
 
 interface ILocalStoreIssueFilters {
   key: EIssuesStoreType;

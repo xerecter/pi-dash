@@ -8,14 +8,14 @@ import type { HocuspocusProvider } from "@hocuspocus/provider";
 import type { Editor } from "@tiptap/react";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useRef } from "react";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // constants
 import { DEFAULT_DISPLAY_CONFIG } from "@/constants/config";
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // components
 import type { TCollabValue } from "@/contexts";
-import { LinkContainer } from "@/pi-dash-editor/components/link-container";
+import { LinkContainer } from "@/karma-team-editor/components/link-container";
 // plugins
 import { nodeHighlightPluginKey } from "@/plugins/highlight";
 // types

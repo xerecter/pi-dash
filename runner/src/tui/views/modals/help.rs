@@ -32,7 +32,7 @@ impl Renderable for HelpView {
         let modal = centered_rect(60, 60, area);
         Clear.render(modal, buf);
         let body = Paragraph::new(vec![
-            Line::from("Pi Dash Runner — TUI help"),
+            Line::from("karma-team Runner — TUI help"),
             Line::raw(""),
             Line::from("1–4       jump to view"),
             Line::from("h/l ←/→   prev/next view"),

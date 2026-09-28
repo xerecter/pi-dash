@@ -38,6 +38,6 @@ const OAuthButton = React.forwardRef(function OAuthButton(
   );
 });
 
-OAuthButton.displayName = "pi-dash-ui-oauth-button";
+OAuthButton.displayName = "karma-team-ui-oauth-button";
 
 export { OAuthButton };

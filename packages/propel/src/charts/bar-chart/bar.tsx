@@ -6,8 +6,8 @@
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from "react";
-// pi dash imports
-import type { TBarChartShapeVariant, TBarItem, TChartData } from "@pi-dash/types";
+// karma-team imports
+import type { TBarChartShapeVariant, TBarItem, TChartData } from "@karma-team/types";
 import { cn } from "../../utils/classname";
 
 // Constants

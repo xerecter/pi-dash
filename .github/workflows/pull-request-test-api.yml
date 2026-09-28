@@ -45,13 +45,13 @@ jobs:
       postgres:
         image: postgres:15.7-alpine
         env:
-          POSTGRES_USER: pi_dash
-          POSTGRES_PASSWORD: pi_dash
-          POSTGRES_DB: pi_dash
+          POSTGRES_USER: karma_team
+          POSTGRES_PASSWORD: karma_team
+          POSTGRES_DB: karma_team
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U pi_dash"
+          --health-cmd "pg_isready -U karma_team"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 10
@@ -67,9 +67,9 @@ jobs:
       rabbitmq:
         image: rabbitmq:3.13.6-management-alpine
         env:
-          RABBITMQ_DEFAULT_USER: pi_dash
-          RABBITMQ_DEFAULT_PASS: pi_dash
-          RABBITMQ_DEFAULT_VHOST: pi_dash
+          RABBITMQ_DEFAULT_USER: karma_team
+          RABBITMQ_DEFAULT_PASS: karma_team
+          RABBITMQ_DEFAULT_VHOST: karma_team
         ports:
           - 5672:5672
         options: >-
@@ -78,18 +78,18 @@ jobs:
           --health-timeout 10s
           --health-retries 10
     env:
-      DJANGO_SETTINGS_MODULE: pi_dash.settings.test
-      POSTGRES_USER: pi_dash
-      POSTGRES_PASSWORD: pi_dash
-      POSTGRES_DB: pi_dash
+      DJANGO_SETTINGS_MODULE: karma_team.settings.test
+      POSTGRES_USER: karma_team
+      POSTGRES_PASSWORD: karma_team
+      POSTGRES_DB: karma_team
       POSTGRES_HOST: localhost
       POSTGRES_PORT: "5432"
       REDIS_URL: redis://localhost:6379/
       RABBITMQ_HOST: localhost
       RABBITMQ_PORT: "5672"
-      RABBITMQ_USER: pi_dash
-      RABBITMQ_PASSWORD: pi_dash
-      RABBITMQ_VHOST: pi_dash
+      RABBITMQ_USER: karma_team
+      RABBITMQ_PASSWORD: karma_team
+      RABBITMQ_VHOST: karma_team
     steps:
       - uses: actions/checkout@v6
 

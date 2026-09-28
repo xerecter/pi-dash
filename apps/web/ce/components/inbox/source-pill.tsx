@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { EInboxIssueSource } from "@pi-dash/types";
+import type { EInboxIssueSource } from "@karma-team/types";
 
 export type TInboxSourcePill = {
   source: EInboxIssueSource;

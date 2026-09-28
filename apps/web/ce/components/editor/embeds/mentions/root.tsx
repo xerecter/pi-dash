@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TCallbackMentionComponentProps } from "@pi-dash/editor";
+// karma-team imports
+import type { TCallbackMentionComponentProps } from "@karma-team/editor";
 
 export type TEditorMentionComponentProps = TCallbackMentionComponentProps;
 

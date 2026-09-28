@@ -6,7 +6,7 @@
 
 import React from "react";
 // ui
-import { Loader } from "@pi-dash/ui";
+import { Loader } from "@karma-team/ui";
 import { InboxSidebarLoader } from "./inbox-sidebar-loader";
 
 export function InboxLayoutLoader() {

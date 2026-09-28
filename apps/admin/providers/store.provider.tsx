@@ -5,7 +5,7 @@
  */
 
 import { createContext } from "react";
-// pi dash admin store
+// karma-team admin store
 import { RootStore } from "../store/root.store";
 
 let rootStore = new RootStore();

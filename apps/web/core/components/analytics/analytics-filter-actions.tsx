@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-// pi dash web components
+// karma-team web components
 import { observer } from "mobx-react";
 // hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";

@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useMemo } from "react";
-import { useLocalStorage } from "@pi-dash/hooks";
+import { useLocalStorage } from "@karma-team/hooks";
 
 /**
  * Per-user per-project state for which schedulers' occurrences are visible

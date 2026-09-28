@@ -8,13 +8,13 @@ import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-// pi dash package imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Loader } from "@pi-dash/ui";
-// pi dash web hooks
+// karma-team package imports
+import { useTranslation } from "@karma-team/i18n";
+import { Loader } from "@karma-team/ui";
+// karma-team web hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";
 import { useProject } from "@/hooks/store/use-project";
-// pi dash web components
+// karma-team web components
 import AnalyticsSectionWrapper from "../analytics-section-wrapper";
 import ActiveProjectItem from "./active-project-item";
 

@@ -9,12 +9,12 @@ import type { PageProps } from "@react-pdf/renderer";
 import { pdf } from "@react-pdf/renderer";
 import { Controller, useForm } from "react-hook-form";
 import { useParams } from "react-router";
-// pi dash editor
-import type { EditorRefApi } from "@pi-dash/editor";
-// pi dash ui
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { CustomSelect, EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+// karma-team editor
+import type { EditorRefApi } from "@karma-team/editor";
+// karma-team ui
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { CustomSelect, EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // components
 import { PDFDocument } from "@/components/editor/pdf";
 // hooks

@@ -4,11 +4,11 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Tabs } from "@pi-dash/propel/tabs";
-// pi dash web components
-import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/pi-dash-web/components/pages/navigation-pane";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Tabs } from "@karma-team/propel/tabs";
+// karma-team web components
+import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/karma-team-web/components/pages/navigation-pane";
 
 export function PageNavigationPaneTabsList() {
   // translation

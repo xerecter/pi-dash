@@ -8,14 +8,14 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { CircleUserRound } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setPromiseToast, setToast } from "@pi-dash/propel/toast";
-import { EFileAssetType } from "@pi-dash/types";
-import type { IUser, TUserProfile } from "@pi-dash/types";
-import { Input } from "@pi-dash/ui";
-import { getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setPromiseToast, setToast } from "@karma-team/propel/toast";
+import { EFileAssetType } from "@karma-team/types";
+import type { IUser, TUserProfile } from "@karma-team/types";
+import { Input } from "@karma-team/ui";
+import { getFileURL } from "@karma-team/utils";
 // components
 import { DeactivateAccountModal } from "@/components/account/deactivate-account-modal";
 import { ImagePickerPopover } from "@/components/core/image-picker-popover";
@@ -29,7 +29,7 @@ import { handleCoverImageChange } from "@/helpers/cover-image.helper";
 import { useInstance } from "@/hooks/store/use-instance";
 import { useUser, useUserProfile } from "@/hooks/store/user";
 // utils
-import { validatePersonName, validateDisplayName } from "@pi-dash/utils";
+import { validatePersonName, validateDisplayName } from "@karma-team/utils";
 
 type TUserProfileForm = {
   avatar_url: string;
@@ -410,7 +410,9 @@ export const GeneralProfileSettingsForm = observer(function GeneralProfileSettin
         <div className="mt-10">
           <SettingsBoxedControlItem
             title={t("Deactivate account")}
-            description={t("When deactivating an account, all of the data and resources within that account will be permanently removed and cannot be recovered.")}
+            description={t(
+              "When deactivating an account, all of the data and resources within that account will be permanently removed and cannot be recovered."
+            )}
             control={
               <Button variant="error-outline" onClick={() => setDeactivateAccountModal(true)}>
                 {t("Deactivate account")}

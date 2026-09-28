@@ -8,12 +8,12 @@ import { useRef } from "react";
 import { observer } from "mobx-react";
 import { Link } from "react-router";
 import { useParams, useSearchParams } from "next/navigation";
-// pi dash types
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IIssueDisplayProperties } from "@pi-dash/types";
-// pi dash ui
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team types
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IIssueDisplayProperties } from "@karma-team/types";
+// karma-team ui
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // helpers
 import { queryParamGenerator } from "@/helpers/query-param-generator";
 // hooks

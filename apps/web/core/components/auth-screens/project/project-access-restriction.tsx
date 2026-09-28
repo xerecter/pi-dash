@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
 
 type TProps = {
   isWorkspaceAdmin: boolean;
@@ -18,7 +18,7 @@ type TProps = {
 
 export const ProjectAccessRestriction = observer(function ProjectAccessRestriction(props: TProps) {
   const { isWorkspaceAdmin, handleJoinProject, isJoinButtonDisabled, errorStatusCode } = props;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
 
   // Show join project screen if:
@@ -34,9 +34,7 @@ export const ProjectAccessRestriction = observer(function ProjectAccessRestricti
           assetClassName="size-40"
           actions={[
             {
-              label: isJoinButtonDisabled
-                ? t("Joining project")
-                : t("Join project"),
+              label: isJoinButtonDisabled ? t("Joining project") : t("Join project"),
               onClick: handleJoinProject,
               disabled: isJoinButtonDisabled,
             },

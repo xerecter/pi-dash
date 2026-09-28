@@ -6,9 +6,9 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { ModuleStatusIcon } from "@pi-dash/propel/icons";
-import type { IModule } from "@pi-dash/types";
+// karma-team imports
+import { ModuleStatusIcon } from "@karma-team/propel/icons";
+import type { IModule } from "@karma-team/types";
 // local imports
 import { PowerKMenuBuilder } from "./builder";
 

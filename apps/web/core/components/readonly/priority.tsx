@@ -5,12 +5,12 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { ISSUE_PRIORITIES } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { PriorityIcon } from "@pi-dash/propel/icons";
-import type { TIssuePriorities } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { ISSUE_PRIORITIES } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { PriorityIcon } from "@karma-team/propel/icons";
+import type { TIssuePriorities } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 
 export type TReadonlyPriorityProps = {
   className?: string;

@@ -5,16 +5,16 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { EEstimateSystem } from "@pi-dash/constants";
-import { convertMinutesToHoursMinutesString } from "@pi-dash/utils";
+// karma-team imports
+import { EEstimateSystem } from "@karma-team/constants";
+import { convertMinutesToHoursMinutesString } from "@karma-team/utils";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useEstimate } from "@/hooks/store/estimates/use-estimate";
-// pi dash web imports
-import { EstimateListItemButtons } from "@/pi-dash-web/components/estimates";
+// karma-team web imports
+import { EstimateListItemButtons } from "@/karma-team-web/components/estimates";
 
 type TEstimateListItem = {
   estimateId: string;

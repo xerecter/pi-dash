@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TFilterAndGroupNode, TFilterExpression, TFilterGroupNode, TFilterProperty } from "@pi-dash/types";
+// karma-team imports
+import type { TFilterAndGroupNode, TFilterExpression, TFilterGroupNode, TFilterProperty } from "@karma-team/types";
 // local imports
 import { getAndGroupChildren, isAndGroupNode } from "./core";
 

@@ -5,8 +5,8 @@
  */
 
 // types
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { IInstanceInfo } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+import type { IInstanceInfo } from "@karma-team/types";
 // helpers
 // services
 import { APIService } from "@/services/api.service";

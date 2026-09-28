@@ -6,13 +6,13 @@
 
 import { useParams } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
-// pi dash imports
-import { allTimeIn30MinutesInterval12HoursFormat } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { CloseIcon } from "@pi-dash/propel/icons";
-import { CustomSelect, EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+// karma-team imports
+import { allTimeIn30MinutesInterval12HoursFormat } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { CloseIcon } from "@karma-team/propel/icons";
+import { CustomSelect, EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // components
-import { getDate, cn } from "@pi-dash/utils";
+import { getDate, cn } from "@karma-team/utils";
 import { DateDropdown } from "@/components/dropdowns/date";
 
 type TNotificationSnoozeModal = {

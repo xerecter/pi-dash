@@ -6,7 +6,7 @@
 
 import { Sparkles } from "lucide-react";
 import { Link } from "react-router";
-import { Button } from "@pi-dash/ui";
+import { Button } from "@karma-team/ui";
 
 export function AssistantSetupCard() {
   return (

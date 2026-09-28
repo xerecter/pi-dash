@@ -5,8 +5,8 @@
  */
 
 import React from "react";
-// pi dash imports
-import type { IWorkspace } from "@pi-dash/types";
+// karma-team imports
+import type { IWorkspace } from "@karma-team/types";
 // components
 import { WorkspaceLogo } from "@/components/workspace/logo";
 // local imports

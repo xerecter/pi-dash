@@ -12,11 +12,11 @@ import {
   DueDatePropertyIcon,
   LabelPropertyIcon,
   DuplicatePropertyIcon,
-} from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TInboxDuplicateIssueDetails, TIssue } from "@pi-dash/types";
-import { ControlLink } from "@pi-dash/ui";
-import { getDate, renderFormattedPayloadDate, generateWorkItemLink } from "@pi-dash/utils";
+} from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TInboxDuplicateIssueDetails, TIssue } from "@karma-team/types";
+import { ControlLink } from "@karma-team/ui";
+import { getDate, renderFormattedPayloadDate, generateWorkItemLink } from "@karma-team/utils";
 // components
 import { DateDropdown } from "@/components/dropdowns/date";
 import { IntakeStateDropdown } from "@/components/dropdowns/intake-state/dropdown";

@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { Loader } from "@pi-dash/ui";
+// karma-team imports
+import { Loader } from "@karma-team/ui";
 
 export function IssueActivityLoader() {
   return (

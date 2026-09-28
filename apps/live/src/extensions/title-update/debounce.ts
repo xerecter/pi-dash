@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { logger } from "@pi-dash/logger";
+import { logger } from "@karma-team/logger";
 
 /**
  * DebounceState - Tracks the state of a debounced function

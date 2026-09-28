@@ -8,18 +8,18 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import useSWR, { mutate as swrMutate } from "swr";
 import { Info } from "lucide-react";
-import { NETWORK_CHOICES } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { LockIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { EFileAssetType } from "@pi-dash/types";
-import type { IProject, IWorkspace } from "@pi-dash/types";
-import { CustomSelect, Input, TextArea } from "@pi-dash/ui";
-import { renderFormattedDate } from "@pi-dash/utils";
+import { NETWORK_CHOICES } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@karma-team/propel/emoji-icon-picker";
+import { LockIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { EFileAssetType } from "@karma-team/types";
+import type { IProject, IWorkspace } from "@karma-team/types";
+import { CustomSelect, Input, TextArea } from "@karma-team/ui";
+import { renderFormattedDate } from "@karma-team/utils";
 import { CoverImage } from "@/components/common/cover-image";
 import { ImagePickerPopover } from "@/components/core/image-picker-popover";
 import { TimezoneSelect } from "@/components/global";
@@ -464,7 +464,7 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
           <div className="flex items-start justify-between gap-4">
             <p className="text-11 text-tertiary">
               {t(
-                "Choose where this project's new runs execute. Pi Dash Agent requires the user's desktop app to remain open. Work items can override this default."
+                "Choose where this project's new runs execute. karma-team Agent requires the user's desktop app to remain open. Work items can override this default."
               )}
             </p>
             <Controller
@@ -480,7 +480,7 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
                 >
                   <option value="local_runner">{t("Local runner")}</option>
                   <option value="cloud_agent" disabled={cloudExecutorOption?.available === false}>
-                    {t("Pi Dash Cloud Agent")}
+                    {t("karma-team Cloud Agent")}
                   </option>
                   <option
                     value="managed_runner"
@@ -490,7 +490,7 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
                       )
                     }
                   >
-                    {t("Pi Dash Agent (desktop)")}
+                    {t("karma-team Agent (desktop)")}
                   </option>
                 </select>
               )}

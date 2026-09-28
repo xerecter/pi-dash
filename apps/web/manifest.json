@@ -4,9 +4,9 @@
   "display": "standalone",
   "scope": "/",
   "start_url": "/",
-  "name": "Pi Dash | Open-source AI agent orchestration platform",
-  "short_name": "Pi Dash",
-  "description": "Pi Dash is an open-source AI agent orchestration platform built for As Coding — define what needs to be built and let coding agents handle the implementation in the background.",
+  "name": "karma-team | Open-source AI agent orchestration platform",
+  "short_name": "karma-team",
+  "description": "karma-team is an open-source AI agent orchestration platform built for As Coding — define what needs to be built and let coding agents handle the implementation in the background.",
   "icons": [
     {
       "src": "/icon-192x192.png",

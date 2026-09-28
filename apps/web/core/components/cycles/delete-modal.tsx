@@ -8,12 +8,12 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams, useSearchParams } from "next/navigation";
 // types
-import { PROJECT_ERROR_MESSAGES } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { ICycle } from "@pi-dash/types";
+import { PROJECT_ERROR_MESSAGES } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { ICycle } from "@karma-team/types";
 // ui
-import { AlertModalCore } from "@pi-dash/ui";
+import { AlertModalCore } from "@karma-team/ui";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useAppRouter } from "@/hooks/use-app-router";

@@ -16,13 +16,13 @@ const { apiBaseUrl, listPods, listProjects, setToast, listDevMachines } = vi.hoi
   listDevMachines: vi.fn(),
 }));
 
-vi.mock("@pi-dash/constants", () => ({
+vi.mock("@karma-team/constants", () => ({
   get API_BASE_URL() {
     return apiBaseUrl.value;
   },
 }));
 
-vi.mock("@pi-dash/services", () => ({
+vi.mock("@karma-team/services", () => ({
   PodService: class {
     list = listPods;
   },
@@ -39,18 +39,18 @@ vi.mock("@/services/project", () => ({
   },
 }));
 
-vi.mock("@pi-dash/i18n", () => ({
+vi.mock("@karma-team/i18n", () => ({
   useTranslation: () => ({
     t: (key: string, vars?: Record<string, unknown>) => (vars ? `${key}:${JSON.stringify(vars)}` : key),
   }),
 }));
 
-vi.mock("@pi-dash/propel/toast", () => ({
+vi.mock("@karma-team/propel/toast", () => ({
   TOAST_TYPE: { ERROR: "ERROR", SUCCESS: "SUCCESS" },
   setToast,
 }));
 
-vi.mock("@pi-dash/propel/button", () => ({
+vi.mock("@karma-team/propel/button", () => ({
   Button: ({
     children,
     loading: _loading,
@@ -65,7 +65,7 @@ vi.mock("@pi-dash/propel/button", () => ({
   } & React.ButtonHTMLAttributes<HTMLButtonElement>) => <button {...props}>{children}</button>,
 }));
 
-vi.mock("@pi-dash/ui", async () => {
+vi.mock("@karma-team/ui", async () => {
   const { forwardRef: fwd } = await import("react");
   type SelectProps = {
     value: string;
@@ -160,7 +160,7 @@ describe("AddRunnerModal — Muse Code agent", () => {
     const command = await screen.findByText(
       (_content: string, node: Element | null) => node?.tagName.toLowerCase() === "pre"
     );
-    expect(command.textContent).toContain("pidash runner add");
+    expect(command.textContent).toContain("karma-team runner add");
     expect(command.textContent).toContain("--agent muse-code");
     expect(command.textContent).toContain("--name muse-local");
   });

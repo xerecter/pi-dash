@@ -5,8 +5,8 @@
  */
 
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import type { TWebhookEventTypes } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import type { TWebhookEventTypes } from "@karma-team/types";
 
 type Props = {
   value: string;

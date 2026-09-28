@@ -8,14 +8,14 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 // ui
 import { useParams } from "next/navigation";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { AlertModalCore } from "@pi-dash/ui";
-import { getPageName } from "@pi-dash/utils";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { AlertModalCore } from "@karma-team/ui";
+import { getPageName } from "@karma-team/utils";
 // constants
-// pi dash web hooks
+// karma-team web hooks
 import { useAppRouter } from "@/hooks/use-app-router";
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
-import { usePageStore } from "@/pi-dash-web/hooks/store";
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
+import { usePageStore } from "@/karma-team-web/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

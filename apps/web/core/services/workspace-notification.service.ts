@@ -6,13 +6,13 @@
 
 /* eslint-disable no-useless-catch */
 
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 import type {
   TNotificationPaginatedInfo,
   TNotificationPaginatedInfoQueryParams,
   TNotification,
   TUnreadNotificationsCount,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // helpers
 // services
 import { APIService } from "@/services/api.service";

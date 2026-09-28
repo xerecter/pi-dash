@@ -9,8 +9,8 @@ import { Command } from "cmdk";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // hooks
-import { CloseIcon, SearchIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+import { CloseIcon, SearchIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 // power-k
 import type { TPowerKCommandConfig, TPowerKContext } from "@/components/power-k/core/types";
 import { ProjectsAppPowerKCommandsList } from "@/components/power-k/ui/modal/commands-list";

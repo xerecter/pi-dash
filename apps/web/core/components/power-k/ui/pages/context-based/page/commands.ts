@@ -7,16 +7,16 @@
 import { useCallback } from "react";
 import { useParams } from "next/navigation";
 import { ArchiveIcon, ArchiveRestoreIcon, LockKeyhole, LockKeyholeOpen, Star, StarOff } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-// pi dash imports
-import { LinkIcon, GlobeIcon, LockIcon } from "@pi-dash/propel/icons";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { EPageAccess } from "@pi-dash/types";
-import { copyTextToClipboard } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+// karma-team imports
+import { LinkIcon, GlobeIcon, LockIcon } from "@karma-team/propel/icons";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { EPageAccess } from "@karma-team/types";
+import { copyTextToClipboard } from "@karma-team/utils";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
-// pi dash web imports
-import { EPageStoreType, usePageStore } from "@/pi-dash-web/hooks/store";
+// karma-team web imports
+import { EPageStoreType, usePageStore } from "@/karma-team-web/hooks/store";
 
 export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
   // navigation
@@ -103,10 +103,7 @@ export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
     },
     {
       id: "toggle_page_access",
-      i18n_title:
-        access === EPageAccess.PUBLIC
-          ? "Make private"
-          : "Make public",
+      i18n_title: access === EPageAccess.PUBLIC ? "Make private" : "Make public",
       icon: access === EPageAccess.PUBLIC ? LockIcon : GlobeIcon,
       group: "contextual",
       contextType: "page",
@@ -150,9 +147,7 @@ export const usePowerKPageContextBasedActions = (): TPowerKCommandConfig[] => {
     },
     {
       id: "toggle_page_favorite",
-      i18n_title: isFavorite
-        ? "Remove from favorites"
-        : "Add to favorites",
+      i18n_title: isFavorite ? "Remove from favorites" : "Add to favorites",
       icon: isFavorite ? StarOff : Star,
       group: "contextual",
       contextType: "page",

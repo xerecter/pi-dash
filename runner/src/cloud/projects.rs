@@ -38,7 +38,7 @@ pub struct PodInfo {
 /// the connection-bearer auth path.
 pub async fn list_projects(paths: &Paths) -> Result<Vec<ProjectInfo>> {
     let creds = file::load_credentials(paths).context(
-        "no legacy credentials.toml; use `pidash runner add --project <PROJECT>` for runner setup",
+        "no legacy credentials.toml; use `karma-team runner add --project <PROJECT>` for runner setup",
     )?;
     let cfg = file::load_config(paths)?;
     let url = format!(
@@ -65,6 +65,6 @@ pub async fn list_projects(paths: &Paths) -> Result<Vec<ProjectInfo>> {
 fn http_client() -> Result<reqwest::Client> {
     Ok(reqwest::Client::builder()
         .timeout(Duration::from_secs(30))
-        .user_agent(format!("pidash/{}", crate::RUNNER_VERSION))
+        .user_agent(format!("karma-team/{}", crate::RUNNER_VERSION))
         .build()?)
 }

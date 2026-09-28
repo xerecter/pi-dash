@@ -7,21 +7,21 @@
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { Button } from "@pi-dash/propel/button";
+import { Button } from "@karma-team/propel/button";
 // assets
-import PiSymbolDark from "@/app/assets/logos/pi-symbol-dark.svg?url";
-import PiSymbolLight from "@/app/assets/logos/pi-symbol-light.svg?url";
+import KarmaTeamSymbolDark from "@/app/assets/logos/karma-team-symbol-dark.svg?url";
+import KarmaTeamSymbolLight from "@/app/assets/logos/karma-team-symbol-light.svg?url";
 
 export const InstanceNotReady = observer(function InstanceNotReady() {
   const { resolvedTheme } = useTheme();
-  const piSymbol = resolvedTheme === "dark" ? PiSymbolDark : PiSymbolLight;
+  const karmaTeamSymbol = resolvedTheme === "dark" ? KarmaTeamSymbolDark : KarmaTeamSymbolLight;
 
   return (
     <div className="relative container mx-auto flex h-full w-full items-center justify-center px-5">
       <div className="relative w-auto max-w-2xl space-y-8 py-10">
         <div className="relative flex flex-col items-center justify-center space-y-4">
-          <h1 className="pb-3 text-24 font-bold">Welcome aboard Pi Dash!</h1>
-          <img src={piSymbol} alt="Pi Dash logo" className="h-32 w-auto" />
+          <h1 className="pb-3 text-24 font-bold">Welcome aboard karma-team!</h1>
+          <img src={karmaTeamSymbol} alt="karma-team logo" className="h-32 w-auto" />
           <p className="text-14 font-medium text-placeholder">Get started by setting up your instance and workspace</p>
         </div>
 

@@ -5,7 +5,7 @@
  */
 
 import { TriangleAlert } from "lucide-react";
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   className?: string;

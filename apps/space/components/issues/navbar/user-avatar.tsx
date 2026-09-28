@@ -11,12 +11,12 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { usePopper } from "react-popper";
 import { LogOut } from "lucide-react";
 import { Popover, Transition } from "@headlessui/react";
-// pi dash imports
-import { API_BASE_URL } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { AuthService } from "@pi-dash/services";
-import { Avatar } from "@pi-dash/ui";
-import { getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { API_BASE_URL } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { AuthService } from "@karma-team/services";
+import { Avatar } from "@karma-team/ui";
+import { getFileURL } from "@karma-team/utils";
 // helpers
 import { queryParamGenerator } from "@/helpers/query-param-generator";
 // hooks

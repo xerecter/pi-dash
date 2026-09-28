@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { AiIcon, CommentFillIcon, PageIcon, StickyNoteIcon, WorkItemsIcon } from "@pi-dash/propel/icons";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
+// karma-team imports
+import { AiIcon, CommentFillIcon, PageIcon, StickyNoteIcon, WorkItemsIcon } from "@karma-team/propel/icons";
+import type { ISvgIcons } from "@karma-team/propel/icons";
 // types
 import type { TTourSteps } from "./root";
 
@@ -53,7 +53,7 @@ export function TourSidebar({ step, setStep }: Props) {
       <h3 className="text-16 font-medium">
         Let{"'"}s get started!
         <br />
-        Get more out of Pi Dash.
+        Get more out of karma-team.
       </h3>
       <div className="mt-8 space-y-5">
         {sidebarOptions.map((option) => (

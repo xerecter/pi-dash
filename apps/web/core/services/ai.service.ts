@@ -5,14 +5,14 @@
  */
 
 // helpers
-import { API_BASE_URL } from "@pi-dash/constants";
-// pi dash web constants
+import { API_BASE_URL } from "@karma-team/constants";
+// karma-team web constants
 import type { AI_EDITOR_TASKS } from "@/constants/ai";
 // services
 import { APIService } from "@/services/api.service";
 // types
 // FIXME:
-// import { IGptResponse } from "@pi-dash/types";
+// import { IGptResponse } from "@karma-team/types";
 // helpers
 
 export type TTaskPayload = {

@@ -7,10 +7,10 @@
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR, { useSWRConfig } from "swr";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Spinner } from "@pi-dash/ui";
-import type { IScheduler, ISchedulerBinding, ISchedulerOccurrence } from "@pi-dash/services";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Spinner } from "@karma-team/ui";
+import type { IScheduler, ISchedulerBinding, ISchedulerOccurrence } from "@karma-team/services";
 import { EditSchedulerBindingModal } from "@/components/project/scheduler-bindings/edit-binding-modal";
 import { useUserPermissions } from "@/hooks/store/user";
 import { CalendarsRail } from "./calendars-rail";
@@ -170,7 +170,9 @@ function EmptyState() {
   return (
     <div className="flex h-full w-full flex-col items-center justify-center gap-2 p-12 text-center">
       <h3 className="text-16 font-semibold text-primary">{t("No schedulers installed")}</h3>
-      <p className="max-w-md text-13 text-secondary">{t("Install a scheduler from the List tab to see its occurrences on the calendar.")}</p>
+      <p className="max-w-md text-13 text-secondary">
+        {t("Install a scheduler from the List tab to see its occurrences on the calendar.")}
+      </p>
     </div>
   );
 }

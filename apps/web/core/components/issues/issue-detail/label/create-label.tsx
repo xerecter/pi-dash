@@ -10,10 +10,10 @@ import { Controller, useForm } from "react-hook-form";
 import { usePopper } from "react-popper";
 import { Loader } from "lucide-react";
 import { Popover } from "@headlessui/react";
-import { PlusIcon, CloseIcon } from "@pi-dash/propel/icons";
-import type { IIssueLabel } from "@pi-dash/types";
+import { PlusIcon, CloseIcon } from "@karma-team/propel/icons";
+import type { IIssueLabel } from "@karma-team/types";
 // hooks
-import { Input } from "@pi-dash/ui";
+import { Input } from "@karma-team/ui";
 // ui
 // types
 import type { TLabelOperations } from "./root";

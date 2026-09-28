@@ -9,24 +9,24 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // icons
 import { ChartNoAxesColumn, PanelRight, SlidersHorizontal } from "lucide-react";
-// pi dash imports
+// karma-team imports
 import {
   EIssueFilterType,
   EUserPermissions,
   EUserPermissionsLevel,
   ISSUE_DISPLAY_FILTERS_BY_PAGE,
   WORK_ITEM_TRACKER_ELEMENTS,
-} from "@pi-dash/constants";
-import { usePlatformOS } from "@pi-dash/hooks";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { CycleIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { ICustomSearchSelectOption, IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@pi-dash/types";
-import { EIssuesStoreType, EIssueLayoutTypes } from "@pi-dash/types";
-import { Breadcrumbs, BreadcrumbNavigationSearchDropdown, Header } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+} from "@karma-team/constants";
+import { usePlatformOS } from "@karma-team/hooks";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { CycleIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { ICustomSearchSelectOption, IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@karma-team/types";
+import { EIssuesStoreType, EIssueLayoutTypes } from "@karma-team/types";
+import { Breadcrumbs, BreadcrumbNavigationSearchDropdown, Header } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { WorkItemsModal } from "@/components/analytics/work-items/modal";
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
@@ -47,8 +47,8 @@ import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
 import useLocalStorage from "@/hooks/use-local-storage";
-// pi dash web imports
-import { CommonProjectBreadcrumbs } from "@/pi-dash-web/components/breadcrumbs/common";
+// karma-team web imports
+import { CommonProjectBreadcrumbs } from "@/karma-team-web/components/breadcrumbs/common";
 
 export const CycleIssuesHeader = observer(function CycleIssuesHeader() {
   // refs

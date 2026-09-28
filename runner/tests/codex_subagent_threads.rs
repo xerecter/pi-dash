@@ -5,8 +5,8 @@
 //! on its own thread, and the runner failed the whole run with
 //! "turn/completed without conclusion" while the main thread kept working.
 
-use pidash::codex::app_server::AppServer;
-use pidash::codex::bridge::{Bridge, BridgeCursor, BridgeEvent, RunPayload};
+use karma_team::codex::app_server::AppServer;
+use karma_team::codex::bridge::{Bridge, BridgeCursor, BridgeEvent, RunPayload};
 use std::path::PathBuf;
 use std::time::Duration;
 use tokio::process::Command;

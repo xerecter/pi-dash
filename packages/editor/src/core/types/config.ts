@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TExtendedFileHandler } from "@/pi-dash-editor/types/config";
+// karma-team imports
+import type { TExtendedFileHandler } from "@/karma-team-editor/types/config";
 
 export type TFileHandler = {
   assetsUploadStatus: Record<string, number>; // blockId => progress percentage

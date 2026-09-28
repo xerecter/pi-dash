@@ -10,14 +10,14 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // icons
 import { Eye, EyeOff, RefreshCw } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { CopyIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IWebhook } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { CopyIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IWebhook } from "@karma-team/types";
 // ui
-import { csvDownload, copyTextToClipboard } from "@pi-dash/utils";
+import { csvDownload, copyTextToClipboard } from "@karma-team/utils";
 // hooks
 import { useWebhook } from "@/hooks/store/use-webhook";
 import { useWorkspace } from "@/hooks/store/use-workspace";
@@ -102,9 +102,7 @@ export const WebhookSecretKey = observer(function WebhookSecretKey(props: Props)
     <>
       {(data || webhookSecretKey) && (
         <div className="space-y-2">
-          {webhookId && (
-            <div className="text-13 font-medium">{t("Secret key")}</div>
-          )}
+          {webhookId && <div className="text-13 font-medium">{t("Secret key")}</div>}
           <div className="text-11 text-placeholder">{t("Generate a token to sign-in to the webhook payload")}</div>
           <div className="flex flex-col gap-4 md:flex-row md:items-center">
             <div className="flex h-8 max-w-lg flex-grow items-center justify-between self-stretch rounded-sm border border-subtle px-2">

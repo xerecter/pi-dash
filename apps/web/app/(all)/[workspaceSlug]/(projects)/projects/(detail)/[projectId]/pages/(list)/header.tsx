@@ -8,21 +8,21 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 // constants
-import { EPageAccess } from "@pi-dash/constants";
-// pi dash types
-import { Button } from "@pi-dash/propel/button";
-import { PageIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TPage } from "@pi-dash/types";
-// pi dash ui
-import { Breadcrumbs, Header } from "@pi-dash/ui";
+import { EPageAccess } from "@karma-team/constants";
+// karma-team types
+import { Button } from "@karma-team/propel/button";
+import { PageIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TPage } from "@karma-team/types";
+// karma-team ui
+import { Breadcrumbs, Header } from "@karma-team/ui";
 // helpers
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
-// pi dash web imports
-import { CommonProjectBreadcrumbs } from "@/pi-dash-web/components/breadcrumbs/common";
-import { EPageStoreType, usePageStore } from "@/pi-dash-web/hooks/store";
+// karma-team web imports
+import { CommonProjectBreadcrumbs } from "@/karma-team-web/components/breadcrumbs/common";
+import { EPageStoreType, usePageStore } from "@/karma-team-web/hooks/store";
 
 export const PagesListHeader = observer(function PagesListHeader() {
   // states

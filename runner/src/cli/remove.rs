@@ -1,6 +1,6 @@
-//! `pidash remove` — the full teardown command.
+//! `karma-team remove` — the full teardown command.
 //!
-//! Inverse of `pidash install` + `pidash configure` in one call. Ordering is
+//! Inverse of `karma-team install` + `karma-team configure` in one call. Ordering is
 //! deliberate: stop + uninstall the service first so the daemon isn't still
 //! talking to the cloud (or holding the IPC socket) when we delete local
 //! state and notify the cloud.
@@ -12,7 +12,7 @@
 //!
 //! Requires `--all` as an explicit confirmation: this command wipes EVERY
 //! runner on the host plus the dev-machine token. To drop a single runner
-//! instead, use `pidash runner remove <name>`.
+//! instead, use `karma-team runner remove <name>`.
 
 use anyhow::{Context, Result, bail};
 use clap::Args as ClapArgs;
@@ -24,7 +24,7 @@ use crate::util::paths::Paths;
 pub struct Args {
     /// REQUIRED confirmation that you want to wipe ALL runners on this
     /// host and the dev-machine token. Without this flag the
-    /// command refuses to do anything. Use `pidash runner remove <name>`
+    /// command refuses to do anything. Use `karma-team runner remove <name>`
     /// to drop a single runner instead.
     #[arg(long)]
     pub all: bool,
@@ -39,7 +39,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     if !args.all {
         // Refuse and explain. List what would be removed so the user
         // sees the blast radius before re-running with --all.
-        eprintln!("pidash remove: refusing to run without --all.");
+        eprintln!("karma-team remove: refusing to run without --all.");
         eprintln!();
         eprintln!("This command wipes EVERY runner on this host AND the dev-machine");
         eprintln!("token. It is not reversible without re-authenticating from scratch.");
@@ -59,8 +59,8 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
             }
         }
         eprintln!();
-        eprintln!("To drop a single runner instead:  pidash runner remove <NAME>");
-        eprintln!("To proceed with the full teardown: pidash remove --all");
+        eprintln!("To drop a single runner instead:  karma-team runner remove <NAME>");
+        eprintln!("To proceed with the full teardown: karma-team remove --all");
         bail!("--all is required");
     }
 
@@ -82,7 +82,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
 
     // Cloud-side cleanup: best-effort delete each runner through the
     // shared dev-machine token, then revoke that token. Do not use the
-    // legacy `pidash connect` self-revoke helper here: shared-token
+    // legacy `karma-team connect` self-revoke helper here: shared-token
     // installs intentionally have no per-runner credentials.toml.
     let mut cloud_cleanup_failed = false;
     let mut cloud_cleanup_skipped = false;

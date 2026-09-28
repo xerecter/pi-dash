@@ -16,8 +16,8 @@ import {
   Settings2,
   Sparkles,
 } from "lucide-react";
-// pi dash imports
-import type { TProfileSettingsTabs } from "@pi-dash/types";
+// karma-team imports
+import type { TProfileSettingsTabs } from "@karma-team/types";
 
 export enum PROFILE_SETTINGS_CATEGORY {
   YOUR_PROFILE = "your profile",

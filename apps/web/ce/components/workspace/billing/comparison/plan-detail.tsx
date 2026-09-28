@@ -5,17 +5,17 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
+// karma-team imports
 import {
   SUBSCRIPTION_REDIRECTION_URLS,
   SUBSCRIPTION_WITH_BILLING_FREQUENCY,
   TALK_TO_SALES_URL,
-} from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { TBillingFrequency } from "@pi-dash/types";
-import { EProductSubscriptionEnum } from "@pi-dash/types";
-import { getSubscriptionName } from "@pi-dash/utils";
+} from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { TBillingFrequency } from "@karma-team/types";
+import { EProductSubscriptionEnum } from "@karma-team/types";
+import { getSubscriptionName } from "@karma-team/utils";
 // components
 import { DiscountInfo } from "@/components/license/modal/card/discount-info";
 import type { TPlanDetail } from "@/constants/plans";
@@ -31,7 +31,7 @@ type TPlanDetailProps = {
 
 export const PlanDetail = observer(function PlanDetail(props: TPlanDetailProps) {
   const { subscriptionType, planDetail, billingFrequency, setBillingFrequency } = props;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // subscription details
   const subscriptionName = getSubscriptionName(subscriptionType);

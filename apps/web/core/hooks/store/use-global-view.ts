@@ -8,7 +8,7 @@ import { useContext } from "react";
 // mobx store
 import { StoreContext } from "@/lib/store-context";
 // types
-import type { IGlobalViewStore } from "@/pi-dash-web/store/global-view.store";
+import type { IGlobalViewStore } from "@/karma-team-web/store/global-view.store";
 
 export const useGlobalView = (): IGlobalViewStore => {
   const context = useContext(StoreContext);

@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { EIconSize } from "@pi-dash/constants";
-import type { TIntakeStateGroups } from "@pi-dash/types";
+import { EIconSize } from "@karma-team/constants";
+import type { TIntakeStateGroups } from "@karma-team/types";
 
 export interface IStateGroupIcon {
   className?: string;

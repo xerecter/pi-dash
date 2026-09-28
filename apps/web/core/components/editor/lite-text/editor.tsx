@@ -5,14 +5,14 @@
  */
 
 import React, { useState } from "react";
-// pi dash constants
-import type { EIssueCommentAccessSpecifier } from "@pi-dash/constants";
-// pi dash imports
-import { LiteTextEditorWithRef } from "@pi-dash/editor";
-import type { EditorRefApi, ILiteTextEditorProps, TFileHandler } from "@pi-dash/editor";
-import { useTranslation } from "@pi-dash/i18n";
-import type { MakeOptional } from "@pi-dash/types";
-import { cn, isCommentEmpty } from "@pi-dash/utils";
+// karma-team constants
+import type { EIssueCommentAccessSpecifier } from "@karma-team/constants";
+// karma-team imports
+import { LiteTextEditorWithRef } from "@karma-team/editor";
+import type { EditorRefApi, ILiteTextEditorProps, TFileHandler } from "@karma-team/editor";
+import { useTranslation } from "@karma-team/i18n";
+import type { MakeOptional } from "@karma-team/types";
+import { cn, isCommentEmpty } from "@karma-team/utils";
 // components
 import { EditorMentionsRoot } from "@/components/editor/embeds/mentions";
 import { IssueCommentToolbar } from "@/components/editor/lite-text/toolbar";
@@ -20,9 +20,9 @@ import { IssueCommentToolbar } from "@/components/editor/lite-text/toolbar";
 import { useEditorConfig, useEditorMention } from "@/hooks/editor";
 import { useMember } from "@/hooks/store/use-member";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
-// pi dash web hooks
-import { useEditorFlagging } from "@/pi-dash-web/hooks/use-editor-flagging";
-// pi dash web service
+// karma-team web hooks
+import { useEditorFlagging } from "@/karma-team-web/hooks/use-editor-flagging";
+// karma-team web service
 import { WorkspaceService } from "@/services/workspace.service";
 import { LiteToolbar } from "./lite-toolbar";
 const workspaceService = new WorkspaceService();

@@ -5,7 +5,7 @@
  */
 
 import { createContext, useContext } from "react";
-import type { TTimelineType } from "@pi-dash/types";
+import type { TTimelineType } from "@karma-team/types";
 
 export const TimeLineTypeContext = createContext<TTimelineType | undefined>(undefined);
 

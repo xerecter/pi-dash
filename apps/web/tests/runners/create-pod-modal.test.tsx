@@ -16,7 +16,7 @@ const { podCreate, projectsList, setToast } = vi.hoisted(() => ({
   setToast: vi.fn(),
 }));
 
-vi.mock("@pi-dash/services", () => ({
+vi.mock("@karma-team/services", () => ({
   PodService: class {
     create = podCreate;
   },
@@ -28,18 +28,18 @@ vi.mock("@/services/project", () => ({
   },
 }));
 
-vi.mock("@pi-dash/i18n", () => ({
+vi.mock("@karma-team/i18n", () => ({
   useTranslation: () => ({
     t: (key: string, vars?: Record<string, unknown>) => (vars ? `${key}:${JSON.stringify(vars)}` : key),
   }),
 }));
 
-vi.mock("@pi-dash/propel/toast", () => ({
+vi.mock("@karma-team/propel/toast", () => ({
   TOAST_TYPE: { ERROR: "ERROR", SUCCESS: "SUCCESS" },
   setToast,
 }));
 
-vi.mock("@pi-dash/propel/button", () => ({
+vi.mock("@karma-team/propel/button", () => ({
   // Strip non-DOM props (`loading`, `variant`) so React doesn't warn about
   // forwarding unknown booleans to the native <button>.
   Button: ({
@@ -56,7 +56,7 @@ vi.mock("@pi-dash/propel/button", () => ({
 
 // Replace the heavy UI lib with plain DOM equivalents so the modal can be
 // driven with userEvent without dragging in popper/headlessui machinery.
-vi.mock("@pi-dash/ui", async () => {
+vi.mock("@karma-team/ui", async () => {
   const { forwardRef: fwd } = await import("react");
   type SelectProps = {
     value: string;
@@ -184,10 +184,7 @@ describe("CreatePodModal", () => {
 
     await user.selectOptions(screen.getByTestId("select"), "proj-1");
     await user.type(screen.getByPlaceholderText("beefy"), "beefy");
-    await user.type(
-      screen.getByPlaceholderText("Where this pod runs, what it's for, etc."),
-      "the spare laptop"
-    );
+    await user.type(screen.getByPlaceholderText("Where this pod runs, what it's for, etc."), "the spare laptop");
     await user.click(screen.getByRole("button", { name: "Create pod" }));
 
     await waitFor(() => {

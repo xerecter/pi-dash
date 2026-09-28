@@ -124,7 +124,7 @@ interface IChatEvent {
 // assistant emits `thread`; kit reads neither
 ```
 
-`IAgentChatMessage`/`IAgentChatEvent` (in `@pi-dash/types`) are assignable to these as-is. The
+`IAgentChatMessage`/`IAgentChatEvent` (in `@karma-team/types`) are assignable to these as-is. The
 assistant's message type (extra `kind` for tool rows, `usage`, etc.) extends `IChatMessage`. The
 kit stays in `apps/web/core/components/chat/` (not `packages/ui`) since it depends on app-level
 types/services conventions; promote later only if another app needs it.

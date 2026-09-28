@@ -8,9 +8,9 @@ import { observer } from "mobx-react";
 import { Bot, Circle, LayoutDashboard } from "lucide-react";
 import { NavLink } from "react-router";
 import useSWR from "swr";
-import { useTranslation } from "@pi-dash/i18n";
-import { RunnerService } from "@pi-dash/services";
-import type { IRunner } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { RunnerService } from "@karma-team/services";
+import type { IRunner } from "@karma-team/types";
 import { useLocalChatContacts } from "@/components/runners/local-chat-contacts";
 
 const service = new RunnerService();

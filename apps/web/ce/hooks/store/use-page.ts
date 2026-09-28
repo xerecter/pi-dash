@@ -7,9 +7,9 @@
 import { useContext } from "react";
 // mobx store
 import { StoreContext } from "@/lib/store-context";
-// pi dash web hooks
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
-import { usePageStore } from "@/pi-dash-web/hooks/store";
+// karma-team web hooks
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
+import { usePageStore } from "@/karma-team-web/hooks/store";
 
 export type TArgs = {
   pageId: string;

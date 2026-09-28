@@ -5,7 +5,7 @@
  */
 
 import { observer } from "mobx-react";
-import { ProjectIcon } from "@pi-dash/propel/icons";
+import { ProjectIcon } from "@karma-team/propel/icons";
 // components
 import { ProjectLogo } from "@/components/common/project-logo";
 // store

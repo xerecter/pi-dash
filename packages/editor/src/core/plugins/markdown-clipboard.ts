@@ -6,9 +6,9 @@
 
 import type { Editor } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-// pi dash imports
-import { convertHTMLToMarkdown } from "@pi-dash/utils";
-import type { TCustomComponentsMetaData } from "@pi-dash/utils";
+// karma-team imports
+import { convertHTMLToMarkdown } from "@karma-team/utils";
+import type { TCustomComponentsMetaData } from "@karma-team/utils";
 
 type TArgs = {
   editor: Editor;
@@ -38,7 +38,7 @@ export const MarkdownClipboardPlugin = (args: TArgs): Plugin => {
             });
             event.clipboardData?.setData("text/plain", markdown);
             event.clipboardData?.setData("text/html", clipboardHTML);
-            event.clipboardData?.setData("text/pi-dash-editor-html", clipboardHTML);
+            event.clipboardData?.setData("text/karma-team-editor-html", clipboardHTML);
             return true;
           } catch (error) {
             console.error("Failed to copy markdown content to clipboard:", error);

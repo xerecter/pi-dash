@@ -1,7 +1,7 @@
-//! ``pidash connect`` - deprecated one-time-token compatibility path.
+//! ``karma-team connect`` - deprecated one-time-token compatibility path.
 //!
-//! New runner setup should use ``pidash auth login`` followed by
-//! ``pidash runner add``. This command remains executable only so
+//! New runner setup should use ``karma-team auth login`` followed by
+//! ``karma-team runner add``. This command remains executable only so
 //! existing one-time enrollment or revive tokens can still be redeemed
 //! during the transition.
 
@@ -25,7 +25,7 @@ const REVOKE_TRANSPORT_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Debug, ClapArgs)]
 pub struct Args {
-    /// Pi Dash cloud base URL (e.g. ``https://pidash.example.com`` or
+    /// karma-team cloud base URL (e.g. ``https://karma-team.example.com`` or
     /// ``http://localhost:8000`` for a local instance).
     #[arg(long)]
     pub url: String,
@@ -73,9 +73,9 @@ pub struct Args {
 
 pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     eprintln!(
-        "Warning: `pidash connect` is deprecated and hidden from normal help. \
-         For new runners, run `pidash auth login --url <URL>` and then \
-         `pidash runner add --project <PROJECT>`. This command remains only \
+        "Warning: `karma-team connect` is deprecated and hidden from normal help. \
+         For new runners, run `karma-team auth login --url <URL>` and then \
+         `karma-team runner add --project <PROJECT>`. This command remains only \
          for existing one-time enrollment or revive tokens."
     );
 
@@ -105,7 +105,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     {
         anyhow::bail!(
             "this machine is already enrolled with cloud {} — refusing to add a runner pointing at {}. \
-             Run `pidash remove` first if you want to re-enroll against a different cloud.",
+             Run `karma-team remove` first if you want to re-enroll against a different cloud.",
             cfg.daemon.cloud_url,
             args.url
         );
@@ -114,7 +114,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     // Workspace collision check, mirroring Config::validate()'s rules
     // (see schema.rs §"Workspace collisions"). Two runners sharing — or
     // nesting under — a working directory will trample each other's git
-    // state. `pidash runner add` runs this through validate() and rolls
+    // state. `karma-team runner add` runs this through validate() and rolls
     // back the cloud-side registration on conflict, but the HTTPS-flow
     // enrollment token is one-time and has no symmetric deregister, so
     // we have to refuse pre-cloud here. Only meaningful when the
@@ -175,7 +175,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
             if let Some(detail) = outcome.detail {
                 println!("\n{detail}");
             }
-            println!("\nThe new credentials were written. Try `pidash restart` manually.");
+            println!("\nThe new credentials were written. Try `karma-team restart` manually.");
         }
         return Ok(());
     }
@@ -283,7 +283,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
                 println!("\n{detail}");
             }
             println!(
-                "\nThe runner config was written successfully. Try `pidash restart` manually."
+                "\nThe runner config was written successfully. Try `karma-team restart` manually."
             );
             // Don't return Err — the cloud-side enrollment + local
             // config write succeeded; the restart hiccup is recoverable
@@ -372,7 +372,7 @@ fn assert_no_workspace_collision(
                 "runner {} ({}) already uses --working-dir {} — two runners cannot share \
                  a working directory (they would trample each other's git state). \
                  Pick a different --working-dir, or remove that runner first with \
-                 `pidash runner remove {}`.",
+                 `karma-team runner remove {}`.",
                 r.name,
                 r.runner_id,
                 existing_path.display(),
@@ -383,7 +383,7 @@ fn assert_no_workspace_collision(
             anyhow::bail!(
                 "--working-dir {} is nested with runner {}'s working_dir {} — two runners cannot \
                  share or nest working directories. Pick a non-overlapping path, or remove that \
-                 runner first with `pidash runner remove {}`.",
+                 runner first with `karma-team runner remove {}`.",
                 new_wd.display(),
                 r.name,
                 existing_path.display(),
@@ -394,7 +394,7 @@ fn assert_no_workspace_collision(
     Ok(())
 }
 
-/// Validate a Pi Dash base URL.
+/// Validate a karma-team base URL.
 ///
 /// Self-hosted development instances commonly run on a private network without
 /// TLS, so HTTP is supported alongside HTTPS. Use HTTPS on untrusted networks
@@ -420,7 +420,7 @@ pub(crate) fn validate_cloud_url(url: &str) -> Result<()> {
 #[derive(thiserror::Error, Debug)]
 pub enum EnrollAdditionalError {
     #[error(
-        "this legacy token path requires an existing config.toml; for first setup run `pidash auth login` and then `pidash runner add`"
+        "this legacy token path requires an existing config.toml; for first setup run `karma-team auth login` and then `karma-team runner add`"
     )]
     NoExistingConfig,
     #[error("loading config.toml failed: {0}")]
@@ -619,7 +619,7 @@ pub async fn revoke_additional_runner(
     Ok(())
 }
 
-/// Hook left for symmetry with future ``pidash connect --read-stdin`` flows.
+/// Hook left for symmetry with future ``karma-team connect --read-stdin`` flows.
 #[allow(dead_code)]
 fn read_line() -> Option<String> {
     if !std::io::stdin().is_terminal() {
@@ -648,8 +648,8 @@ mod tests {
         assert!(validate_cloud_url("http://localhost:3000").is_ok());
         assert!(validate_cloud_url("http://172.16.13.81:3000/").is_ok());
         assert!(validate_cloud_url("http://[::1]:3000").is_ok());
-        assert!(validate_cloud_url("https://pi-dash.example").is_ok());
-        assert!(validate_cloud_url("ftp://pi-dash.example").is_err());
+        assert!(validate_cloud_url("https://karma-team.example").is_ok());
+        assert!(validate_cloud_url("ftp://karma-team.example").is_err());
         assert!(validate_cloud_url("not a URL").is_err());
     }
 

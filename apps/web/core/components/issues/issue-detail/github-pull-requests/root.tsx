@@ -8,15 +8,15 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { ExternalLink, GitMerge, GitPullRequest, GitPullRequestDraft } from "lucide-react";
 import useSWR from "swr";
-// pi dash imports
-import { Badge } from "@pi-dash/propel/badge";
-import type { TBadgeVariant } from "@pi-dash/propel/badge";
-import { TrashIcon } from "@pi-dash/propel/icons";
-import { Input } from "@pi-dash/propel/input";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IGitCodeReviewLink } from "@pi-dash/types";
-import { Collapsible } from "@pi-dash/ui";
+// karma-team imports
+import { Badge } from "@karma-team/propel/badge";
+import type { TBadgeVariant } from "@karma-team/propel/badge";
+import { TrashIcon } from "@karma-team/propel/icons";
+import { Input } from "@karma-team/propel/input";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IGitCodeReviewLink } from "@karma-team/types";
+import { Collapsible } from "@karma-team/ui";
 // constants
 import { GIT_ISSUE_CODE_REVIEWS } from "@/constants/fetch-keys";
 // services

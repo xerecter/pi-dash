@@ -6,10 +6,10 @@
 
 import { useState } from "react";
 // types
-import { Button } from "@pi-dash/propel/button";
-import type { IProject } from "@pi-dash/types";
+import { Button } from "@karma-team/propel/button";
+import type { IProject } from "@karma-team/types";
 // ui
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // hooks
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";

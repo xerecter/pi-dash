@@ -7,9 +7,9 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IWebhook } from "@pi-dash/types";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IWebhook } from "@karma-team/types";
 // ui
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";

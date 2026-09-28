@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { Row, ERowVariant } from "@pi-dash/ui";
+import { Row, ERowVariant } from "@karma-team/ui";
 
 interface IListContainer {
   children: React.ReactNode;

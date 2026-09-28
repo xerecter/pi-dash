@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { ISchedulerOccurrence } from "@pi-dash/services";
+import type { ISchedulerOccurrence } from "@karma-team/services";
 
 // Past-run greys — chosen once so the month and week views stay in sync
 // with the rail's "past = grey" convention from the decisions doc.

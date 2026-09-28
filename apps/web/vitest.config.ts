@@ -29,7 +29,7 @@ export default defineConfig({
       "@/app": path.resolve(__dirname, "./app"),
       "@/helpers": path.resolve(__dirname, "./helpers"),
       "@/styles": path.resolve(__dirname, "./styles"),
-      "@/pi-dash-web": path.resolve(__dirname, "./ce"),
+      "@/karma-team-web": path.resolve(__dirname, "./ce"),
       "@": path.resolve(__dirname, "./core"),
     },
   },

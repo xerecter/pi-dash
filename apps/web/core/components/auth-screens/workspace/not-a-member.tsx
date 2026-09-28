@@ -6,7 +6,7 @@
 
 import Link from "next/link";
 // ui
-import { Button } from "@pi-dash/propel/button";
+import { Button } from "@karma-team/propel/button";
 // layouts
 import DefaultLayout from "@/layouts/default-layout";
 

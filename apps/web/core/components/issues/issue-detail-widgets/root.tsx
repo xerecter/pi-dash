@@ -5,8 +5,8 @@
  */
 
 import React from "react";
-// pi dash imports
-import type { TIssueServiceType, TWorkItemWidgets } from "@pi-dash/types";
+// karma-team imports
+import type { TIssueServiceType, TWorkItemWidgets } from "@karma-team/types";
 // local imports
 import { IssueDetailWidgetActionButtons } from "./action-buttons";
 import { IssueDetailWidgetCollapsibles } from "./issue-detail-widget-collapsibles";

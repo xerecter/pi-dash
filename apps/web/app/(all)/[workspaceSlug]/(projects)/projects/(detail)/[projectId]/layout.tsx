@@ -6,8 +6,8 @@
 
 import { observer } from "mobx-react";
 import { Outlet } from "react-router";
-// pi dash imports
-import { Header, Row } from "@pi-dash/ui";
+// karma-team imports
+import { Header, Row } from "@karma-team/ui";
 // components
 import { TabNavigationRoot } from "@/components/navigation/tab-navigation-root";
 // hooks

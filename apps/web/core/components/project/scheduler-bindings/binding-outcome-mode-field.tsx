@@ -6,8 +6,8 @@
 
 import { Controller } from "react-hook-form";
 import type { Control, FieldValues, Path } from "react-hook-form";
-import { useTranslation } from "@pi-dash/i18n";
-import type { SchedulerOutcomeMode } from "@pi-dash/services";
+import { useTranslation } from "@karma-team/i18n";
+import type { SchedulerOutcomeMode } from "@karma-team/services";
 
 // English source strings double as i18n keys (see packages/i18n: en is empty,
 // t() falls back to the key). Each option's label/help is translated per-locale.
@@ -15,7 +15,7 @@ const OUTCOME_MODE_OPTIONS: ReadonlyArray<{ value: SchedulerOutcomeMode; label: 
   {
     value: "create_issue",
     label: "Create issues",
-    help: "File a Pi Dash issue for each finding, skipping ones already tracked by an open issue.",
+    help: "File a karma-team issue for each finding, skipping ones already tracked by an open issue.",
   },
   {
     value: "apply_fix",

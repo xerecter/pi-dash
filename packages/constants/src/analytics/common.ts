@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { TAnalyticsTabsBase } from "@pi-dash/types";
-import { ChartXAxisProperty, ChartYAxisMetric } from "@pi-dash/types";
+import type { TAnalyticsTabsBase } from "@karma-team/types";
+import { ChartXAxisProperty, ChartYAxisMetric } from "@karma-team/types";
 
 export interface IInsightField {
   key: string;

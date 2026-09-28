@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { CircularProgressIndicator } from "@pi-dash/ui";
-import { getFileExtension, truncateText } from "@pi-dash/utils";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { CircularProgressIndicator } from "@karma-team/ui";
+import { getFileExtension, truncateText } from "@karma-team/utils";
 // ui
 // icons
 import { getFileIcon } from "@/components/icons";

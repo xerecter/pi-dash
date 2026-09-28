@@ -6,8 +6,8 @@
 
 import type { Request, Response } from "express";
 import { Effect, Schema, Cause } from "effect";
-import { Controller, Post } from "@pi-dash/decorators";
-import { logger } from "@pi-dash/logger";
+import { Controller, Post } from "@karma-team/decorators";
+import { logger } from "@karma-team/logger";
 import { AppError } from "@/lib/errors";
 import { PdfExportRequestBody, PdfValidationError, PdfAuthenticationError } from "@/schema/pdf-export";
 import { PdfExportService, exportToPdf } from "@/services/pdf-export";

@@ -7,12 +7,12 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { estimateCount } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { PlusIcon } from "@pi-dash/propel/icons";
-import type { TEstimatePointsObject, TEstimateSystemKeys, TEstimateTypeError } from "@pi-dash/types";
-import { Sortable } from "@pi-dash/ui";
+// karma-team imports
+import { estimateCount } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { PlusIcon } from "@karma-team/propel/icons";
+import type { TEstimatePointsObject, TEstimateSystemKeys, TEstimateTypeError } from "@karma-team/types";
+import { Sortable } from "@karma-team/ui";
 // local imports
 import { EstimatePointCreate } from "./create";
 import { EstimatePointItemPreview } from "./preview";

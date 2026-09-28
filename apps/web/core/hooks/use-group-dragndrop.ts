@@ -5,8 +5,8 @@
  */
 
 import { useParams } from "next/navigation";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { EIssuesStoreType, TIssue, TIssueGroupByOptions, TIssueOrderByOptions } from "@pi-dash/types";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { EIssuesStoreType, TIssue, TIssueGroupByOptions, TIssueOrderByOptions } from "@karma-team/types";
 import type { GroupDropLocation } from "@/components/issues/issue-layouts/utils";
 import { handleGroupDragDrop } from "@/components/issues/issue-layouts/utils";
 import { ISSUE_FILTER_DEFAULT_DATA } from "@/store/issue/helpers/base-issues.store";

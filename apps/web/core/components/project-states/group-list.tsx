@@ -6,9 +6,9 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { IState, TStateGroups, TStateOperationsCallbacks } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type { IState, TStateGroups, TStateOperationsCallbacks } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // components
 import { GroupItem } from "@/components/project-states";
 

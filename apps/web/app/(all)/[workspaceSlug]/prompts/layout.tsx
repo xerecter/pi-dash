@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 import { Outlet } from "react-router";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { useUserPermissions } from "@/hooks/store/user";
 

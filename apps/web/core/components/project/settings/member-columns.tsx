@@ -9,12 +9,12 @@ import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 import { CircleMinus } from "lucide-react";
 import { Disclosure } from "@headlessui/react";
-// pi dash imports
-import { ROLE, EUserPermissions, MEMBER_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { EUserProjectRoles, IUser, IWorkspaceMember, TProjectMembership } from "@pi-dash/types";
-import { CustomMenu, CustomSelect } from "@pi-dash/ui";
-import { getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { ROLE, EUserPermissions, MEMBER_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { EUserProjectRoles, IUser, IWorkspaceMember, TProjectMembership } from "@karma-team/types";
+import { CustomMenu, CustomSelect } from "@karma-team/ui";
+import { getFileURL } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useUser, useUserPermissions } from "@/hooks/store/user";

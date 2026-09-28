@@ -6,9 +6,9 @@
 
 import type { ReactNode } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { EProjectFeatureKey } from "@pi-dash/constants";
-import { Breadcrumbs } from "@pi-dash/ui";
+// karma-team imports
+import type { EProjectFeatureKey } from "@karma-team/constants";
+import { Breadcrumbs } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import type { TNavigationItem } from "@/components/workspace/sidebar/project-navigation";

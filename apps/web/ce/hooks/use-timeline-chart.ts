@@ -5,11 +5,11 @@
  */
 
 // types
-import type { TTimelineTypeCore } from "@pi-dash/types";
-import { GANTT_TIMELINE_TYPE } from "@pi-dash/types";
-// Pi Dash-web
+import type { TTimelineTypeCore } from "@karma-team/types";
+import { GANTT_TIMELINE_TYPE } from "@karma-team/types";
+// karma-team-web
 
-import type { IBaseTimelineStore } from "@/pi-dash-web/store/timeline/base-timeline.store";
+import type { IBaseTimelineStore } from "@/karma-team-web/store/timeline/base-timeline.store";
 import type { ITimelineStore } from "../store/timeline";
 
 export const getTimelineStore = (

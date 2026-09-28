@@ -5,8 +5,8 @@
  */
 
 import { sortBy } from "lodash-es";
-// pi dash imports
-import type { TProject, TProjectDisplayFilters, TProjectFilters, TProjectOrderByOptions } from "@pi-dash/types";
+// karma-team imports
+import type { TProject, TProjectDisplayFilters, TProjectFilters, TProjectOrderByOptions } from "@karma-team/types";
 // local imports
 import { getDate } from "./datetime";
 import { satisfiesDateFilter } from "./filter";

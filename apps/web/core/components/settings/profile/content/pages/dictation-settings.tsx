@@ -7,10 +7,10 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { AssistantService } from "@pi-dash/services";
-import type { IUserSTTConfig } from "@pi-dash/types";
-import { Button } from "@pi-dash/ui";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { AssistantService } from "@karma-team/services";
+import type { IUserSTTConfig } from "@karma-team/types";
+import { Button } from "@karma-team/ui";
 
 const service = new AssistantService();
 
@@ -98,7 +98,7 @@ export const DictationSettings = observer(function DictationSettings() {
           model.
         </p>
         <p className="mt-2 text-13 text-secondary">
-          Your audio is sent directly to the endpoint you configure here and is not stored by Pi Dash.
+          Your audio is sent directly to the endpoint you configure here and is not stored by karma-team.
         </p>
       </div>
 

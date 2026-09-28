@@ -7,11 +7,11 @@
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
 import { Disclosure } from "@headlessui/react";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { ICycle } from "@pi-dash/types";
-import { Row } from "@pi-dash/ui";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { ICycle } from "@karma-team/types";
+import { Row } from "@karma-team/ui";
 // assets
 import darkActiveCycleAsset from "@/app/assets/empty-state/cycle/active-dark.webp?url";
 import lightActiveCycleAsset from "@/app/assets/empty-state/cycle/active-light.webp?url";
@@ -59,7 +59,9 @@ const ActiveCyclesComponent = observer(function ActiveCyclesComponent({
       <EmptyStateDetailed
         assetKey="cycle"
         title={t("No active cycle")}
-        description={t("An active cycle includes any period that encompasses today's date within its range. Find the progress and details of the active cycle here.")}
+        description={t(
+          "An active cycle includes any period that encompasses today's date within its range. Find the progress and details of the active cycle here."
+        )}
         rootClassName="py-10 h-auto"
       />
     );
@@ -101,7 +103,7 @@ export const ActiveCycleRoot = observer(function ActiveCycleRoot(props: IActiveC
   const { workspaceSlug, projectId, cycleId: propsCycleId, showHeader = true } = props;
   // theme hook
   const { resolvedTheme } = useTheme();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { currentProjectActiveCycleId } = useCycle();

@@ -4,23 +4,23 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 import type {
   IProjectUserPropertiesResponse,
   ISearchIssueResponse,
   TProjectAnalyticsCount,
   TProjectAnalyticsCountParams,
   TProjectIssuesSearchParams,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 import type {
   IGitProjectBindRequest,
   IGitProjectBindingStatus,
   IGithubProjectBindRequest,
   IGithubProjectBindingStatus,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // helpers
-// pi dash web types
-import type { TProject, TPartialProject } from "@/pi-dash-web/types";
+// karma-team web types
+import type { TProject, TPartialProject } from "@/karma-team-web/types";
 // services
 import { APIService } from "@/services/api.service";
 

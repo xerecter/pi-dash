@@ -1,10 +1,10 @@
-//! Shared local-side plumbing for both `pidash connect` (legacy
-//! enrollment-token flow) and `pidash runner add` (CLI-token flow).
+//! Shared local-side plumbing for both `karma-team connect` (legacy
+//! enrollment-token flow) and `karma-team runner add` (CLI-token flow).
 //!
 //! After a successful cloud-side mint (`EnrollResponse`), both paths need
 //! to write `[[runner]]` to `config.toml` and install the OS service unit
-//! on first add. Legacy `pidash connect` responses also write per-runner
-//! `credentials.toml`; new `pidash runner add` responses rely on the
+//! on first add. Legacy `karma-team connect` responses also write per-runner
+//! `credentials.toml`; new `karma-team runner add` responses rely on the
 //! shared dev-machine token in `[cli].token`.
 
 use anyhow::{Context, Result};
@@ -83,7 +83,7 @@ fn model_applies_to_agent(kind: AgentKind, model: &str) -> bool {
 /// the operator's `--model` / `--reasoning-effort` to whichever agent was
 /// selected. Inapplicable combinations are non-fatal: an orange warning is
 /// printed and that knob falls back to the agent default (left unset in the
-/// config). Shared by `pidash runner add` and the deprecated `pidash
+/// config). Shared by `karma-team runner add` and the deprecated `karma-team
 /// connect`.
 pub fn agent_sections_for(
     agent_kind: AgentKind,
@@ -170,7 +170,7 @@ pub fn agent_sections_for(
 
 /// Read the user's CLI token from `[cli].token` in `config.toml`.
 /// Returns `Ok(None)` when no config exists yet or the section is
-/// absent; the caller is expected to surface a friendly "run `pidash
+/// absent; the caller is expected to surface a friendly "run `karma-team
 /// auth login` first" message in that case.
 pub fn load_cli_token(paths: &Paths) -> Result<Option<String>> {
     if !paths.config_path().exists() {
@@ -181,13 +181,13 @@ pub fn load_cli_token(paths: &Paths) -> Result<Option<String>> {
 }
 
 /// Write `[cli].token` into `config.toml`, creating the file if it
-/// doesn't exist yet. Used by `pidash auth login` after the device-code
+/// doesn't exist yet. Used by `karma-team auth login` after the device-code
 /// exchange returns an `APIToken`.
 ///
 /// First-run bootstrap: when no config exists, we seed a minimal
 /// `[daemon]` block with the cloud URL the login was performed against.
 /// No `[[runner]]` blocks are added — the runner is registered
-/// separately via `pidash runner add`.
+/// separately via `karma-team runner add`.
 ///
 /// Preserves any pre-existing `[cli].workspace_slug` so a re-login
 /// (e.g. token refresh) doesn't wipe the host's workspace binding.
@@ -248,7 +248,7 @@ pub fn ensure_dev_machine_id(paths: &Paths) -> Result<Uuid> {
 /// Read `[cli].workspace_slug` from `config.toml`.
 ///
 /// Returns `Ok(None)` if no config exists, the `[cli]` section is
-/// absent, or `workspace_slug` was never set. `pidash runner add` uses
+/// absent, or `workspace_slug` was never set. `karma-team runner add` uses
 /// this as the default workspace when the caller omits `--workspace`.
 pub fn load_cli_workspace(paths: &Paths) -> Result<Option<String>> {
     if !paths.config_path().exists() {
@@ -259,7 +259,7 @@ pub fn load_cli_workspace(paths: &Paths) -> Result<Option<String>> {
 }
 
 /// Write `[cli].workspace_slug` into `config.toml`. Called by
-/// `pidash auth login` after the workspace picker resolves which
+/// `karma-team auth login` after the workspace picker resolves which
 /// workspace this host is bound to. Requires a pre-existing config
 /// (the token write always happens first).
 ///
@@ -270,7 +270,7 @@ pub fn load_cli_workspace(paths: &Paths) -> Result<Option<String>> {
 pub fn write_cli_workspace(paths: &Paths, workspace_slug: &str) -> Result<()> {
     if !paths.config_path().exists() {
         anyhow::bail!(
-            "no config.toml — `pidash auth login` must write the CLI token before the workspace binding"
+            "no config.toml — `karma-team auth login` must write the CLI token before the workspace binding"
         );
     }
     let mut cfg = file::load_config(paths)?;
@@ -291,7 +291,9 @@ pub fn load_cli_default_project(paths: &Paths) -> Result<Option<String>> {
 
 pub fn write_cli_default_project(paths: &Paths, project: &str) -> Result<()> {
     if !paths.config_path().exists() {
-        anyhow::bail!("no config.toml — run `pidash auth login` before setting a default project");
+        anyhow::bail!(
+            "no config.toml — run `karma-team auth login` before setting a default project"
+        );
     }
     let mut cfg = file::load_config(paths)?;
     let mut cli = cfg.cli.unwrap_or_default();
@@ -301,7 +303,7 @@ pub fn write_cli_default_project(paths: &Paths, project: &str) -> Result<()> {
     Ok(())
 }
 
-/// Clear `[cli].token` from `config.toml`. Used by `pidash auth logout`.
+/// Clear `[cli].token` from `config.toml`. Used by `karma-team auth logout`.
 /// Leaves `[[runner]]` blocks untouched so the daemon keeps running
 /// under its own identity. No-op if no config exists.
 pub fn clear_cli_token(paths: &Paths) -> Result<()> {
@@ -433,7 +435,7 @@ pub async fn apply_enroll_response(
     };
 
     // Bootstrap closure for the no-config-yet case (first runner on a
-    // fresh host that ran `pidash auth login` but not `pidash connect`).
+    // fresh host that ran `karma-team auth login` but not `karma-team connect`).
     // Seeds a minimal `[daemon]` block from the response's cloud URL.
     let bootstrap_cloud_url = cloud_url.to_string();
     let init_cfg = move || {
@@ -453,7 +455,7 @@ pub async fn apply_enroll_response(
     };
 
     // Persist the `[[runner]]` block under the host-wide `.config.lock`
-    // so a concurrent `pidash runner add` / daemon `RemoveRunner` strip
+    // so a concurrent `karma-team runner add` / daemon `RemoveRunner` strip
     // can't last-writer-wins this write. The closure also performs the
     // cloud-URL mismatch check inside the lock — doing it before
     // `mutate_config_or_init` would race with a concurrent `auth login
@@ -489,7 +491,7 @@ pub async fn apply_enroll_response(
     // per-runner credentials file pointing at a runner the supervisor
     // never sees. The flipside — config block exists but credentials
     // don't — is recoverable: the supervisor logs the missing-file
-    // error and `pidash runner remove <name>` can clean up by name.
+    // error and `karma-team runner remove <name>` can clean up by name.
     // (The caller's rollback umbrella in cli/runner.rs also strips the
     // partial `[[runner]]` block on credentials-write failure, see the
     // `Err(persist_err)` arm there.)
@@ -789,7 +791,10 @@ mod tests {
         .await
         .unwrap();
         let wd = &applied.runner.workspace.working_dir;
-        assert!(wd.starts_with(paths.data_dir.join("workspaces")), "wd: {wd:?}");
+        assert!(
+            wd.starts_with(paths.data_dir.join("workspaces")),
+            "wd: {wd:?}"
+        );
         // The persisted config validates (exclusive dir, no collision).
         file::load_config(&paths).unwrap().validate().unwrap();
     }
@@ -867,16 +872,16 @@ mod tests {
     fn write_then_load_cli_token_roundtrips() {
         let tmp = tempdir().unwrap();
         let paths = paths_for(tmp.path());
-        write_cli_token(&paths, "https://example.com", "pi_dash_api_xxx").unwrap();
+        write_cli_token(&paths, "https://example.com", "karma_team_api_xxx").unwrap();
         let token = load_cli_token(&paths).unwrap();
-        assert_eq!(token.as_deref(), Some("pi_dash_api_xxx"));
+        assert_eq!(token.as_deref(), Some("karma_team_api_xxx"));
     }
 
     #[test]
     fn ensure_dev_machine_id_mints_once_and_persists() {
         let tmp = tempdir().unwrap();
         let paths = paths_for(tmp.path());
-        write_cli_token(&paths, "https://example.com", "pi_dash_api_xxx").unwrap();
+        write_cli_token(&paths, "https://example.com", "karma_team_api_xxx").unwrap();
         let first = ensure_dev_machine_id(&paths).unwrap();
         let second = ensure_dev_machine_id(&paths).unwrap();
         let cfg = file::load_config(&paths).unwrap();
@@ -888,7 +893,7 @@ mod tests {
     fn write_then_load_cli_workspace_roundtrips() {
         let tmp = tempdir().unwrap();
         let paths = paths_for(tmp.path());
-        write_cli_token(&paths, "https://example.com", "pi_dash_api_xxx").unwrap();
+        write_cli_token(&paths, "https://example.com", "karma_team_api_xxx").unwrap();
         assert_eq!(load_cli_workspace(&paths).unwrap(), None);
         write_cli_workspace(&paths, "acme").unwrap();
         assert_eq!(load_cli_workspace(&paths).unwrap().as_deref(), Some("acme"));
@@ -931,7 +936,7 @@ mod tests {
         let tmp = tempdir().unwrap();
         let paths = paths_for(tmp.path());
         // Seed config with a runner block + token via the normal flow.
-        write_cli_token(&paths, "https://example.com", "pi_dash_api_xxx").unwrap();
+        write_cli_token(&paths, "https://example.com", "karma_team_api_xxx").unwrap();
         // Append a runner block manually by writing config.
         let mut cfg = file::load_config(&paths).unwrap();
         cfg.runners.push(RunnerConfig {

@@ -7,18 +7,18 @@
 import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { ListFilter } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { TPageFilterProps, TPageNavigationTabs } from "@pi-dash/types";
-import { Header, EHeaderVariant } from "@pi-dash/ui";
-import { calculateTotalFilters } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { TPageFilterProps, TPageNavigationTabs } from "@karma-team/types";
+import { Header, EHeaderVariant } from "@karma-team/ui";
+import { calculateTotalFilters } from "@karma-team/utils";
 // components
 import { FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
-// pi dash web hooks
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
-import { usePageStore } from "@/pi-dash-web/hooks/store";
+// karma-team web hooks
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
+import { usePageStore } from "@/karma-team-web/hooks/store";
 // local imports
 import { PageAppliedFiltersList } from "../list/applied-filters";
 import { PageFiltersSelection } from "../list/filters";

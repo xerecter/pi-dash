@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
+// karma-team imports
 import { isRouteErrorResponse } from "react-router";
-import { Banner } from "@pi-dash/propel/banner";
-import { Button } from "@pi-dash/propel/button";
-import { Card, ECardVariant } from "@pi-dash/propel/card";
-import { InfoFillIcon } from "@pi-dash/propel/icons";
+import { Banner } from "@karma-team/propel/banner";
+import { Button } from "@karma-team/propel/button";
+import { Card, ECardVariant } from "@karma-team/propel/card";
+import { InfoFillIcon } from "@karma-team/propel/icons";
 
 interface ErrorActionsProps {
   onGoHome: () => void;

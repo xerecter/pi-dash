@@ -7,11 +7,11 @@
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { Telescope } from "lucide-react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IInstance, IInstanceAdmin } from "@pi-dash/types";
-import { Input, ToggleSwitch } from "@pi-dash/ui";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IInstance, IInstanceAdmin } from "@karma-team/types";
+import { Input, ToggleSwitch } from "@karma-team/ui";
 // components
 import { ControllerInput } from "@/components/common/controller-input";
 // hooks
@@ -107,12 +107,14 @@ export const GeneralConfigurationForm = observer(function GeneralConfigurationFo
               </div>
             </div>
             <div className="grow">
-              <div className="text-13 leading-5 font-medium text-primary">Let Pi Dash collect anonymous usage data</div>
+              <div className="text-13 leading-5 font-medium text-primary">
+                Let karma-team collect anonymous usage data
+              </div>
               <div className="text-11 leading-5 font-regular text-tertiary">
-                No PII is collected.This anonymized data is used to understand how you use Pi Dash and build new
+                No PII is collected.This anonymized data is used to understand how you use karma-team and build new
                 features in line with{" "}
                 <a
-                  href="https://github.com/The-AI-Republic/pi-dash#readme"
+                  href="https://github.com/xerecter/karma-team#readme"
                   target="_blank"
                   className="text-accent-primary hover:underline"
                   rel="noreferrer"

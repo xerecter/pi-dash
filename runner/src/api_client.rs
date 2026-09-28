@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-//! HTTP client for the `pidash` CRUD subcommands.
+//! HTTP client for the `karma-team` CRUD subcommands.
 //!
 //! Distinct from `cloud::register` (one-shot enrollment) and `cloud::ws`
 //! (long-lived WebSocket). This module only implements the thin layer the
@@ -63,14 +63,14 @@ impl std::error::Error for CliError {}
 /// Runtime configuration the CRUD subcommands need to talk to the cloud.
 ///
 /// **Resolution order** (see `CliEnv::resolve`):
-///   1. The runner config file at `~/.config/pidash/config.toml`.
+///   1. The runner config file at `~/.config/karma-team/config.toml`.
 ///      `api_url` ← `[daemon].cloud_url`,
 ///      `workspace_slug` ← `[cli].workspace_slug` (falling back to the
 ///      primary `[[runner]].workspace_slug` for old configs),
 ///      `token` ← `[cli].token`.
 ///   2. If the file is missing, OR any required field is absent from
 ///      it, fall through to the corresponding env var
-///      (`PIDASH_API_URL` / `PIDASH_WORKSPACE_SLUG` / `PIDASH_TOKEN`).
+///      (`KARMA_TEAM_API_URL` / `KARMA_TEAM_WORKSPACE_SLUG` / `KARMA_TEAM_TOKEN`).
 ///
 /// This means: an enrolled host doesn't need any env vars — the CLI
 /// reads everything from the same config the daemon uses. Out-of-band
@@ -83,7 +83,7 @@ pub struct CliEnv {
     pub api_url: String,
     pub workspace_slug: String,
     pub token: String,
-    /// The agent run this CLI invocation belongs to, from `PIDASH_RUN_ID`
+    /// The agent run this CLI invocation belongs to, from `KARMA_TEAM_RUN_ID`
     /// (set by the daemon on the agent process). Sent as
     /// [`RUN_ID_HEADER`] on every mutating request so the cloud can tell a
     /// state move made from inside a run apart from a human's — account
@@ -93,12 +93,12 @@ pub struct CliEnv {
 }
 
 /// Header carrying [`CliEnv::run_id`]. Mirrors
-/// `pi_dash.api.views.issue.RUN_ID_HEADER` on the cloud.
-pub const RUN_ID_HEADER: &str = "X-Pi-Dash-Run-Id";
+/// `karma_team.api.views.issue.RUN_ID_HEADER` on the cloud.
+pub const RUN_ID_HEADER: &str = "X-karma-team-Run-Id";
 
 /// Environment variable the daemon sets on the agent process with the
 /// current `AgentRun` id. See `util::shell::RunEnv`.
-pub const RUN_ID_ENV: &str = "PIDASH_RUN_ID";
+pub const RUN_ID_ENV: &str = "KARMA_TEAM_RUN_ID";
 
 fn run_id_from_env() -> Option<String> {
     std::env::var(RUN_ID_ENV)
@@ -111,12 +111,12 @@ impl CliEnv {
     /// Env-only loader, retained as a fallback for callers without
     /// a `Paths` handle and as the leaf step of `resolve`.
     pub fn from_env() -> Result<Self, CliError> {
-        let api_url = std::env::var("PIDASH_API_URL")
-            .map_err(|_| CliError::new(EXIT_INVALID, "PIDASH_API_URL is not set"))?;
-        let workspace_slug = std::env::var("PIDASH_WORKSPACE_SLUG")
-            .map_err(|_| CliError::new(EXIT_INVALID, "PIDASH_WORKSPACE_SLUG is not set"))?;
-        let token = std::env::var("PIDASH_TOKEN")
-            .map_err(|_| CliError::new(EXIT_INVALID, "PIDASH_TOKEN is not set"))?;
+        let api_url = std::env::var("KARMA_TEAM_API_URL")
+            .map_err(|_| CliError::new(EXIT_INVALID, "KARMA_TEAM_API_URL is not set"))?;
+        let workspace_slug = std::env::var("KARMA_TEAM_WORKSPACE_SLUG")
+            .map_err(|_| CliError::new(EXIT_INVALID, "KARMA_TEAM_WORKSPACE_SLUG is not set"))?;
+        let token = std::env::var("KARMA_TEAM_TOKEN")
+            .map_err(|_| CliError::new(EXIT_INVALID, "KARMA_TEAM_TOKEN is not set"))?;
         Ok(Self {
             api_url: api_url.trim_end_matches('/').to_string(),
             workspace_slug,
@@ -155,34 +155,34 @@ impl CliEnv {
         });
 
         let api_url = from_cfg_url
-            .or_else(|| std::env::var("PIDASH_API_URL").ok())
+            .or_else(|| std::env::var("KARMA_TEAM_API_URL").ok())
             .ok_or_else(|| {
                 CliError::new(
                     EXIT_INVALID,
                     "no cloud URL configured: set [daemon].cloud_url in \
-                     pidash config or export PIDASH_API_URL",
+                     karma-team config or export KARMA_TEAM_API_URL",
                 )
             })?;
         let workspace_slug = from_cfg_workspace
-            .or_else(|| std::env::var("PIDASH_WORKSPACE_SLUG").ok())
+            .or_else(|| std::env::var("KARMA_TEAM_WORKSPACE_SLUG").ok())
             .ok_or_else(|| {
                 CliError::new(
                     EXIT_INVALID,
                     "no workspace slug configured: set [[runner]].workspace_slug \
-                     in pidash config or export PIDASH_WORKSPACE_SLUG",
+                     in karma-team config or export KARMA_TEAM_WORKSPACE_SLUG",
                 )
             })?;
         let token = from_cfg_token
-            .or_else(|| std::env::var("PIDASH_TOKEN").ok())
+            .or_else(|| std::env::var("KARMA_TEAM_TOKEN").ok())
             .ok_or_else(|| {
                 // Most common cause: the user enrolled a runner but
-                // never ran `pidash auth login` (which writes
+                // never ran `karma-team auth login` (which writes
                 // `[cli].token`). Point them at the fix directly
                 // rather than the generic "set this field" wording.
                 CliError::new(
                     EXIT_INVALID,
-                    "not logged in: run `pidash auth login` to authenticate this host, \
-                     or export PIDASH_TOKEN for one-off scripted use",
+                    "not logged in: run `karma-team auth login` to authenticate this host, \
+                     or export KARMA_TEAM_TOKEN for one-off scripted use",
                 )
             })?;
 
@@ -211,7 +211,7 @@ impl ApiClient {
     pub fn new(env: CliEnv) -> Result<Self> {
         let http = reqwest::Client::builder()
             .timeout(Duration::from_secs(30))
-            .user_agent(format!("pidash-cli/{}", crate::RUNNER_VERSION))
+            .user_agent(format!("karma-team-cli/{}", crate::RUNNER_VERSION))
             .build()
             .context("build http client")?;
         Ok(Self { env, http })
@@ -321,8 +321,8 @@ mod resolve_tests {
     use super::*;
     use crate::config::file::write_config;
     use crate::config::schema::{
-        AgentSection, ApprovalPolicySection, ClaudeCodeSection, CursorAgentSection, CliSection, CodexSection, Config,
-        DaemonConfig, RunnerConfig, WorkspaceSection,
+        AgentSection, ApprovalPolicySection, ClaudeCodeSection, CliSection, CodexSection, Config,
+        CursorAgentSection, DaemonConfig, RunnerConfig, WorkspaceSection,
     };
     use crate::util::paths::Paths;
     use tempfile::tempdir;
@@ -377,10 +377,10 @@ mod resolve_tests {
         // The new behaviour: with a populated config file on disk, the
         // CLI reads URL, workspace, and token from the same file the
         // daemon uses. This is the happy-path that fixes the runner's
-        // "PIDASH_API_URL is not set" bug — no env vars needed.
+        // "KARMA_TEAM_API_URL is not set" bug — no env vars needed.
         //
         // Resolver tries config FIRST, so this assertion holds
-        // regardless of whether the test process has PIDASH_*  exported
+        // regardless of whether the test process has KARMA_TEAM_*  exported
         // (the env path is never reached when config has all three).
         let tmp = tempdir().unwrap();
         let paths = paths_for(tmp.path());

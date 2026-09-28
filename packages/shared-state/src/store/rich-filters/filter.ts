@@ -8,15 +8,15 @@ import { cloneDeep, isEqual } from "lodash-es";
 import { action, computed, makeObservable, observable, toJS } from "mobx";
 import { computedFn } from "mobx-utils";
 import { v4 as uuidv4 } from "uuid";
-// pi dash imports
+// karma-team imports
 import type {
   TClearFilterOptions,
   TExpressionOptions,
   TFilterOptions,
   TSaveViewOptions,
   TUpdateViewOptions,
-} from "@pi-dash/constants";
-import { DEFAULT_FILTER_VISIBILITY_OPTIONS } from "@pi-dash/constants";
+} from "@karma-team/constants";
+import { DEFAULT_FILTER_VISIBILITY_OPTIONS } from "@karma-team/constants";
 import type {
   IFilterAdapter,
   SingleOrArray,
@@ -30,8 +30,8 @@ import type {
   TFilterValue,
   TLogicalOperator,
   TSupportedOperators,
-} from "@pi-dash/types";
-import { FILTER_NODE_TYPE } from "@pi-dash/types";
+} from "@karma-team/types";
+import { FILTER_NODE_TYPE } from "@karma-team/types";
 // local imports
 import {
   deepCompareFilterExpressions,
@@ -44,7 +44,7 @@ import {
   sanitizeAndStabilizeExpression,
   shouldNotifyChangeForExpression,
   updateNodeInExpression,
-} from "@pi-dash/utils";
+} from "@karma-team/utils";
 import type { IFilterConfigManager } from "./config-manager";
 import { FilterConfigManager } from "./config-manager";
 import type { IFilterInstanceHelper } from "./filter-helpers";

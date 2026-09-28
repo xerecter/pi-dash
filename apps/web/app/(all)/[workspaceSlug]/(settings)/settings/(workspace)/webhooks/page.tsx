@@ -7,12 +7,12 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
 // components
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
 import { NotAuthorizedView } from "@/components/auth-screens/not-authorized-view";
 import { PageHead } from "@/components/core/page-title";
 import { SettingsHeading } from "@/components/settings/heading";
@@ -32,7 +32,7 @@ function WebhooksListPage({ params }: Route.ComponentProps) {
   const [showCreateWebhookModal, setShowCreateWebhookModal] = useState(false);
   // router
   const { workspaceSlug } = params;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // mobx store
   const { workspaceUserInfo, allowPermissions } = useUserPermissions();
@@ -46,9 +46,7 @@ function WebhooksListPage({ params }: Route.ComponentProps) {
     canPerformWorkspaceAdminActions ? () => fetchWebhooks(workspaceSlug) : null
   );
 
-  const pageTitle = currentWorkspace?.name
-    ? `${currentWorkspace.name} - ${t("Webhooks")}`
-    : undefined;
+  const pageTitle = currentWorkspace?.name ? `${currentWorkspace.name} - ${t("Webhooks")}` : undefined;
 
   // clear secret key when modal is closed.
   useEffect(() => {

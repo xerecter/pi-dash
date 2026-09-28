@@ -6,14 +6,14 @@
 
 import type { RefObject } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { ETabIndices } from "@pi-dash/constants";
-import type { EditorRefApi } from "@pi-dash/editor";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TIssue } from "@pi-dash/types";
-import { EFileAssetType } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
-import { getDescriptionPlaceholderI18n, getTabIndex } from "@pi-dash/utils";
+// karma-team imports
+import { ETabIndices } from "@karma-team/constants";
+import type { EditorRefApi } from "@karma-team/editor";
+import { useTranslation } from "@karma-team/i18n";
+import type { TIssue } from "@karma-team/types";
+import { EFileAssetType } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
+import { getDescriptionPlaceholderI18n, getTabIndex } from "@karma-team/utils";
 // components
 import { RichTextEditor } from "@/components/editor/rich-text/editor";
 // hooks

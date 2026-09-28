@@ -1,0 +1,283 @@
+# Copyright (c) 2023-present Pi Dash Software, Inc. and contributors
+# SPDX-License-Identifier: AGPL-3.0-only
+# See the LICENSE file for details.
+
+"""Project Scheduler — Beat scanner and per-binding fire.
+
+The scanner (:func:`scan_due_bindings`) runs once a minute under Celery
+Beat and fans out one :func:`fire_scheduler_binding` task per due binding.
+``fire_scheduler_binding`` follows the three-phase pattern documented in
+``.ai_design/project_scheduler/design.md`` §6.2:
+
+1. **Claim** under SFU: re-check enabled, skip when ``last_run`` is
+   non-terminal, advance ``next_run_at`` from the RRULE bundle
+   (``dtstart`` + ``rrule`` + ``rdates`` + ``exdates``), commit.
+2. **Dispatch** outside the SFU transaction. The dispatcher registers
+   ``transaction.on_commit(drain_pod_by_id)`` and holding the row lock
+   across that callback breaks pod drain.
+3. **Rollback** post-dispatch only when dispatch returned ``None``:
+   re-acquire SFU and restore the pre-claim ``next_run_at`` so the budget
+   isn't burned silently.
+
+**Beat must run as a singleton** — multiple Beat schedulers double the
+scan rate. The atomic claim under SFU keeps fan-out race-safe regardless,
+but the scan rate is still doubled.
+"""
+
+from __future__ import annotations
+
+import logging
+from datetime import datetime
+from typing import Optional
+
+from celery import shared_task
+from django.conf import settings
+from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
+
+from karma_team.bgtasks._rrule import next_fire_from_rrule
+from karma_team.db.models.scheduler import (
+    LAST_ERROR_MAX_LEN,
+    SchedulerBinding,
+)
+from karma_team.runner.models import AgentRunStatus
+from karma_team.utils.iso_datetime import coerce_iso_datetimes
+
+logger = logging.getLogger("karma_team.worker")
+
+
+NON_TERMINAL_STATUSES = frozenset(
+    {
+        AgentRunStatus.QUEUED,
+        AgentRunStatus.ASSIGNED,
+        AgentRunStatus.WAITING_FOR_WORKTREE,
+        AgentRunStatus.RUNNING,
+        AgentRunStatus.CANCEL_REQUESTED,
+        AgentRunStatus.AWAITING_APPROVAL,
+        AgentRunStatus.AWAITING_REAUTH,
+        AgentRunStatus.PAUSED_AWAITING_INPUT,
+        AgentRunStatus.BLOCKED,
+    }
+)
+
+
+def _is_enabled() -> bool:
+    """Instance-level kill switch — see design §10 Rollout."""
+    return getattr(settings, "SCHEDULER_ENABLED", True)
+
+
+def _next_fire_for_binding(binding: SchedulerBinding, *, now: Optional[datetime] = None) -> Optional[datetime]:
+    """Resolve the next firing for ``binding``.
+
+    Forwards to :func:`karma_team.bgtasks._rrule.next_fire_from_rrule` with the
+    binding's stored RRULE bundle. Returns ``None`` on parse error.
+    """
+    return next_fire_from_rrule(
+        dtstart=binding.dtstart,
+        rrule_str=binding.rrule or "",
+        tzid=binding.tzid or "UTC",
+        rdates=coerce_iso_datetimes(binding.rdates),
+        exdates=coerce_iso_datetimes(binding.exdates),
+        now=now,
+    )
+
+
+def _is_last_run_in_flight(binding: SchedulerBinding) -> bool:
+    """True when the previous run is still non-terminal.
+
+    A binding whose previous run is queued / running / awaiting-anything /
+    blocked is treated as "still in flight" — the new tick is skipped per
+    the design's concurrency policy (§9.1).
+    """
+    if binding.last_run_id is None:
+        return False
+    last_run = binding.last_run
+    return last_run.status in NON_TERMINAL_STATUSES
+
+
+@shared_task(name="karma_team.bgtasks.scheduler.scan_due_bindings")
+def scan_due_bindings() -> int:
+    """Fan out ``fire_scheduler_binding`` tasks for every due binding.
+
+    Returns the number of fan-outs (mostly for logging / tests).
+    """
+    if not _is_enabled():
+        return 0
+
+    now = timezone.now()
+    # NULL next_run_at means "never fired; due immediately." Postgres NULL
+    # semantics exclude rows with NULL from `__lte=`, so the OR clause is
+    # required. Also filter out bindings whose scheduler has been
+    # soft-deleted: the SoftDeleteModel cascade is async (see db/mixins.py
+    # `soft_delete_related_objects.delay`), so there's a real window where
+    # a binding still has deleted_at IS NULL but its parent doesn't.
+    due_ids = list(
+        SchedulerBinding.objects.filter(
+            enabled=True,
+            scheduler__is_enabled=True,
+            scheduler__deleted_at__isnull=True,
+            # Same async-cascade window applies to the project FK: when a
+            # project is soft-deleted, the binding's deleted_at flips only
+            # after ``soft_delete_related_objects`` runs.
+            project__deleted_at__isnull=True,
+        )
+        .filter(Q(next_run_at__lte=now) | Q(next_run_at__isnull=True))
+        .order_by("next_run_at")
+        .values_list("id", flat=True)
+    )
+    for binding_id in due_ids:
+        fire_scheduler_binding.delay(str(binding_id))
+    if due_ids:
+        logger.info(
+            "scheduler.scan: dispatched %d fire_scheduler_binding tasks",
+            len(due_ids),
+        )
+    return len(due_ids)
+
+
+@shared_task(
+    name="karma_team.bgtasks.scheduler.fire_scheduler_binding",
+    bind=True,
+    max_retries=0,
+)
+def fire_scheduler_binding(self, binding_id: str) -> bool:
+    """Fire one binding through the three-phase claim/dispatch/rollback.
+
+    Returns ``True`` if a run was dispatched, ``False`` if skipped.
+    """
+    if not _is_enabled():
+        return False
+
+    # ----- Phase 1: Claim under SFU and advance next_run_at -----
+    prev_next_run_at: Optional[datetime] = None
+    binding_pk = None
+
+    with transaction.atomic():
+        binding = (
+            SchedulerBinding.objects.select_for_update(of=("self",))
+            .select_related("scheduler", "last_run")
+            .filter(pk=binding_id, deleted_at__isnull=True)
+            .first()
+        )
+        if binding is None:
+            return False
+        if not binding.enabled:
+            return False
+        if not binding.scheduler.is_enabled:
+            return False
+        now = timezone.now()
+        # If next_run_at is in the future, this firing is racing the
+        # scanner; skip without advancing.
+        if binding.next_run_at is not None and binding.next_run_at > now:
+            return False
+        if _is_last_run_in_flight(binding):
+            logger.info(
+                "scheduler.fire: skip binding=%s reason=last-run-in-flight status=%s",
+                binding.pk,
+                binding.last_run.status,
+            )
+            return False
+
+        nxt = _next_fire_for_binding(binding, now=now)
+        if nxt is None:
+            # Bad RRULE bundle — record the error and disable the binding
+            # so we don't re-attempt every minute. Same recovery path as
+            # the legacy bad-cron handler: re-enable via the API edit
+            # endpoint, which validates the RRULE on PATCH.
+            binding.last_error = (
+                f"invalid rrule: dtstart={binding.dtstart!r} rrule={binding.rrule!r}"
+            )[:LAST_ERROR_MAX_LEN]
+            binding.enabled = False
+            binding.next_run_at = None
+            binding.save(
+                update_fields=["last_error", "enabled", "next_run_at", "updated_at"]
+            )
+            return False
+
+        prev_next_run_at = binding.next_run_at
+        binding_pk = binding.pk
+        binding.next_run_at = nxt
+        # Clear previous short-circuit error; a real terminate-hook update
+        # will rewrite this if dispatch succeeds and the run later fails.
+        if binding.last_error:
+            binding.last_error = ""
+        binding.save(update_fields=["next_run_at", "last_error", "updated_at"])
+
+    # ----- Phase 2: Dispatch outside the transaction -----
+    # The prompt is composed inside ``dispatch_scheduler_run`` (it needs the
+    # run id), unified onto the same section-based composer as issue runs.
+    # See .ai_design/prompt_section_system/design.md §5.
+    from karma_team.orchestration.service import dispatch_scheduler_run
+
+    # Re-fetch the binding without SFU; the dispatcher only needs the FK
+    # values it copies onto the AgentRun.
+    binding_for_dispatch = (
+        SchedulerBinding.objects.select_related(
+            "scheduler", "project", "workspace", "actor"
+        )
+        .filter(pk=binding_pk)
+        .first()
+    )
+    if binding_for_dispatch is None:
+        # Deleted between phases — nothing to roll back to.
+        return False
+
+    run, fail_reason = dispatch_scheduler_run(binding_for_dispatch)
+
+    # ----- Phase 3a: a run was produced — record the run pointer -----
+    if run is not None:
+        # A prompt-build failure still produces a run (marked FAILED) so the
+        # tick is recorded and next_run_at stays advanced. But surface the
+        # failure on ``last_error`` too, otherwise a permanently-broken prompt
+        # fails invisibly every tick (operators watch last_error, not
+        # last_run.status). A healthy run clears last_error.
+        run_failed = run.status == AgentRunStatus.FAILED
+        with transaction.atomic():
+            success = (
+                SchedulerBinding.objects.select_for_update(of=("self",))
+                .filter(pk=binding_pk)
+                .first()
+            )
+            if success is not None:
+                success.last_run = run
+                success.last_error = (
+                    f"prompt build failed: {run.error}"[:LAST_ERROR_MAX_LEN]
+                    if run_failed
+                    else ""
+                )
+                # Use save() so auto_now on updated_at fires; queryset
+                # .update() bypasses it (`auto_now` is set in pre_save).
+                success.save(update_fields=["last_run", "last_error", "updated_at"])
+        logger.info(
+            "scheduler.fire: dispatched run=%s binding=%s failed=%s",
+            run.pk,
+            binding_pk,
+            run_failed,
+        )
+        # A run was produced and next_run_at stays advanced (no rollback),
+        # so this is a dispatch, not a skip — return True regardless of the
+        # run's terminal status.
+        return True
+
+    # ----- Phase 3b: Failure — rollback the next_run_at advance -----
+    with transaction.atomic():
+        rollback_target = (
+            SchedulerBinding.objects.select_for_update(of=("self",))
+            .filter(pk=binding_pk)
+            .first()
+        )
+        if rollback_target is not None:
+            rollback_target.next_run_at = prev_next_run_at
+            rollback_target.last_error = (
+                f"dispatch failed: {fail_reason}" if fail_reason else "dispatch failed"
+            )[:LAST_ERROR_MAX_LEN]
+            rollback_target.save(
+                update_fields=["next_run_at", "last_error", "updated_at"]
+            )
+    logger.info(
+        "scheduler.fire: dispatch returned None binding=%s reason=%s; rolled back next_run_at",
+        binding_pk,
+        fail_reason or "(unspecified)",
+    )
+    return False

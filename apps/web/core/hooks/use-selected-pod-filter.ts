@@ -5,7 +5,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
-import type { IPod, IRunner } from "@pi-dash/types";
+import type { IPod, IRunner } from "@karma-team/types";
 
 /** State + filtering for "click pod tile to filter runners".
  *

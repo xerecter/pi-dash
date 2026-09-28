@@ -5,10 +5,10 @@
  */
 
 import React from "react";
-// pi dash imports
-import { AreaChart } from "@pi-dash/propel/charts/area-chart";
-import type { TChartData, TModuleCompletionChartDistribution } from "@pi-dash/types";
-import { renderFormattedDateWithoutYear } from "@pi-dash/utils";
+// karma-team imports
+import { AreaChart } from "@karma-team/propel/charts/area-chart";
+import type { TChartData, TModuleCompletionChartDistribution } from "@karma-team/types";
+import { renderFormattedDateWithoutYear } from "@karma-team/utils";
 
 type Props = {
   distribution: TModuleCompletionChartDistribution;

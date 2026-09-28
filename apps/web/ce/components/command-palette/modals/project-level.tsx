@@ -12,8 +12,8 @@ import { CreatePageModal } from "@/components/pages/modals/create-page-modal";
 import { CreateUpdateProjectViewModal } from "@/components/views/modal";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
-// pi dash web hooks
-import { EPageStoreType } from "@/pi-dash-web/hooks/store";
+// karma-team web hooks
+import { EPageStoreType } from "@/karma-team-web/hooks/store";
 
 export type TProjectLevelModalsProps = {
   workspaceSlug: string;

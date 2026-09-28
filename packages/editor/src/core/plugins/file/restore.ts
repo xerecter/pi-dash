@@ -7,12 +7,12 @@
 import type { Editor } from "@tiptap/core";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import type { EditorState, Transaction } from "@tiptap/pm/state";
-// pi dash imports
-import { CORE_EXTENSIONS } from "@pi-dash/utils";
+// karma-team imports
+import { CORE_EXTENSIONS } from "@karma-team/utils";
 // helpers
 import { CORE_ASSETS_META_DATA_RECORD } from "@/helpers/assets";
-// pi dash editor imports
-import { NODE_FILE_MAP } from "@/pi-dash-editor/constants/utility";
+// karma-team editor imports
+import { NODE_FILE_MAP } from "@/karma-team-editor/constants/utility";
 // types
 import type { TFileHandler } from "@/types";
 // local imports

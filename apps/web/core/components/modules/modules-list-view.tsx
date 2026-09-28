@@ -7,11 +7,11 @@
 import { observer } from "mobx-react";
 import { useParams, useSearchParams } from "next/navigation";
 // components
-import { EUserPermissionsLevel, MODULE_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import { EUserProjectRoles } from "@pi-dash/types";
-import { ContentWrapper, Row, ERowVariant } from "@pi-dash/ui";
+import { EUserPermissionsLevel, MODULE_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import { EUserProjectRoles } from "@karma-team/types";
+import { ContentWrapper, Row, ERowVariant } from "@karma-team/ui";
 // components
 import { ListLayout } from "@/components/core/list";
 import { ModuleCardItem, ModuleListItem, ModulePeekOverview, ModulesListGanttChartView } from "@/components/modules";
@@ -29,7 +29,7 @@ export const ModulesListView = observer(function ModulesListView() {
   const { workspaceSlug, projectId } = useParams();
   const searchParams = useSearchParams();
   const peekModule = searchParams.get("peekModule");
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { toggleCreateModuleModal } = useCommandPalette();
@@ -58,7 +58,9 @@ export const ModulesListView = observer(function ModulesListView() {
       <EmptyStateDetailed
         assetKey="module"
         title={t("Map your project goals to Modules and track easily.")}
-        description={t("Modules are made up of interconnected work items. They assist in monitoring progress through project phases, each with specific deadlines and analytics to indicate how close you are to achieving those phases.")}
+        description={t(
+          "Modules are made up of interconnected work items. They assist in monitoring progress through project phases, each with specific deadlines and analytics to indicate how close you are to achieving those phases."
+        )}
         actions={[
           {
             label: t("Set your first module"),

@@ -5,12 +5,12 @@
  */
 
 import { observer } from "mobx-react";
-import { INBOX_STATUS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { CloseIcon } from "@pi-dash/propel/icons";
-import type { TInboxIssueStatus } from "@pi-dash/types";
+import { INBOX_STATUS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { CloseIcon } from "@karma-team/propel/icons";
+import type { TInboxIssueStatus } from "@karma-team/types";
 // constants
-import { Tag } from "@pi-dash/ui";
+import { Tag } from "@karma-team/ui";
 // hooks
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 import { InboxStatusIcon } from "../../inbox-status-icon";

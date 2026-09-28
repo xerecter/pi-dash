@@ -6,8 +6,8 @@
 
 import type { Dispatch, SetStateAction } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 // hooks
 import { useNotification } from "@/hooks/store/notifications/use-notification";
 // local imports

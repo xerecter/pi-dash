@@ -6,8 +6,8 @@
 
 import { useCallback } from "react";
 import { observer } from "mobx-react";
-// pi dash types
-import type { ILinkDetails } from "@pi-dash/types";
+// karma-team types
+import type { ILinkDetails } from "@karma-team/types";
 // components
 import { ModulesLinksListItem } from "@/components/modules";
 // hooks

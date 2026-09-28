@@ -7,9 +7,9 @@
 import React from "react";
 import { Command } from "cmdk";
 import { X } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-// pi dash imports
-import { SearchIcon } from "@pi-dash/propel/icons";
+import { useTranslation } from "@karma-team/i18n";
+// karma-team imports
+import { SearchIcon } from "@karma-team/propel/icons";
 // local imports
 import type { TPowerKContext, TPowerKPageType } from "../../core/types";
 import { POWER_K_MODAL_PAGE_DETAILS } from "./constants";

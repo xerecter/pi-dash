@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TFilterValue, TSupportedOperators, TBaseFilterFieldConfig } from "@pi-dash/types";
-import { FILTER_FIELD_TYPE } from "@pi-dash/types";
+// karma-team imports
+import type { TFilterValue, TSupportedOperators, TBaseFilterFieldConfig } from "@karma-team/types";
+import { FILTER_FIELD_TYPE } from "@karma-team/types";
 // local imports
 import type { IFilterIconConfig } from "./shared";
 import { createFilterFieldConfig } from "./shared";

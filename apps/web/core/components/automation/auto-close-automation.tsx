@@ -8,12 +8,12 @@ import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { ArchiveX } from "lucide-react";
-// pi dash imports
-import { PROJECT_AUTOMATION_MONTHS, EUserPermissions, EUserPermissionsLevel, EIconSize } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { StateGroupIcon, StatePropertyIcon } from "@pi-dash/propel/icons";
-import type { IProject } from "@pi-dash/types";
-import { CustomSelect, CustomSearchSelect, ToggleSwitch, Loader } from "@pi-dash/ui";
+// karma-team imports
+import { PROJECT_AUTOMATION_MONTHS, EUserPermissions, EUserPermissionsLevel, EIconSize } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { StateGroupIcon, StatePropertyIcon } from "@karma-team/propel/icons";
+import type { IProject } from "@karma-team/types";
+import { CustomSelect, CustomSearchSelect, ToggleSwitch, Loader } from "@karma-team/ui";
 import { SelectMonthModal } from "@/components/automation";
 import { SettingsControlItem } from "@/components/settings/control-item";
 // hooks
@@ -92,7 +92,7 @@ export const AutoCloseAutomation = observer(function AutoCloseAutomation(props: 
           </div>
           <SettingsControlItem
             title={t("Auto-close work items")}
-            description={t("Pi Dash will automatically close work items that haven't been completed or canceled.")}
+            description={t("karma-team will automatically close work items that haven't been completed or canceled.")}
             control={
               <ToggleSwitch
                 value={autoCloseStatus}
@@ -115,9 +115,7 @@ export const AutoCloseAutomation = observer(function AutoCloseAutomation(props: 
             <div className="ml-13">
               <div className="flex flex-col rounded-sm border border-subtle bg-surface-2">
                 <div className="flex w-full items-center justify-between gap-2 px-5 py-4">
-                  <div className="w-1/2 text-13 font-medium">
-                    {t("Auto-close work items that are inactive for")}
-                  </div>
+                  <div className="w-1/2 text-13 font-medium">{t("Auto-close work items that are inactive for")}</div>
                   <div className="w-1/2">
                     <CustomSelect
                       value={currentProjectDetails?.close_in}
@@ -147,9 +145,7 @@ export const AutoCloseAutomation = observer(function AutoCloseAutomation(props: 
                 </div>
 
                 <div className="ppy flex w-full items-center justify-between gap-2 px-5 py-4 sm:py-10">
-                  <div className="w-1/2 text-13 font-medium">
-                    {t("Auto-close status")}
-                  </div>
+                  <div className="w-1/2 text-13 font-medium">{t("Auto-close status")}</div>
                   <div className="w-1/2">
                     <CustomSearchSelect
                       value={currentProjectDetails?.default_state ?? defaultState}

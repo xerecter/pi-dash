@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-import type { IBaseLayoutsKanbanItem, IBaseLayoutsKanbanProps } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import type { IBaseLayoutsKanbanItem, IBaseLayoutsKanbanProps } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 import { useLayoutState } from "../hooks/use-layout-state";
 import { BaseKanbanGroup } from "./group";
 

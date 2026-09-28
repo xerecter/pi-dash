@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { ToggleSwitch } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { ToggleSwitch } from "@karma-team/ui";
 
 type Props = {
   isWorkspaceLevel: boolean;

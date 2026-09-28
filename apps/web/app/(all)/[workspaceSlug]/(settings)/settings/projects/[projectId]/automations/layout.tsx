@@ -6,8 +6,8 @@
 
 import { observer } from "mobx-react";
 import { Outlet } from "react-router";
-// pi dash web imports
-import { AutomationsListWrapper } from "@/pi-dash-web/components/automations/list/wrapper";
+// karma-team web imports
+import { AutomationsListWrapper } from "@/karma-team-web/components/automations/list/wrapper";
 import type { Route } from "./+types/layout";
 
 function AutomationsListLayout({ params }: Route.ComponentProps) {

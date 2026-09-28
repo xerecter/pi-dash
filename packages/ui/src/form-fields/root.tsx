@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 // Reusable Label Component
 interface LabelProps {

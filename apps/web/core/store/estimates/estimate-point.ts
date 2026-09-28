@@ -9,8 +9,8 @@
 import { set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 // types
-import type { IEstimate, IEstimatePoint as IEstimatePointType } from "@pi-dash/types";
-// pi dash web services
+import type { IEstimate, IEstimatePoint as IEstimatePointType } from "@karma-team/types";
+// karma-team web services
 import estimateService from "@/services/estimate.service";
 // store
 import type { CoreRootStore } from "@/store/root.store";

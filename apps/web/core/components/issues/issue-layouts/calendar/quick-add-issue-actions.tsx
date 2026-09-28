@@ -9,14 +9,14 @@ import { differenceInCalendarDays } from "date-fns/differenceInCalendarDays";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 
-import { useTranslation } from "@pi-dash/i18n";
-// pi dash imports
-import { PlusIcon } from "@pi-dash/propel/icons";
-import { setPromiseToast } from "@pi-dash/propel/toast";
-import type { ISearchIssueResponse, TIssue } from "@pi-dash/types";
-import { EIssueLayoutTypes } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+// karma-team imports
+import { PlusIcon } from "@karma-team/propel/icons";
+import { setPromiseToast } from "@karma-team/propel/toast";
+import type { ISearchIssueResponse, TIssue } from "@karma-team/types";
+import { EIssueLayoutTypes } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 // hooks
@@ -62,7 +62,10 @@ export const CalendarQuickAddIssueActions = observer(function CalendarQuickAddIs
       loading: t("Adding work item", { count: issueIds.length }),
       success: {
         title: t("Success!"),
-        message: () => t("{entity} added successfully", { entity: t("{count, plural, one {Work item} other {Work items}}", { count: 2 }) }),
+        message: () =>
+          t("{entity} added successfully", {
+            entity: t("{count, plural, one {Work item} other {Work items}}", { count: 2 }),
+          }),
       },
       error: {
         title: t("Error!"),

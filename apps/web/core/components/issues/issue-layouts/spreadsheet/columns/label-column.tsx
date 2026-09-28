@@ -7,7 +7,7 @@
 import React from "react";
 import { observer } from "mobx-react";
 // types
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 // hooks
 import { useLabel } from "@/hooks/store/use-label";
 // components

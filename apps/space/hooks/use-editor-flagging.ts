@@ -5,7 +5,7 @@
  */
 
 // editor
-import type { TExtensions } from "@pi-dash/editor";
+import type { TExtensions } from "@karma-team/editor";
 
 export type TEditorFlaggingHookReturnType = {
   document: {

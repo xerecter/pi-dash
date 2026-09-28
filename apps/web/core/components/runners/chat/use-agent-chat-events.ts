@@ -5,8 +5,8 @@
  */
 
 import { useEffect, useRef } from "react";
-import { getChatTransport } from "@pi-dash/services";
-import type { IAgentChatEvent } from "@pi-dash/types";
+import { getChatTransport } from "@karma-team/services";
+import type { IAgentChatEvent } from "@karma-team/types";
 
 export function useAgentChatEvents(
   sessionId: string | undefined,

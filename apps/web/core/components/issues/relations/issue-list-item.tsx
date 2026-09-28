@@ -6,22 +6,22 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon, EditIcon, TrashIcon, CloseIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TIssue, TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
-import { ControlLink, CustomMenu } from "@pi-dash/ui";
-import { generateWorkItemLink } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon, EditIcon, TrashIcon, CloseIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TIssue, TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
+import { ControlLink, CustomMenu } from "@karma-team/ui";
+import { generateWorkItemLink } from "@karma-team/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web imports
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
-import type { TIssueRelationTypes } from "@/pi-dash-web/types";
+// karma-team web imports
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
+import type { TIssueRelationTypes } from "@/karma-team-web/types";
 // local imports
 import { useRelationOperations } from "../issue-detail-widgets/relations/helper";
 import { RelationIssueProperty } from "./properties";

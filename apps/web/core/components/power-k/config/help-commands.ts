@@ -31,13 +31,13 @@ export const usePowerKHelpCommands = (): TPowerKCommandConfig[] => {
       closeOnSelect: true,
     },
     {
-      id: "open_pi_dash_documentation",
+      id: "open_karma_team_documentation",
       type: "action",
       group: "help",
-      i18n_title: "Open Pi Dash documentation",
+      i18n_title: "Open karma-team documentation",
       icon: FileText,
       action: () => {
-        window.open("https://github.com/The-AI-Republic/pi-dash#readme", "_blank", "noopener,noreferrer");
+        window.open("https://github.com/xerecter/karma-team#readme", "_blank", "noopener,noreferrer");
       },
       isEnabled: () => true,
       isVisible: () => true,
@@ -50,7 +50,7 @@ export const usePowerKHelpCommands = (): TPowerKCommandConfig[] => {
       i18n_title: "Join our Forum",
       icon: MessageSquare,
       action: () => {
-        window.open("https://github.com/The-AI-Republic/pi-dash/discussions", "_blank", "noopener,noreferrer");
+        window.open("https://github.com/xerecter/karma-team/discussions", "_blank", "noopener,noreferrer");
       },
       isEnabled: () => true,
       isVisible: () => true,
@@ -63,7 +63,7 @@ export const usePowerKHelpCommands = (): TPowerKCommandConfig[] => {
       i18n_title: "Report a bug",
       icon: GithubIcon,
       action: () => {
-        window.open("https://github.com/The-AI-Republic/pi-dash/issues/new/choose", "_blank", "noopener,noreferrer");
+        window.open("https://github.com/xerecter/karma-team/issues/new/choose", "_blank", "noopener,noreferrer");
       },
       isEnabled: () => true,
       isVisible: () => true,

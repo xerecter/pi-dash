@@ -4,11 +4,11 @@
  * See the LICENSE file for details.
  */
 
-// pi dash web components
-import { EIssuesStoreType } from "@pi-dash/types";
-import { TeamEmptyState } from "@/pi-dash-web/components/issues/issue-layouts/empty-states/team-issues";
-import { TeamProjectWorkItemEmptyState } from "@/pi-dash-web/components/issues/issue-layouts/empty-states/team-project";
-import { TeamViewEmptyState } from "@/pi-dash-web/components/issues/issue-layouts/empty-states/team-view-issues";
+// karma-team web components
+import { EIssuesStoreType } from "@karma-team/types";
+import { TeamEmptyState } from "@/karma-team-web/components/issues/issue-layouts/empty-states/team-issues";
+import { TeamProjectWorkItemEmptyState } from "@/karma-team-web/components/issues/issue-layouts/empty-states/team-project";
+import { TeamViewEmptyState } from "@/karma-team-web/components/issues/issue-layouts/empty-states/team-view-issues";
 // components
 import { ProjectArchivedEmptyState } from "./archived-issues";
 import { CycleEmptyState } from "./cycle";

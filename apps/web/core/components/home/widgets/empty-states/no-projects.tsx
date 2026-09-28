@@ -10,18 +10,18 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Hotel } from "lucide-react";
-// pi dash ui
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useLocalStorage } from "@pi-dash/hooks";
-import { useTranslation } from "@pi-dash/i18n";
-import { MembersPropertyIcon, CheckIcon, ProjectIcon, CloseIcon } from "@pi-dash/propel/icons";
-import { cn, getFileURL } from "@pi-dash/utils";
+// karma-team ui
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useLocalStorage } from "@karma-team/hooks";
+import { useTranslation } from "@karma-team/i18n";
+import { MembersPropertyIcon, CheckIcon, ProjectIcon, CloseIcon } from "@karma-team/propel/icons";
+import { cn, getFileURL } from "@karma-team/utils";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
-// pi dash web constants
+// karma-team web constants
 
 export const NoProjectsEmptyState = observer(function NoProjectsEmptyState() {
   // navigation
@@ -51,7 +51,7 @@ export const NoProjectsEmptyState = observer(function NoProjectsEmptyState() {
     {
       id: "create-project",
       title: "Create a project",
-      description: "Most things start with a project in Pi Dash.",
+      description: "Most things start with a project in karma-team.",
       icon: <ProjectIcon className="size-4" />,
       flag: "projects",
       cta: {
@@ -91,7 +91,7 @@ export const NoProjectsEmptyState = observer(function NoProjectsEmptyState() {
     },
     {
       id: "personalize-account",
-      title: "Make Pi Dash yours.",
+      title: "Make karma-team yours.",
       description: "Choose your picture, colors, and more.",
       icon:
         currentUser?.avatar_url && currentUser?.avatar_url.trim() !== "" ? (

@@ -1,24 +1,24 @@
 [package]
-name = "pidash"
+name = "karma-team"
 version = "0.1.23"
 edition = "2024"
 rust-version = "1.93"
-description = "Pi Dash local runner: connects a dev machine to the Pi Dash cloud and drives Codex for assigned tasks."
+description = "karma-team local runner: connects a dev machine to the karma-team cloud and drives Codex for assigned tasks."
 license = "AGPL-3.0-only"
-repository = "https://github.com/The-AI-Republic/pi-dash"
+repository = "https://github.com/xerecter/karma-team"
 authors = ["AI Republic <privacy_security@airepublic.com>"]
-default-run = "pidash"
+default-run = "karma-team"
 
 [[bin]]
-name = "pidash"
+name = "karma-team"
 path = "src/main.rs"
 
 [lib]
-name = "pidash"
+name = "karma_team"
 path = "src/lib.rs"
 
 [dependencies]
-pidash-ipc = { path = "../pidash-ipc" }
+karma-team-ipc = { path = "../karma-team-ipc" }
 anyhow = "1"
 thiserror = "2"
 serde = { version = "1", features = ["derive"] }

@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-// pi dash imports
+// karma-team imports
 import { Card, ECardSpacing } from "../../card";
 
 interface TreeMapTooltipProps {

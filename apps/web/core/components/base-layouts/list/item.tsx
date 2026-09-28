@@ -8,7 +8,7 @@ import { useEffect, useRef } from "react";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { draggable, dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { observer } from "mobx-react";
-import type { IBaseLayoutsListItem, IBaseLayoutsListItemProps } from "@pi-dash/types";
+import type { IBaseLayoutsListItem, IBaseLayoutsListItemProps } from "@karma-team/types";
 
 export const BaseListItem = observer(function BaseListItem<T extends IBaseLayoutsListItem>(
   props: IBaseLayoutsListItemProps<T>

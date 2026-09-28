@@ -4,22 +4,22 @@
 
 //! Desktop → managed-daemon IPC.
 //!
-//! The desktop app starts and supervises the bundled `pidash` daemon
+//! The desktop app starts and supervises the bundled `karma-team` daemon
 //! (`managed_runner`), but until now it had no live connection to it. This
 //! module is that connection: a thin wrapper over the shared
-//! [`pidash_ipc::Client`] that talks to the managed daemon over its control
-//! socket (`<runtime_dir>/pidash.sock` — a Unix socket on macOS/Linux, a
-//! named pipe on Windows, both handled by `pidash_ipc::Client`).
+//! [`karma_team_ipc::Client`] that talks to the managed daemon over its control
+//! socket (`<runtime_dir>/karma-team.sock` — a Unix socket on macOS/Linux, a
+//! named pipe on Windows, both handled by `karma_team_ipc::Client`).
 //!
 //! The socket path matches the daemon's own `RunnerPaths::ipc_socket_path`
-//! (`<runtime_dir>/pidash.sock`). Which runtime dir matters: the daemon runs
-//! **per workspace** with `PIDASH_DATA_DIR` set to the re-rooted `data_dir`,
+//! (`<runtime_dir>/karma-team.sock`). Which runtime dir matters: the daemon runs
+//! **per workspace** with `KARMA_TEAM_DATA_DIR` set to the re-rooted `data_dir`,
 //! so it binds under `<data_dir>/runtime`, not the shared `managed/runtime/`
 //! that holds the model token. Use [`ManagedPaths::daemon_runtime_dir`] (via
 //! `ManagedPaths::for_workspace`) rather than `paths.runtime_dir`.
 //!
 //! Scope note (PDASHOSS01-158): this lands the *capability* — the desktop
-//! crate depends on `pidash-ipc` (not the runner) and can round-trip
+//! crate depends on `karma-team-ipc` (not the runner) and can round-trip
 //! `StatusGet`. The live status / approvals surface is deliberately out of
 //! scope; the user sees agent activity through the chat UI (PDASHOSS01-159),
 //! which is the real consumer of this helper.
@@ -27,7 +27,7 @@
 
 use std::path::{Path, PathBuf};
 
-use pidash_ipc::protocol::{Request, Response, StatusSnapshot};
+use karma_team_ipc::protocol::{Request, Response, StatusSnapshot};
 
 use crate::managed_runner::ManagedPaths;
 
@@ -36,7 +36,7 @@ use crate::managed_runner::ManagedPaths;
 /// Kept byte-identical to the daemon's `RunnerPaths::ipc_socket_path` so both
 /// ends agree without a shared constant crossing the crate boundary.
 pub fn socket_path(runtime_dir: &Path) -> PathBuf {
-    runtime_dir.join("pidash.sock")
+    runtime_dir.join("karma-team.sock")
 }
 
 /// Fetch a one-shot status snapshot from the managed daemon.
@@ -52,7 +52,7 @@ pub async fn managed_status(paths: &ManagedPaths) -> Result<StatusSnapshot, Stri
 /// round-trip. Split out from [`managed_status`] so it can be driven against
 /// a stub socket in tests.
 async fn status_over(socket: &Path) -> Result<StatusSnapshot, String> {
-    let mut client = pidash_ipc::Client::connect(socket)
+    let mut client = karma_team_ipc::Client::connect(socket)
         .await
         .map_err(|e| format!("connecting to managed daemon: {e}"))?;
     match client
@@ -69,7 +69,7 @@ async fn status_over(socket: &Path) -> Result<StatusSnapshot, String> {
 #[cfg(all(test, unix))]
 mod tests {
     use super::*;
-    use pidash_ipc::protocol::{DaemonInfo, StatusSnapshot};
+    use karma_team_ipc::protocol::{DaemonInfo, StatusSnapshot};
     use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
     use tokio::net::UnixListener;
 
@@ -85,7 +85,7 @@ mod tests {
         }
     }
 
-    /// The desktop crate, depending only on `pidash-ipc`, can connect to a
+    /// The desktop crate, depending only on `karma-team-ipc`, can connect to a
     /// daemon over the real transport and complete a `StatusGet` round-trip.
     /// The stub speaks the exact newline-framed JSON the daemon's IPC server
     /// does, so this exercises the shared protocol + client end to end.

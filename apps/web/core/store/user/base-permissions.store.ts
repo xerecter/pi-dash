@@ -7,18 +7,18 @@
 import { unset, set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import type { TUserPermissions, TUserPermissionsLevel } from "@pi-dash/constants";
+// karma-team imports
+import type { TUserPermissions, TUserPermissionsLevel } from "@karma-team/constants";
 import {
   EUserPermissions,
   EUserPermissionsLevel,
   WORKSPACE_SIDEBAR_DYNAMIC_NAVIGATION_ITEMS_LINKS,
-} from "@pi-dash/constants";
-import type { EUserProjectRoles, IUserProjectsRole, IWorkspaceMemberMe, TProjectMembership } from "@pi-dash/types";
-import { EUserWorkspaceRoles } from "@pi-dash/types";
-// pi dash web imports
+} from "@karma-team/constants";
+import type { EUserProjectRoles, IUserProjectsRole, IWorkspaceMemberMe, TProjectMembership } from "@karma-team/types";
+import { EUserWorkspaceRoles } from "@karma-team/types";
+// karma-team web imports
 import { WorkspaceService } from "@/services/workspace.service";
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import type { RootStore } from "@/karma-team-web/store/root.store";
 // services
 import projectMemberService from "@/services/project/project-member.service";
 import userService from "@/services/user.service";
@@ -26,7 +26,7 @@ import userService from "@/services/user.service";
 // derived services
 const workspaceService = new WorkspaceService();
 
-type ETempUserRole = TUserPermissions | EUserWorkspaceRoles | EUserProjectRoles; // TODO: Remove this once we have migrated user permissions to enums to pi dash constants package
+type ETempUserRole = TUserPermissions | EUserWorkspaceRoles | EUserProjectRoles; // TODO: Remove this once we have migrated user permissions to enums to karma-team constants package
 
 export interface IBaseUserPermissionStore {
   loader: boolean;

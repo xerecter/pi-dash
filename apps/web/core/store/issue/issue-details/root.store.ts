@@ -15,15 +15,15 @@ import type {
   TIssueReaction,
   TIssueServiceType,
   TWorkItemWidgets,
-} from "@pi-dash/types";
-// pi dash web store
-import { IssueActivityStore } from "@/pi-dash-web/store/issue/issue-details/activity.store";
+} from "@karma-team/types";
+// karma-team web store
+import { IssueActivityStore } from "@/karma-team-web/store/issue/issue-details/activity.store";
 import type {
   IIssueActivityStore,
   IIssueActivityStoreActions,
   TActivityLoader,
-} from "@/pi-dash-web/store/issue/issue-details/activity.store";
-import type { TIssueRelationTypes } from "@/pi-dash-web/types";
+} from "@/karma-team-web/store/issue/issue-details/activity.store";
+import type { TIssueRelationTypes } from "@/karma-team-web/types";
 import type { IIssueRootStore } from "../root.store";
 import { IssueAttachmentStore } from "./attachment.store";
 import type { IIssueAttachmentStore, IIssueAttachmentStoreActions } from "./attachment.store";

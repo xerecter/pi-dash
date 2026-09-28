@@ -1,6 +1,6 @@
 //! Mint a fresh runner UUID locally.
 //!
-//! Used by both ``pidash runner add`` and the TUI add-runner form so the
+//! Used by both ``karma-team runner add`` and the TUI add-runner form so the
 //! cloud and local config agree on the runner_id from the very first
 //! message. Cloud trusts the daemon-supplied UUID — if a user accidentally
 //! collides (vanishingly unlikely with v4), the cloud rejects the create

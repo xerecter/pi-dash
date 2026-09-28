@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { EStartOfTheWeek } from "@pi-dash/types";
+// karma-team imports
+import { EStartOfTheWeek } from "@karma-team/types";
 
 export const PROFILE_VIEWER_TAB = [
   {

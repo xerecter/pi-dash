@@ -7,7 +7,7 @@
 import type { ParsedUrlQuery } from "node:querystring";
 import { action, makeObservable, observable, computed, runInAction } from "mobx";
 
-import type { TProfileViews } from "@pi-dash/types";
+import type { TProfileViews } from "@karma-team/types";
 export interface IRouterStore {
   // observables
   query: ParsedUrlQuery;

@@ -6,16 +6,16 @@
 
 import { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { ISSUE_LAYOUT_MAP } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { CheckIcon } from "@pi-dash/propel/icons";
-import { EIssueLayoutTypes } from "@pi-dash/types";
-import { Dropdown } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { ISSUE_LAYOUT_MAP } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { CheckIcon } from "@karma-team/propel/icons";
+import { EIssueLayoutTypes } from "@karma-team/types";
+import { Dropdown } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { IssueLayoutIcon } from "@/components/issues/issue-layouts/layout-icon";
-import { getIconButtonStyling } from "@pi-dash/propel/icon-button";
+import { getIconButtonStyling } from "@karma-team/propel/icon-button";
 
 type TLayoutDropDown = {
   onChange: (value: EIssueLayoutTypes) => void;
@@ -25,7 +25,7 @@ type TLayoutDropDown = {
 
 export const LayoutDropDown = observer(function LayoutDropDown(props: TLayoutDropDown) {
   const { onChange, value = EIssueLayoutTypes.LIST, disabledLayouts = [] } = props;
-  // pi dash i18n
+  // karma-team i18n
   const { t } = useTranslation();
   // derived values
   const availableLayouts = useMemo(

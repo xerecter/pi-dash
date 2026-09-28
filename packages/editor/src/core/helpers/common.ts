@@ -6,8 +6,8 @@
 
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
 import type { EditorState, Selection } from "@tiptap/pm/state";
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 

@@ -8,10 +8,10 @@ import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { ListFilter } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { TProjectFilters } from "@pi-dash/types";
-import { cn, calculateTotalFilters } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { TProjectFilters } from "@karma-team/types";
+import { cn, calculateTotalFilters } from "@karma-team/utils";
 // components
 import { FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 // hooks

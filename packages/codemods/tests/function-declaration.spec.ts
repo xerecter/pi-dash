@@ -295,7 +295,7 @@ describe("function-declaration", () => {
     const result = await applyTransform(
       transformer,
       `
-      import type { TCallbackMentionComponentProps } from "@pi-dash/editor";
+      import type { TCallbackMentionComponentProps } from "@karma-team/editor";
 
       export const EditorAdditionalMentionsRoot: React.FC<TCallbackMentionComponentProps> = () => null;
       `,
@@ -303,7 +303,7 @@ describe("function-declaration", () => {
     );
 
     expect(result).toMatchInlineSnapshot(`
-      "import type { TCallbackMentionComponentProps } from "@pi-dash/editor";
+      "import type { TCallbackMentionComponentProps } from "@karma-team/editor";
 
             export function EditorAdditionalMentionsRoot(_props: TCallbackMentionComponentProps) {
                   return null;

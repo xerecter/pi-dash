@@ -5,9 +5,9 @@
  */
 
 import { redirect } from "react-router";
-// pi dash imports
-import { SitesProjectPublishService } from "@pi-dash/services";
-import type { TProjectPublishSettings } from "@pi-dash/types";
+// karma-team imports
+import { SitesProjectPublishService } from "@karma-team/services";
+import type { TProjectPublishSettings } from "@karma-team/types";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 import type { Route } from "./+types/page";

@@ -8,12 +8,12 @@ import React, { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import type { TModuleFilters } from "@pi-dash/types";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import type { TModuleFilters } from "@karma-team/types";
 // components
-import { calculateTotalFilters } from "@pi-dash/utils";
+import { calculateTotalFilters } from "@karma-team/utils";
 import { ArchivedModulesView, ModuleAppliedFiltersList } from "@/components/modules";
 import { CycleModuleListLayoutLoader } from "@/components/ui/loader/cycle-module-list-loader";
 // helpers
@@ -24,7 +24,7 @@ import { useModuleFilter } from "@/hooks/store/use-module-filter";
 export const ArchivedModuleLayoutRoot = observer(function ArchivedModuleLayoutRoot() {
   // router
   const { workspaceSlug, projectId } = useParams();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // hooks
   const { fetchArchivedModules, projectArchivedModuleIds, loader } = useModule();
@@ -79,7 +79,9 @@ export const ArchivedModuleLayoutRoot = observer(function ArchivedModuleLayoutRo
           <EmptyStateDetailed
             assetKey="archived-module"
             title={t("No archived Modules yet")}
-            description={t("To tidy up your project, archive completed or cancelled modules. Find them here once archived.")}
+            description={t(
+              "To tidy up your project, archive completed or cancelled modules. Find them here once archived."
+            )}
           />
         </div>
       ) : (

@@ -1,4 +1,4 @@
-//! ``pidash runner <add|list|remove>`` — manage runners under the active
+//! ``karma-team runner <add|list|remove>`` — manage runners under the active
 //! connection.
 //!
 //! The CLI mints the runner UUID locally (via ``util::runner_id::mint``,
@@ -58,14 +58,17 @@ fn use_package(args: UsePackageArgs, paths: &Paths) -> Result<()> {
             .with_context(|| format!("no configured runner named {:?}", args.name))?;
         package.apply_to_runner(runner)
     })?;
-    println!("Agent package configured for {:?}. No package was installed or started. Restart the owning daemon when idle to apply the change.", args.name);
+    println!(
+        "Agent package configured for {:?}. No package was installed or started. Restart the owning daemon when idle to apply the change.",
+        args.name
+    );
     Ok(())
 }
 
 #[derive(Debug, Clone, ClapArgs)]
 pub struct AddArgs {
-    /// Pi Dash cloud base URL. Used when this host is not logged in yet
-    /// and `runner add` needs to start `pidash auth login` first.
+    /// karma-team cloud base URL. Used when this host is not logged in yet
+    /// and `runner add` needs to start `karma-team auth login` first.
     #[arg(long)]
     pub url: Option<String>,
 
@@ -73,11 +76,11 @@ pub struct AddArgs {
     #[arg(long)]
     pub name: Option<String>,
 
-    /// Pi Dash project this runner serves.
+    /// karma-team project this runner serves.
     #[arg(long)]
     pub project: String,
 
-    /// Pi Dash workspace slug. Optional in single-workspace setups;
+    /// karma-team workspace slug. Optional in single-workspace setups;
     /// required if the caller belongs to multiple workspaces.
     #[arg(long)]
     pub workspace: Option<String>,
@@ -140,7 +143,7 @@ pub async fn run(args: RunnerArgs, paths: &Paths) -> Result<()> {
 /// Library entry point: exposed so the TUI's add-runner form can reuse the
 /// same enrollment logic without going through clap.
 ///
-/// Uses the shared dev-machine token written by `pidash auth login` to ask
+/// Uses the shared dev-machine token written by `karma-team auth login` to ask
 /// the cloud to create a runner under this host. Older configs with a
 /// user-scoped API token are upgraded when the cloud returns a machine token.
 pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
@@ -152,7 +155,7 @@ pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
     if let Some(name) = runner_name {
         runner_name::validate(name).with_context(|| {
             format!(
-                "invalid --name {name:?}; use an identifier like `test-runner`, or omit --name to let Pi Dash assign one"
+                "invalid --name {name:?}; use an identifier like `test-runner`, or omit --name to let karma-team assign one"
             )
         })?;
     }
@@ -165,7 +168,7 @@ pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
     };
     if existing_count >= MAX_RUNNERS_PER_DAEMON {
         anyhow::bail!(
-            "daemon already at the {MAX_RUNNERS_PER_DAEMON}-runner cap; remove one with `pidash runner remove <NAME>` first"
+            "daemon already at the {MAX_RUNNERS_PER_DAEMON}-runner cap; remove one with `karma-team runner remove <NAME>` first"
         );
     }
 
@@ -175,7 +178,7 @@ pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
         file::load_config(paths)?.daemon.cloud_url
     } else {
         anyhow::bail!(
-            "no [daemon].cloud_url configured — run `pidash auth login --url <URL>` first"
+            "no [daemon].cloud_url configured — run `karma-team auth login --url <URL>` first"
         )
     };
     if let Some(url) = args.url.as_deref() {
@@ -194,7 +197,7 @@ pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
         SharedHttpTransport::new(cloud_url.clone()).context("building HTTP transport for cloud")?;
     // Workspace resolution order:
     //   1. Explicit `--workspace` from this call (highest precedence).
-    //   2. `[cli].workspace_slug` persisted by `pidash auth login`
+    //   2. `[cli].workspace_slug` persisted by `karma-team auth login`
     //      (the v1 single-workspace-per-host binding).
     //   3. None — let the cloud infer from a single membership; it
     //      rejects with a clear error if the caller is multi-workspace.
@@ -220,7 +223,7 @@ pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
     // Local persistence under the branch's rollback umbrella: if anything
     // between the cloud mint above and the on-disk write fails, we delete
     // the cloud-side row so the operator doesn't end up with an orphan.
-    // The rollback uses the same X-Api-Key surface as `pidash runner
+    // The rollback uses the same X-Api-Key surface as `karma-team runner
     // remove` (cascade so any daemon already polling tears down too); a
     // failed rollback is logged but does not mask the original error.
     let applied = match runner_ops::apply_enroll_response(
@@ -281,7 +284,7 @@ pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
         .await
         {
             println!(
-                "(Runner was added, but .pidash/context.md was not written: {})",
+                "(Runner was added, but .karma-team/context.md was not written: {})",
                 err
             );
         }
@@ -315,7 +318,7 @@ pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
     // out the countdown before auth even started); deferring it means the page
     // opens cleanly once the runner is actually registered. Non-fatal: the
     // binary only has to exist by the time the daemon picks up a run, and
-    // `pidash doctor` re-checks it.
+    // `karma-team doctor` re-checks it.
     remind_if_agent_missing(args.agent).await;
 
     Ok(applied.runner)
@@ -332,7 +335,7 @@ async fn ensure_cli_token(
         return Ok(token);
     }
 
-    println!("No Pi Dash auth token found; starting `pidash auth login` first.");
+    println!("No karma-team auth token found; starting `karma-team auth login` first.");
     crate::cli::auth::login::run_auth_only(
         crate::cli::auth::login::Args {
             url: cloud_url.map(|u| u.trim_end_matches('/').to_string()),
@@ -362,13 +365,13 @@ fn hostname_or_unknown() -> String {
         .unwrap_or_else(|| "unknown-host".to_string())
 }
 
-/// When Pi Dash can't run the selected agent's CLI on this dev machine,
+/// When karma-team can't run the selected agent's CLI on this dev machine,
 /// remind the operator how to install it and open the agent's official
 /// install page in their browser.
 ///
-/// Non-fatal by design: `pidash runner add` still registers the runner.
+/// Non-fatal by design: `karma-team runner add` still registers the runner.
 /// The agent binary only has to exist by the time the daemon spawns a run,
-/// and `pidash doctor` re-checks it — so we nudge rather than block. The
+/// and `karma-team doctor` re-checks it — so we nudge rather than block. The
 /// presence probe goes through the same platform spawn helper the daemon uses
 /// (see [`crate::util::shell::binary_runs_version`]) so this reminder matches
 /// whether a real run can launch the agent.
@@ -376,7 +379,7 @@ fn hostname_or_unknown() -> String {
 /// The browser is only opened when attached to a terminal; in CI / piped
 /// invocations we just print the URL (spawning a browser there is noise and
 /// usually fails silently anyway). Both `add` call sites are CLI flows
-/// (`pidash runner add` and `pidash auth login`'s onboarding prompt); the
+/// (`karma-team runner add` and `karma-team auth login`'s onboarding prompt); the
 /// TUI add-runner modal uses a different path, so printing here is safe.
 async fn remind_if_agent_missing(agent: AgentKind) {
     let binary = agent.default_binary();
@@ -387,7 +390,7 @@ async fn remind_if_agent_missing(agent: AgentKind) {
     let name = agent.display_name();
     let url = agent.install_page_url();
     println!();
-    println!("⚠ Pi Dash could not run the {name} CLI (`{binary}`) on this machine.");
+    println!("⚠ karma-team could not run the {name} CLI (`{binary}`) on this machine.");
     println!(
         "  This runner drives {name}, so its runs will fail until `{binary}` is installed and runnable on PATH."
     );
@@ -417,7 +420,9 @@ async fn remind_if_agent_missing(agent: AgentKind) {
 pub fn list(paths: &Paths) -> Result<()> {
     let cfg = file::load_config(paths)?;
     if cfg.runners.is_empty() {
-        println!("No runners configured. Add one with `pidash runner add --name … --project …`.");
+        println!(
+            "No runners configured. Add one with `karma-team runner add --name … --project …`."
+        );
         return Ok(());
     }
     println!("{:<24} {:<36} {:<24}", "NAME", "RUNNER_ID", "PROJECT");
@@ -432,7 +437,7 @@ pub fn list(paths: &Paths) -> Result<()> {
     Ok(())
 }
 
-/// Outcome of the `pidash runner remove` connectivity probe; drives
+/// Outcome of the `karma-team runner remove` connectivity probe; drives
 /// the prompt copy and whether we hit the cloud at all.
 #[derive(Debug, Clone, Copy)]
 enum RemoveMode {
@@ -458,7 +463,7 @@ enum FallbackReason {
     /// out within the configured window.
     CloudUnreachable,
     /// `[cli].token` in `config.toml` is absent; the v1 delete endpoint
-    /// requires it. Operator needs to run `pidash auth login` first.
+    /// requires it. Operator needs to run `karma-team auth login` first.
     MissingApiToken,
     /// Mode is not `OfflineFallback`; field is meaningless. Used in
     /// place of `Option` to keep the destructuring tuple flat.
@@ -482,13 +487,13 @@ pub async fn remove(args: RemoveArgs, paths: &Paths) -> Result<()> {
     // missing credential.
     //
     // The CLI token comes from `[cli].token` in `config.toml` — the
-    // single source of truth populated by `pidash auth login`. The
+    // single source of truth populated by `karma-team auth login`. The
     // legacy workspace-level `credentials.toml::api_token` field is
     // never populated by any current path (see
     // `cli/connect.rs::write_credentials` which hard-codes
     // `api_token: None`), so reading from it would always classify
     // every host as `MissingApiToken` and silently kill cascade
-    // delete. Aligns this with `pidash runner add` which also reads
+    // delete. Aligns this with `karma-team runner add` which also reads
     // via `runner_ops::load_cli_token`.
     let (mode, api_token, fallback_reason): (RemoveMode, Option<String>, FallbackReason) =
         if args.local_only {
@@ -525,7 +530,7 @@ pub async fn remove(args: RemoveArgs, paths: &Paths) -> Result<()> {
                 args.name
             ),
             FallbackReason::MissingApiToken => format!(
-                "No CLI token configured (run `pidash auth login` to authenticate \
+                "No CLI token configured (run `karma-team auth login` to authenticate \
                  this host with the cloud); cloud-side deregistration is not \
                  possible from this CLI. Only the local runner instance for '{}' \
                  can be deleted — delete the cloud row from the web UI. Continue?",
@@ -557,7 +562,10 @@ pub async fn remove(args: RemoveArgs, paths: &Paths) -> Result<()> {
         eprintln!("To remove this runner from the cloud, use the web UI's");
         eprintln!("\"Delete\" button on the runners page.");
         eprintln!("To clean up local state only, re-run with --local-only:");
-        eprintln!("  pidash runner remove {} --local-only --yes", args.name);
+        eprintln!(
+            "  karma-team runner remove {} --local-only --yes",
+            args.name
+        );
         anyhow::bail!("cloud delete-runner failed");
     }
 
@@ -603,7 +611,7 @@ pub async fn remove(args: RemoveArgs, paths: &Paths) -> Result<()> {
             FallbackReason::MissingApiToken => {
                 println!(
                     "Removed runner {} locally. The cloud row remains; \
-                     delete it from the web UI, or run `pidash auth login` \
+                     delete it from the web UI, or run `karma-team auth login` \
                      and re-run this command to enable cloud-side delete.",
                     args.name
                 );
@@ -624,11 +632,11 @@ pub async fn remove(args: RemoveArgs, paths: &Paths) -> Result<()> {
 /// the named runner without touching the cloud. The daemon's handler
 /// runs the same teardown the cloud's `remove_runner` wire frame
 /// triggers (cancel run, strip config.toml, delete data dir), but
-/// bounded to this one runner; the shared `pidash.service` systemd
+/// bounded to this one runner; the shared `karma-team.service` systemd
 /// unit and other runners are left alone.
 ///
 /// Failure is non-fatal: if the daemon isn't running, the socket
-/// doesn't exist, or it's an older `pidash` that doesn't know the
+/// doesn't exist, or it's an older `karma-team` that doesn't know the
 /// `RunnerRemoveLocal` verb, we silently swallow the error and let
 /// the caller fall through to the direct config-mutation path. The
 /// IPC call is purely an optimisation to avoid the "daemon keeps

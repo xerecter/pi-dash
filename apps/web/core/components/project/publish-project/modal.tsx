@@ -10,15 +10,15 @@ import { useParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 
 // types
-import { SPACE_BASE_PATH, SPACE_BASE_URL } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { GlobeIcon, NewTabIcon, CheckIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TProjectPublishLayouts, TProjectPublishSettings } from "@pi-dash/types";
+import { SPACE_BASE_PATH, SPACE_BASE_URL } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { GlobeIcon, NewTabIcon, CheckIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TProjectPublishLayouts, TProjectPublishSettings } from "@karma-team/types";
 // ui
-import { Loader, ToggleSwitch, CustomSelect, ModalCore, EModalWidth } from "@pi-dash/ui";
+import { Loader, ToggleSwitch, CustomSelect, ModalCore, EModalWidth } from "@karma-team/ui";
 // helpers
-import { copyTextToClipboard } from "@pi-dash/utils";
+import { copyTextToClipboard } from "@karma-team/utils";
 // hooks
 import { useProjectPublish } from "@/hooks/store/use-project-publish";
 

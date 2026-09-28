@@ -9,11 +9,11 @@ import { observer } from "mobx-react";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 // icons
 import { Info } from "lucide-react";
-import { CheckIcon } from "@pi-dash/propel/icons";
+import { CheckIcon } from "@karma-team/propel/icons";
 // ui
-import { CircularProgressIndicator } from "@pi-dash/ui";
+import { CircularProgressIndicator } from "@karma-team/ui";
 // components
-import { generateQueryParams } from "@pi-dash/utils";
+import { generateQueryParams } from "@karma-team/utils";
 import { ListItem } from "@/components/core/list";
 import { ModuleListItemAction, ModuleQuickActions } from "@/components/modules";
 // helpers

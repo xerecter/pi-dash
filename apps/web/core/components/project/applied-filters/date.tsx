@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-import { PROJECT_CREATED_AT_FILTER_OPTIONS } from "@pi-dash/constants";
-import { CloseIcon } from "@pi-dash/propel/icons";
+import { PROJECT_CREATED_AT_FILTER_OPTIONS } from "@karma-team/constants";
+import { CloseIcon } from "@karma-team/propel/icons";
 // helpers
-import { renderFormattedDate, capitalizeFirstLetter } from "@pi-dash/utils";
+import { renderFormattedDate, capitalizeFirstLetter } from "@karma-team/utils";
 // constants
 
 type Props = {

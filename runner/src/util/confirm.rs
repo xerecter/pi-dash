@@ -2,7 +2,7 @@
 //!
 //! Hand-rolled rather than pulled in from `dialoguer` to avoid a new
 //! dep on a single-use surface. The CLI only confirms a handful of
-//! actions (today: `pidash runner remove`); a full prompt crate is
+//! actions (today: `karma-team runner remove`); a full prompt crate is
 //! overkill.
 //!
 //! Behaviour:

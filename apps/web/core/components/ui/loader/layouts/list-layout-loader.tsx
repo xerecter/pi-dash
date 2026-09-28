@@ -6,10 +6,10 @@
 
 import { Fragment, forwardRef } from "react";
 import { range } from "lodash-es";
-// pi dash ui
-import { Row } from "@pi-dash/ui";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team ui
+import { Row } from "@karma-team/ui";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 import { getRandomInt, getRandomLength } from "../utils";
 
 export const ListLoaderItemRow = forwardRef(function ListLoaderItemRow(

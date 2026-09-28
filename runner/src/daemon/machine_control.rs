@@ -5,7 +5,7 @@
 //! control messages. This channel exists even when the machine hosts
 //! zero runners — it is how the cloud's "Add runner" modal creates a
 //! runner on a connected machine without the operator pasting a
-//! `pidash runner add` command.
+//! `karma-team runner add` command.
 //!
 //! Handled messages (cloud-side allowlist in
 //! `services/machine_outbox.py`):
@@ -203,7 +203,7 @@ impl MachineControl {
         let host_label = hostname().unwrap_or_else(|| "unknown-host".to_string());
 
         // 1. Cloud registration — same X-Api-Key surface as
-        //    `pidash runner add`.
+        //    `karma-team runner add`.
         let resp = create_runner(
             self.client.transport(),
             CreateRunnerRequest {
@@ -239,7 +239,7 @@ impl MachineControl {
             Ok(applied) => applied,
             Err(persist_err) => {
                 // Roll the cloud-side row back so a failed local write
-                // doesn't leave an orphan runner (mirrors `pidash
+                // doesn't leave an orphan runner (mirrors `karma-team
                 // runner add`'s rollback umbrella).
                 if let Err(rollback_err) = crate::cloud::runners::delete_runner(
                     &cloud_url,

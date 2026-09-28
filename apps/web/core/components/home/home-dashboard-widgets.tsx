@@ -7,9 +7,9 @@
 import { observer } from "mobx-react";
 import { useParams, usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { THomeWidgetKeys, THomeWidgetProps } from "@pi-dash/types";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { THomeWidgetKeys, THomeWidgetProps } from "@karma-team/types";
 // assets
 import darkWidgetsAsset from "@/app/assets/empty-state/dashboard/widgets-dark.webp?url";
 import lightWidgetsAsset from "@/app/assets/empty-state/dashboard/widgets-light.webp?url";
@@ -18,8 +18,8 @@ import { SimpleEmptyState } from "@/components/empty-state/simple-empty-state-ro
 // hooks
 import { useHome } from "@/hooks/store/use-home";
 import { useProject } from "@/hooks/store/use-project";
-// pi dash web components
-import { HomePageHeader } from "@/pi-dash-web/components/home/header";
+// karma-team web components
+import { HomePageHeader } from "@/karma-team-web/components/home/header";
 // local imports
 import { HomeLoader, NoProjectsEmptyState, RecentActivityWidget } from "./widgets";
 import { DashboardQuickLinks } from "./widgets/links";
@@ -47,10 +47,10 @@ export const HOME_WIDGETS_LIST: {
     fullWidth: false,
     title: "Your stickies",
   },
-  new_at_pi_dash: {
+  new_at_karma_team: {
     component: null,
     fullWidth: false,
-    title: "New at Pi Dash",
+    title: "New at karma-team",
   },
   quick_tutorial: {
     component: null,
@@ -60,7 +60,7 @@ export const HOME_WIDGETS_LIST: {
 };
 
 // Widgets hidden from users. `my_stickies` is part of the inherited Stickies
-// feature, which Pi Dash does not surface (PDASHOSS01-7). Its dashboard
+// feature, which karma-team does not surface (PDASHOSS01-7). Its dashboard
 // component is already `null`, but the Manage Widgets modal still enumerates
 // every server-provided widget key — so it must be filtered there too.
 export const HIDDEN_HOME_WIDGET_KEYS: ReadonlySet<THomeWidgetKeys> = new Set(["my_stickies"]);
@@ -75,7 +75,7 @@ export const DashboardWidgets = observer(function DashboardWidgets() {
   // store hooks
   const { toggleWidgetSettings, widgetsMap, showWidgetSettings, orderedWidgets, loading } = useHome();
   const { loader } = useProject();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // derived values
   const noWidgetsResolvedPath = resolvedTheme === "light" ? lightWidgetsAsset : darkWidgetsAsset;

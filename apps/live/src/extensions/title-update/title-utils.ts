@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { sanitizeHTML } from "@pi-dash/utils";
+import { sanitizeHTML } from "@karma-team/utils";
 
 /**
  * Utility function to extract text from HTML content

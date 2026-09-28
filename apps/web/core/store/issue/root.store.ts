@@ -7,25 +7,25 @@
 import { isEmpty } from "lodash-es";
 import { autorun, makeObservable, observable } from "mobx";
 // types
-import type { ICycle, IIssueLabel, IModule, IProject, IState, IUserLite, TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
-// pi dash web store
-import type { IProjectEpics, IProjectEpicsFilter } from "@/pi-dash-web/store/issue/epic";
-import { ProjectEpics, ProjectEpicsFilter } from "@/pi-dash-web/store/issue/epic";
-import type { IIssueDetail } from "@/pi-dash-web/store/issue/issue-details/root.store";
-import { IssueDetail } from "@/pi-dash-web/store/issue/issue-details/root.store";
-import type { ITeamIssuesFilter, ITeamIssues } from "@/pi-dash-web/store/issue/team";
-import { TeamIssues, TeamIssuesFilter } from "@/pi-dash-web/store/issue/team";
-import type { ITeamProjectWorkItemsFilter } from "@/pi-dash-web/store/issue/team-project/filter.store";
-import { TeamProjectWorkItemsFilter } from "@/pi-dash-web/store/issue/team-project/filter.store";
-import type { ITeamProjectWorkItems } from "@/pi-dash-web/store/issue/team-project/issue.store";
-import { TeamProjectWorkItems } from "@/pi-dash-web/store/issue/team-project/issue.store";
-import type { ITeamViewIssues, ITeamViewIssuesFilter } from "@/pi-dash-web/store/issue/team-views";
-import { TeamViewIssues, TeamViewIssuesFilter } from "@/pi-dash-web/store/issue/team-views";
+import type { ICycle, IIssueLabel, IModule, IProject, IState, IUserLite, TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
+// karma-team web store
+import type { IProjectEpics, IProjectEpicsFilter } from "@/karma-team-web/store/issue/epic";
+import { ProjectEpics, ProjectEpicsFilter } from "@/karma-team-web/store/issue/epic";
+import type { IIssueDetail } from "@/karma-team-web/store/issue/issue-details/root.store";
+import { IssueDetail } from "@/karma-team-web/store/issue/issue-details/root.store";
+import type { ITeamIssuesFilter, ITeamIssues } from "@/karma-team-web/store/issue/team";
+import { TeamIssues, TeamIssuesFilter } from "@/karma-team-web/store/issue/team";
+import type { ITeamProjectWorkItemsFilter } from "@/karma-team-web/store/issue/team-project/filter.store";
+import { TeamProjectWorkItemsFilter } from "@/karma-team-web/store/issue/team-project/filter.store";
+import type { ITeamProjectWorkItems } from "@/karma-team-web/store/issue/team-project/issue.store";
+import { TeamProjectWorkItems } from "@/karma-team-web/store/issue/team-project/issue.store";
+import type { ITeamViewIssues, ITeamViewIssuesFilter } from "@/karma-team-web/store/issue/team-views";
+import { TeamViewIssues, TeamViewIssuesFilter } from "@/karma-team-web/store/issue/team-views";
 // root store
-import type { IWorkspaceIssues } from "@/pi-dash-web/store/issue/workspace/issue.store";
-import { WorkspaceIssues } from "@/pi-dash-web/store/issue/workspace/issue.store";
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import type { IWorkspaceIssues } from "@/karma-team-web/store/issue/workspace/issue.store";
+import { WorkspaceIssues } from "@/karma-team-web/store/issue/workspace/issue.store";
+import type { RootStore } from "@/karma-team-web/store/root.store";
 import type { IWorkspaceMembership } from "@/store/member/workspace/workspace-member.store";
 // issues data store
 import type { IArchivedIssuesFilter, IArchivedIssues } from "./archived";

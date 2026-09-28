@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 
-import type { ENotificationFilterType } from "@pi-dash/constants";
-import { CheckIcon } from "@pi-dash/propel/icons";
-// pi dash imports
+import type { ENotificationFilterType } from "@karma-team/constants";
+import { CheckIcon } from "@karma-team/propel/icons";
+// karma-team imports
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useWorkspaceNotifications } from "@/hooks/store/notifications";
 

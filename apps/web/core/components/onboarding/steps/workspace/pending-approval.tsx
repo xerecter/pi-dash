@@ -6,9 +6,9 @@
 
 import { observer } from "mobx-react";
 import { MailCheck } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
 // local components
 import { CommonOnboardingHeader } from "../common";
 
@@ -23,7 +23,7 @@ export const WorkspacePendingApprovalStep = observer(function WorkspacePendingAp
   adminEmail,
   onCreateInstead,
 }: Props) {
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
 
   return (

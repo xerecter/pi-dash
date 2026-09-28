@@ -6,7 +6,7 @@
 
 import { ThemeProvider } from "next-themes";
 // components
-import { TranslationProvider } from "@pi-dash/i18n";
+import { TranslationProvider } from "@karma-team/i18n";
 import { AppProgressBar } from "@/lib/b-progress";
 import { InstanceProvider } from "@/lib/instance-provider";
 import { StoreProvider } from "@/lib/store-provider";

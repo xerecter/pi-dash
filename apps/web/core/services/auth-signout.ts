@@ -5,7 +5,7 @@
  */
 
 // types
-import type { ICsrfTokenData } from "@pi-dash/types";
+import type { ICsrfTokenData } from "@karma-team/types";
 import { clearDesktopSessionData } from "@/services/desktop-session";
 
 /**

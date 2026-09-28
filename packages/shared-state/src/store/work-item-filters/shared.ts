@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { EIssuesStoreType, TWorkItemFilterExpression, TWorkItemFilterProperty } from "@pi-dash/types";
+// karma-team imports
+import type { EIssuesStoreType, TWorkItemFilterExpression, TWorkItemFilterProperty } from "@karma-team/types";
 // local imports
 import type { IFilterInstance } from "../rich-filters";
 

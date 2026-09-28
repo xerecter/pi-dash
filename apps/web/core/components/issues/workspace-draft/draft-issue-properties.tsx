@@ -8,10 +8,10 @@ import { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // icons
-import { DueDatePropertyIcon, StartDatePropertyIcon } from "@pi-dash/propel/icons";
+import { DueDatePropertyIcon, StartDatePropertyIcon } from "@karma-team/propel/icons";
 // types
-import type { TIssuePriorities, TWorkspaceDraftIssue } from "@pi-dash/types";
-import { getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@pi-dash/utils";
+import type { TIssuePriorities, TWorkspaceDraftIssue } from "@karma-team/types";
+import { getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@karma-team/utils";
 // components
 import { CycleDropdown } from "@/components/dropdowns/cycle";
 import { DateDropdown } from "@/components/dropdowns/date";

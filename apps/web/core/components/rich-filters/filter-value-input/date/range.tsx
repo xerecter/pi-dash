@@ -6,9 +6,9 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TDateRangeFilterFieldConfig, TFilterConditionNodeForDisplay, TFilterProperty } from "@pi-dash/types";
-import { cn, isValidDate, renderFormattedPayloadDate, toFilterArray } from "@pi-dash/utils";
+// karma-team imports
+import type { TDateRangeFilterFieldConfig, TFilterConditionNodeForDisplay, TFilterProperty } from "@karma-team/types";
+import { cn, isValidDate, renderFormattedPayloadDate, toFilterArray } from "@karma-team/utils";
 // components
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";
 // local imports

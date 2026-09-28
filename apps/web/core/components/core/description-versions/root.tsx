@@ -7,9 +7,9 @@
 import { useCallback, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-// pi dash imports
-import type { TDescriptionVersionDetails, TDescriptionVersionsListResponse } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type { TDescriptionVersionDetails, TDescriptionVersionsListResponse } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // local imports
 import { DescriptionVersionsDropdown } from "./dropdown";
 import { DescriptionVersionsModal } from "./modal";

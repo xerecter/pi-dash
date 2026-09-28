@@ -5,7 +5,7 @@
  */
 
 import { v4 as uuidv4 } from "uuid";
-// pi dash imports
+// karma-team imports
 import type {
   TFilterAndGroupNode,
   TFilterConditionNode,
@@ -13,8 +13,8 @@ import type {
   TFilterExpression,
   TFilterProperty,
   TFilterValue,
-} from "@pi-dash/types";
-import { FILTER_NODE_TYPE, LOGICAL_OPERATOR } from "@pi-dash/types";
+} from "@karma-team/types";
+import { FILTER_NODE_TYPE, LOGICAL_OPERATOR } from "@karma-team/types";
 
 /**
  * Creates a condition node with a unique ID.

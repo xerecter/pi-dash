@@ -7,8 +7,8 @@
 import { set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import { EMPTY_OPERATOR_LABEL } from "@pi-dash/constants";
+// karma-team imports
+import { EMPTY_OPERATOR_LABEL } from "@karma-team/constants";
 import type {
   TSupportedOperators,
   TFilterConfig,
@@ -16,15 +16,15 @@ import type {
   TFilterValue,
   TOperatorSpecificConfigs,
   TAllAvailableOperatorsForDisplay,
-} from "@pi-dash/types";
-import { FILTER_FIELD_TYPE } from "@pi-dash/types";
+} from "@karma-team/types";
+import { FILTER_FIELD_TYPE } from "@karma-team/types";
 import {
   getOperatorLabel,
   isDateFilterType,
   getDateOperatorLabel,
   isDateFilterOperator,
   getOperatorForPayload,
-} from "@pi-dash/utils";
+} from "@karma-team/utils";
 
 type TOperatorOptionForDisplay = {
   value: TAllAvailableOperatorsForDisplay;

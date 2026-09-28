@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import type { IIssueDisplayProperties, TIssue } from "@pi-dash/types";
+import type { IIssueDisplayProperties, TIssue } from "@karma-team/types";
 
 export type TWorkItemLayoutAdditionalProperties = {
   displayProperties: IIssueDisplayProperties;

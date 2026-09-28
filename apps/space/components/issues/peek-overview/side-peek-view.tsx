@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { Loader } from "@pi-dash/ui";
+// karma-team imports
+import { Loader } from "@karma-team/ui";
 // store hooks
 import { usePublish } from "@/hooks/store/publish";
 // types

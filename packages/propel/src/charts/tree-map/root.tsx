@@ -6,8 +6,8 @@
 
 import React from "react";
 import { Treemap, ResponsiveContainer, Tooltip } from "recharts";
-// pi dash imports
-import type { TreeMapChartProps } from "@pi-dash/types";
+// karma-team imports
+import type { TreeMapChartProps } from "@karma-team/types";
 // local imports
 import { cn } from "../../utils/classname";
 import { CustomTreeMapContent } from "./map-content";

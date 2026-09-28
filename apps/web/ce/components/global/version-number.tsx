@@ -5,10 +5,10 @@
  */
 
 // assets
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 import packageJson from "package.json";
 
-export function PiDashVersionNumber() {
+export function KarmaTeamVersionNumber() {
   const { t } = useTranslation();
   return (
     <span>

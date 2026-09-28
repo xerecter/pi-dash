@@ -9,13 +9,13 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 // icons
 import { Eye, EyeOff, Info, XCircle } from "lucide-react";
-// pi dash imports
-import { API_BASE_URL, E_PASSWORD_STRENGTH, AUTH_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { CloseIcon } from "@pi-dash/propel/icons";
-import { Input, PasswordStrengthIndicator, Spinner } from "@pi-dash/ui";
-import { getPasswordStrength } from "@pi-dash/utils";
+// karma-team imports
+import { API_BASE_URL, E_PASSWORD_STRENGTH, AUTH_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { CloseIcon } from "@karma-team/propel/icons";
+import { Input, PasswordStrengthIndicator, Spinner } from "@karma-team/ui";
+import { getPasswordStrength } from "@karma-team/utils";
 // components
 import { ForgotPasswordPopover } from "@/components/account/auth-forms/forgot-password-popover";
 // constants
@@ -48,7 +48,7 @@ const authService = new AuthService();
 
 export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props) {
   const { email, isSMTPConfigured, handleAuthStep, handleEmailClear, mode, nextPath } = props;
-  // pi dash imports
+  // karma-team imports
   const { t } = useTranslation();
   // ref
   const formRef = useRef<HTMLFormElement>(null);
@@ -220,9 +220,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
               type="button"
               onClick={() => handleShowPassword("password")}
               className="absolute right-3 grid size-5 place-items-center"
-              aria-label={t(
-                showPassword?.password ? "Hide password" : "Show password"
-              )}
+              aria-label={t(showPassword?.password ? "Hide password" : "Show password")}
             >
               {showPassword?.password ? (
                 <EyeOff className="size-5 stroke-placeholder" />
@@ -255,11 +253,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
               <button
                 type="button"
                 className="absolute right-3 grid size-5 place-items-center"
-                aria-label={t(
-                  showPassword?.retypePassword
-                    ? "Hide password"
-                    : "Show password"
-                )}
+                aria-label={t(showPassword?.retypePassword ? "Hide password" : "Show password")}
                 onClick={() => handleShowPassword("retypePassword")}
               >
                 {showPassword?.retypePassword ? (

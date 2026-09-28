@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { PageIcon } from "@pi-dash/propel/icons";
-import type { ICustomSearchSelectOption } from "@pi-dash/types";
-import { Breadcrumbs, Header, BreadcrumbNavigationSearchDropdown } from "@pi-dash/ui";
-import { getPageName } from "@pi-dash/utils";
+// karma-team imports
+import { PageIcon } from "@karma-team/propel/icons";
+import type { ICustomSearchSelectOption } from "@karma-team/types";
+import { Breadcrumbs, Header, BreadcrumbNavigationSearchDropdown } from "@karma-team/ui";
+import { getPageName } from "@karma-team/utils";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { PageAccessIcon } from "@/components/common/page-access-icon";
@@ -20,10 +20,10 @@ import { PageSyncingBadge } from "@/components/pages/header/syncing-badge";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useAppRouter } from "@/hooks/use-app-router";
-// pi dash web imports
-import { CommonProjectBreadcrumbs } from "@/pi-dash-web/components/breadcrumbs/common";
-import { PageDetailsHeaderExtraActions } from "@/pi-dash-web/components/pages";
-import { EPageStoreType, usePage, usePageStore } from "@/pi-dash-web/hooks/store";
+// karma-team web imports
+import { CommonProjectBreadcrumbs } from "@/karma-team-web/components/breadcrumbs/common";
+import { PageDetailsHeaderExtraActions } from "@/karma-team-web/components/pages";
+import { EPageStoreType, usePage, usePageStore } from "@/karma-team-web/hooks/store";
 
 export interface IPagesHeaderProps {
   showButton?: boolean;

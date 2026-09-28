@@ -7,10 +7,10 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 import useSWR, { mutate } from "swr";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Loader, ToggleSwitch } from "@pi-dash/ui";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Loader, ToggleSwitch } from "@karma-team/ui";
 // constants
 import { GIT_PROJECT_BINDING } from "@/constants/fetch-keys";
 // hooks

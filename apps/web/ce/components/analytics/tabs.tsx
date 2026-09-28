@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { AnalyticsTab } from "@pi-dash/types";
+import type { AnalyticsTab } from "@karma-team/types";
 import { Overview } from "@/components/analytics/overview";
 import { WorkItems } from "@/components/analytics/work-items";
 

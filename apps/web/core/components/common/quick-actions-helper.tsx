@@ -5,10 +5,10 @@
  */
 
 // types
-import type { ICycle, IModule, IProjectView, IWorkspaceView } from "@pi-dash/types";
-import type { TContextMenuItem } from "@pi-dash/ui";
+import type { ICycle, IModule, IProjectView, IWorkspaceView } from "@karma-team/types";
+import type { TContextMenuItem } from "@karma-team/ui";
 // hooks
-import { useQuickActionsFactory } from "@/pi-dash-web/components/common/quick-actions-factory";
+import { useQuickActionsFactory } from "@/karma-team-web/components/common/quick-actions-factory";
 
 // Types
 interface UseCycleMenuItemsProps {

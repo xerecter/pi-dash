@@ -10,12 +10,12 @@ import { useSearchParams } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 // icons
 import { CircleCheck } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Button, getButtonStyling } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Input } from "@pi-dash/ui";
-import { cn, checkEmailValidity } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Button, getButtonStyling } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Input } from "@karma-team/ui";
+import { cn, checkEmailValidity } from "@karma-team/utils";
 // hooks
 import useTimer from "@/hooks/use-timer";
 // services
@@ -39,7 +39,7 @@ export const ForgotPasswordForm = observer(function ForgotPasswordForm() {
   // search params
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // timer
   const { timer: resendTimerCode, setTimer: setResendCodeTimer } = useTimer(0);
@@ -65,7 +65,9 @@ export const ForgotPasswordForm = observer(function ForgotPasswordForm() {
         setToast({
           type: TOAST_TYPE.SUCCESS,
           title: t("Email sent"),
-          message: t("Check your inbox for a link to reset your password. If it doesn't appear within a few minutes, check your spam folder."),
+          message: t(
+            "Check your inbox for a link to reset your password. If it doesn't appear within a few minutes, check your spam folder."
+          ),
         });
         setResendCodeTimer(30);
       })
@@ -124,9 +126,7 @@ export const ForgotPasswordForm = observer(function ForgotPasswordForm() {
           disabled={!isValid}
           loading={isSubmitting || resendTimerCode > 0}
         >
-          {resendTimerCode > 0
-            ? t("Resend in {seconds} seconds", { seconds: resendTimerCode })
-            : t("Send reset link")}
+          {resendTimerCode > 0 ? t("Resend in {seconds} seconds", { seconds: resendTimerCode }) : t("Send reset link")}
         </Button>
         <Link href="/" className={cn("w-full", getButtonStyling("link", "lg"))}>
           {t("Back to sign in")}

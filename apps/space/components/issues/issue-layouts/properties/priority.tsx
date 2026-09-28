@@ -5,13 +5,13 @@
  */
 
 import { SignalHigh } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // types
-import { PriorityIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TIssuePriorities } from "@pi-dash/types";
+import { PriorityIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TIssuePriorities } from "@karma-team/types";
 // constants
-import { cn, getIssuePriorityFilters } from "@pi-dash/utils";
+import { cn, getIssuePriorityFilters } from "@karma-team/utils";
 
 export function IssueBlockPriority({
   priority,

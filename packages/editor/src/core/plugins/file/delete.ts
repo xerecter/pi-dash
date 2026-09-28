@@ -9,8 +9,8 @@ import { Plugin, PluginKey } from "@tiptap/pm/state";
 import type { EditorState, Transaction } from "@tiptap/pm/state";
 // constants
 import { CORE_EDITOR_META } from "@/constants/meta";
-// pi dash editor imports
-import { NODE_FILE_MAP } from "@/pi-dash-editor/constants/utility";
+// karma-team editor imports
+import { NODE_FILE_MAP } from "@/karma-team-editor/constants/utility";
 // types
 import type { TFileHandler } from "@/types";
 // local imports

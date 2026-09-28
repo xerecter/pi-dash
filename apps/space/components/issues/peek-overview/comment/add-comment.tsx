@@ -7,11 +7,11 @@
 import React, { useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useForm, Controller } from "react-hook-form";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { SitesFileService } from "@pi-dash/services";
-import type { TIssuePublicComment } from "@pi-dash/types";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { SitesFileService } from "@karma-team/services";
+import type { TIssuePublicComment } from "@karma-team/types";
 // editor components
 import { LiteTextEditor } from "@/components/editor/lite-text-editor";
 // hooks

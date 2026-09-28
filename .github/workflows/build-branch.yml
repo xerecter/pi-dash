@@ -36,8 +36,8 @@ on:
       - canary
     tags:
       # Platform-only release tag scheme. Runner CLI releases use the
-      # `pidash-v*.*.*` pattern handled by .github/workflows/release.yml
-      # (cargo-dist parses that prefix as the `pidash` Cargo package).
+      # `karma-team-v*.*.*` pattern handled by .github/workflows/release.yml
+      # (cargo-dist parses that prefix as the `karma-team` Cargo package).
       # `platform-` is intentionally distinct so the two release pipelines
       # never fire on the same tag.
       - 'platform-v*.*.*'
@@ -119,13 +119,13 @@ jobs:
           BR_NAME=$( echo "${{ env.TARGET_BRANCH }}" |sed 's/[^a-zA-Z0-9.-]//g')
           echo "TARGET_BRANCH=$BR_NAME" >> $GITHUB_OUTPUT
 
-          echo "DH_IMG_WEB=pi-dash-frontend" >> $GITHUB_OUTPUT
-          echo "DH_IMG_SPACE=pi-dash-space" >> $GITHUB_OUTPUT
-          echo "DH_IMG_ADMIN=pi-dash-admin" >> $GITHUB_OUTPUT
-          echo "DH_IMG_LIVE=pi-dash-live" >> $GITHUB_OUTPUT
-          echo "DH_IMG_BACKEND=pi-dash-backend" >> $GITHUB_OUTPUT
-          echo "DH_IMG_PROXY=pi-dash-proxy" >> $GITHUB_OUTPUT
-          echo "DH_IMG_AIO=pi-dash-aio-community" >> $GITHUB_OUTPUT
+          echo "DH_IMG_WEB=karma-team-frontend" >> $GITHUB_OUTPUT
+          echo "DH_IMG_SPACE=karma-team-space" >> $GITHUB_OUTPUT
+          echo "DH_IMG_ADMIN=karma-team-admin" >> $GITHUB_OUTPUT
+          echo "DH_IMG_LIVE=karma-team-live" >> $GITHUB_OUTPUT
+          echo "DH_IMG_BACKEND=karma-team-backend" >> $GITHUB_OUTPUT
+          echo "DH_IMG_PROXY=karma-team-proxy" >> $GITHUB_OUTPUT
+          echo "DH_IMG_AIO=karma-team-aio-community" >> $GITHUB_OUTPUT
 
           echo "BUILD_TYPE=${{env.BUILD_TYPE}}" >> $GITHUB_OUTPUT
           BUILD_RELEASE=false
@@ -363,7 +363,7 @@ jobs:
           additional-assets: aio-assets-dist
           additional-assets-dir: ./deployments/aio/community/dist
           build-args: |
-            PI_DASH_VERSION=${{ steps.prepare_aio_assets.outputs.AIO_BUILD_VERSION }}
+            KARMA_TEAM_VERSION=${{ steps.prepare_aio_assets.outputs.AIO_BUILD_VERSION }}
 
   upload_build_assets:
     name: Upload Build Assets

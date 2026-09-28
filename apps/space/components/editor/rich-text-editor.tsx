@@ -5,16 +5,16 @@
  */
 
 import { forwardRef } from "react";
-// pi dash imports
-import { RichTextEditorWithRef } from "@pi-dash/editor";
-import type { EditorRefApi, IRichTextEditorProps, TFileHandler } from "@pi-dash/editor";
-import type { MakeOptional } from "@pi-dash/types";
+// karma-team imports
+import { RichTextEditorWithRef } from "@karma-team/editor";
+import type { EditorRefApi, IRichTextEditorProps, TFileHandler } from "@karma-team/editor";
+import type { MakeOptional } from "@karma-team/types";
 // helpers
 import { getEditorFileHandlers } from "@/helpers/editor.helper";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
-// pi dash web imports
+// karma-team web imports
 import { useEditorFlagging } from "@/hooks/use-editor-flagging";
 // local imports
 import { EditorMentionsRoot } from "./embeds/mentions";

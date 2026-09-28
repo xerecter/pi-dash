@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { CloseIcon, PriorityIcon } from "@pi-dash/propel/icons";
-import type { TIssuePriorities } from "@pi-dash/propel/icons";
+import { CloseIcon, PriorityIcon } from "@karma-team/propel/icons";
+import type { TIssuePriorities } from "@karma-team/propel/icons";
 
 type Props = {
   handleRemove: (val: string) => void;

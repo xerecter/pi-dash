@@ -130,7 +130,7 @@ Carried over from prior conversations; several reframed to match the new model.
 | 5   | Billing (who pays for tokens/compute)?                | **Runner owner.** Digital-employee metaphor: each agent has a cost center attached to its operator. Deferred implementation; design keeps the hook explicit.                                                                                                                                                                                                                                                            | new                                        |
 | 6   | Approvals routing (runner asks before write/network)? | **Run creator** approves per-run. Runner owner retains revoke-any-time as the circuit breaker.                                                                                                                                                                                                                                                                                                                          | new                                        |
 | 7   | Fresh-install rollout (no production data exists)     | **Zero-setup default pod.** On workspace creation, the backend auto-creates a pod named `<workspace.name>-pod` with `is_default=True`. Runner registration defaults to the workspace pod when no pod is specified. Issue creation auto-fills `assigned_pod = workspace.default_pod`. First-time users never touch pod UI to get a working delegation flow. No migration of legacy data is required because none exists. | new, supersedes the earlier opt-in plan    |
-| 8   | Workspace admin role                                  | Reuse `WorkspaceMember.role=20 (Admin)` at `apps/api/pi_dash/db/models/workspace.py:19`.                                                                                                                                                                                                                                                                                                                                | verified                                   |
+| 8   | Workspace admin role                                  | Reuse `WorkspaceMember.role=20 (Admin)` at `apps/api/karma_team/db/models/workspace.py:19`.                                                                                                                                                                                                                                                                                                                             | verified                                   |
 | 9   | Run identity — `owner` vs `created_by`?               | Introduce `AgentRun.created_by` as a **non-null** FK to User, set at every creation path. **All permission checks migrate to `created_by`**: list, detail, cancel, approval list/decide. `AgentRun.owner` is retired from permission logic and semantically reinterpreted as "billable party" — populated as `runner.owner` at assignment time (nullable until assigned).                                               | codex-feedback                             |
 | 10  | Runner revocation and in-flight runs                  | Revocation must **synchronously finalize** all non-terminal runs belonging to the revoked runner. Current `Runner.revoke()` only flips the runner row; design adds explicit cancellation of active `AgentRun` rows in the same transaction. Without this, runs stay `ASSIGNED/RUNNING` forever after a force-close.                                                                                                     | codex-feedback                             |
 | 11  | Pod deletion vs. AgentRun history                     | **Soft-delete pods**: add `Pod.deleted_at` + `objects` manager that filters it out. Pod rows are never physically deleted, so `AgentRun.pod` FK stays valid and historical attribution is preserved. Deletion requires (a) zero runners in the pod AND (b) zero non-terminal `AgentRun` rows in the pod. Issues pointing at a soft-deleted pod get their `assigned_pod` cleared (see §7.2).                             | codex-feedback                             |
@@ -142,7 +142,7 @@ Carried over from prior conversations; several reframed to match the new model.
 ### 4.1 Pod (new)
 
 ```python
-# apps/api/pi_dash/runner/models.py
+# apps/api/karma_team/runner/models.py
 
 class PodManager(models.Manager):
     """Default manager: excludes soft-deleted pods from routine queries."""
@@ -302,7 +302,7 @@ Every endpoint migrates from `owner=request.user` to one of two explicit checks:
 ### 5.1 Principal helpers (new)
 
 ```python
-# apps/api/pi_dash/runner/services/permissions.py
+# apps/api/karma_team/runner/services/permissions.py
 
 def is_workspace_member(user, workspace_id) -> bool:
     return WorkspaceMember.objects.filter(
@@ -345,7 +345,7 @@ def is_workspace_admin(user, workspace_id) -> bool:
 
 - **At creation**: `owner = NULL`. This requires changing the field to `null=True, blank=True`; the field is no longer written by views or the orchestrator.
 - **At assignment (inside `drain_pod`)**: `owner = runner.owner` — the assigned runner's administrative operator, captured for billing attribution. This is set in the same write that sets `run.runner` and `run.status = ASSIGNED` (see §6.3 code block); no background task is involved.
-- **Legacy rows**: pi-dash has no production data, so there's no backfill to run. The `AgentRun.created_by` field is `NOT NULL` from migration day 1 because every future row sets it. In an environment with legacy data, a separate data migration would copy `owner → created_by` for historical rows (under the old model, `owner` was always the triggering user, so this would be an accurate interpretation) — out of scope here.
+- **Legacy rows**: karma-team has no production data, so there's no backfill to run. The `AgentRun.created_by` field is `NOT NULL` from migration day 1 because every future row sets it. In an environment with legacy data, a separate data migration would copy `owner → created_by` for historical rows (under the old model, `owner` was always the triggering user, so this would be an accurate interpretation) — out of scope here.
 - **Why not reuse `owner`**: the old `owner` semantic conflated two identities (run creator vs. billable party). Once runners become workspace-shared, these diverge — creator = who typed the prompt; billable party = whose machine ran it. The split is structural, not cosmetic.
 
 > Removed: the earlier draft mentioned a nightly background task as an alternative billing-capture path. Rejected because (a) it doubles the write for every run, (b) it leaves a window where `owner` is NULL and billing is ambiguous, and (c) `drain_pod` already has the transaction and the data. Assignment-time capture is strictly better.
@@ -363,7 +363,7 @@ def is_workspace_admin(user, workspace_id) -> bool:
 Replace `select_runner_for_run` with pod-scoped logic.
 
 ```python
-# apps/api/pi_dash/runner/services/matcher.py
+# apps/api/karma_team/runner/services/matcher.py
 
 def select_runner_in_pod(pod: Pod) -> Optional[Runner]:
     """Pick an idle runner in the pod. None if none free."""
@@ -683,9 +683,9 @@ def revoke(self) -> None:
 
 ## 9. Migration — Initial schema (no legacy data)
 
-pi-dash has no production data yet, so the three-stage migration (nullable → backfill → tighten) that earlier drafts proposed is unnecessary. The design collapses to **two migrations**, one per Django app, both applying final constraints directly.
+karma-team has no production data yet, so the three-stage migration (nullable → backfill → tighten) that earlier drafts proposed is unnecessary. The design collapses to **two migrations**, one per Django app, both applying final constraints directly.
 
-### 9.1 `apps/api/pi_dash/runner/migrations/0004_add_pod_and_run_identity.py`
+### 9.1 `apps/api/karma_team/runner/migrations/0004_add_pod_and_run_identity.py`
 
 Single schema migration, no `RunPython` step:
 
@@ -696,13 +696,13 @@ Single schema migration, no `RunPython` step:
 - Alter `agent_run.owner_id` to `NULL=TRUE`, `on_delete=SET_NULL` (decision #9).
 - Drop unique constraint `(workspace, name)` on `runner`; add `(pod, name)`.
 
-### 9.2 `apps/api/pi_dash/db/migrations/0126_issue_assigned_pod.py`
+### 9.2 `apps/api/karma_team/db/migrations/0126_issue_assigned_pod.py`
 
 - Add `issue.assigned_pod_id` as nullable FK to `runner.Pod` with `on_delete=PROTECT` (§4.4).
 
 ### 9.3 Post-migration setup
 
-Nothing required. When the backend starts, any existing workspaces (none in prod; possibly some in dev/test fixtures) can lazily get their default pods via the `post_save` signal on new workspaces. For dev/test fixtures that create workspaces before the signal is wired in, a management command `pi_dash.runner.management.commands.ensure_workspace_pods` idempotently backfills default pods for any workspace that doesn't have one — run it once after deploy in non-prod environments to be safe.
+Nothing required. When the backend starts, any existing workspaces (none in prod; possibly some in dev/test fixtures) can lazily get their default pods via the `post_save` signal on new workspaces. For dev/test fixtures that create workspaces before the signal is wired in, a management command `karma_team.runner.management.commands.ensure_workspace_pods` idempotently backfills default pods for any workspace that doesn't have one — run it once after deploy in non-prod environments to be safe.
 
 ### 9.4 First-run behavior
 
@@ -801,7 +801,7 @@ Schema / fresh-install — `tests/integration/runner/test_fresh_install.py` **(r
 
 ## 12. Files Touched
 
-### Backend (apps/api/pi_dash)
+### Backend (apps/api/karma_team)
 
 - `runner/models.py` — add `PodManager` (filters `deleted_at IS NULL`) and `Pod` model (with `deleted_at`, conditional unique constraints); add `runner.pod`, `agent_run.pod`, `agent_run.created_by`. Rewrite `Runner.revoke()` to synchronously cancel in-flight runs and refire pod drain (§7.5).
 - `runner/models.py` — alter `AgentRun.owner` to `null=True, on_delete=SET_NULL` and reinterpret it as billable party captured at assignment time (§5.3).
@@ -823,8 +823,8 @@ Schema / fresh-install — `tests/integration/runner/test_fresh_install.py` **(r
 - `space/views/issue.py` — populate default pod on create; accept `assigned_pod` on PATCH with workspace validation and non-deleted pod check.
 - `space/serializers/issue.py` — expose `assigned_pod` + nested detail.
 - Migrations (two, both with final constraints applied directly — no backfill ceremony because no production data exists):
-  - `apps/api/pi_dash/runner/migrations/0004_add_pod_and_run_identity.py` — create `pod` table; add `runner.pod` (NOT NULL), `agent_run.pod` (NOT NULL), `agent_run.created_by` (NOT NULL); alter `agent_run.owner` to nullable + `SET_NULL`; replace `(workspace, name)` uniqueness on `runner` with `(pod, name)`.
-  - `apps/api/pi_dash/db/migrations/0126_issue_assigned_pod.py` — add `issue.assigned_pod` (nullable).
+  - `apps/api/karma_team/runner/migrations/0004_add_pod_and_run_identity.py` — create `pod` table; add `runner.pod` (NOT NULL), `agent_run.pod` (NOT NULL), `agent_run.created_by` (NOT NULL); alter `agent_run.owner` to nullable + `SET_NULL`; replace `(workspace, name)` uniqueness on `runner` with `(pod, name)`.
+  - `apps/api/karma_team/db/migrations/0126_issue_assigned_pod.py` — add `issue.assigned_pod` (nullable).
 - Tests as listed in §10.
 
 ### Frontend (apps/web)
@@ -844,4 +844,4 @@ Specific files deferred until implementation.
 - No change to the runner authentication / registration handshake.
 - No change to the Rust runner binary in this phase.
 - **No change to `AgentRun.owner` semantics on historical rows.** Legacy rows retain whatever value they had; `owner` on new rows becomes the runner-owner-at-assignment (nullable until assigned). All permission logic moves to `created_by` to sidestep the ambiguity rather than rewriting `owner` in place.
-- **No legacy data migration.** pi-dash has no production data; the initial schema migration applies final constraints directly. No `(owner, workspace)`-based personal-pod creation, no `AgentRun.created_by` backfill, no constraint-tightening stage. If this design is later applied to an environment with real data, a separate migration PR would add those stages.
+- **No legacy data migration.** karma-team has no production data; the initial schema migration applies final constraints directly. No `(owner, workspace)`-based personal-pod creation, no `AgentRun.created_by` backfill, no constraint-tightening stage. If this design is later applied to an environment with real data, a separate migration PR would add those stages.

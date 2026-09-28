@@ -7,10 +7,10 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { IWorkspaceBulkInviteFormData } from "@pi-dash/types";
-import { EModalWidth, EModalPosition, ModalCore } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { IWorkspaceBulkInviteFormData } from "@karma-team/types";
+import { EModalWidth, EModalPosition, ModalCore } from "@karma-team/ui";
 // components
 import { InvitationModalActions } from "@/components/workspace/invite-modal/actions";
 import { InvitationFields } from "@/components/workspace/invite-modal/fields";

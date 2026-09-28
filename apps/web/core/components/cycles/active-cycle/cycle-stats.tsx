@@ -11,16 +11,16 @@ import { useTheme } from "next-themes";
 import { CalendarCheck } from "lucide-react";
 // headless ui
 import { Tab } from "@headlessui/react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { PriorityIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TWorkItemFilterCondition } from "@pi-dash/shared-state";
-import type { ICycle } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { PriorityIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TWorkItemFilterCondition } from "@karma-team/shared-state";
+import type { ICycle } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
 // ui
-import { Loader, Avatar } from "@pi-dash/ui";
-import { cn, renderFormattedDate, renderFormattedDateWithoutYear, getFileURL } from "@pi-dash/utils";
+import { Loader, Avatar } from "@karma-team/ui";
+import { cn, renderFormattedDate, renderFormattedDateWithoutYear, getFileURL } from "@karma-team/utils";
 // assets
 import darkAssigneeAsset from "@/app/assets/empty-state/active-cycle/assignee-dark.webp?url";
 import lightAssigneeAsset from "@/app/assets/empty-state/active-cycle/assignee-light.webp?url";
@@ -38,8 +38,8 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import useLocalStorage from "@/hooks/use-local-storage";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 // store
 import type { ActiveCycleIssueDetails } from "@/store/issue/cycle";
 
@@ -62,7 +62,7 @@ export const ActiveCycleStats = observer(function ActiveCycleStats(props: Active
   const [issuesLoaderElement, setIssueLoaderElement] = useState<HTMLDivElement | null>(null);
   // theme hook
   const { resolvedTheme } = useTheme();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // derived values
   const priorityResolvedPath = resolvedTheme === "light" ? lightPriorityAsset : darkPriorityAsset;
@@ -360,7 +360,10 @@ export const ActiveCycleStats = observer(function ActiveCycleStats(props: Active
                 ))
               ) : (
                 <div className="flex h-full w-full items-center justify-center">
-                  <SimpleEmptyState title={t("Add labels to work items to see the breakdown of work by labels.")} assetPath={labelsResolvedPath} />
+                  <SimpleEmptyState
+                    title={t("Add labels to work items to see the breakdown of work by labels.")}
+                    assetPath={labelsResolvedPath}
+                  />
                 </div>
               )
             ) : (

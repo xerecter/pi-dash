@@ -8,11 +8,11 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useTheme as useNextTheme } from "next-themes";
 // ui
-import { Button, getButtonStyling } from "@pi-dash/propel/button";
-import { resolveGeneralTheme } from "@pi-dash/utils";
+import { Button, getButtonStyling } from "@karma-team/propel/button";
+import { resolveGeneralTheme } from "@karma-team/utils";
 // hooks
-import PiSymbolDark from "@/app/assets/logos/pi-symbol-dark.svg?url";
-import PiSymbolLight from "@/app/assets/logos/pi-symbol-light.svg?url";
+import KarmaTeamSymbolDark from "@/app/assets/logos/karma-team-symbol-dark.svg?url";
+import KarmaTeamSymbolLight from "@/app/assets/logos/karma-team-symbol-light.svg?url";
 import { useTheme } from "@/hooks/store";
 // icons
 
@@ -29,7 +29,7 @@ export const NewUserPopup = observer(function NewUserPopup() {
         <div className="grow">
           <div className="text-14 font-semibold">Create workspace</div>
           <div className="py-2 text-13 font-medium text-tertiary">
-            Instance setup done! Welcome to Pi Dash instance portal. Start your journey with by creating your first
+            Instance setup done! Welcome to karma-team instance portal. Start your journey with by creating your first
             workspace.
           </div>
           <div className="flex items-center gap-4 pt-2">
@@ -43,10 +43,10 @@ export const NewUserPopup = observer(function NewUserPopup() {
         </div>
         <div className="flex shrink-0 items-center justify-center">
           <img
-            src={resolveGeneralTheme(resolvedTheme) === "dark" ? PiSymbolDark : PiSymbolLight}
+            src={resolveGeneralTheme(resolvedTheme) === "dark" ? KarmaTeamSymbolDark : KarmaTeamSymbolLight}
             height={80}
             width={147}
-            alt="Pi Dash icon"
+            alt="karma-team icon"
           />
         </div>
       </div>

@@ -12,7 +12,7 @@ import type {
   TPublishEntityType,
   TProjectPublishSettings,
   TProjectPublishViewProps,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // store
 import type { RootStore } from "../root.store";
 

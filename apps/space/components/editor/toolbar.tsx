@@ -5,12 +5,12 @@
  */
 
 import React, { useEffect, useState, useCallback } from "react";
-// pi dash imports
-import { TOOLBAR_ITEMS } from "@pi-dash/editor";
-import type { ToolbarMenuItem, EditorRefApi } from "@pi-dash/editor";
-import { Button } from "@pi-dash/propel/button";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { TOOLBAR_ITEMS } from "@karma-team/editor";
+import type { ToolbarMenuItem, EditorRefApi } from "@karma-team/editor";
+import { Button } from "@karma-team/propel/button";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   executeCommand: (item: ToolbarMenuItem) => void;

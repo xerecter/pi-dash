@@ -5,9 +5,9 @@
  */
 
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AGENT_RUNTIME_REASON_MESSAGES } from "@/pi-dash-web/components/desktop/agent-runtime-edition";
+import { AGENT_RUNTIME_REASON_MESSAGES } from "@/karma-team-web/components/desktop/agent-runtime-edition";
 
-vi.mock("@pi-dash/constants", () => ({ API_BASE_URL: "http://localhost:18002" }));
+vi.mock("@karma-team/constants", () => ({ API_BASE_URL: "http://localhost:18002" }));
 // Exercise the public service export and the SPA's real axios setup without replacing their modules.
 // Session-refresh behaviour depends on the edition's interceptor and is tested by the edition.
 

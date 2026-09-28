@@ -5,11 +5,11 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash ui
-import { CycleIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team ui
+import { CycleIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 //hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 

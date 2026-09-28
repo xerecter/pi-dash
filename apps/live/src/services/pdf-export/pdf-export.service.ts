@@ -6,9 +6,9 @@
 
 import { Effect } from "effect";
 import sharp from "sharp";
-import { getAllDocumentFormatsFromDocumentEditorBinaryData } from "@pi-dash/editor/lib";
+import { getAllDocumentFormatsFromDocumentEditorBinaryData } from "@karma-team/editor/lib";
 import type { PDFExportMetadata, TipTapDocument } from "@/lib/pdf";
-import { renderPiDashDocToPdfBuffer } from "@/lib/pdf";
+import { renderKarmaTeamDocToPdfBuffer } from "@/lib/pdf";
 import { getPageService } from "@/services/page/handler";
 import type { TDocumentTypes } from "@/types";
 import {
@@ -273,7 +273,7 @@ export class PdfExportService extends Effect.Service<PdfExportService>()("PdfExp
 
         const pdfBuffer = yield* tryAsync(
           () =>
-            renderPiDashDocToPdfBuffer(contentJSON, {
+            renderKarmaTeamDocToPdfBuffer(contentJSON, {
               title: options.title,
               author: options.author,
               subject: options.subject,

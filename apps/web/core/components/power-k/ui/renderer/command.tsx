@@ -6,8 +6,8 @@
 
 import React from "react";
 import { Command } from "cmdk";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
 // local imports
 import type { TPowerKCommandConfig, TPowerKCommandGroup, TPowerKContext } from "../../core/types";
 import { PowerKModalCommandItem } from "../modal/command-item";

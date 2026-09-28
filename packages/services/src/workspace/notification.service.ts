@@ -4,13 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 import type {
   TUnreadNotificationsCount,
   TNotificationPaginatedInfo,
   TNotification,
   TNotificationPaginatedInfoQueryParams,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // services
 import { APIService } from "../api.service";
 

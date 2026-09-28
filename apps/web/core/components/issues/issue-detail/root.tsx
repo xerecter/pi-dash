@@ -6,13 +6,13 @@
 
 import { useMemo } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setPromiseToast, setToast } from "@pi-dash/propel/toast";
-import type { TIssue } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setPromiseToast, setToast } from "@karma-team/propel/toast";
+import type { TIssue } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
 // assets
 import emptyIssue from "@/app/assets/empty-state/issue.svg?url";
 // components
@@ -112,7 +112,9 @@ export const IssueDetailRoot = observer(function IssueDetailRoot(props: TIssueDe
           setToast({
             title: t("Success!"),
             type: TOAST_TYPE.SUCCESS,
-            message: t("{entity} deleted successfully", { entity: t("{count, plural, one {Work item} other {Work items}}") }),
+            message: t("{entity} deleted successfully", {
+              entity: t("{count, plural, one {Work item} other {Work items}}"),
+            }),
           });
         } catch (error) {
           console.log("Error in deleting issue:", error);

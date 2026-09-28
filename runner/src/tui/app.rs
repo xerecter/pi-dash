@@ -302,7 +302,7 @@ impl App {
             .block(
                 Block::default()
                     .borders(Borders::ALL)
-                    .title(" Pi Dash Runner "),
+                    .title(" karma-team Runner "),
             )
             .select(self.tab.idx())
             .highlight_style(Style::default().add_modifier(Modifier::BOLD | Modifier::REVERSED));

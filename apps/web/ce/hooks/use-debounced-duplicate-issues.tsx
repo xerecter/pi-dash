@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TDeDupeIssue } from "@pi-dash/types";
+import type { TDeDupeIssue } from "@karma-team/types";
 
 export const useDebouncedDuplicateIssues = (
   _workspaceSlug: string | undefined,

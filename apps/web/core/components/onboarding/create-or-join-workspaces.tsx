@@ -7,8 +7,8 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { OctagonAlert } from "lucide-react";
-// pi dash imports
-import type { IWorkspaceMemberInvitation, TOnboardingSteps } from "@pi-dash/types";
+// karma-team imports
+import type { IWorkspaceMemberInvitation, TOnboardingSteps } from "@karma-team/types";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 // hooks

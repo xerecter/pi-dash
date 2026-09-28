@@ -5,7 +5,7 @@
  */
 
 import { observer } from "mobx-react";
-import { LabelPropertyIcon } from "@pi-dash/propel/icons";
+import { LabelPropertyIcon } from "@karma-team/propel/icons";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useLabel } from "@/hooks/store/use-label";

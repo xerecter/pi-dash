@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { EUserPermissions } from "@pi-dash/constants";
-import type { EUserProjectRoles, EUserWorkspaceRoles } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissions } from "@karma-team/constants";
+import type { EUserProjectRoles, EUserWorkspaceRoles } from "@karma-team/types";
 
 export const getUserRole = (role: EUserPermissions | EUserWorkspaceRoles | EUserProjectRoles) => {
   switch (role) {

@@ -7,8 +7,8 @@
 import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { useSearchParams, useRouter } from "next/navigation";
-// pi dash imports
-import { isValidNextPath } from "@pi-dash/utils";
+// karma-team imports
+import { isValidNextPath } from "@karma-team/utils";
 // components
 import { UserLoggedIn } from "@/components/account/user-logged-in";
 import { LogoSpinner } from "@/components/common/logo-spinner";

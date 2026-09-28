@@ -95,13 +95,13 @@ def run(engine, config_home, token_file):
     server = ThreadingHTTPServer(("127.0.0.1", 0), Gateway)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     environment = {**os.environ, "CODEX_HOME": str(config_home)}
-    environment.pop("PIDASH_GATEWAY_TOKEN", None)
+    environment.pop("KARMA_TEAM_GATEWAY_TOKEN", None)
     command = [
         engine,
         "app-server",
         "--strict-config",
         "-c",
-        f'model_providers.pidash.base_url="http://127.0.0.1:{server.server_port}/v1"',
+        f'model_providers.karma-team.base_url="http://127.0.0.1:{server.server_port}/v1"',
     ]
     process = subprocess.Popen(
         command,
@@ -143,7 +143,7 @@ def run(engine, config_home, token_file):
             {
                 "id": 1,
                 "method": "initialize",
-                "params": {"clientInfo": {"name": "pidash-auth-smoke", "version": "1"}},
+                "params": {"clientInfo": {"name": "karma-team-auth-smoke", "version": "1"}},
             }
         )
         wait(lambda message: message.get("id") == 1)

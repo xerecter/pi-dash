@@ -9,14 +9,14 @@ import { observer } from "mobx-react";
 import { useParams, useRouter } from "next/navigation";
 import { MoreHorizontal, ArchiveIcon, Settings } from "lucide-react";
 import { Disclosure } from "@headlessui/react";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronRightIcon } from "@pi-dash/propel/icons";
-import { EUserWorkspaceRoles } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronRightIcon } from "@karma-team/propel/icons";
+import { EUserWorkspaceRoles } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // store hooks
 import { useUserPermissions } from "@/hooks/store/user";
 

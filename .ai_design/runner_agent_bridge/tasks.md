@@ -180,7 +180,7 @@ null` is present, other fields absent. Feature on, busy →
 
 - [ ] Add `daemon.agent_observability_v1: bool` to
       `runner/src/config/schema.rs::DaemonConfig`. Default false.
-- [ ] CLI: `pidash status` shows the flag value (so operators can
+- [ ] CLI: `karma-team status` shows the flag value (so operators can
       tell whether their fleet is reporting).
 - [ ] Document in `runner/README.md` (one paragraph): the flag,
       what it costs (~250 bytes per poll), what the cloud needs
@@ -191,7 +191,7 @@ null` is present, other fields absent. Feature on, busy →
 ### 2.1 `RunnerLiveState` model (`design.md` §4.5.1)
 
 - [ ] Add `RunnerLiveState` model to
-      `apps/api/pi_dash/runner/models.py`:
+      `apps/api/karma_team/runner/models.py`:
   - [ ] `runner = OneToOneField(Runner, on_delete=CASCADE,
 primary_key=True, related_name="live_state")`
   - [ ] `observed_run_id = UUIDField(null=True, blank=True)`
@@ -208,13 +208,13 @@ primary_key=True, related_name="live_state")`
   - [ ] `updated_at = DateTimeField(auto_now=True)`
   - [ ] `Meta.indexes`: `Index(fields=["observed_run_id",
 "updated_at", "last_event_at"])`
-- [ ] Migration `apps/api/pi_dash/runner/migrations/00XX_runner_live_state.py`:
+- [ ] Migration `apps/api/karma_team/runner/migrations/00XX_runner_live_state.py`:
       additive only, no data migration, no changes to existing
       tables. Depends on the latest existing runner migration.
 
 ### 2.2 Ingestion helper (`design.md` §4.5.2)
 
-- [ ] Add to `apps/api/pi_dash/runner/services/session_service.py`:
+- [ ] Add to `apps/api/karma_team/runner/services/session_service.py`:
   - [ ] `SNAPSHOT_FIELDS` tuple (does **not** include
         `observed_run_id` — that field drives the wipe, it is
         not a wipe target).
@@ -224,7 +224,7 @@ primary_key=True, related_name="live_state")`
         §4.5.2 listing. Wipe-on-rid-change semantics. Tokens
         unpacking from nested `tokens.{input,output,total}` to
         the flat columns.
-- [ ] In `apps/api/pi_dash/runner/views/sessions.py::RunnerSessionPollEndpoint.post`:
+- [ ] In `apps/api/karma_team/runner/views/sessions.py::RunnerSessionPollEndpoint.post`:
   - [ ] After the existing reaper / heartbeat update, call
         `upsert_runner_live_state(runner, body.get("status") or {})`.
 - [ ] **Do not** modify `apply_hello`. Add a regression test
@@ -233,11 +233,11 @@ primary_key=True, related_name="live_state")`
 
 ### 2.3 Server-side stall watchdog (`design.md` §4.5.3)
 
-- [ ] Add settings to `apps/api/apple_pi_dash/settings/common.py`:
+- [ ] Add settings to `apps/api/apple_karma_team/settings/common.py`:
   - [ ] `RUNNER_AGENT_STALL_THRESHOLD_SECS = 360`
   - [ ] `RUNNER_AGENT_OBSERVABILITY_STALE_SECS = 90`
 - [ ] Add `reconcile_stalled_runs` Celery task to
-      `apps/api/pi_dash/runner/tasks.py`. Query exactly as in
+      `apps/api/karma_team/runner/tasks.py`. Query exactly as in
       §4.5.3, with the `models.F("id")` cross-join match,
       fresh-`updated_at` clause, and stale-`last_event_at` clause.
 - [ ] Wire the task into Celery beat at the cadence specified
@@ -286,7 +286,7 @@ f"agent stalled: no events for >{threshold}s")`. Same
 ### 2.5 Cloud-side observability metrics (optional)
 
 - [ ] Increment a counter on each stall-watchdog firing for
-      dashboarding (`pidash.runner.stall_reaped`). Tag with
+      dashboarding (`karma-team.runner.stall_reaped`). Tag with
       `agent_kind` so Codex / Claude rates can be compared.
 
 ## 3. Phase C — Operator surface
@@ -331,7 +331,7 @@ local docker stack:
       watchdog reaps the run with the documented error message;
       runner's existing internal stall watchdog also fires
       (overlap is expected and benign).
-- [ ] **Daemon restart mid-run.** Restart `pidash` while a run is
+- [ ] **Daemon restart mid-run.** Restart `karma-team` while a run is
       in flight. Assert: PR #94's drain step (commit `df687a6`)
       sends `RunFailed{daemon_restart}` first, the new
       `live_state` row's `observed_run_id` is cleared at restart's
@@ -352,7 +352,7 @@ local docker stack:
       effect until runners send fields).
 - [ ] Phase A lands second behind the flag.
 - [ ] Per-cell rollout: enable `agent_observability_v1=true` on
-      one fleet cell; observe `pidash.runner.stall_reaped` rate
+      one fleet cell; observe `karma-team.runner.stall_reaped` rate
       and the false-positive rate vs. the runner's internal
       5-minute watchdog firing rate. Tune
       `RUNNER_AGENT_STALL_THRESHOLD_SECS` if false positives

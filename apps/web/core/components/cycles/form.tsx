@@ -6,15 +6,15 @@
 
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-// pi dash imports
-import { ETabIndices } from "@pi-dash/constants";
+// karma-team imports
+import { ETabIndices } from "@karma-team/constants";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { ICycle } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { ICycle } from "@karma-team/types";
 // ui
-import { Input, TextArea } from "@pi-dash/ui";
-import { getDate, renderFormattedPayloadDate, getTabIndex } from "@pi-dash/utils";
+import { Input, TextArea } from "@karma-team/ui";
+import { getDate, renderFormattedPayloadDate, getTabIndex } from "@karma-team/utils";
 // components
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";
 import { ProjectDropdown } from "@/components/dropdowns/project/dropdown";
@@ -40,7 +40,7 @@ const defaultValues: Partial<ICycle> = {
 
 export function CycleForm(props: Props) {
   const { handleFormSubmit, handleClose, status, projectId, setActiveProject, data, isMobile = false } = props;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { projectsWithCreatePermissions } = useUser();
@@ -96,9 +96,7 @@ export function CycleForm(props: Props) {
               )}
             />
           )}
-          <h3 className="text-18 font-medium text-secondary">
-            {status ? t("Update cycle") : t("Create cycle")}
-          </h3>
+          <h3 className="text-18 font-medium text-secondary">{status ? t("Update cycle") : t("Create cycle")}</h3>
         </div>
         <div className="space-y-3">
           <div className="space-y-1">
@@ -188,13 +186,7 @@ export function CycleForm(props: Props) {
           {t("Cancel")}
         </Button>
         <Button variant="primary" size="lg" type="submit" loading={isSubmitting} tabIndex={getIndex("submit")}>
-          {data
-            ? isSubmitting
-              ? t("Updating")
-              : t("Update cycle")
-            : isSubmitting
-              ? t("Creating")
-              : t("Create cycle")}
+          {data ? (isSubmitting ? t("Updating") : t("Update cycle")) : isSubmitting ? t("Creating") : t("Create cycle")}
         </Button>
       </div>
     </form>

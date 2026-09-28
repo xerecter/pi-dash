@@ -5,21 +5,21 @@
  */
 
 import { enableStaticRendering } from "mobx-react";
-// pi dash imports
-import { FALLBACK_LANGUAGE, LANGUAGE_STORAGE_KEY } from "@pi-dash/i18n";
-import type { IWorkItemFilterStore } from "@pi-dash/shared-state";
-import { WorkItemFilterStore } from "@pi-dash/shared-state";
-// pi dash web store
-import type { IAnalyticsStore } from "@/pi-dash-web/store/analytics.store";
-import { AnalyticsStore } from "@/pi-dash-web/store/analytics.store";
-import type { ICommandPaletteStore } from "@/pi-dash-web/store/command-palette.store";
-import { CommandPaletteStore } from "@/pi-dash-web/store/command-palette.store";
-import { PowerKStore } from "@/pi-dash-web/store/power-k.store";
-import type { IPowerKStore } from "@/pi-dash-web/store/power-k.store";
-import type { RootStore } from "@/pi-dash-web/store/root.store";
-import type { IStateStore } from "@/pi-dash-web/store/state.store";
-import { StateStore } from "@/pi-dash-web/store/state.store";
-import { WorkspaceRootStore } from "@/pi-dash-web/store/workspace";
+// karma-team imports
+import { FALLBACK_LANGUAGE, LANGUAGE_STORAGE_KEY } from "@karma-team/i18n";
+import type { IWorkItemFilterStore } from "@karma-team/shared-state";
+import { WorkItemFilterStore } from "@karma-team/shared-state";
+// karma-team web store
+import type { IAnalyticsStore } from "@/karma-team-web/store/analytics.store";
+import { AnalyticsStore } from "@/karma-team-web/store/analytics.store";
+import type { ICommandPaletteStore } from "@/karma-team-web/store/command-palette.store";
+import { CommandPaletteStore } from "@/karma-team-web/store/command-palette.store";
+import { PowerKStore } from "@/karma-team-web/store/power-k.store";
+import type { IPowerKStore } from "@/karma-team-web/store/power-k.store";
+import type { RootStore } from "@/karma-team-web/store/root.store";
+import type { IStateStore } from "@/karma-team-web/store/state.store";
+import { StateStore } from "@/karma-team-web/store/state.store";
+import { WorkspaceRootStore } from "@/karma-team-web/store/workspace";
 // stores
 import type { ICycleStore } from "./cycle.store";
 import { CycleStore } from "./cycle.store";

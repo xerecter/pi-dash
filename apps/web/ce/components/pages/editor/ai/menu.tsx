@@ -7,17 +7,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { CornerDownRight, RefreshCcw, Sparkles, TriangleAlert } from "lucide-react";
-// pi dash editor
-import type { EditorRefApi } from "@pi-dash/editor";
-import { ChevronRightIcon } from "@pi-dash/propel/icons";
-// pi dash ui
-import { Tooltip } from "@pi-dash/propel/tooltip";
+// karma-team editor
+import type { EditorRefApi } from "@karma-team/editor";
+import { ChevronRightIcon } from "@karma-team/propel/icons";
+// karma-team ui
+import { Tooltip } from "@karma-team/propel/tooltip";
 // components
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import { RichTextEditor } from "@/components/editor/rich-text";
-// pi dash web constants
+// karma-team web constants
 import { AI_EDITOR_TASKS, LOADING_TEXTS } from "@/constants/ai";
-// pi dash web services
+// karma-team web services
 import type { TTaskPayload } from "@/services/ai.service";
 import { AIService } from "@/services/ai.service";
 import { AskPiMenu } from "./ask-pi-menu";

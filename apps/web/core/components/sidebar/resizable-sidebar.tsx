@@ -7,8 +7,8 @@
 import type { Dispatch, ReactElement, SetStateAction } from "react";
 import React, { useCallback, useEffect, useState, useRef } from "react";
 // helpers
-import { usePlatformOS } from "@pi-dash/hooks";
-import { cn } from "@pi-dash/utils";
+import { usePlatformOS } from "@karma-team/hooks";
+import { cn } from "@karma-team/utils";
 
 interface ResizableSidebarProps {
   showPeek?: boolean;

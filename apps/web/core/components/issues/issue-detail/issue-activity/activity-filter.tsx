@@ -6,14 +6,14 @@
 
 import { observer } from "mobx-react";
 import { ListFilter } from "lucide-react";
-// pi dash imports
-import type { TActivityFilters, TActivityFilterOption } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { CheckIcon } from "@pi-dash/propel/icons";
-import { PopoverMenu } from "@pi-dash/ui";
+// karma-team imports
+import type { TActivityFilters, TActivityFilterOption } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { CheckIcon } from "@karma-team/propel/icons";
+import { PopoverMenu } from "@karma-team/ui";
 // helper
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // constants
 
 type TActivityFilter = {

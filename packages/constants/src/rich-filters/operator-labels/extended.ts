@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TExtendedSupportedOperators } from "@pi-dash/types";
+import type { TExtendedSupportedOperators } from "@karma-team/types";
 
 /**
  * Extended operator labels

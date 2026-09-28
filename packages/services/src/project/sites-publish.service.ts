@@ -4,17 +4,17 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { TProjectPublishSettings } from "@pi-dash/types";
+// karma-team imports
+import { API_BASE_URL } from "@karma-team/constants";
+import type { TProjectPublishSettings } from "@karma-team/types";
 // api service
 import { APIService } from "../api.service";
 
 /**
- * Service class for managing project publish operations within pi dash sites application.
+ * Service class for managing project publish operations within karma-team sites application.
  * Extends APIService to handle HTTP requests to the project publish-related endpoints.
  * @extends {APIService}
- * @remarks This service is only available for pi dash sites
+ * @remarks This service is only available for karma-team sites
  */
 export class SitesProjectPublishService extends APIService {
   constructor(BASE_URL?: string) {

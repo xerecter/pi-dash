@@ -6,10 +6,10 @@
 
 import { useEffect } from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { EstimatePropertyIcon } from "@pi-dash/propel/icons";
-import { EEstimateSystem } from "@pi-dash/types";
-import { cn, convertMinutesToHoursMinutesString } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { EstimatePropertyIcon } from "@karma-team/propel/icons";
+import { EEstimateSystem } from "@karma-team/types";
+import { cn, convertMinutesToHoursMinutesString } from "@karma-team/utils";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useEstimate } from "@/hooks/store/estimates/use-estimate";

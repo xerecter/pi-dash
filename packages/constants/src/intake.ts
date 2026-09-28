@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { TInboxIssueStatus } from "@pi-dash/types";
-import { EInboxIssueStatus } from "@pi-dash/types";
+import type { TInboxIssueStatus } from "@karma-team/types";
+import { EInboxIssueStatus } from "@karma-team/types";
 
 export const INBOX_STATUS: {
   key: string;

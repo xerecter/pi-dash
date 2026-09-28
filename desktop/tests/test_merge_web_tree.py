@@ -9,7 +9,7 @@ dev (`dev-prep.sh`), the desktop tests (`test-overlay.sh`) and every edition's
 release all go through it. The order it applies layers in is what lets an
 edition and the desktop overlay coexist:
 
-    workspace  ->  $PIDASH_DESKTOP_EXTRA_OVERLAYS  ->  desktop-overlay/  ->  args
+    workspace  ->  $KARMA_TEAM_DESKTOP_EXTRA_OVERLAYS  ->  desktop-overlay/  ->  args
 
 The desktop layer is applied last on purpose — it has to *remove* web-only
 routes, not merely add files — which means an edition can never override a
@@ -67,7 +67,7 @@ class MergeWebTreeTests(unittest.TestCase):
     def merge(self, *args, extras=None):
         env = {"PATH": "/usr/bin:/bin:/usr/local/bin"}
         if extras is not None:
-            env["PIDASH_DESKTOP_EXTRA_OVERLAYS"] = extras
+            env["KARMA_TEAM_DESKTOP_EXTRA_OVERLAYS"] = extras
         return subprocess.run(
             ["bash", str(self.script), str(self.dest), *args],
             capture_output=True,

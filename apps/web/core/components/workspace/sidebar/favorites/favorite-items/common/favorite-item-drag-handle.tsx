@@ -7,10 +7,10 @@
 import React from "react";
 import { observer } from "mobx-react";
 // ui
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { DragHandle } from "@pi-dash/ui";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { DragHandle } from "@karma-team/ui";
 // helper
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 

@@ -6,9 +6,9 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { ContrastIcon } from "@pi-dash/propel/icons";
-import type { ICycle } from "@pi-dash/types";
+// karma-team imports
+import { ContrastIcon } from "@karma-team/propel/icons";
+import type { ICycle } from "@karma-team/types";
 // local imports
 import { PowerKMenuBuilder } from "./builder";
 

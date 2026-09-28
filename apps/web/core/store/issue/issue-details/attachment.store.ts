@@ -9,7 +9,12 @@ import { action, computed, makeObservable, observable, runInAction } from "mobx"
 import { computedFn } from "mobx-utils";
 import { v4 as uuidv4 } from "uuid";
 // types
-import type { TIssueAttachment, TIssueAttachmentMap, TIssueAttachmentIdMap, TIssueServiceType } from "@pi-dash/types";
+import type {
+  TIssueAttachment,
+  TIssueAttachmentMap,
+  TIssueAttachmentIdMap,
+  TIssueServiceType,
+} from "@karma-team/types";
 // services
 import { IssueAttachmentService } from "@/services/issue";
 import type { IIssueRootStore } from "../root.store";

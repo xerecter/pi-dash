@@ -6,11 +6,11 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { DEFAULT_GLOBAL_VIEWS_LIST } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { SearchIcon } from "@pi-dash/propel/icons";
-import { Input } from "@pi-dash/ui";
+// karma-team imports
+import { DEFAULT_GLOBAL_VIEWS_LIST } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { SearchIcon } from "@karma-team/propel/icons";
+import { Input } from "@karma-team/ui";
 // components
 import { PageHead } from "@/components/core/page-title";
 import { GlobalDefaultViewListItem } from "@/components/workspace/views/default-view-list-item";

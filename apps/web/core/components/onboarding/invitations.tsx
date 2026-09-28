@@ -5,14 +5,14 @@
  */
 
 import { useState } from "react";
-// pi dash imports
-import { ROLE } from "@pi-dash/constants";
+// karma-team imports
+import { ROLE } from "@karma-team/constants";
 // types
-import { Button } from "@pi-dash/propel/button";
-import type { IWorkspaceMemberInvitation } from "@pi-dash/types";
+import { Button } from "@karma-team/propel/button";
+import type { IWorkspaceMemberInvitation } from "@karma-team/types";
 // ui
-import { Checkbox, Spinner } from "@pi-dash/ui";
-import { truncateText } from "@pi-dash/utils";
+import { Checkbox, Spinner } from "@karma-team/ui";
+import { truncateText } from "@karma-team/utils";
 // constants
 // helpers
 import { WorkspaceLogo } from "@/components/workspace/logo";

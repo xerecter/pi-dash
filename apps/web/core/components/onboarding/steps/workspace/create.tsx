@@ -8,14 +8,14 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { CircleCheck } from "lucide-react";
-// pi dash imports
-import { ORGANIZATION_SIZE, RESTRICTED_URLS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IUser, IWorkspace } from "@pi-dash/types";
-import { Spinner } from "@pi-dash/ui";
-import { cn, validateWorkspaceName, validateSlug } from "@pi-dash/utils";
+// karma-team imports
+import { ORGANIZATION_SIZE, RESTRICTED_URLS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IUser, IWorkspace } from "@karma-team/types";
+import { Spinner } from "@karma-team/ui";
+import { cn, validateWorkspaceName, validateSlug } from "@karma-team/utils";
 // hooks
 import { useInstance } from "@/hooks/store/use-instance";
 import { useWorkspace } from "@/hooks/store/use-workspace";
@@ -45,7 +45,7 @@ export const WorkspaceCreateStep = observer(function WorkspaceCreateStep({
   // states
   const [slugError, setSlugError] = useState(false);
   const [invalidSlug, setInvalidSlug] = useState(false);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { config } = useInstance();

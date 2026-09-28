@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-import { useTranslation } from "@pi-dash/i18n";
-import { CloseIcon } from "@pi-dash/propel/icons";
-import type { TModuleDisplayFilters, TModuleFilters } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { CloseIcon } from "@karma-team/propel/icons";
+import type { TModuleDisplayFilters, TModuleFilters } from "@karma-team/types";
 // components
-import { Header, EHeaderVariant, Tag } from "@pi-dash/ui";
-import { replaceUnderscoreIfSnakeCase } from "@pi-dash/utils";
+import { Header, EHeaderVariant, Tag } from "@karma-team/ui";
+import { replaceUnderscoreIfSnakeCase } from "@karma-team/utils";
 import { AppliedDateFilters, AppliedMembersFilters, AppliedStatusFilters } from "@/components/modules";
 // helpers
 // types

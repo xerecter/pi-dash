@@ -76,8 +76,8 @@ export const AgentRuntime = observer(function AgentRuntime() {
         if (active)
           setMessage(
             project.agent_executor_options?.some((option) => option.kind === "managed_runner" && option.available)
-              ? "Runs on this computer · Pi Dash uses its own working copy. Keep the app open while the agent runs."
-              : "Waiting for Pi Dash Agent to connect…"
+              ? "Runs on this computer · karma-team uses its own working copy. Keep the app open while the agent runs."
+              : "Waiting for karma-team Agent to connect…"
           );
       } catch (error) {
         if (active) setMessage(String(error instanceof Error ? error.message : error));
@@ -86,7 +86,7 @@ export const AgentRuntime = observer(function AgentRuntime() {
       }
     };
     resumeAgentRuntime(user.id);
-    setMessage("Preparing Pi Dash Agent…");
+    setMessage("Preparing karma-team Agent…");
     void connectAgentProject(workspaceSlug, projectId).then(
       // Terminal handler: the chain ends here (`void`), and enrollment reports
       // through setMessage rather than a resolved value.

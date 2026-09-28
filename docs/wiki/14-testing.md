@@ -10,7 +10,7 @@ Vitest runs per-app and per-package where tests exist.
 # Per app / package:
 pnpm --filter web test
 pnpm --filter live test
-pnpm --filter @pi-dash/ui test
+pnpm --filter @karma-team/ui test
 
 # Across workspace via Turbo:
 pnpm turbo run test
@@ -20,10 +20,10 @@ Test files live next to source (`*.test.ts` / `*.test.tsx`) or in app-local `tes
 
 ### Storybook
 
-`@pi-dash/ui` ships Storybook for component-in-isolation development:
+`@karma-team/ui` ships Storybook for component-in-isolation development:
 
 ```bash
-pnpm --filter @pi-dash/ui storybook   # http://localhost:6006
+pnpm --filter @karma-team/ui storybook   # http://localhost:6006
 ```
 
 Build new components in Storybook first, wire them into an app second.
@@ -45,7 +45,7 @@ python run_tests.py              # full suite
 
 pytest -m smoke                  # direct pytest, smoke marker only
 pytest --create-db               # rebuild DB — required for schema-altering changes
-pytest apps/api/pi_dash/runner/tests/test_session.py::test_welcome_frame  # one test
+pytest apps/api/karma_team/runner/tests/test_session.py::test_welcome_frame  # one test
 ```
 
 ### Markers
@@ -56,11 +56,11 @@ pytest apps/api/pi_dash/runner/tests/test_session.py::test_welcome_frame  # one 
 | `contract` | Cross-module contract tests — wire-format, serializer parity. |
 | `smoke`    | Coarse-grained end-to-end happy-path.                         |
 
-Tests live under `apps/api/pi_dash/tests/` and per-module `tests/` (e.g. `pi_dash/runner/tests/`).
+Tests live under `apps/api/karma_team/tests/` and per-module `tests/` (e.g. `karma_team/runner/tests/`).
 
 ### Test settings
 
-`apple_pi_dash.settings.test` is the test settings module — it tweaks middleware and disables some prod-only services so tests don't need RabbitMQ etc.
+`apple_karma_team.settings.test` is the test settings module — it tweaks middleware and disables some prod-only services so tests don't need RabbitMQ etc.
 
 ## Rust runner (cargo test)
 

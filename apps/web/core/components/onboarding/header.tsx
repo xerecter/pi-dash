@@ -5,12 +5,12 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { PiDashLockup, ChevronLeftIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TOnboardingStep } from "@pi-dash/types";
-import { EOnboardingSteps } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { KarmaTeamLockup, ChevronLeftIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TOnboardingStep } from "@karma-team/types";
+import { EOnboardingSteps } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useInstance } from "@/hooks/store/use-instance";
 import { useUser } from "@/hooks/store/user";
@@ -87,7 +87,7 @@ export const OnboardingHeader = observer(function OnboardingHeader(props: Onboar
               <ChevronLeftIcon className="size-6 text-placeholder" />
             </button>
           )}
-          <PiDashLockup height={20} width={37} className="text-primary" />
+          <KarmaTeamLockup height={20} width={37} className="text-primary" />
         </div>
         <SwitchAccountDropdown fullName={userName} />
       </div>

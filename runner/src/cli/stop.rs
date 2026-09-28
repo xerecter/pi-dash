@@ -1,4 +1,4 @@
-//! `pidash stop` — stop the installed service.
+//! `karma-team stop` — stop the installed service.
 
 use anyhow::Result;
 use clap::Args as ClapArgs;

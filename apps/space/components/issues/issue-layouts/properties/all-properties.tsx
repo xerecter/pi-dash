@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 import { Paperclip } from "lucide-react";
-import { LinkIcon, ViewsIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IIssueDisplayProperties } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import { LinkIcon, ViewsIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IIssueDisplayProperties } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // components
 import { WithDisplayPropertiesHOC } from "@/components/issues/issue-layouts/with-display-properties-HOC";
 // helpers

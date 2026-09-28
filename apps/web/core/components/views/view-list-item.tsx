@@ -7,10 +7,10 @@
 import { useRef } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { ViewsIcon } from "@pi-dash/propel/icons";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { ViewsIcon } from "@karma-team/propel/icons";
 // types
-import type { IProjectView } from "@pi-dash/types";
+import type { IProjectView } from "@karma-team/types";
 // components
 import { ListItem } from "@/components/core/list";
 // hooks

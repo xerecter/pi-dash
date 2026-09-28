@@ -6,10 +6,10 @@
 
 import { observer } from "mobx-react";
 // icons
-import { DATE_BEFORE_FILTER_OPTIONS } from "@pi-dash/constants";
-import { CloseIcon } from "@pi-dash/propel/icons";
-// pi dash constants
-import { renderFormattedDate, capitalizeFirstLetter } from "@pi-dash/utils";
+import { DATE_BEFORE_FILTER_OPTIONS } from "@karma-team/constants";
+import { CloseIcon } from "@karma-team/propel/icons";
+// karma-team constants
+import { renderFormattedDate, capitalizeFirstLetter } from "@karma-team/utils";
 // helpers
 type Props = {
   editable: boolean | undefined;

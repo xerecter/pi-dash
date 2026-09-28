@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TSticky } from "@pi-dash/types";
+import type { TSticky } from "@karma-team/types";
 
 export const STICKY_COLORS_LIST: {
   key: string;

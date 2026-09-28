@@ -5,15 +5,15 @@
  */
 
 import { getWeekOfMonth, isValid } from "date-fns";
-import { CHART_X_AXIS_DATE_PROPERTIES, ChartXAxisDateGrouping, TO_CAPITALIZE_PROPERTIES } from "@pi-dash/constants";
-import type { ChartXAxisProperty, TChart, TChartDatum } from "@pi-dash/types";
+import { CHART_X_AXIS_DATE_PROPERTIES, ChartXAxisDateGrouping, TO_CAPITALIZE_PROPERTIES } from "@karma-team/constants";
+import type { ChartXAxisProperty, TChart, TChartDatum } from "@karma-team/types";
 import {
   capitalizeFirstLetter,
   hexToHsl,
   hslToHex,
   renderFormattedDate,
   renderFormattedDateWithoutYear,
-} from "@pi-dash/utils";
+} from "@karma-team/utils";
 //
 
 const getDateGroupingName = (date: string, dateGrouping: ChartXAxisDateGrouping): string => {

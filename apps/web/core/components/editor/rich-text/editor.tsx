@@ -5,19 +5,19 @@
  */
 
 import { forwardRef } from "react";
-// pi dash imports
-import { RichTextEditorWithRef } from "@pi-dash/editor";
-import type { EditorRefApi, IRichTextEditorProps, TFileHandler } from "@pi-dash/editor";
-import type { MakeOptional, TSearchEntityRequestPayload, TSearchResponse } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { RichTextEditorWithRef } from "@karma-team/editor";
+import type { EditorRefApi, IRichTextEditorProps, TFileHandler } from "@karma-team/editor";
+import type { MakeOptional, TSearchEntityRequestPayload, TSearchResponse } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // components
 import { EditorMentionsRoot } from "@/components/editor/embeds/mentions";
 // hooks
 import { useEditorConfig, useEditorMention } from "@/hooks/editor";
 import { useMember } from "@/hooks/store/use-member";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
-// pi dash web hooks
-import { useEditorFlagging } from "@/pi-dash-web/hooks/use-editor-flagging";
+// karma-team web hooks
+import { useEditorFlagging } from "@/karma-team-web/hooks/use-editor-flagging";
 
 type RichTextEditorWrapperProps = MakeOptional<
   Omit<IRichTextEditorProps, "fileHandler" | "mentionHandler" | "extendedEditorProps">,

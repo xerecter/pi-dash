@@ -4,13 +4,18 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TDocumentPayload, TDuplicateAssetData, TDuplicateAssetResponse, TEditorAssetType } from "@pi-dash/types";
-// pi dash web imports
+// karma-team imports
+import type {
+  TDocumentPayload,
+  TDuplicateAssetData,
+  TDuplicateAssetResponse,
+  TEditorAssetType,
+} from "@karma-team/types";
+// karma-team web imports
 import {
   extractAdditionalAssetsFromHTMLContent,
   replaceAdditionalAssetsInHTMLContent,
-} from "@/pi-dash-editor/helpers/parser";
+} from "@/karma-team-editor/helpers/parser";
 // local imports
 import { convertHTMLDocumentToAllFormats } from "./yjs-utils";
 

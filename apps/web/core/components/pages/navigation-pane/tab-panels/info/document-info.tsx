@@ -6,10 +6,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TDocumentInfo } from "@pi-dash/editor";
-import { useTranslation } from "@pi-dash/i18n";
-import { getReadTimeFromWordsCount } from "@pi-dash/utils";
+// karma-team imports
+import type { TDocumentInfo } from "@karma-team/editor";
+import { useTranslation } from "@karma-team/i18n";
+import { getReadTimeFromWordsCount } from "@karma-team/utils";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

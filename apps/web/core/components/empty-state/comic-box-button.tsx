@@ -8,8 +8,8 @@ import type { Ref } from "react";
 import { Fragment, useState } from "react";
 import { usePopper } from "react-popper";
 import { Popover } from "@headlessui/react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
 
 type Props = {
   label: string;

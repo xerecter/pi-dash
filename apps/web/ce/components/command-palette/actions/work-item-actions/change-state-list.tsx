@@ -6,10 +6,10 @@
 
 import { Command } from "cmdk";
 import { observer } from "mobx-react";
-import { EIconSize } from "@pi-dash/constants";
-// pi dash imports
-import { CheckIcon, StateGroupIcon } from "@pi-dash/propel/icons";
-import { Spinner } from "@pi-dash/ui";
+import { EIconSize } from "@karma-team/constants";
+// karma-team imports
+import { CheckIcon, StateGroupIcon } from "@karma-team/propel/icons";
+import { Spinner } from "@karma-team/ui";
 // store hooks
 import { useProjectState } from "@/hooks/store/use-project-state";
 

@@ -7,18 +7,18 @@
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { EUserWorkspaceRoles } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { EUserWorkspaceRoles } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // components
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useUserPermissions } from "@/hooks/store/user";
-// pi dash web imports
-import { UpgradeBadge } from "@/pi-dash-web/components/workspace/upgrade-badge";
+// karma-team web imports
+import { UpgradeBadge } from "@/karma-team-web/components/workspace/upgrade-badge";
 
 export type SidebarWorkspaceMenuItemProps = {
   item: {

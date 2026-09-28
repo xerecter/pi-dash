@@ -7,18 +7,18 @@
 import React, { useEffect, useState, useCallback } from "react";
 import type { LucideIcon } from "lucide-react";
 
-import { EIssueCommentAccessSpecifier } from "@pi-dash/constants";
+import { EIssueCommentAccessSpecifier } from "@karma-team/constants";
 // editor
-import type { EditorRefApi } from "@pi-dash/editor";
+import type { EditorRefApi } from "@karma-team/editor";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import { Button } from "@pi-dash/propel/button";
-import { GlobeIcon, LockIcon } from "@pi-dash/propel/icons";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import { Button } from "@karma-team/propel/button";
+import { GlobeIcon, LockIcon } from "@karma-team/propel/icons";
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
 // constants
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import type { ToolbarMenuItem } from "@/constants/editor";
 import { TOOLBAR_ITEMS } from "@/constants/editor";
 // helpers

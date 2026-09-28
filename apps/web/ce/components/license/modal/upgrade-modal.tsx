@@ -5,19 +5,19 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
+// karma-team imports
 import {
   BUSINESS_PLAN_FEATURES,
   ENTERPRISE_PLAN_FEATURES,
-  PI_DASH_COMMUNITY_PRODUCTS,
+  KARMA_TEAM_COMMUNITY_PRODUCTS,
   PRO_PLAN_FEATURES,
   SUBSCRIPTION_REDIRECTION_URLS,
   SUBSCRIPTION_WEBPAGE_URLS,
   TALK_TO_SALES_URL,
-} from "@pi-dash/constants";
-import { EProductSubscriptionEnum } from "@pi-dash/types";
-import { EModalWidth, ModalCore } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+} from "@karma-team/constants";
+import { EProductSubscriptionEnum } from "@karma-team/types";
+import { EModalWidth, ModalCore } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { FreePlanCard, PlanUpgradeCard } from "@/components/license";
 import type { TCheckoutParams } from "@/components/license/modal/card/checkout-button";
@@ -38,8 +38,8 @@ export const PaidPlanUpgradeModal = observer(function PaidPlanUpgradeModal(props
   const isTrialAllowed = false;
 
   const handleRedirection = ({ planVariant, priceId }: TCheckoutParams) => {
-    // Get the product and price using pi dash community constants
-    const product = PI_DASH_COMMUNITY_PRODUCTS[planVariant];
+    // Get the product and price using karma-team community constants
+    const product = KARMA_TEAM_COMMUNITY_PRODUCTS[planVariant];
     const price = product.prices.find((price) => price.id === priceId);
     const frequency = price?.recurring ?? "year";
     // Redirect to the appropriate URL
@@ -69,7 +69,7 @@ export const PaidPlanUpgradeModal = observer(function PaidPlanUpgradeModal(props
           <div className={cn(COMMON_CARD_CLASSNAME)}>
             <PlanUpgradeCard
               planVariant={EProductSubscriptionEnum.PRO}
-              product={PI_DASH_COMMUNITY_PRODUCTS[EProductSubscriptionEnum.PRO]}
+              product={KARMA_TEAM_COMMUNITY_PRODUCTS[EProductSubscriptionEnum.PRO]}
               features={PRO_PLAN_FEATURES}
               verticalFeatureList
               extraFeatures={
@@ -87,7 +87,7 @@ export const PaidPlanUpgradeModal = observer(function PaidPlanUpgradeModal(props
           <div className={cn(COMMON_CARD_CLASSNAME)}>
             <PlanUpgradeCard
               planVariant={EProductSubscriptionEnum.BUSINESS}
-              product={PI_DASH_COMMUNITY_PRODUCTS[EProductSubscriptionEnum.BUSINESS]}
+              product={KARMA_TEAM_COMMUNITY_PRODUCTS[EProductSubscriptionEnum.BUSINESS]}
               features={BUSINESS_PLAN_FEATURES}
               verticalFeatureList
               extraFeatures={
@@ -109,7 +109,7 @@ export const PaidPlanUpgradeModal = observer(function PaidPlanUpgradeModal(props
           <div className={cn(COMMON_CARD_CLASSNAME)}>
             <PlanUpgradeCard
               planVariant={EProductSubscriptionEnum.ENTERPRISE}
-              product={PI_DASH_COMMUNITY_PRODUCTS[EProductSubscriptionEnum.ENTERPRISE]}
+              product={KARMA_TEAM_COMMUNITY_PRODUCTS[EProductSubscriptionEnum.ENTERPRISE]}
               features={ENTERPRISE_PLAN_FEATURES}
               verticalFeatureList
               extraFeatures={

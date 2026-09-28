@@ -8,9 +8,9 @@ import { set, sortBy } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { EUserPermissions } from "@pi-dash/constants";
-import type { IWorkspaceBulkInviteFormData, IWorkspaceMember, IWorkspaceMemberInvitation } from "@pi-dash/types";
-// pi-dash-web constants
+import type { EUserPermissions } from "@karma-team/constants";
+import type { IWorkspaceBulkInviteFormData, IWorkspaceMember, IWorkspaceMemberInvitation } from "@karma-team/types";
+// karma-team-web constants
 // services
 import { WorkspaceService } from "@/services/workspace.service";
 // types
@@ -20,7 +20,7 @@ import type { IUserStore } from "@/store/user";
 import type { IMemberRootStore } from "../index.ts";
 import type { IWorkspaceMemberFiltersStore } from "./workspace-member-filters.store";
 import { WorkspaceMemberFiltersStore } from "./workspace-member-filters.store";
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import type { RootStore } from "@/karma-team-web/store/root.store";
 
 export interface IWorkspaceMembership {
   id: string;

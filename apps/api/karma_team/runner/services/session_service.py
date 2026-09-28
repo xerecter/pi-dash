@@ -1,0 +1,511 @@
+# Copyright (c) 2023-present Pi Dash Software, Inc. and contributors
+# SPDX-License-Identifier: AGPL-3.0-only
+# See the LICENSE file for details.
+
+"""Shared session-open / hello-apply service.
+
+Carved out of ``consumers.py`` per ``.ai_design/move_to_https/tasks.md``
+§2.1 so both the legacy WS Hello path and the new
+``POST /runners/<rid>/sessions/`` endpoint apply the same logic.
+"""
+
+from __future__ import annotations
+
+import logging
+import re
+from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
+from uuid import UUID
+
+from django.utils import timezone
+
+from karma_team.runner.models import (
+    AgentRun,
+    AgentRunStatus,
+    Runner,
+    RunnerLiveState,
+    RunnerStatus,
+)
+
+logger = logging.getLogger(__name__)
+
+OFFLINE_GRACE_SECS = 60
+
+# Grace window protecting freshly-assigned runs from the reaper.
+#
+# The reaper runs on every long-poll request (`runner_session_poll`)
+# *before* the outbox is drained for that same response. So the very poll
+# that's about to deliver an Assign to the runner is the poll where the
+# runner still legitimately reports `in_flight_run=null` (it hasn't seen
+# the Assign yet — it's still in the outbox waiting for delivery).
+# Without this grace, that race kills the run between assignment and
+# delivery: the cloud reaps `assigned_at=now-Xs, status=ASSIGNED`, then
+# hands the doomed Assign to the runner, who processes it normally and
+# only discovers the row is tombstoned when it tries to send RunStarted.
+#
+# Symptom: `started_at > ended_at` on the failed AgentRun row, error
+# "reaped by heartbeat: ... in_flight_run=(none) but cloud had this run
+# marked busy", with no daemon restart in the journal.
+#
+# Sized to cover one full long-poll interval (default 25s) + runner-side
+# processing of the Assign + the runner's *next* poll. 60s is generous
+# without meaningfully delaying real reaps after a daemon crash, since
+# crash detection comes from missing heartbeats anyway.
+ASSIGN_DELIVERY_GRACE_SECS = 60
+
+
+def _merge_dev_metadata(current: Any, body: Dict[str, Any]) -> Dict[str, Any]:
+    """Merge whitelisted session-open metadata into a JSON object.
+
+    Older runners omit ``working_dir`` entirely, which preserves the last
+    reported value. Current runners send an explicit empty string when no
+    usable directory exists, which clears a stale value.
+    """
+    metadata = dict(current) if isinstance(current, dict) else {}
+
+    # ``engine_version`` is the agent CLI's own ``--version``, probed by the
+    # daemon at start. For a desktop-bundled runner this is the one number
+    # support needs to answer "which build is this user on", since the binary
+    # ships inside the app rather than being installed by the user.
+    if "engine_version" in body:
+        engine_version = body.get("engine_version")
+        if isinstance(engine_version, str):
+            if engine_version:
+                metadata["codex_version"] = engine_version[:64]
+            else:
+                metadata.pop("codex_version", None)
+
+    if "working_dir" not in body:
+        return metadata
+
+    working_dir = body.get("working_dir")
+    if not isinstance(working_dir, str):
+        return metadata
+    if working_dir:
+        metadata["working_dir"] = working_dir[:1024]
+    else:
+        metadata.pop("working_dir", None)
+    return metadata
+
+
+_AGENT_KIND_RE = re.compile(r"^[a-z][a-z0-9_]{0,31}$")
+
+
+def _agent_capabilities(body: Dict[str, Any], current: Any) -> tuple[list, bool]:
+    """Derive the ``capabilities`` list from the Hello's ``agent_kind``.
+
+    The daemon reports the ``AgentKind`` it drives as a snake_case string
+    (``"claude_code"``, ``"muse_code"``); we persist it as an ``agent:<kind>``
+    capability so ``diagnostics.infer_agent_label`` reads an exact signal
+    instead of guessing from the model slug / runner name / host label.
+
+    Returns ``(capabilities, changed)``. An older daemon omits ``agent_kind``
+    entirely — leave any existing value untouched rather than clobbering it with
+    an empty list. The value is validated against a strict charset so a
+    malformed payload can never inject arbitrary text into the field.
+    """
+    raw = body.get("agent_kind")
+    if not isinstance(raw, str) or not _AGENT_KIND_RE.match(raw):
+        return list(current) if isinstance(current, list) else [], False
+    desired = [f"agent:{raw}"]
+    if isinstance(current, list) and current == desired:
+        return desired, False
+    return desired, True
+
+
+def apply_hello(runner: Runner, body: Dict[str, Any]) -> None:
+    """Update runner metadata + reap stale busy runs.
+
+    ``body`` is the session-open / Hello payload. Persists ``os``,
+    ``arch``, ``version``, the agent kind the daemon drives (as an
+    ``agent:<kind>`` capability), known development metadata, and bumps
+    ``last_heartbeat_at``.
+    """
+    runner.os = body.get("os", "") or runner.os
+    runner.arch = body.get("arch", "") or runner.arch
+    runner.runner_version = body.get("version", "") or runner.runner_version
+    runner.dev_metadata = _merge_dev_metadata(runner.dev_metadata, body)
+    runner.last_heartbeat_at = timezone.now()
+    update_fields = [
+        "os",
+        "arch",
+        "runner_version",
+        "dev_metadata",
+        "last_heartbeat_at",
+    ]
+    capabilities, capabilities_changed = _agent_capabilities(body, runner.capabilities)
+    if capabilities_changed:
+        runner.capabilities = capabilities
+        update_fields.append("capabilities")
+    runner.save(update_fields=update_fields)
+    # Session open redelivers ASSIGNED / WAITING_FOR_WORKTREE runs the
+    # restarted daemon no longer reports (design §6.3) — reaping them here
+    # would fail the very runs ``build_session_open_redeliver`` is about to
+    # push back, so they are excluded on this path only. The poll path keeps
+    # the default: an alive daemon that lost such a run is still reaped.
+    reap_stale_busy_runs(runner, body, exclude_redeliverable=True)
+
+
+def reap_stale_busy_runs(runner: Runner, body: Dict[str, Any], *, exclude_redeliverable: bool = False) -> None:
+    """Cancel BUSY runs the daemon no longer claims.
+
+    WAITING_FOR_WORKTREE runs are covered automatically via
+    ``BUSY_STATUSES`` membership and need no special-casing here (design
+    §6.2): a single-tenant runner reports its queued run as
+    ``in_flight_run`` while it waits, so it is excluded below; a daemon that
+    truly lost the run stops reporting it and is correctly reaped, exactly as
+    for RUNNING.
+
+    ``exclude_redeliverable=True`` (session-open only) spares ASSIGNED /
+    WAITING_FOR_WORKTREE runs so ``build_session_open_redeliver`` can push
+    them back to the freshly-restarted daemon instead of failing them.
+    """
+    from django.db import transaction
+
+    from karma_team.runner.services.matcher import (
+        BUSY_STATUSES,
+        drain_for_runner_by_id,
+        drain_pod_by_id,
+    )
+
+    now = timezone.now()
+    ts_raw = body.get("ts")
+    try:
+        heartbeat_ts = datetime.fromisoformat(ts_raw.replace("Z", "+00:00")) if isinstance(ts_raw, str) else now
+    except (ValueError, AttributeError):
+        heartbeat_ts = now
+    heartbeat_ts = min(heartbeat_ts, now)
+    heartbeat_ts = max(heartbeat_ts, now - timedelta(seconds=OFFLINE_GRACE_SECS))
+
+    in_flight = body.get("in_flight_run")
+    in_flight_id: Optional[str] = None
+    if in_flight:
+        try:
+            in_flight_id = str(UUID(str(in_flight)))
+        except (ValueError, AttributeError):
+            in_flight_id = None
+
+    # Effective cutoff: a run is only stale if it was assigned BOTH
+    # before the runner's reported heartbeat AND more than
+    # ASSIGN_DELIVERY_GRACE_SECS ago. The min() picks the stricter
+    # (earlier) of the two — `assigned_at < cutoff` is satisfied iff
+    # both individual conditions are.
+    assignment_cutoff = now - timedelta(seconds=ASSIGN_DELIVERY_GRACE_SECS)
+    effective_cutoff = min(heartbeat_ts, assignment_cutoff)
+
+    reapable_statuses = tuple(BUSY_STATUSES)
+    if exclude_redeliverable:
+        redeliverable = (
+            AgentRunStatus.ASSIGNED,
+            AgentRunStatus.WAITING_FOR_WORKTREE,
+            AgentRunStatus.CANCEL_REQUESTED,
+        )
+        reapable_statuses = tuple(s for s in reapable_statuses if s not in redeliverable)
+
+    stale = AgentRun.objects.filter(
+        runner=runner,
+        status__in=reapable_statuses,
+        assigned_at__lt=effective_cutoff,
+    )
+    if in_flight_id:
+        stale = stale.exclude(id=in_flight_id)
+        if not exclude_redeliverable and AgentRun.objects.filter(
+            id=in_flight_id,
+            runner=runner,
+            status=AgentRunStatus.CANCEL_REQUESTED,
+        ).exists():
+            # Re-enqueue on every poll until the daemon acknowledges. This
+            # recovers when the initial best-effort enqueue happened during a
+            # transient Redis outage without waiting for a session reconnect.
+            from karma_team.runner.services.pubsub import send_to_runner
+
+            def _retry_cancel(rid=runner.id, run_id=in_flight_id):
+                try:
+                    send_to_runner(
+                        rid,
+                        {
+                            "v": 1,
+                            "type": "cancel",
+                            "run_id": str(run_id),
+                            "reason": "cancellation_pending",
+                        },
+                    )
+                except Exception:
+                    logger.exception(
+                        "session_service: failed to redeliver cancellation "
+                        "for run %s",
+                        run_id,
+                    )
+
+            transaction.on_commit(_retry_cancel)
+
+    # A cancellation request disappears from the daemon's in-flight report
+    # only after its worker has stopped. Treat that heartbeat as the same
+    # barrier as an explicit RunCancelled lifecycle frame.
+    stopped_cancel_ids = list(stale.filter(status=AgentRunStatus.CANCEL_REQUESTED).values_list("id", flat=True))
+    stopped_cancel_pod_ids = set(stale.filter(status=AgentRunStatus.CANCEL_REQUESTED).values_list("pod_id", flat=True))
+    if stopped_cancel_ids:
+        AgentRun.objects.filter(id__in=stopped_cancel_ids).update(
+            status=AgentRunStatus.CANCELLED,
+            ended_at=now,
+            queue_position=None,
+        )
+        stale = stale.exclude(id__in=stopped_cancel_ids)
+
+    reaped = list(stale.values_list("id", "pod_id"))
+    if not reaped and not stopped_cancel_ids:
+        return
+
+    from karma_team.runner.services.agent_run_finalization import finalize_agent_run
+
+    detail = (
+        "reaped by heartbeat: runner reported in_flight_run="
+        f"{in_flight_id or '(none)'} but cloud had this run marked busy"
+    )
+    for run_id, _ in reaped:
+        finalize_agent_run(
+            run_id,
+            AgentRunStatus.FAILED,
+            updates={"error": detail, "error_code": "heartbeat_reaped"},
+            expected_runner_id=runner.id,
+        )
+    pod_ids = {pid for _, pid in reaped if pid is not None}
+    pod_ids.update(pid for pid in stopped_cancel_pod_ids if pid is not None)
+    runner_id = runner.id
+
+    def _drain_after_commit(
+        rid=runner_id,
+        pids=pod_ids,
+        handoff_ids=tuple(stopped_cancel_ids),
+    ):
+        from karma_team.orchestration.service import complete_project_move_handoff
+
+        for handoff_id in handoff_ids:
+            complete_project_move_handoff(handoff_id)
+        drain_for_runner_by_id(rid)
+        for pid in pids:
+            drain_pod_by_id(pid)
+
+    transaction.on_commit(_drain_after_commit)
+
+
+# ---------------------------------------------------------------------------
+# Per-active-run observability snapshot ingestion
+# ---------------------------------------------------------------------------
+#
+# Lives on the poll path only (`apply_hello` is unchanged) — see
+# `.ai_design/runner_agent_bridge/design.md` §4.2 / §4.5.2.
+#
+# Wire shape carries one envelope key (`observed_run_id`) plus optional
+# scalar fields. `observed_run_id` *change* triggers a full wipe of the
+# row's snapshot fields before applying the incoming values; missing
+# scalars on a same-run poll are NOT overwritten (a stale poll never NULLs
+# out a known-good value).
+
+# Snapshot fields stored on RunnerLiveState. Does NOT include
+# `observed_run_id` (that field drives the wipe, it is not a wipe target).
+# Tokens travel as a nested `tokens.{input,output,total}` object and the
+# selected LLM travels as top-level `model`; both are unpacked into flat
+# columns by the upsert.
+SNAPSHOT_FIELDS = (
+    "last_event_at",
+    "last_event_kind",
+    "last_event_summary",
+    "agent_pid",
+    "agent_subprocess_alive",
+    "approvals_pending",
+    "input_tokens",
+    "output_tokens",
+    "total_tokens",
+    "llm_model",
+    "turn_count",
+)
+
+
+def parse_optional_uuid(raw: Any) -> Optional[UUID]:
+    """Return a UUID for present-and-valid values, ``None`` for missing /
+    explicit-null. Raises ``ValueError`` for malformed UUID strings so the
+    caller can decide to skip the entire poll's observability ingestion.
+    """
+    if raw is None:
+        return None
+    if isinstance(raw, UUID):
+        return raw
+    return UUID(str(raw))
+
+
+def upsert_runner_live_state(runner: Runner, status_entry: Dict[str, Any]) -> None:
+    """Apply the volatile observability snapshot from a poll body.
+
+    ``status_entry`` is the dict the poll handler reads as
+    ``body['status']``. Missing fields are left as-is on the existing
+    row — a stale poll never NULLs out a known-good value. A poll that
+    carries a different ``observed_run_id`` than the row's current value
+    persists a full wipe of every snapshot field before applying the
+    incoming values, ensuring no cross-run carryover.
+
+    No-op when the body has no observability fields at all (pre-flag
+    runner). Malformed ``observed_run_id`` values are logged and skipped
+    rather than raised so a buggy runner can't take down the cloud's
+    poll handler.
+    """
+    if not isinstance(status_entry, dict) or not status_entry:
+        return
+    has_snapshot = "observed_run_id" in status_entry or any(
+        key in status_entry for key in (*SNAPSHOT_FIELDS, "tokens", "model")
+    )
+    if not has_snapshot:
+        return
+
+    state, _ = RunnerLiveState.objects.get_or_create(runner=runner)
+
+    try:
+        incoming_run_id = parse_optional_uuid(status_entry.get("observed_run_id"))
+    except (ValueError, TypeError):
+        logger.warning(
+            "ignoring runner live-state update for %s: invalid observed_run_id %r",
+            runner.id,
+            status_entry.get("observed_run_id"),
+        )
+        return
+
+    update_fields: list[str] = []
+
+    if "observed_run_id" in status_entry and state.observed_run_id != incoming_run_id:
+        # New run, or idle/null after a completed run. Persist the full
+        # wipe, not just the fields present on this poll.
+        for f in SNAPSHOT_FIELDS:
+            setattr(state, f, None)
+        update_fields.extend(SNAPSHOT_FIELDS)
+        state.observed_run_id = incoming_run_id
+        update_fields.append("observed_run_id")
+
+    for f in SNAPSHOT_FIELDS:
+        if f in status_entry:
+            setattr(state, f, status_entry[f])
+            update_fields.append(f)
+
+    if "tokens" in status_entry:
+        tokens = status_entry["tokens"] or {}
+        state.input_tokens = tokens.get("input")
+        state.output_tokens = tokens.get("output")
+        state.total_tokens = tokens.get("total")
+        update_fields.extend(["input_tokens", "output_tokens", "total_tokens"])
+    if "model" in status_entry:
+        model = str(status_entry.get("model") or "").strip()
+        state.llm_model = model[:128] or None
+        update_fields.append("llm_model")
+
+    if update_fields:
+        state.save(update_fields=sorted(set(update_fields)) + ["updated_at"])
+
+
+def build_session_open_redeliver(runner: Runner, in_flight_run_id: Optional[str]) -> Optional[Dict[str, Any]]:
+    """Return an ``Assign``-shaped payload to redeliver at session open.
+
+    After a daemon restart the runner's local worktree queue is gone, so a
+    run the cloud still has assigned to it (``ASSIGNED`` /
+    ``WAITING_FOR_WORKTREE``) is invisible to the daemon. When the runner
+    re-opens its session without reporting that run as ``in_flight_run``, the
+    cloud pushes it back so the daemon can re-attempt a lease (start or
+    re-enqueue). See ``.ai_design/worktree_pooling/design.md`` §6.3.
+
+    At most one such run exists per runner (single-tenancy); the oldest is
+    chosen. ``RUNNING`` runs are deliberately excluded — a lost RUNNING run is
+    the heartbeat reaper's job, not redelivery's. Returns ``None`` when there
+    is nothing to redeliver.
+    """
+    from karma_team.runner.services.matcher import _build_assign_msg
+
+    skip_id: Optional[str] = None
+    if in_flight_run_id:
+        try:
+            skip_id = str(UUID(str(in_flight_run_id)))
+        except (ValueError, AttributeError):
+            skip_id = None
+
+    cancel_qs = AgentRun.objects.filter(
+        runner=runner,
+        status=AgentRunStatus.CANCEL_REQUESTED,
+    )
+    if skip_id:
+        cancel_qs = cancel_qs.exclude(id=skip_id)
+    cancel_run = cancel_qs.order_by("assigned_at", "created_at").first()
+    if cancel_run is not None:
+        return {
+            "v": 1,
+            "type": "cancel",
+            "run_id": str(cancel_run.id),
+            "reason": "cancellation_pending_on_reconnect",
+        }
+
+    qs = AgentRun.objects.filter(
+        runner=runner,
+        status__in=(
+            AgentRunStatus.ASSIGNED,
+            AgentRunStatus.WAITING_FOR_WORKTREE,
+        ),
+    )
+    if skip_id:
+        qs = qs.exclude(id=skip_id)
+    run = qs.order_by("assigned_at", "created_at").first()
+    if run is None:
+        return None
+    return _build_assign_msg(run)
+
+
+def mark_runner_online(runner_id: UUID | str) -> None:
+    Runner.objects.filter(pk=runner_id).update(status=RunnerStatus.ONLINE, last_heartbeat_at=timezone.now())
+
+
+def mark_runner_offline(runner_id: UUID | str) -> None:
+    Runner.objects.filter(pk=runner_id).exclude(status=RunnerStatus.REVOKED).update(status=RunnerStatus.OFFLINE)
+
+
+def resolve_runner_project_slug(runner: Runner) -> Optional[str]:
+    """Return ``runner.pod.project.identifier`` or ``None``."""
+    r = Runner.objects.select_related("pod__project").filter(pk=runner.pk).first()
+    if r is None or r.pod_id is None:
+        return None
+    project = r.pod.project
+    if project is None:
+        return None
+    return project.identifier
+
+
+def build_resume_ack(runner: Runner, run_id: str) -> Optional[Dict[str, Any]]:
+    """Return a ``resume_ack`` payload for an in-flight run, or ``None``.
+
+    See ``consumers.RunnerConsumer._resume_run``: if the run does not
+    exist, send a ``cancel`` instead; if it has terminated, send
+    ``cancel`` with the terminal status.
+    """
+    from karma_team.runner.models import AgentRunEvent
+
+    run = AgentRun.objects.filter(id=run_id, runner=runner).first()
+    if run is None:
+        return {
+            "type": "cancel",
+            "run_id": str(run_id),
+            "reason": "unknown_run_on_reconnect",
+        }
+    if run.status == AgentRunStatus.CANCEL_REQUESTED:
+        return {
+            "type": "cancel",
+            "run_id": str(run_id),
+            "reason": "cancellation_pending_on_reconnect",
+        }
+    if run.is_terminal:
+        return {
+            "type": "cancel",
+            "run_id": str(run_id),
+            "reason": f"run_already_{run.status}",
+        }
+    last_seq = AgentRunEvent.objects.filter(agent_run_id=run_id).order_by("-seq").values_list("seq", flat=True).first()
+    return {
+        "type": "resume_ack",
+        "run_id": str(run_id),
+        "last_seq": last_seq,
+        "status": run.status,
+        "thread_id": run.thread_id,
+    }

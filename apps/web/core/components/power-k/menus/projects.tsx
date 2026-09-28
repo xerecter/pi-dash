@@ -6,9 +6,9 @@
 
 import React from "react";
 // components
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-// pi dash imports
-import type { TPartialProject } from "@/pi-dash-web/types";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+// karma-team imports
+import type { TPartialProject } from "@/karma-team-web/types";
 // local imports
 import { PowerKMenuBuilder } from "./builder";
 

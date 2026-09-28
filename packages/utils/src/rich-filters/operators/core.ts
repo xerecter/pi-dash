@@ -5,13 +5,13 @@
  */
 
 import { get } from "lodash-es";
-// pi dash imports
-import { DATE_OPERATOR_LABELS_MAP, EMPTY_OPERATOR_LABEL, OPERATOR_LABELS_MAP } from "@pi-dash/constants";
+// karma-team imports
+import { DATE_OPERATOR_LABELS_MAP, EMPTY_OPERATOR_LABEL, OPERATOR_LABELS_MAP } from "@karma-team/constants";
 import type {
   TAllAvailableOperatorsForDisplay,
   TFilterValue,
   TAllAvailableDateFilterOperatorsForDisplay,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 
 // -------- OPERATOR LABEL UTILITIES --------
 

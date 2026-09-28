@@ -1,6 +1,6 @@
-@import "@pi-dash/tailwind-config/index.css";
-@import "@pi-dash/editor/styles";
-@import "@pi-dash/propel/styles/react-day-picker.css";
+@import "@karma-team/tailwind-config/index.css";
+@import "@karma-team/editor/styles";
+@import "@karma-team/propel/styles/react-day-picker.css";
 @import "./power-k.css";
 @import "./emoji.css";
 @plugin "@tailwindcss/typography";

@@ -6,9 +6,9 @@
 
 import { orderBy, clone, set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
-// pi dash imports
-import type { THomeWidgetKeys, TWidgetEntityData } from "@pi-dash/types";
-// pi dash web services
+// karma-team imports
+import type { THomeWidgetKeys, TWidgetEntityData } from "@karma-team/types";
+// karma-team web services
 import { WorkspaceService } from "@/services/workspace.service";
 // store
 import type { IWorkspaceLinkStore } from "./link.store";

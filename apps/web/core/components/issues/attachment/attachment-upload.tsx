@@ -7,8 +7,8 @@
 import { useCallback, useState } from "react";
 import { observer } from "mobx-react";
 import { useDropzone } from "react-dropzone";
-// pi dash web hooks
-import { useFileSize } from "@/pi-dash-web/hooks/use-file-size";
+// karma-team web hooks
+import { useFileSize } from "@/karma-team-web/hooks/use-file-size";
 // types
 import type { TAttachmentOperations } from "../issue-detail-widgets/attachments/helper";
 

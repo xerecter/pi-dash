@@ -8,10 +8,10 @@ import { useCallback, useState } from "react";
 import { debounce } from "lodash-es";
 import { observer } from "mobx-react";
 import { Minimize2 } from "lucide-react";
-// pi dash types
-import type { TSticky } from "@pi-dash/types";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team types
+import type { TSticky } from "@karma-team/types";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // hooks
 import { useSticky } from "@/hooks/use-stickies";
 // components

@@ -7,7 +7,7 @@
 
 ## Summary
 
-Pi Dash already has one important provider-neutral primitive: `Project.repo_url`. The runner and orchestration pipeline pass that value through as a generic Git clone URL, and the runner accepts common Git URL schemes.
+karma-team already has one important provider-neutral primitive: `Project.repo_url`. The runner and orchestration pipeline pass that value through as a generic Git clone URL, and the runner accepts common Git URL schemes.
 
 The rest of the product is still mostly GitHub-shaped. Repository binding, workspace integration status, issue sync, comment sync, pull request attachment, webhook processing, assistant tools, CLI copy, prompts, UI services, and frontend labels all encode GitHub concepts and model names directly. GitLab support exists only for authentication/login. It does not currently support GitLab repository binding, GitLab issue sync, GitLab merge request links, GitLab webhooks, or GitLab completion comments.
 
@@ -27,7 +27,7 @@ The recommended direction is:
   - periodic issue and comment import
   - local read-only locks for actively synced remote issues and comments
   - completion comment write-back to the remote issue
-  - merge request URL attachment to a Pi Dash issue
+  - merge request URL attachment to a karma-team issue
   - merge request status snapshots
   - webhook-backed merge request status refresh when configured
   - web, API, CLI, assistant tool, and prompt support
@@ -39,7 +39,7 @@ The recommended direction is:
 ## Non-goals
 
 - Multi-repository projects. The design keeps one active repository binding per project.
-- Full two-way issue sync. Remote edits import into Pi Dash, and Pi Dash completion comments can be posted back, but closing or editing upstream issues is not part of this proposal.
+- Full two-way issue sync. Remote edits import into karma-team, and karma-team completion comments can be posted back, but closing or editing upstream issues is not part of this proposal.
 - Server-side pull request or merge request creation. Agents can continue creating the code review in the provider and attaching its URL to the issue.
 - Immediate removal of existing `Github*` route names, CLI aliases, or model names. Compatibility matters during migration.
 - Git provider OAuth login redesign. Current GitLab login and GitHub login are separate from repository integration credentials.
@@ -50,9 +50,9 @@ The recommended direction is:
 
 | Area                  | Current state                                                                                                                 |
 | --------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Project clone URL     | `apps/api/pi_dash/db/models/project.py` has `Project.repo_url` and `base_branch` without provider-specific names.             |
-| Prompt context        | `apps/api/pi_dash/prompting/context.py` exposes `repo.url`, `repo.base_branch`, and `repo.work_branch`.                       |
-| Run config            | `apps/api/pi_dash/orchestration/service.py` passes `repo_url`, `repo_ref`, and `git_work_branch`.                             |
+| Project clone URL     | `apps/api/karma_team/db/models/project.py` has `Project.repo_url` and `base_branch` without provider-specific names.          |
+| Prompt context        | `apps/api/karma_team/prompting/context.py` exposes `repo.url`, `repo.base_branch`, and `repo.work_branch`.                    |
+| Run config            | `apps/api/karma_team/orchestration/service.py` passes `repo_url`, `repo_ref`, and `git_work_branch`.                          |
 | Runner assign payload | `runner/src/cloud/protocol.rs` has generic `repo_url`, `repo_ref`, and `git_work_branch`.                                     |
 | Runner clone          | `runner/src/workspace/resolve.rs` accepts `https://`, `http://`, `git@`, `ssh://`, and `git://` forms, then delegates to Git. |
 
@@ -60,40 +60,40 @@ This means GitLab clone support may already work for raw repository URLs if the 
 
 ### GitLab support today
 
-| Area                   | Current state                                                                                                                                       | Gap                                                                                           |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Login/auth             | `apps/api/pi_dash/authentication/provider/oauth/gitlab.py` supports GitLab OAuth login with `read_user`.                                            | Login only. No repo API credential or sync credential.                                        |
-| Admin config           | `apps/admin/app/(all)/(dashboard)/authentication/gitlab/form.tsx` exposes GitLab OAuth settings and `ENABLE_GITLAB_SYNC`.                           | The sync flag does not correspond to implemented GitLab repo sync.                            |
-| Config registry        | `apps/api/pi_dash/config/registry.py` has `GITLAB_HOST`, `GITLAB_CLIENT_ID`, `GITLAB_CLIENT_SECRET`, `ENABLE_GITLAB_SYNC`, and `IS_GITLAB_ENABLED`. | Repo integration settings are not modeled separately.                                         |
-| Account model          | `Account.PROVIDER_CHOICES` and `SocialLoginConnection.medium` include `gitlab`.                                                                     | Social auth provider only.                                                                    |
-| Repository integration | None found.                                                                                                                                         | No GitLab repo binding, API client, issue sync, notes sync, MR attach, or webhook processing. |
+| Area                   | Current state                                                                                                                                          | Gap                                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Login/auth             | `apps/api/karma_team/authentication/provider/oauth/gitlab.py` supports GitLab OAuth login with `read_user`.                                            | Login only. No repo API credential or sync credential.                                        |
+| Admin config           | `apps/admin/app/(all)/(dashboard)/authentication/gitlab/form.tsx` exposes GitLab OAuth settings and `ENABLE_GITLAB_SYNC`.                              | The sync flag does not correspond to implemented GitLab repo sync.                            |
+| Config registry        | `apps/api/karma_team/config/registry.py` has `GITLAB_HOST`, `GITLAB_CLIENT_ID`, `GITLAB_CLIENT_SECRET`, `ENABLE_GITLAB_SYNC`, and `IS_GITLAB_ENABLED`. | Repo integration settings are not modeled separately.                                         |
+| Account model          | `Account.PROVIDER_CHOICES` and `SocialLoginConnection.medium` include `gitlab`.                                                                        | Social auth provider only.                                                                    |
+| Repository integration | None found.                                                                                                                                            | No GitLab repo binding, API client, issue sync, notes sync, MR attach, or webhook processing. |
 
 ### GitHub support today
 
-| Area                          | Current implementation                                                                                                                                                                                                                                   | Generalization needed                                                                                                                                                 |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PAT issue sync                | `apps/api/pi_dash/bgtasks/github_sync_task.py` polls open GitHub issues, imports comments, tracks upstream-gone state, and posts completion comments.                                                                                                    | Move to provider-neutral sync engine with adapter methods for issues, comments, and comment creation.                                                                 |
-| Sync schedule                 | `apps/api/pi_dash/celery.py` schedules `github-issue-sync-every-4h`.                                                                                                                                                                                     | Replace with `git-issue-sync-every-4h` while preserving a compatibility task name if needed.                                                                          |
-| Sync setting                  | `apps/api/pi_dash/settings/common.py` has `GITHUB_SYNC_ENABLED`.                                                                                                                                                                                         | Add provider-neutral setting or per-provider settings.                                                                                                                |
-| Workspace integration APIs    | `apps/api/pi_dash/app/views/integration/github.py` handles GitHub PAT connect, repos, status, disconnect, GitHub App install, callbacks, refresh, and webhooks.                                                                                          | Split common workspace integration flow from GitHub adapter details.                                                                                                  |
-| Workspace integration storage | `WorkspaceIntegration` is unique per `(workspace, integration)`, which effectively means one row per provider in a workspace.                                                                                                                            | Add Git provider account/install records so a workspace can connect GitHub and GitLab together, multiple GitLab hosts, and eventually multiple accounts per provider. |
-| Project repository bind       | `GithubProjectBindEndpoint` uses `parse_github_repo_url()` and rejects non-GitHub URLs with "Only github.com URLs are supported".                                                                                                                        | Generic project repository bind should route by provider parser and adapter.                                                                                          |
-| Project repository status     | `GithubProjectStatusEndpoint` reports/toggles/unbinds a GitHub binding.                                                                                                                                                                                  | Generic project repository status should return provider, host, repo, and sync state.                                                                                 |
-| GitHub API client             | `apps/api/pi_dash/utils/github_client.py` has GitHub REST calls and GitHub-only URL parsers.                                                                                                                                                             | Keep as GitHub adapter internals. Add GitLab adapter with the same normalized DTOs.                                                                                   |
-| GitHub App auth               | `apps/api/pi_dash/utils/github_app_auth.py` handles GitHub App JWT, install tokens, install sessions, and signature verification.                                                                                                                        | Keep as GitHub-specific adapter support. GitLab webhooks use different setup and verification.                                                                        |
-| Integration models            | `apps/api/pi_dash/db/models/integration/github.py` defines `GithubRepository`, `GithubRepositorySync`, `GithubIssueSync`, `GithubCommentSync`, `GithubAppInstallation`, `GithubWebhookDelivery`, `GithubAppInstallSession`, and `GithubPullRequestLink`. | Add generic Git models, then migrate or dual-write GitHub rows.                                                                                                       |
-| PR attach service             | `apps/api/pi_dash/utils/github_pr_links.py` attaches only GitHub pull request URLs.                                                                                                                                                                      | Replace with generic code-review attachment service. Keep GitHub PR route as alias.                                                                                   |
-| PR APIs                       | `apps/api/pi_dash/api/views/github_pr.py` and `apps/api/pi_dash/app/views/issue/github_pr.py` expose GitHub-specific attach endpoints.                                                                                                                   | Add generic `code-reviews` endpoints.                                                                                                                                 |
-| Read-only locks               | `apps/api/pi_dash/app/serializers/issue.py`, `apps/api/pi_dash/app/views/issue/base.py`, and `apps/api/pi_dash/app/views/issue/comment.py` check `external_source == "github"` and GitHub sync rows.                                                     | Lock based on generic sync rows and active repository binding.                                                                                                        |
-| Assistant tool                | `apps/api/pi_dash/assistant/tools/github.py` exposes `get_pull_request_status`.                                                                                                                                                                          | Add `get_code_review_status` and keep `get_pull_request_status` as a GitHub-compatible alias.                                                                         |
-| Prompts                       | `apps/api/pi_dash/prompting/sections/implementation.md` and `apps/api/pi_dash/prompting/fragments/09_implementation.md` mention `gh`, GitHub PRs, and `pidash issue attach-pr`.                                                                          | Make prompts provider-aware.                                                                                                                                          |
-| Web project settings          | `apps/web/core/components/project/form.tsx` displays "Git repository URL" but bind/save behavior is GitHub-only.                                                                                                                                         | Make binding generic while preserving verified repository binding semantics.                                                                                          |
-| Project creation UI           | `apps/web/core/components/project/create/common-attributes.tsx` has a generic-looking `repo_url` field with a GitHub placeholder.                                                                                                                        | Change placeholder and validation/copy to provider-neutral.                                                                                                           |
-| Project sync UI               | `apps/web/core/components/project/settings/github-sync.tsx` is GitHub-specific.                                                                                                                                                                          | Replace with repository integration panel that renders provider-specific labels.                                                                                      |
-| Issue PR widget               | `apps/web/core/components/issues/issue-detail/github-pull-requests/root.tsx` accepts GitHub PR URLs only.                                                                                                                                                | Rename to code-review links and accept GitHub PR or GitLab MR URLs.                                                                                                   |
-| Frontend services/types       | `apps/web/core/services/integrations/github.service.ts`, `apps/web/core/services/project/project.service.ts`, `apps/web/core/constants/fetch-keys.ts`, and `packages/types/src/integration.ts` use GitHub names.                                         | Add generic services/types with GitHub wrappers kept temporarily.                                                                                                     |
-| CLI                           | `runner/src/cli/issue.rs` has `attach-pr` help text and calls `/github/pull-requests/`.                                                                                                                                                                  | Add canonical generic command and route, keep `attach-pr` as alias.                                                                                                   |
-| Design docs                   | `.ai_design/github_deep_integration/design.md` and `.ai_design/github_pr_issue_link/design.md` explicitly excluded GitLab/provider abstraction.                                                                                                          | This design supersedes those constraints for the next integration phase.                                                                                              |
+| Area                          | Current implementation                                                                                                                                                                                                                                      | Generalization needed                                                                                                                                                 |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PAT issue sync                | `apps/api/karma_team/bgtasks/github_sync_task.py` polls open GitHub issues, imports comments, tracks upstream-gone state, and posts completion comments.                                                                                                    | Move to provider-neutral sync engine with adapter methods for issues, comments, and comment creation.                                                                 |
+| Sync schedule                 | `apps/api/karma_team/celery.py` schedules `github-issue-sync-every-4h`.                                                                                                                                                                                     | Replace with `git-issue-sync-every-4h` while preserving a compatibility task name if needed.                                                                          |
+| Sync setting                  | `apps/api/karma_team/settings/common.py` has `GITHUB_SYNC_ENABLED`.                                                                                                                                                                                         | Add provider-neutral setting or per-provider settings.                                                                                                                |
+| Workspace integration APIs    | `apps/api/karma_team/app/views/integration/github.py` handles GitHub PAT connect, repos, status, disconnect, GitHub App install, callbacks, refresh, and webhooks.                                                                                          | Split common workspace integration flow from GitHub adapter details.                                                                                                  |
+| Workspace integration storage | `WorkspaceIntegration` is unique per `(workspace, integration)`, which effectively means one row per provider in a workspace.                                                                                                                               | Add Git provider account/install records so a workspace can connect GitHub and GitLab together, multiple GitLab hosts, and eventually multiple accounts per provider. |
+| Project repository bind       | `GithubProjectBindEndpoint` uses `parse_github_repo_url()` and rejects non-GitHub URLs with "Only github.com URLs are supported".                                                                                                                           | Generic project repository bind should route by provider parser and adapter.                                                                                          |
+| Project repository status     | `GithubProjectStatusEndpoint` reports/toggles/unbinds a GitHub binding.                                                                                                                                                                                     | Generic project repository status should return provider, host, repo, and sync state.                                                                                 |
+| GitHub API client             | `apps/api/karma_team/utils/github_client.py` has GitHub REST calls and GitHub-only URL parsers.                                                                                                                                                             | Keep as GitHub adapter internals. Add GitLab adapter with the same normalized DTOs.                                                                                   |
+| GitHub App auth               | `apps/api/karma_team/utils/github_app_auth.py` handles GitHub App JWT, install tokens, install sessions, and signature verification.                                                                                                                        | Keep as GitHub-specific adapter support. GitLab webhooks use different setup and verification.                                                                        |
+| Integration models            | `apps/api/karma_team/db/models/integration/github.py` defines `GithubRepository`, `GithubRepositorySync`, `GithubIssueSync`, `GithubCommentSync`, `GithubAppInstallation`, `GithubWebhookDelivery`, `GithubAppInstallSession`, and `GithubPullRequestLink`. | Add generic Git models, then migrate or dual-write GitHub rows.                                                                                                       |
+| PR attach service             | `apps/api/karma_team/utils/github_pr_links.py` attaches only GitHub pull request URLs.                                                                                                                                                                      | Replace with generic code-review attachment service. Keep GitHub PR route as alias.                                                                                   |
+| PR APIs                       | `apps/api/karma_team/api/views/github_pr.py` and `apps/api/karma_team/app/views/issue/github_pr.py` expose GitHub-specific attach endpoints.                                                                                                                | Add generic `code-reviews` endpoints.                                                                                                                                 |
+| Read-only locks               | `apps/api/karma_team/app/serializers/issue.py`, `apps/api/karma_team/app/views/issue/base.py`, and `apps/api/karma_team/app/views/issue/comment.py` check `external_source == "github"` and GitHub sync rows.                                               | Lock based on generic sync rows and active repository binding.                                                                                                        |
+| Assistant tool                | `apps/api/karma_team/assistant/tools/github.py` exposes `get_pull_request_status`.                                                                                                                                                                          | Add `get_code_review_status` and keep `get_pull_request_status` as a GitHub-compatible alias.                                                                         |
+| Prompts                       | `apps/api/karma_team/prompting/sections/implementation.md` and `apps/api/karma_team/prompting/fragments/09_implementation.md` mention `gh`, GitHub PRs, and `karma-team issue attach-pr`.                                                                   | Make prompts provider-aware.                                                                                                                                          |
+| Web project settings          | `apps/web/core/components/project/form.tsx` displays "Git repository URL" but bind/save behavior is GitHub-only.                                                                                                                                            | Make binding generic while preserving verified repository binding semantics.                                                                                          |
+| Project creation UI           | `apps/web/core/components/project/create/common-attributes.tsx` has a generic-looking `repo_url` field with a GitHub placeholder.                                                                                                                           | Change placeholder and validation/copy to provider-neutral.                                                                                                           |
+| Project sync UI               | `apps/web/core/components/project/settings/github-sync.tsx` is GitHub-specific.                                                                                                                                                                             | Replace with repository integration panel that renders provider-specific labels.                                                                                      |
+| Issue PR widget               | `apps/web/core/components/issues/issue-detail/github-pull-requests/root.tsx` accepts GitHub PR URLs only.                                                                                                                                                   | Rename to code-review links and accept GitHub PR or GitLab MR URLs.                                                                                                   |
+| Frontend services/types       | `apps/web/core/services/integrations/github.service.ts`, `apps/web/core/services/project/project.service.ts`, `apps/web/core/constants/fetch-keys.ts`, and `packages/types/src/integration.ts` use GitHub names.                                            | Add generic services/types with GitHub wrappers kept temporarily.                                                                                                     |
+| CLI                           | `runner/src/cli/issue.rs` has `attach-pr` help text and calls `/github/pull-requests/`.                                                                                                                                                                     | Add canonical generic command and route, keep `attach-pr` as alias.                                                                                                   |
+| Design docs                   | `.ai_design/github_deep_integration/design.md` and `.ai_design/github_pr_issue_link/design.md` explicitly excluded GitLab/provider abstraction.                                                                                                             | This design supersedes those constraints for the next integration phase.                                                                                              |
 
 ## Product Model
 
@@ -133,7 +133,7 @@ This means provider connection state must not be modeled as "one Git integration
 
 ### Provider terms
 
-Pi Dash should use neutral internal terms and render provider-specific copy at the UI edge:
+karma-team should use neutral internal terms and render provider-specific copy at the UI edge:
 
 | Neutral concept    | GitHub                                         | GitLab                                                        |
 | ------------------ | ---------------------------------------------- | ------------------------------------------------------------- |
@@ -185,7 +185,7 @@ workspace=acme, provider=gitlab, host_url=https://gitlab.company.com, auth_type=
 
 ### `GitRepository`
 
-Represents a remote repository/project known to Pi Dash.
+Represents a remote repository/project known to karma-team.
 
 Fields:
 
@@ -239,7 +239,7 @@ This replaces the project-facing role of `GithubRepositorySync`. It also makes t
 
 ### `GitIssueSync`
 
-Maps a remote provider issue to a Pi Dash issue.
+Maps a remote provider issue to a karma-team issue.
 
 Fields:
 
@@ -262,7 +262,7 @@ For GitHub, `external_iid` is the issue number. For GitLab, `external_iid` is th
 
 ### `GitCommentSync`
 
-Maps remote comments/notes to Pi Dash comments.
+Maps remote comments/notes to karma-team comments.
 
 Fields:
 
@@ -280,7 +280,7 @@ Unique key:
 
 ### `GitCodeReviewLink`
 
-Represents a pull request, merge request, or equivalent code review attached to a Pi Dash issue.
+Represents a pull request, merge request, or equivalent code review attached to a karma-team issue.
 
 Fields:
 
@@ -353,11 +353,11 @@ Fields:
 - `last_check_error`
 - `metadata`
 
-GitHub App webhooks may remain installation-level. GitLab project hooks are commonly project-level, but registration should still be owned by `repository + provider_account`, not by a single project binding. Multiple Pi Dash projects can bind the same remote repository, and duplicate provider hooks would create duplicate events. Bindings subscribe to normalized repository events inside Pi Dash.
+GitHub App webhooks may remain installation-level. GitLab project hooks are commonly project-level, but registration should still be owned by `repository + provider_account`, not by a single project binding. Multiple karma-team projects can bind the same remote repository, and duplicate provider hooks would create duplicate events. Bindings subscribe to normalized repository events inside karma-team.
 
 ## Provider Adapter Interface
 
-Add a provider registry and adapter protocol under a generic module such as `apps/api/pi_dash/integrations/git/`.
+Add a provider registry and adapter protocol under a generic module such as `apps/api/karma_team/integrations/git/`.
 
 ```python
 class GitProviderAdapter(Protocol):
@@ -450,8 +450,8 @@ clone_auth_mode = runner_managed
 
 Meaning:
 
-- Pi Dash stores the canonical repository URL and provider binding.
-- Pi Dash uses the provider account credential for API sync, comments, webhooks, and code-review status.
+- karma-team stores the canonical repository URL and provider binding.
+- karma-team uses the provider account credential for API sync, comments, webhooks, and code-review status.
 - The runner machine is responsible for Git clone credentials, such as SSH keys, Git credential manager, netrc, or preconfigured HTTPS credentials.
 - For private repositories, the UI should show that the connected provider account verifies API access, but runner clone access still depends on runner-side Git credentials.
 
@@ -459,7 +459,7 @@ This preserves current runner protocol and avoids sending long-lived provider to
 
 ### Future managed clone-auth option
 
-If the product requires Pi Dash-managed private clone access, add a separate phase and wire-protocol change:
+If the product requires karma-team-managed private clone access, add a separate phase and wire-protocol change:
 
 - add a short-lived `clone_credential` or `clone_auth_ref` to runner assignment
 - prefer short-lived provider tokens or deploy keys over long-lived PATs
@@ -467,7 +467,7 @@ If the product requires Pi Dash-managed private clone access, add a separate pha
 - teach the runner to pass credentials through a temporary credential helper instead of embedding secrets in `repo_url`
 - expire and revoke credentials after the run when possible
 
-This is intentionally separate from GitLab issue/MR parity. Without it, GitLab parity means "same as current GitHub: Pi Dash can bind/sync/status via provider API, while private clone access is runner-managed."
+This is intentionally separate from GitLab issue/MR parity. Without it, GitLab parity means "same as current GitHub: karma-team can bind/sync/status via provider API, while private clone access is runner-managed."
 
 ## GitLab Adapter Design
 
@@ -484,7 +484,7 @@ GitLab API base is:
 <host_url>/api/v4
 ```
 
-For self-managed GitLab, avoid arbitrary host SSRF by using an allowlist from instance/admin or deployment configuration. Do not let any workspace user-provided URL become an API base without validation. Pi Dash Cloud should default to `gitlab.com` only; customer/self-managed GitLab hosts should be added by operations or instance administration before workspace users can connect credentials or bind repositories for that host. Provider API calls should require HTTPS and should not follow redirects; a redirect from an allowlisted host to a different target must fail closed.
+For self-managed GitLab, avoid arbitrary host SSRF by using an allowlist from instance/admin or deployment configuration. Do not let any workspace user-provided URL become an API base without validation. karma-team Cloud should default to `gitlab.com` only; customer/self-managed GitLab hosts should be added by operations or instance administration before workspace users can connect credentials or bind repositories for that host. Provider API calls should require HTTPS and should not follow redirects; a redirect from an allowlisted host to a different target must fail closed.
 
 ### URL parsing
 
@@ -529,11 +529,11 @@ GitLab credentials should be stored as `GitProviderAccount` rows, not as one coa
 
 Required scopes:
 
-- `api` for full parity, because Pi Dash needs to read issues and merge requests, write completion notes, and potentially create or update project webhooks
+- `api` for full parity, because karma-team needs to read issues and merge requests, write completion notes, and potentially create or update project webhooks
 - `read_api` only supports read-only browsing and sync
 - `read_repository` and `write_repository` are for Git-over-HTTP repository access and do not replace API access
 
-The connection UI should make the required scope explicit. If a token only has read-only capability, Pi Dash can allow browse/sync but must disable completion comment write-back and webhook auto-registration with a clear status message.
+The connection UI should make the required scope explicit. If a token only has read-only capability, karma-team can allow browse/sync but must disable completion comment write-back and webhook auto-registration with a clear status message.
 
 These API scopes do not imply runner clone access. For private GitLab repositories, the binding should record `clone_auth_mode = runner_managed` unless a future managed clone-auth feature is implemented.
 
@@ -559,11 +559,11 @@ GitLab Issues API exposes project issues. The sync adapter should request open i
 
 Mapping:
 
-| Pi Dash                     | GitLab                                                                         |
+| karma-team                  | GitLab                                                                         |
 | --------------------------- | ------------------------------------------------------------------------------ |
 | `GitIssueSync.external_iid` | issue `iid`                                                                    |
 | `GitIssueSync.external_id`  | issue `id`                                                                     |
-| `Issue.title`               | issue `title` with Pi Dash prefix policy applied                               |
+| `Issue.title`               | issue `title` with karma-team prefix policy applied                            |
 | `Issue.description`         | issue `description`                                                            |
 | `Issue.external_source`     | keep legacy field as `gitlab` if needed, but generic sync row is authoritative |
 | `Issue.external_id`         | issue `iid` or provider-specific compatibility value                           |
@@ -602,7 +602,7 @@ The UI can display "Merge request" for GitLab while the API stores it as a gener
 
 GitLab project hooks should be configured for:
 
-- issue events, if Pi Dash wants push-based issue updates later
+- issue events, if karma-team wants push-based issue updates later
 - merge request events, for attached MR status refresh
 - note events, if comment sync becomes webhook-based later
 
@@ -684,7 +684,7 @@ Responsibilities:
 
 - parse URL across all registered adapters
 - verify the remote code review exists
-- ensure one remote code review is attached to only one Pi Dash issue, preserving current GitHub semantics unless product changes that intentionally
+- ensure one remote code review is attached to only one karma-team issue, preserving current GitHub semantics unless product changes that intentionally
 - upsert `GitCodeReviewLink`
 - provide status DTOs for web and assistant tools
 - refresh links from webhook events
@@ -692,13 +692,13 @@ Responsibilities:
 Keep:
 
 - old GitHub PR attach endpoint as compatibility alias
-- `pidash issue attach-pr` as compatibility alias
+- `karma-team issue attach-pr` as compatibility alias
 - old `get_pull_request_status` assistant tool as alias
 
 Add:
 
 - generic API route and service name
-- `pidash issue attach-review` or `pidash issue attach-code-review`
+- `karma-team issue attach-review` or `karma-team issue attach-code-review`
 - assistant tool `get_code_review_status`
 
 ## Backend API Shape
@@ -814,7 +814,7 @@ Each provider card should show:
 
 Provider cards should support more than one connected account or installation per provider. For example, the GitLab area can show `gitlab.com` and `gitlab.company.com` as separate account rows.
 
-GitLab authentication/login settings should remain separate from GitLab repository integration settings. A user being able to log in with GitLab does not mean Pi Dash can sync GitLab repositories.
+GitLab authentication/login settings should remain separate from GitLab repository integration settings. A user being able to log in with GitLab does not mean karma-team can sync GitLab repositories.
 
 ### Project settings
 
@@ -868,19 +868,19 @@ Keep old GitHub service methods as wrappers until all call sites move.
 Current:
 
 ```text
-pidash issue attach-pr --url <github-pr-url>
+karma-team issue attach-pr --url <github-pr-url>
 ```
 
 Add canonical command:
 
 ```text
-pidash issue attach-review --url <provider-code-review-url>
+karma-team issue attach-review --url <provider-code-review-url>
 ```
 
 or:
 
 ```text
-pidash issue attach-code-review --url <provider-code-review-url>
+karma-team issue attach-code-review --url <provider-code-review-url>
 ```
 
 Keep `attach-pr` as an alias and update help text to say it accepts GitHub pull request URLs and GitLab merge request URLs.
@@ -1026,7 +1026,7 @@ Migration invariants:
 - Keep `attach-pr` as alias.
 - Add `get_code_review_status` assistant tool.
 - Keep `get_pull_request_status` as alias.
-- Update prompts and Pi Dash skill docs to describe PR/MR provider behavior.
+- Update prompts and karma-team skill docs to describe PR/MR provider behavior.
 
 ### Phase 8 - Cleanup
 
@@ -1073,7 +1073,7 @@ Webhook tests:
 - GitLab merge request event updates generic link
 - invalid signatures or tokens are rejected
 - duplicate deliveries are idempotent
-- one provider hook registration can fan out to multiple active Pi Dash project bindings for the same remote repository
+- one provider hook registration can fan out to multiple active karma-team project bindings for the same remote repository
 
 Migration tests:
 
@@ -1115,9 +1115,9 @@ Prompt tests:
 
 1. **Credential strategy:** Start with GitLab PAT/group/project tokens or implement OAuth repo integration first. Recommendation: start with token-based credentials to match current GitHub PAT sync and reduce initial scope.
 2. **Webhook registration:** Auto-create GitLab project hooks when permissions allow or require manual setup. Recommendation: attempt auto-create, then fall back to polling with a clear warning.
-3. **Managed clone authentication timing:** Keep clone auth runner-managed for initial parity or add Pi Dash-managed short-lived clone credentials in the same project. Recommendation: keep it runner-managed initially and make the UI explicit.
+3. **Managed clone authentication timing:** Keep clone auth runner-managed for initial parity or add karma-team-managed short-lived clone credentials in the same project. Recommendation: keep it runner-managed initially and make the UI explicit.
 4. **Raw clone URL mode:** Allow `Project.repo_url` to save without a provider binding or require verified bind for settings edits. Recommendation: keep verified bind as the default. Add explicit raw clone-only mode only if needed.
-5. **Global link uniqueness:** Preserve current GitHub behavior where one remote PR maps to one Pi Dash issue globally, or scope by workspace. Recommendation: preserve current behavior during migration.
+5. **Global link uniqueness:** Preserve current GitHub behavior where one remote PR maps to one karma-team issue globally, or scope by workspace. Recommendation: preserve current behavior during migration.
 6. **GitLab confidential issues:** Sync all visible open issues by default or skip confidential issues unless opted in. Recommendation: start with visible issues returned by the token and add an explicit setting later if needed.
 7. **GitLab system notes:** Import system notes or skip them. Recommendation: skip system notes initially to avoid noisy local comments.
 
@@ -1128,15 +1128,15 @@ GitLab reaches parity when:
 - A workspace admin can connect a GitLab API token.
 - A workspace can have GitHub and GitLab provider accounts connected at the same time.
 - Different projects in the same workspace can bind repositories from different providers.
-- Pi Dash can list GitLab projects visible to that token.
+- karma-team can list GitLab projects visible to that token.
 - A project can bind to a GitLab repository URL using the same repository URL field used for GitHub.
 - A GitLab-bound project stores a canonical `Project.repo_url` usable by the runner.
 - Private repository clone access is either verified as runner-managed in the UI or supported by an explicit managed clone-auth feature.
-- Open GitLab issues sync into Pi Dash.
-- GitLab issue notes sync into Pi Dash comments.
+- Open GitLab issues sync into karma-team.
+- GitLab issue notes sync into karma-team comments.
 - Actively synced GitLab issues and comments are protected from local edits/deletes.
-- Completing a synced Pi Dash issue can post a completion note back to GitLab.
-- A GitLab merge request URL can be attached to a Pi Dash issue from web, API, and CLI.
+- Completing a synced karma-team issue can post a completion note back to GitLab.
+- A GitLab merge request URL can be attached to a karma-team issue from web, API, and CLI.
 - Merge request status can be fetched and displayed.
 - GitLab merge request webhooks refresh attached link status when configured.
 - Existing GitHub bind, sync, PR attach, webhook, CLI, and assistant behavior remains compatible.

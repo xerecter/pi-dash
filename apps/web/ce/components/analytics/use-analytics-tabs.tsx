@@ -5,7 +5,7 @@
  */
 
 import { useMemo } from "react";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 import { getAnalyticsTabs } from "./tabs";
 
 export const useAnalyticsTabs = (_workspaceSlug: string) => {

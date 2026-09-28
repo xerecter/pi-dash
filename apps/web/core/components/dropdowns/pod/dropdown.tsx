@@ -6,9 +6,9 @@
 
 import { useEffect } from "react";
 import useSWR from "swr";
-// pi dash imports
-import { PodService } from "@pi-dash/services";
-import type { IPod } from "@pi-dash/types";
+// karma-team imports
+import { PodService } from "@karma-team/services";
+import type { IPod } from "@karma-team/types";
 // local imports
 import type { TPodDropdownBaseProps } from "./base";
 import { PodDropdownBase } from "./base";

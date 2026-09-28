@@ -7,11 +7,11 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// Pi Dash Imports
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IWorkspaceView } from "@pi-dash/types";
-import { AlertModalCore } from "@pi-dash/ui";
+// karma-team Imports
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IWorkspaceView } from "@karma-team/types";
+import { AlertModalCore } from "@karma-team/ui";
 // hooks
 import { useGlobalView } from "@/hooks/store/use-global-view";
 
@@ -59,7 +59,13 @@ export const DeleteGlobalViewModal = observer(function DeleteGlobalViewModal(pro
       isSubmitting={isDeleteLoading}
       isOpen={isOpen}
       title={t("Are you sure you want to delete this view?")}
-      content={<>{t("If you confirm, all the sort, filter, and display options + the layout you have chosen for this view will be permanently deleted without any way to restore them.")}</>}
+      content={
+        <>
+          {t(
+            "If you confirm, all the sort, filter, and display options + the layout you have chosen for this view will be permanently deleted without any way to restore them."
+          )}
+        </>
+      }
     />
   );
 });

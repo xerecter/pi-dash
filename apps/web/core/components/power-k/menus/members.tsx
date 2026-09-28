@@ -6,9 +6,9 @@
 
 import { Command } from "cmdk";
 import { observer } from "mobx-react";
-// pi dash imports
-import { Avatar } from "@pi-dash/ui";
-import { getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { Avatar } from "@karma-team/ui";
+import { getFileURL } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 // local imports

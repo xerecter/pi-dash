@@ -8,9 +8,9 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { AlertTriangle } from "lucide-react";
 // ui
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // hooks
 import { useUser } from "@/hooks/store/user";
 
@@ -59,7 +59,9 @@ export const ConfirmWorkspaceMemberRemove = observer(function ConfirmWorkspaceMe
             <div className="mt-2">
               {currentUser?.id === userDetails.id ? (
                 <p className="text-body-xs-regular text-secondary">
-                  {t("Are you sure you want to leave the workspace? You will no longer have access to this workspace. This action cannot be undone.")}
+                  {t(
+                    "Are you sure you want to leave the workspace? You will no longer have access to this workspace. This action cannot be undone."
+                  )}
                 </p>
               ) : (
                 <p className="text-body-xs-regular text-secondary">

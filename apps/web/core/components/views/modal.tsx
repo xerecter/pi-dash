@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 // types
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IProjectView } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IProjectView } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
 // ui
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { useProjectView } from "@/hooks/store/use-project-view";

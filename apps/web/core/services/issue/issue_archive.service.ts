@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { TIssue, TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+import type { TIssue, TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 import { APIService } from "@/services/api.service";
 // types
 // constants

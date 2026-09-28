@@ -5,12 +5,12 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { FilterIcon, FilterAppliedIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
-import type { IFilterInstance } from "@pi-dash/shared-state";
-import type { TExternalFilter, TFilterProperty } from "@pi-dash/types";
+// karma-team imports
+import { IconButton } from "@karma-team/propel/icon-button";
+import { FilterIcon, FilterAppliedIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
+import type { IFilterInstance } from "@karma-team/shared-state";
+import type { TExternalFilter, TFilterProperty } from "@karma-team/types";
 // components
 import { AddFilterButton } from "@/components/rich-filters/add-filters/button";
 

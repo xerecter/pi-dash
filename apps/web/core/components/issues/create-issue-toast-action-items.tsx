@@ -6,8 +6,8 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-import { copyUrlToClipboard, generateWorkItemLink } from "@pi-dash/utils";
-// pi dash imports
+import { copyUrlToClipboard, generateWorkItemLink } from "@karma-team/utils";
+// karma-team imports
 // helpers
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";

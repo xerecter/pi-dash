@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function TransferHopInfo({ workItem }: { workItem: TIssue }) {
   return <></>;

@@ -4,9 +4,9 @@
 
 use chrono::Utc;
 use futures_util::{SinkExt, StreamExt};
-use pidash::cloud::protocol::{ClientMsg, Envelope, RunnerStatus, ServerMsg, WIRE_VERSION};
-use pidash::cloud::ws::{Connection, ConnectionLoop, run_connection};
-use pidash::config::schema::Credentials;
+use karma_team::cloud::protocol::{ClientMsg, Envelope, RunnerStatus, ServerMsg, WIRE_VERSION};
+use karma_team::cloud::ws::{Connection, ConnectionLoop, run_connection};
+use karma_team::config::schema::Credentials;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};

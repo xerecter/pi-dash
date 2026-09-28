@@ -7,9 +7,9 @@ use uuid::Uuid;
 
 use crate::util::paths::RunnerPaths;
 
-// `RunSummary` moved to the shared `pidash-ipc` crate (PDASHOSS01-158);
+// `RunSummary` moved to the shared `karma-team-ipc` crate (PDASHOSS01-158);
 // re-exported here so `history::index::RunSummary` call sites are unchanged.
-pub use pidash_ipc::dto::RunSummary;
+pub use karma_team_ipc::dto::RunSummary;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct RunsIndex {

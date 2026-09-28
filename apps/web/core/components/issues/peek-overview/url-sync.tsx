@@ -7,7 +7,7 @@
 import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { useParams, useSearchParams } from "react-router";
-import { EIssueServiceType, EIssuesStoreType } from "@pi-dash/types";
+import { EIssueServiceType, EIssuesStoreType } from "@karma-team/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";

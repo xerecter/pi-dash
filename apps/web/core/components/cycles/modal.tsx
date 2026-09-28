@@ -7,12 +7,12 @@
 import { useEffect, useState } from "react";
 import { mutate } from "swr";
 // types
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { CycleDateCheckData, ICycle, TCycleTabOptions } from "@pi-dash/types";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { CycleDateCheckData, ICycle, TCycleTabOptions } from "@karma-team/types";
 // ui
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // hooks
-import { renderFormattedPayloadDate } from "@pi-dash/utils";
+import { renderFormattedPayloadDate } from "@karma-team/utils";
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useProject } from "@/hooks/store/use-project";
 import useKeypress from "@/hooks/use-keypress";

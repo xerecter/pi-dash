@@ -11,14 +11,14 @@ import { useTheme } from "next-themes";
 import type { SubmitHandler } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { Combobox } from "@headlessui/react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { SearchIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { ISearchIssueResponse, IUser } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { Loader, EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { SearchIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { ISearchIssueResponse, IUser } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { Loader, EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // assets
 import darkIssuesAsset from "@/app/assets/empty-state/search/issues-dark.webp?url";
 import lightIssuesAsset from "@/app/assets/empty-state/search/issues-light.webp?url";

@@ -5,9 +5,9 @@
  */
 
 // types
-import type { TLogoProps } from "@pi-dash/types";
+import type { TLogoProps } from "@karma-team/types";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   className?: string;

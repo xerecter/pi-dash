@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { EModalWidth, ModalCore } from "@pi-dash/ui";
+import { EModalWidth, ModalCore } from "@karma-team/ui";
 import { Stickies } from "./stickies";
 
 type TProps = {

@@ -39,7 +39,7 @@ pub(crate) fn validate_path_for_unit(path: &Path) -> Result<&str> {
 /// default shell since 10.15). The wrapper therefore silently fails on a
 /// stock macOS install: the daemon spawns `claude` and gets `not found`.
 ///
-/// `pidash install` runs in the operator's interactive shell, so `$PATH`
+/// `karma-team install` runs in the operator's interactive shell, so `$PATH`
 /// here is the one we want. Capture it and bake it into the unit so the
 /// daemon — and every subprocess it forks — inherits it deterministically,
 /// without depending on which shell the operator uses.
@@ -80,7 +80,7 @@ pub(crate) fn capture_install_time_path() -> Option<String> {
 /// Stated once here rather than three times because the invariant is the
 /// interesting part, not the per-backend plumbing — we rewrite a *missing*
 /// unit, never an existing one, so an operator hand-editing their unit for
-/// debugging doesn't get clobbered on the next `pidash restart`.
+/// debugging doesn't get clobbered on the next `karma-team restart`.
 ///
 /// Backends whose "unit" is a file (systemd, launchd) pass its path.
 /// `windows` can't — a scheduled task has no file to stat — so it applies the
@@ -150,7 +150,7 @@ pub fn detect() -> Service {
 
 impl Service {
     /// Write the unit file (systemd) or plist (launchd). Does not enable or
-    /// start. Allows `pidash install` to gate activation on configuration.
+    /// start. Allows `karma-team install` to gate activation on configuration.
     pub async fn write_unit(&self, paths: &Paths) -> Result<()> {
         match self {
             #[cfg(target_os = "linux")]
@@ -164,8 +164,8 @@ impl Service {
 
     /// Rewrite the unit if the service manager no longer has one, returning
     /// whether it was rewritten. Every backend implements this: a unit can go
-    /// missing on any OS (`pidash uninstall`/`remove`, manual cleanup, or a
-    /// `pidash update` that swapped the binary without ever writing one), and
+    /// missing on any OS (`karma-team uninstall`/`remove`, manual cleanup, or a
+    /// `karma-team update` that swapped the binary without ever writing one), and
     /// on every OS the result is a `restart` that can't recover on its own.
     ///
     /// Callers treat a failure here as non-fatal — it's a best-effort repair
@@ -276,12 +276,12 @@ mod tests {
     use super::*;
     use std::sync::atomic::{AtomicUsize, Ordering};
 
-    /// An existing unit is left alone — the rule that keeps `pidash restart`
+    /// An existing unit is left alone — the rule that keeps `karma-team restart`
     /// from clobbering a plist/unit an operator edited by hand.
     #[tokio::test]
     async fn absent_helper_does_not_rewrite_existing_unit() {
         let dir = tempfile::tempdir().unwrap();
-        let unit = dir.path().join("pidash.service");
+        let unit = dir.path().join("karma-team.service");
         std::fs::write(&unit, "[Unit]\n").unwrap();
         let writes = AtomicUsize::new(0);
 
@@ -302,7 +302,7 @@ mod tests {
     #[tokio::test]
     async fn absent_helper_rewrites_missing_unit() {
         let dir = tempfile::tempdir().unwrap();
-        let unit = dir.path().join("pidash.service");
+        let unit = dir.path().join("karma-team.service");
         let writes = AtomicUsize::new(0);
 
         let rewrote = rewrite_unit_if_absent(&unit, || async {
@@ -322,7 +322,7 @@ mod tests {
     #[tokio::test]
     async fn absent_helper_propagates_write_failure() {
         let dir = tempfile::tempdir().unwrap();
-        let unit = dir.path().join("pidash.service");
+        let unit = dir.path().join("karma-team.service");
 
         let err = rewrite_unit_if_absent(&unit, || async {
             anyhow::bail!("permission denied");

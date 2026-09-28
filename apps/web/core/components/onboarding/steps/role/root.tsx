@@ -7,12 +7,12 @@
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { Box, PenTool, Rocket, Monitor, RefreshCw } from "lucide-react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import { CheckIcon, ViewsIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TUserProfile } from "@pi-dash/types";
-import { EOnboardingSteps } from "@pi-dash/types";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import { CheckIcon, ViewsIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TUserProfile } from "@karma-team/types";
+import { EOnboardingSteps } from "@karma-team/types";
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
 // local components
@@ -92,7 +92,7 @@ export const RoleSetupStep = observer(function RoleSetupStep({ handleStepChange 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-10">
       {/* Header */}
-      <CommonOnboardingHeader title="What's your role?" description="Let's set up Pi Dash for how you work." />
+      <CommonOnboardingHeader title="What's your role?" description="Let's set up karma-team for how you work." />
       {/* Role Selection */}
       <div className="flex flex-col gap-3">
         <p className="text-body-sm-semibold text-placeholder">Select one</p>

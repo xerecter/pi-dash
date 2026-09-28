@@ -6,13 +6,13 @@
 
 import { observer } from "mobx-react";
 import { AlertOctagon, BarChart4, CircleDashed, Folder, Microscope } from "lucide-react";
-// pi dash imports
-import { MARKETING_PRICING_PAGE_LINK } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { getButtonStyling } from "@pi-dash/propel/button";
-import { SearchIcon } from "@pi-dash/propel/icons";
-import { ContentWrapper } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { MARKETING_PRICING_PAGE_LINK } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { getButtonStyling } from "@karma-team/propel/button";
+import { SearchIcon } from "@karma-team/propel/icons";
+import { ContentWrapper } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // assets
 import ctaL1Dark from "@/app/assets/workspace-active-cycles/cta-l-1-dark.webp?url";
 import ctaL1Light from "@/app/assets/workspace-active-cycles/cta-l-1-light.webp?url";
@@ -88,7 +88,11 @@ export const WorkspaceActiveCyclesUpgrade = observer(function WorkspaceActiveCyc
         <div className="relative flex flex-col justify-center gap-7 px-14 lg:w-1/2">
           <div className="flex max-w-64 flex-col gap-2">
             <h2 className="text-20 font-semibold">{t("On-demand snapshots of all your cycles")}</h2>
-            <p className="text-14 font-medium text-tertiary">{t("Monitor cycles across projects, track high-priority work items, and zoom in cycles that need attention.")}</p>
+            <p className="text-14 font-medium text-tertiary">
+              {t(
+                "Monitor cycles across projects, track high-priority work items, and zoom in cycles that need attention."
+              )}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <a

@@ -71,7 +71,7 @@ jobs:
       - name: Test release packaging helpers
         run: python -m unittest discover -s desktop/tests -p 'test_*.py' -v
 
-      # The engine ships renamed to pidash-agent-engine; Codex re-execs helper
+      # The engine ships renamed to karma-team-agent-engine; Codex re-execs helper
       # copies of itself (arg0 / current_exe) to build its sandbox. If the
       # rename broke that self-location the sandbox would silently not engage.
       # This guard downloads the pinned upstream engine, runs it under its

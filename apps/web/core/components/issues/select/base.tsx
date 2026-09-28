@@ -10,13 +10,13 @@ import { observer } from "mobx-react";
 import { usePopper } from "react-popper";
 import { Component, Loader } from "lucide-react";
 import { Combobox } from "@headlessui/react";
-import { getRandomLabelColor } from "@pi-dash/constants";
-// pi dash imports
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { useTranslation } from "@pi-dash/i18n";
-import { CheckIcon, SearchIcon, LabelPropertyIcon } from "@pi-dash/propel/icons";
-import type { IIssueLabel } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import { getRandomLabelColor } from "@karma-team/constants";
+// karma-team imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { useTranslation } from "@karma-team/i18n";
+import { CheckIcon, SearchIcon, LabelPropertyIcon } from "@karma-team/propel/icons";
+import type { IIssueLabel } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // components
 import { IssueLabelsList } from "@/components/ui/labels-list";
 // hooks
@@ -64,7 +64,7 @@ export const WorkItemLabelSelectBase = observer(function WorkItemLabelSelectBase
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [submitting, setSubmitting] = useState<boolean>(false);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { isMobile } = usePlatformOS();

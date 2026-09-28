@@ -5,9 +5,9 @@
  */
 
 import { set } from "lodash-es";
-// pi dash imports
-import { DEFAULT_WORK_ITEM_FORM_VALUES } from "@pi-dash/constants";
-import type { IPartialProject, ISearchIssueResponse, IState, TIssue } from "@pi-dash/types";
+// karma-team imports
+import { DEFAULT_WORK_ITEM_FORM_VALUES } from "@karma-team/constants";
+import type { IPartialProject, ISearchIssueResponse, IState, TIssue } from "@karma-team/types";
 
 export const getUpdateFormDataForReset = (projectId: string | null | undefined, formData: Partial<TIssue>) => ({
   ...DEFAULT_WORK_ITEM_FORM_VALUES,

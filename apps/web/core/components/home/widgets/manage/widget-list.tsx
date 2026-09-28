@@ -10,8 +10,8 @@ import type {
   ElementDragPayload,
 } from "@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 import { useHome } from "@/hooks/store/use-home";
 import { HIDDEN_HOME_WIDGET_KEYS } from "../../home-dashboard-widgets";
 import { WidgetItem } from "./widget-item";

@@ -7,7 +7,7 @@
 import { observer } from "mobx-react";
 import { Circle } from "lucide-react";
 // types
-import type { TIssueGroupByOptions } from "@pi-dash/types";
+import type { TIssueGroupByOptions } from "@karma-team/types";
 
 interface IHeaderGroupByCard {
   groupBy: TIssueGroupByOptions | undefined;

@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 // components
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";

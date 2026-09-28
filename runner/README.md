@@ -1,6 +1,6 @@
-# Pi Dash Runner
+# karma-team Runner
 
-Local daemon + TUI (`pidash` binary) that connects a developer machine to the Pi Dash cloud and drives `codex app-server` for assigned tasks.
+Local daemon + TUI (`karma-team` binary) that connects a developer machine to the karma-team cloud and drives `codex app-server` for assigned tasks.
 
 ## Developer-owned agent packages
 
@@ -8,7 +8,7 @@ OSS exposes an optional [agent package seam](docs/agent-packages.md) for
 developers who supply their own executable or protocol adapter:
 
 ```bash
-pidash runner use-package my-runner --manifest /path/to/agent-package.toml
+karma-team runner use-package my-runner --manifest /path/to/agent-package.toml
 ```
 
 The manifest selects an existing bridge protocol and a local executable. OSS
@@ -18,25 +18,25 @@ idle. Ordinary task folders do not require Git.
 
 ## Install
 
-Prebuilt binaries for macOS (arm64, x86_64), Linux (arm64, x86_64 — glibc and musl), and Windows (x86_64) are published to GitHub Releases. The one-liners below download the installer, verify checksums, drop `pidash` into the standard install path, and immediately start the device-code login so the host is registered with your Pi Dash cloud before you leave the terminal.
+Prebuilt binaries for macOS (arm64, x86_64), Linux (arm64, x86_64 — glibc and musl), and Windows (x86_64) are published to GitHub Releases. The one-liners below download the installer, verify checksums, drop `karma-team` into the standard install path, and immediately start the device-code login so the host is registered with your karma-team cloud before you leave the terminal.
 
 **macOS and Linux:**
 
 ```bash
 curl --proto '=https' --tlsv1.2 -LsSf \
-  https://github.com/The-AI-Republic/pi-dash/releases/latest/download/install.sh | sh
+  https://github.com/xerecter/karma-team/releases/latest/download/install.sh | sh
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
-irm https://github.com/The-AI-Republic/pi-dash/releases/latest/download/install.ps1 | iex
+irm https://github.com/xerecter/karma-team/releases/latest/download/install.ps1 | iex
 ```
 
 **Windows (Command Prompt):**
 
 ```bat
-powershell -c "irm https://github.com/The-AI-Republic/pi-dash/releases/latest/download/install.ps1 | iex"
+powershell -c "irm https://github.com/xerecter/karma-team/releases/latest/download/install.ps1 | iex"
 ```
 
 ### Platform notes
@@ -48,41 +48,41 @@ powershell -c "irm https://github.com/The-AI-Republic/pi-dash/releases/latest/do
 | Alpine / musl             | Served by the same musl builds.                                                                                                                                                                                |
 | Windows x86_64            | Native build.                                                                                                                                                                                                  |
 | Windows arm64             | No native build; the installer serves the x86_64 build, which runs under Windows-on-ARM emulation.                                                                                                             |
-| Git Bash / MSYS2 / Cygwin | Supported — the cargo-dist installer maps `MINGW*`/`MSYS*`/`CYGWIN*` to the Windows target and unpacks the Windows build; `install.sh` accepts the resulting `pidash.exe`.                                     |
+| Git Bash / MSYS2 / Cygwin | Supported — the cargo-dist installer maps `MINGW*`/`MSYS*`/`CYGWIN*` to the Windows target and unpacks the Windows build; `install.sh` accepts the resulting `karma-team.exe`.                                 |
 | WSL                       | Installs the **Linux** build, which can only drive agents inside the WSL distro. `install.sh` warns about this. If your coding agents are installed on the Windows side, use the PowerShell one-liner instead. |
 
-The installer will prompt for your Pi Dash cloud URL, walk you through device-code approval in the browser, and offer to register this host as a runner — for the typical dev-laptop case, that's the entire setup.
+The installer will prompt for your karma-team cloud URL, walk you through device-code approval in the browser, and offer to register this host as a runner — for the typical dev-laptop case, that's the entire setup.
 
 ### Installing a specific version (pinning / prereleases)
 
-Both the wrapper (`install.sh` / `install.ps1`) and the underlying cargo-dist installer (`pidash-installer.sh` / `pidash-installer.ps1`) select a release purely by URL path — swap `latest` for the tag you want:
+Both the wrapper (`install.sh` / `install.ps1`) and the underlying cargo-dist installer (`karma-team-installer.sh` / `karma-team-installer.ps1`) select a release purely by URL path — swap `latest` for the tag you want:
 
 ```bash
 # macOS / Linux — wrapper (with auto-auth)
 curl --proto '=https' --tlsv1.2 -LsSf \
-  https://github.com/The-AI-Republic/pi-dash/releases/download/pidash-v0.1.0/install.sh | sh
+  https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.0/install.sh | sh
 
 # macOS / Linux — bare installer (no auto-auth)
 curl --proto '=https' --tlsv1.2 -LsSf \
-  https://github.com/The-AI-Republic/pi-dash/releases/download/pidash-v0.1.0/pidash-installer.sh | sh
+  https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.0/karma-team-installer.sh | sh
 ```
 
 ```powershell
 # Windows — wrapper
-irm https://github.com/The-AI-Republic/pi-dash/releases/download/pidash-v0.1.0/install.ps1 | iex
+irm https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.0/install.ps1 | iex
 
 # Windows — bare installer
-irm https://github.com/The-AI-Republic/pi-dash/releases/download/pidash-v0.1.0/pidash-installer.ps1 | iex
+irm https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.0/karma-team-installer.ps1 | iex
 ```
 
 **Prereleases** (tags with a SemVer suffix like `-rc.1`, `-alpha.1`, `-beta.1`) are deliberately excluded from `/releases/latest/`, so the public one-liners above keep serving the last stable release. To install a prerelease for testing, use the tag-pinned URL above with the rc tag, e.g.:
 
 ```bash
 curl --proto '=https' --tlsv1.2 -LsSf \
-  https://github.com/The-AI-Republic/pi-dash/releases/download/pidash-v0.1.5/install.sh | sh
+  https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.5/install.sh | sh
 ```
 
-**Prerequisite:** the runner shells out to [Codex](https://github.com/openai/codex) — install it and make sure `codex --version` works before running `pidash configure`. `pidash doctor` checks this.
+**Prerequisite:** the runner shells out to [Codex](https://github.com/openai/codex) — install it and make sure `codex --version` works before running `karma-team configure`. `karma-team doctor` checks this.
 
 ### Alternative install paths
 
@@ -91,56 +91,56 @@ If you'd rather install the binary without the auto-auth (e.g. for a base image,
 ```bash
 # macOS / Linux
 curl --proto '=https' --tlsv1.2 -LsSf \
-  https://github.com/The-AI-Republic/pi-dash/releases/latest/download/pidash-installer.sh | sh
+  https://github.com/xerecter/karma-team/releases/latest/download/karma-team-installer.sh | sh
 ```
 
 ```powershell
 # Windows PowerShell
-irm https://github.com/The-AI-Republic/pi-dash/releases/latest/download/pidash-installer.ps1 | iex
+irm https://github.com/xerecter/karma-team/releases/latest/download/karma-team-installer.ps1 | iex
 ```
 
 Or on Windows, download and run the MSI installer:
 
-<https://github.com/The-AI-Republic/pi-dash/releases/latest/download/pidash-x86_64-pc-windows-msvc.msi>
+<https://github.com/xerecter/karma-team/releases/latest/download/karma-team-x86_64-pc-windows-msvc.msi>
 
-The MSI is a standard double-click Windows Installer. Its final screen carries a **"Sign in to Pi Dash now"** checkbox: leave it ticked and clicking Finish opens a console window running `pidash auth login`, so an interactive install finishes setup in one sitting like every other install path.
+The MSI is a standard double-click Windows Installer. Its final screen carries a **"Sign in to karma-team now"** checkbox: leave it ticked and clicking Finish opens a console window running `karma-team auth login`, so an interactive install finishes setup in one sitting like every other install path.
 
 Two properties of that flow are deliberate:
 
 - **Silent installs spawn nothing.** `msiexec /qn` (Group Policy, Intune, SCCM) skips the installer UI entirely, so the checkbox never runs. Unattended IT deploys are unaffected.
 - **Sign-in runs as the installing user, not SYSTEM.** The package is per-machine and its execute sequence runs elevated, but the ExitDialog runs unelevated — which matters, because `auth login` writes the CLI token and workspace binding into the current user's profile.
 
-For silent installs, or if you clear the checkbox, sign in from a terminal: bare `pidash` with no config drops straight into `auth login`, as does `pidash auth login`. The MSI also installs a **Start Menu → Pi Dash → "Sign in to Pi Dash"** shortcut that runs the same flow — the discoverable path for silent/Group-Policy deploys where the ExitDialog never appears.
+For silent installs, or if you clear the checkbox, sign in from a terminal: bare `karma-team` with no config drops straight into `auth login`, as does `karma-team auth login`. The MSI also installs a **Start Menu → karma-team → "Sign in to karma-team"** shortcut that runs the same flow — the discoverable path for silent/Group-Policy deploys where the ExitDialog never appears.
 
-Windows release assets also include a `pidash-x86_64-pc-windows-msvc.zip` archive with `pidash.exe` for advanced/manual installs.
+Windows release assets also include a `karma-team-x86_64-pc-windows-msvc.zip` archive with `karma-team.exe` for advanced/manual installs.
 
 Then run the setup steps manually:
 
 ```bash
 # 1. Log in as your user. Opens a browser to approve a short code shown in
 #    the terminal — same idea as `gh auth login` or `stripe login`. Stores
-#    a CLI token at ~/.config/pidash/config.toml.
-pidash auth login --url https://pidash.example.com
+#    a CLI token at ~/.config/karma-team/config.toml.
+karma-team auth login --url https://karma-team.example.com
 
 # 2. Register this host as a runner. Uses the token from step 1 to mint
 #    runner credentials cloud-side; no enrollment-token paste needed. On
 #    the first runner, installs the systemd user unit, launchd agent, or
 #    Windows per-user scheduled task and starts the daemon.
-pidash runner add --project WEB
+karma-team runner add --project WEB
 
 # 3. Optional: open the interactive UI.
-pidash tui
+karma-team tui
 ```
 
-`pidash auth login` prompts to add a runner inline when no runner exists yet on the host — for the dev-laptop case, that single command is enough. Bare `pidash` with no subcommand also drops into the login flow when no config exists, so if you installed via the MSI or skipped auto-auth, you can re-trigger setup just by typing `pidash`.
+`karma-team auth login` prompts to add a runner inline when no runner exists yet on the host — for the dev-laptop case, that single command is enough. Bare `karma-team` with no subcommand also drops into the login flow when no config exists, so if you installed via the MSI or skipped auto-auth, you can re-trigger setup just by typing `karma-team`.
 
 Useful follow-ups:
 
 ```bash
-pidash auth status               # who am I logged in as; runner list
-pidash auth logout               # revoke the CLI token server-side
-pidash runner add --project X    # add another runner
-pidash runner list / remove      # manage runners
+karma-team auth status               # who am I logged in as; runner list
+karma-team auth logout               # revoke the CLI token server-side
+karma-team runner add --project X    # add another runner
+karma-team runner list / remove      # manage runners
 ```
 
 ## Task folders and Git
@@ -158,33 +158,33 @@ repo-free tasks.
 
 ## Auto-update
 
-`pidash` keeps itself current. When the cloud announces a newer `latest_runner_version` in the welcome frame, the running daemon swaps the on-disk `pidash` binary in place. The currently-running process is **never disturbed** — it keeps its loaded copy until the next natural restart (`pidash restart`, host reboot, or a service-manager respawn after a crash). This gives you the Claude-Code-style "always current" experience without ever killing in-flight work.
+`karma-team` keeps itself current. When the cloud announces a newer `latest_runner_version` in the welcome frame, the running daemon swaps the on-disk `karma-team` binary in place. The currently-running process is **never disturbed** — it keeps its loaded copy until the next natural restart (`karma-team restart`, host reboot, or a service-manager respawn after a crash). This gives you the Claude-Code-style "always current" experience without ever killing in-flight work.
 
-The toggle lives in the General tab's **Daemon settings** card (`pidash tui` → `auto_update`). Default is **on**; press Enter to flip, then `[w]` to save. With auto-update off, the runner instead surfaces a yellow `⚠ Update v0.1.x available` advisory in the Connection card and on `pidash status`, and you apply updates manually:
+The toggle lives in the General tab's **Daemon settings** card (`karma-team tui` → `auto_update`). Default is **on**; press Enter to flip, then `[w]` to save. With auto-update off, the runner instead surfaces a yellow `⚠ Update v0.1.x available` advisory in the Connection card and on `karma-team status`, and you apply updates manually:
 
 ```bash
-pidash update --restart    # swap and restart the daemon in one shot
-pidash update              # swap binary only; apply on the next restart
-pidash update --check      # report whether an update is available
+karma-team update --restart    # swap and restart the daemon in one shot
+karma-team update              # swap binary only; apply on the next restart
+karma-team update --check      # report whether an update is available
 ```
 
-`pidash update` only works for binaries installed via cargo-dist installers such as `pidash-installer.sh`, `pidash-installer.ps1`, or the Windows MSI (it reads the cargo-dist install receipt). Source builds, zip-only installs, and `cargo install`'d binaries don't have a receipt and get a clear "reinstall via the installer if you want self-update" error.
+`karma-team update` only works for binaries installed via cargo-dist installers such as `karma-team-installer.sh`, `karma-team-installer.ps1`, or the Windows MSI (it reads the cargo-dist install receipt). Source builds, zip-only installs, and `cargo install`'d binaries don't have a receipt and get a clear "reinstall via the installer if you want self-update" error.
 
 ### What the advisory states mean
 
-| State                                                     | TUI / `pidash status`                                            |
-| --------------------------------------------------------- | ---------------------------------------------------------------- |
-| Running version ≥ `latest_announced` and ≥ `min_required` | nothing shown                                                    |
-| Newer `latest_announced`, swap already on disk            | yellow `⚠ Restart to apply v0.1.x`                               |
-| Newer `latest_announced`, auto-update on, swap pending    | yellow `⚠ Update v0.1.x pending swap`                            |
-| Newer `latest_announced`, auto-update off                 | yellow `⚠ Update v0.1.x available — run pidash update --restart` |
-| Running version below `min_required` (cloud-set floor)    | red `⛔ Update required: cloud floor v0.1.x`                     |
+| State                                                     | TUI / `karma-team status`                                            |
+| --------------------------------------------------------- | -------------------------------------------------------------------- |
+| Running version ≥ `latest_announced` and ≥ `min_required` | nothing shown                                                        |
+| Newer `latest_announced`, swap already on disk            | yellow `⚠ Restart to apply v0.1.x`                                   |
+| Newer `latest_announced`, auto-update on, swap pending    | yellow `⚠ Update v0.1.x pending swap`                                |
+| Newer `latest_announced`, auto-update off                 | yellow `⚠ Update v0.1.x available — run karma-team update --restart` |
+| Running version below `min_required` (cloud-set floor)    | red `⛔ Update required: cloud floor v0.1.x`                         |
 
 `min_required` is advisory in the current implementation — the daemon does not refuse new tasks below the floor. The red banner is the user-facing signal that they should act before the cloud bumps the wire-protocol floor and disconnects them.
 
 ### Announcing a release from the cloud
 
-The Pi Dash backend reads two optional environment variables and folds them into every session-create welcome response:
+The karma-team backend reads two optional environment variables and folds them into every session-create welcome response:
 
 | Env var                 | Effect                                                                                    |
 | ----------------------- | ----------------------------------------------------------------------------------------- |
@@ -237,12 +237,12 @@ cargo check                                  # quick type-check
 cargo clippy -- -D warnings                  # lint
 ```
 
-From a debug build, substitute `./target/debug/pidash` for `pidash` in any of the commands above.
+From a debug build, substitute `./target/debug/karma-team` for `karma-team` in any of the commands above.
 
 ## Runtime paths
 
-- Config: platform config directory for `pidash`
-- Data / logs: platform data directory for `pidash`
+- Config: platform config directory for `karma-team`
+- Data / logs: platform data directory for `karma-team`
 - Runtime dir: platform runtime directory for local IPC and the PID file
 
 On Unix-like systems, secrets on disk are written with `0600` and the IPC socket is also `0600`. On Windows, files are stored under the user's profile directories and daemon IPC uses a local named pipe.

@@ -10,17 +10,17 @@ import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { draggable, dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash helpers
+// karma-team helpers
 import { MoreHorizontal } from "lucide-react";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // types
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TIssue, IIssueDisplayProperties, IIssueMap } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TIssue, IIssueDisplayProperties, IIssueMap } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // ui
-import { ControlLink, DropIndicator } from "@pi-dash/ui";
-import { cn, generateWorkItemLink } from "@pi-dash/utils";
+import { ControlLink, DropIndicator } from "@karma-team/ui";
+import { cn, generateWorkItemLink } from "@karma-team/utils";
 // components
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 import { HIGHLIGHT_CLASS, getIssueBlockId } from "@/components/issues/issue-layouts/utils";
@@ -31,10 +31,10 @@ import { useKanbanView } from "@/hooks/store/use-kanban-view";
 import { useProject } from "@/hooks/store/use-project";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 // local components
-import { IssueStats } from "@/pi-dash-web/components/issues/issue-layouts/issue-stats";
+import { IssueStats } from "@/karma-team-web/components/issues/issue-layouts/issue-stats";
 import type { TRenderQuickActions } from "../list/list-view-types";
 import { IssueProperties } from "../properties/all-properties";
 import { WithDisplayPropertiesHOC } from "../properties/with-display-properties-HOC";

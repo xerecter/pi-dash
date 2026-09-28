@@ -8,10 +8,10 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 
 // ui
-import { useTranslation } from "@pi-dash/i18n";
-import { UserCirclePropertyIcon, CreateIcon, LayerStackIcon } from "@pi-dash/propel/icons";
-import type { IUserProfileData } from "@pi-dash/types";
-import { Loader, Card, ECardSpacing, ECardDirection } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { UserCirclePropertyIcon, CreateIcon, LayerStackIcon } from "@karma-team/propel/icons";
+import type { IUserProfileData } from "@karma-team/types";
+import { Loader, Card, ECardSpacing, ECardDirection } from "@karma-team/ui";
 // types
 
 type Props = {

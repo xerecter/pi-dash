@@ -3,7 +3,7 @@
 print_header(){
     clear
     echo "------------------------------------------------"
-    echo "Pi Dash Community (All-In-One)"
+    echo "karma-team Community (All-In-One)"
     echo "------------------------------------------------"
     echo ""
     echo "You are required to pass below environment variables to the script"
@@ -49,20 +49,20 @@ update_env_value(){
     local value="$2"
 
     # check if the file exists
-    if [ ! -f "pi_dash.env" ]; then
-        echo "pi_dash.env file not found"
+    if [ ! -f "karma_team.env" ]; then
+        echo "karma_team.env file not found"
         exit 1
     fi
 
     # check if the key exists and add it if it doesn't
-    if ! grep -q "^$key=.*" pi_dash.env; then
-        echo "${key}=${value}" >> pi_dash.env
+    if ! grep -q "^$key=.*" karma_team.env; then
+        echo "${key}=${value}" >> karma_team.env
         return 0
     fi
 
     # if key and value are not empty, update the value
     if [ -n "$key" ] && [ -n "$value" ]; then
-        sed -i "s|^$key=.*|$key=$value|" pi_dash.env
+        sed -i "s|^$key=.*|$key=$value|" karma_team.env
         return 0
     fi
 
@@ -72,13 +72,13 @@ check_pre_requisites(){
     check_required_env
 
     # check if the file exists
-    if [ ! -f "pi_dash.env" ]; then
-        echo "pi_dash.env file not found"
+    if [ ! -f "karma_team.env" ]; then
+        echo "karma_team.env file not found"
         exit 1
     fi
     # add a new line to the end of the file
-    echo "" >> pi_dash.env
-    echo "" >> pi_dash.env
+    echo "" >> karma_team.env
+    echo "" >> karma_team.env
     echo "✅ Pre-requisites checked"
     echo ""
     
@@ -161,8 +161,8 @@ main(){
     check_pre_requisites
     update_env_file
 
-    # load pi_dash.env as exported variables
-    export $(grep -v '^#' pi_dash.env | xargs)
+    # load karma_team.env as exported variables
+    export $(grep -v '^#' karma_team.env | xargs)
 
     /usr/local/bin/supervisord -c /etc/supervisor/conf.d/supervisor.conf
 }

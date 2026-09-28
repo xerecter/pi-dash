@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
 
 type TProductUpdatesFallbackProps = {
   description: string;

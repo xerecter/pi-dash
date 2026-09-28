@@ -6,12 +6,12 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TNameDescriptionLoader } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import type { TNameDescriptionLoader } from "@karma-team/types";
 // components
-import { TextArea } from "@pi-dash/ui";
+import { TextArea } from "@karma-team/ui";
 // types
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import useDebounce from "@/hooks/use-debounce";
 import type { TIssueOperations } from "./issue-detail";
 // hooks
@@ -178,9 +178,7 @@ export const IssueTitleInput = observer(function IssueTitleInput(props: IssueTit
           /255
         </div>
       </div>
-      {title?.length === 0 && (
-        <span className="text-13 font-medium text-danger-primary">{t("Title is required")}</span>
-      )}
+      {title?.length === 0 && <span className="text-13 font-medium text-danger-primary">{t("Title is required")}</span>}
     </div>
   );
 });

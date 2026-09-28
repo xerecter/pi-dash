@@ -6,9 +6,9 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-// Pi Dash imports
-import type { IWebhook } from "@pi-dash/types";
-import { ToggleSwitch } from "@pi-dash/ui";
+// karma-team imports
+import type { IWebhook } from "@karma-team/types";
+import { ToggleSwitch } from "@karma-team/ui";
 // hooks
 import { useWebhook } from "@/hooks/store/use-webhook";
 

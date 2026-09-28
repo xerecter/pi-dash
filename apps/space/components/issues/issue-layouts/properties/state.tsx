@@ -5,12 +5,12 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash ui
-import { StateGroupIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TStateGroups } from "@pi-dash/types";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team ui
+import { StateGroupIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TStateGroups } from "@karma-team/types";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 //hooks
 import { useStates } from "@/hooks/store/use-state";
 

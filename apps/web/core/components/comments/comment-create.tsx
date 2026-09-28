@@ -7,11 +7,11 @@
 import { useCallback, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useForm, Controller } from "react-hook-form";
-// pi dash imports
-import { EIssueCommentAccessSpecifier } from "@pi-dash/constants";
-import type { EditorRefApi } from "@pi-dash/editor";
-import type { TIssueComment, TCommentsOperations } from "@pi-dash/types";
-import { cn, isCommentEmpty } from "@pi-dash/utils";
+// karma-team imports
+import { EIssueCommentAccessSpecifier } from "@karma-team/constants";
+import type { EditorRefApi } from "@karma-team/editor";
+import type { TIssueComment, TCommentsOperations } from "@karma-team/types";
+import { cn, isCommentEmpty } from "@karma-team/utils";
 // components
 import { LiteTextEditor } from "@/components/editor/lite-text";
 // hooks

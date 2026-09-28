@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-//! `pidash run …` subcommands — the agent's view of its own run.
+//! `karma-team run …` subcommands — the agent's view of its own run.
 //!
 //! Distinct from the hidden `__run` daemon entry point (`cli::run`). Today
 //! there is one verb, `yield`, which reports the run's outcome to the
@@ -21,13 +21,13 @@ pub struct RunCmdArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum RunCmdCommand {
-    /// Report this run's outcome to Pi Dash's ticking clock. Call it once,
-    /// as the last `pidash` command of the run, after any state move.
+    /// Report this run's outcome to karma-team's ticking clock. Call it once,
+    /// as the last `karma-team` command of the run, after any state move.
     Yield(YieldArgs),
 }
 
 /// The §7 outcome vocabulary. Kept in sync with
-/// `pi_dash.orchestration.scheduling.RUN_OUTCOMES`.
+/// `karma_team.orchestration.scheduling.RUN_OUTCOMES`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 #[value(rename_all = "snake_case")]
 pub enum Outcome {
@@ -65,7 +65,7 @@ pub struct YieldArgs {
     /// One-line note stored with the outcome (optional).
     #[arg(long)]
     pub note: Option<String>,
-    /// Override the run id. Defaults to `PIDASH_RUN_ID`, which the daemon
+    /// Override the run id. Defaults to `KARMA_TEAM_RUN_ID`, which the daemon
     /// sets on the agent process; only scripted use should need this.
     #[arg(long)]
     pub run_id: Option<String>,
@@ -124,7 +124,7 @@ pub fn resolve_run_id<'a>(
         .ok_or_else(|| {
             CliError::new(
                 EXIT_INVALID,
-                "run yield needs a run id: pass --run-id or run inside an agent run (PIDASH_RUN_ID)",
+                "run yield needs a run id: pass --run-id or run inside an agent run (KARMA_TEAM_RUN_ID)",
             )
         })
 }

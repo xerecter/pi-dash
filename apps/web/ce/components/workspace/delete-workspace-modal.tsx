@@ -6,9 +6,9 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import type { IWorkspace } from "@pi-dash/types";
+import type { IWorkspace } from "@karma-team/types";
 // ui
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // constants
 // hooks
 

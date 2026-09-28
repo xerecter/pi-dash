@@ -8,17 +8,17 @@ import React from "react";
 import { observer } from "mobx-react";
 import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import { ETabIndices } from "@pi-dash/constants";
-import { CloseIcon } from "@pi-dash/propel/icons";
-// pi dash imports
+import { ETabIndices } from "@karma-team/constants";
+import { CloseIcon } from "@karma-team/propel/icons";
+// karma-team imports
 // types
-import type { ISearchIssueResponse, TIssue } from "@pi-dash/types";
+import type { ISearchIssueResponse, TIssue } from "@karma-team/types";
 // helpers
-import { getTabIndex } from "@pi-dash/utils";
+import { getTabIndex } from "@karma-team/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 
 type TIssueParentTagProps = {
   control: Control<TIssue>;

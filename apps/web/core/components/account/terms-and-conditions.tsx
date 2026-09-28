@@ -6,7 +6,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { EAuthModes } from "@pi-dash/constants";
+import { EAuthModes } from "@karma-team/constants";
 
 interface TermsAndConditionsProps {
   authType?: EAuthModes;

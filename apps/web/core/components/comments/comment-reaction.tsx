@@ -6,11 +6,11 @@
 
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { stringToEmoji } from "@pi-dash/propel/emoji-icon-picker";
-import { EmojiReactionGroup, EmojiReactionPicker } from "@pi-dash/propel/emoji-reaction";
-import type { EmojiReactionType } from "@pi-dash/propel/emoji-reaction";
-import type { TCommentsOperations, TIssueComment } from "@pi-dash/types";
+// karma-team imports
+import { stringToEmoji } from "@karma-team/propel/emoji-icon-picker";
+import { EmojiReactionGroup, EmojiReactionPicker } from "@karma-team/propel/emoji-reaction";
+import type { EmojiReactionType } from "@karma-team/propel/emoji-reaction";
+import type { TCommentsOperations, TIssueComment } from "@karma-team/types";
 // helpers
 // local imports
 

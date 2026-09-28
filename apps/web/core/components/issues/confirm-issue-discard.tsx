@@ -6,8 +6,8 @@
 
 import { useState } from "react";
 // ui
-import { Button } from "@pi-dash/propel/button";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { Button } from "@karma-team/propel/button";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 
 type Props = {
   isOpen: boolean;

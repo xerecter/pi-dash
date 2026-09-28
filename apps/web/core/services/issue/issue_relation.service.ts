@@ -4,11 +4,11 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { TIssueRelation, TIssue } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+import type { TIssueRelation, TIssue } from "@karma-team/types";
 // helpers
-// Pi Dash-web
-import type { TIssueRelationTypes } from "@/pi-dash-web/types";
+// karma-team-web
+import type { TIssueRelationTypes } from "@/karma-team-web/types";
 // services
 import { APIService } from "@/services/api.service";
 

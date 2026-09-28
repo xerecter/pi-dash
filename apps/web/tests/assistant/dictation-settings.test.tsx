@@ -18,7 +18,7 @@ const { getSTTConfig, putSTTConfig, deleteSTTConfig, testSTTConfig, setToast } =
   setToast: vi.fn(),
 }));
 
-vi.mock("@pi-dash/services", () => ({
+vi.mock("@karma-team/services", () => ({
   AssistantService: class {
     getSTTConfig = getSTTConfig;
     putSTTConfig = putSTTConfig;
@@ -27,12 +27,12 @@ vi.mock("@pi-dash/services", () => ({
   },
 }));
 
-vi.mock("@pi-dash/propel/toast", () => ({
+vi.mock("@karma-team/propel/toast", () => ({
   TOAST_TYPE: { ERROR: "ERROR", SUCCESS: "SUCCESS", INFO: "INFO" },
   setToast,
 }));
 
-vi.mock("@pi-dash/ui", () => ({
+vi.mock("@karma-team/ui", () => ({
   // Strip non-DOM props so React doesn't warn about forwarding them.
   Button: ({
     children,
@@ -89,7 +89,9 @@ describe("DictationSettings", () => {
     getSTTConfig.mockRejectedValue({ detail: "not found" });
     renderSettings();
     expect(
-      screen.getByText("Your audio is sent directly to the endpoint you configure here and is not stored by Pi Dash.")
+      screen.getByText(
+        "Your audio is sent directly to the endpoint you configure here and is not stored by karma-team."
+      )
     ).toBeInTheDocument();
   });
 

@@ -5,7 +5,7 @@
 //! JSON-RPC handshake, then emits `agentMessage` items that carry a
 //! `questions` block — the shape Codex produced when an unattended run
 //! looped for hours re-asking the same question. The script echoes
-//! `$PIDASH_ISSUE_IDENTIFIER` into each question so the tests can also
+//! `$KARMA_TEAM_ISSUE_IDENTIFIER` into each question so the tests can also
 //! prove the issue key reached the agent process.
 
 use super::tests::{paths_for, runner_config};
@@ -40,7 +40,7 @@ read _
 i=0
 while [ "$i" -lt {questions} ]; do
   i=$((i+1))
-  item='{{"id":"q'"$i"'","type":"agentMessage","phase":"final_answer","delivery":"async","text":"Confirm for '"${{PIDASH_ISSUE_IDENTIFIER:-unset}}"'","questions":[{{"title":"Confirm","options":["stop","implement"]}}]}}'
+  item='{{"id":"q'"$i"'","type":"agentMessage","phase":"final_answer","delivery":"async","text":"Confirm for '"${{KARMA_TEAM_ISSUE_IDENTIFIER:-unset}}"'","questions":[{{"title":"Confirm","options":["stop","implement"]}}]}}'
   # Codex sends the item on both started and completed; only the latter
   # may count, or every question would be counted twice.
   printf '{{"jsonrpc":"2.0","method":"item/started","params":{{"item":%s}}}}\n' "$item"

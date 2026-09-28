@@ -6,7 +6,7 @@
 
 import type { MutableRefObject } from "react";
 // types
-import type { IIssueDisplayProperties } from "@pi-dash/types";
+import type { IIssueDisplayProperties } from "@karma-team/types";
 import { IssueBlock } from "./block";
 
 interface Props {

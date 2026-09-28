@@ -7,11 +7,11 @@
 import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TPageNavigationTabs } from "@pi-dash/types";
-import { EUserProjectRoles } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { TPageNavigationTabs } from "@karma-team/types";
+import { EUserProjectRoles } from "@karma-team/types";
 // assets
 import darkPagesAsset from "@/app/assets/empty-state/disabled-feature/pages-dark.webp?url";
 import lightPagesAsset from "@/app/assets/empty-state/disabled-feature/pages-light.webp?url";
@@ -24,8 +24,8 @@ import { PagesListView } from "@/components/pages/pages-list-view";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
-// pi dash web hooks
-import { EPageStoreType } from "@/pi-dash-web/hooks/store";
+// karma-team web hooks
+import { EPageStoreType } from "@/karma-team-web/hooks/store";
 import type { Route } from "./+types/page";
 
 const getPageType = (pageType?: string | null): TPageNavigationTabs => {
@@ -42,7 +42,7 @@ function ProjectPagesPage({ params }: Route.ComponentProps) {
   const { workspaceSlug, projectId } = params;
   // theme hook
   const { resolvedTheme } = useTheme();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { getProjectById, currentProjectDetails } = useProject();
@@ -60,7 +60,9 @@ function ProjectPagesPage({ params }: Route.ComponentProps) {
       <div className="flex h-full w-full items-center justify-center">
         <DetailedEmptyState
           title={t("Pages are not enabled for the project.")}
-          description={t("Pages are the building blocks of your project. Enable pages from project settings to start using them.")}
+          description={t(
+            "Pages are the building blocks of your project. Enable pages from project settings to start using them."
+          )}
           assetPath={resolvedPath}
           primaryButton={{
             text: t("Manage features"),

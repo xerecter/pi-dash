@@ -6,9 +6,9 @@
 
 import React from "react";
 import { Transition } from "@headlessui/react";
-// pi dash imports
-import type { SingleOrArray, IFilterOption, TFilterValue } from "@pi-dash/types";
-import { cn, toFilterArray } from "@pi-dash/utils";
+// karma-team imports
+import type { SingleOrArray, IFilterOption, TFilterValue } from "@karma-team/types";
+import { cn, toFilterArray } from "@karma-team/utils";
 import { EMPTY_FILTER_PLACEHOLDER_TEXT } from "../../shared";
 
 type TSelectedOptionsDisplayProps<V extends TFilterValue> = {

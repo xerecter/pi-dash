@@ -32,10 +32,10 @@ import {
   ModuleIcon,
   RelatedIcon,
   WorkItemsIcon,
-} from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IIssueActivity } from "@pi-dash/types";
-import { renderFormattedDate, generateWorkItemLink, capitalizeFirstLetter } from "@pi-dash/utils";
+} from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IIssueActivity } from "@karma-team/types";
+import { renderFormattedDate, generateWorkItemLink, capitalizeFirstLetter } from "@karma-team/utils";
 // helpers
 import { useLabel } from "@/hooks/store/use-label";
 import { usePlatformOS } from "@/hooks/use-platform-os";

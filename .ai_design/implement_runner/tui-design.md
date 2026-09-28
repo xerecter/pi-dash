@@ -1,6 +1,6 @@
 # Runner TUI — Design
 
-The MVP runner ships with a built-in TUI so users can configure the runner, watch it work, and answer approval requests from a terminal. This complements (not replaces) the Pi Dash web UI.
+The MVP runner ships with a built-in TUI so users can configure the runner, watch it work, and answer approval requests from a terminal. This complements (not replaces) the karma-team web UI.
 
 ## Why a TUI for v1
 
@@ -20,12 +20,12 @@ The TUI is a **client**, not the runner itself. The runner daemon keeps running 
 ```
 ┌────────────────────── laptop ──────────────────────┐
 │                                                     │
-│   pidash  (service, always-on)        │
+│   karma-team  (service, always-on)        │
 │        │                                            │
 │        │  local Unix socket                         │
 │        │  (Windows: named pipe)                     │
 │        │                                            │
-│   pidash tui  (user launches adhoc)   │
+│   karma-team tui  (user launches adhoc)   │
 │        │                                            │
 │        │  ─────► outbound WS to cloud               │
 │        │  ─────► spawn codex app-server             │
@@ -59,8 +59,8 @@ Minimum methods (daemon-side):
 
 Socket path:
 
-- Linux/macOS: `$XDG_RUNTIME_DIR/pidash.sock` (or `~/.local/share/pidash/sock`)
-- Windows: `\\.\pipe\pidash`
+- Linux/macOS: `$XDG_RUNTIME_DIR/karma-team.sock` (or `~/.local/share/karma-team/sock`)
+- Windows: `\\.\pipe\karma-team`
 
 Permissions: 0600 — only the owning user can connect.
 
@@ -88,7 +88,7 @@ Four primary views. Switch with number keys or tab. Vim-style `j/k/h/l` + arrow 
 ### 1. Status (default landing view)
 
 ```
-╭─ Pi Dash Runner ─────────────────────────────────────╮
+╭─ karma-team Runner ─────────────────────────────────────╮
 │ ● Connected        my-laptop                               │
 │ Workspace: acme    Labels: codex, macos, arm64             │
 │ Uptime 4h 23m      Last heartbeat 2s ago                   │
@@ -201,7 +201,7 @@ Notes:
 
 - Daemon can also auto-answer based on the configured approval policy; TUI shows only what needs a human.
 - When a new approval arrives and the TUI is open, focus jumps to this view and the terminal bell rings (unless user disabled).
-- Same `ApprovalRequest` object is also exposed to the Pi Dash web UI; whichever answers first wins. Daemon records the decision source for audit.
+- Same `ApprovalRequest` object is also exposed to the karma-team web UI; whichever answers first wins. Daemon records the decision source for audit.
 
 ## Key bindings summary
 
@@ -221,11 +221,11 @@ Notes:
 
 ## First-run onboarding flow
 
-When the user runs `pidash tui` and no config exists on disk, the TUI walks them through setup instead of showing the dashboard:
+When the user runs `karma-team tui` and no config exists on disk, the TUI walks them through setup instead of showing the dashboard:
 
 ```
 Step 1 of 4: Paste registration code
-  Get a one-time code from Pi Dash → Settings → Runners → New runner.
+  Get a one-time code from karma-team → Settings → Runners → New runner.
   Code:  __________
 
 Step 2 of 4: Verify Codex

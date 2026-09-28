@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 // hooks
-import { CycleIcon } from "@pi-dash/propel/icons";
+import { CycleIcon } from "@karma-team/propel/icons";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // components
 import { IssueActivityBlockComponent } from "./";

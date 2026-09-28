@@ -9,15 +9,15 @@ import { observer } from "mobx-react";
 import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import { Sparkle } from "lucide-react";
-// pi dash imports
-import { ETabIndices } from "@pi-dash/constants";
-import type { EditorRefApi } from "@pi-dash/editor";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TIssue } from "@pi-dash/types";
-import { EFileAssetType } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
-import { getDescriptionPlaceholderI18n, getTabIndex } from "@pi-dash/utils";
+// karma-team imports
+import { ETabIndices } from "@karma-team/constants";
+import type { EditorRefApi } from "@karma-team/editor";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TIssue } from "@karma-team/types";
+import { EFileAssetType } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
+import { getDescriptionPlaceholderI18n, getTabIndex } from "@karma-team/utils";
 // components
 import { GptAssistantPopover } from "@/components/core/modals/gpt-assistant-popover";
 import { RichTextEditor } from "@/components/editor/rich-text";
@@ -28,7 +28,7 @@ import { useInstance } from "@/hooks/store/use-instance";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import useKeypress from "@/hooks/use-keypress";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web services
+// karma-team web services
 import { WorkspaceService } from "@/services/workspace.service";
 // services
 import { AIService } from "@/services/ai.service";

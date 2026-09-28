@@ -5,7 +5,7 @@
  */
 
 import { createContext } from "react";
-// pi dash web store
+// karma-team web store
 import { RootStore } from "@/store/root.store";
 
 let rootStore = new RootStore();

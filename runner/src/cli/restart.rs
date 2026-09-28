@@ -1,4 +1,4 @@
-//! `pidash restart` — restart the installed service and verify daemon health.
+//! `karma-team restart` — restart the installed service and verify daemon health.
 
 use anyhow::Result;
 use clap::Args as ClapArgs;

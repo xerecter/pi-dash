@@ -5,8 +5,8 @@
  */
 
 import { lazy } from "react";
-// pi dash imports
-import type { TProfileSettingsTabs } from "@pi-dash/types";
+// karma-team imports
+import type { TProfileSettingsTabs } from "@karma-team/types";
 
 export const PROFILE_SETTINGS_PAGES_MAP: Record<TProfileSettingsTabs, React.LazyExoticComponent<React.FC>> = {
   general: lazy(() => import("./general").then((m) => ({ default: m.GeneralProfileSettings }))),

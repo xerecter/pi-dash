@@ -18,7 +18,7 @@ import type {
   TSupportedFilterFieldConfigs,
   TSupportedOperators,
   TOperatorSpecificConfigs,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 
 /**
  * Helper to create a type-safe filter config

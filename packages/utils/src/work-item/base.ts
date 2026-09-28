@@ -7,9 +7,9 @@
 import { differenceInCalendarDays } from "date-fns/differenceInCalendarDays";
 import { isEmpty } from "lodash-es";
 import { v4 as uuidv4 } from "uuid";
-// pi dash imports
-import type { TIssueFilterPriorityObject, TIssuePriorities } from "@pi-dash/constants";
-import { ISSUE_DISPLAY_FILTERS_BY_PAGE, ISSUE_PRIORITY_FILTERS, STATE_GROUPS } from "@pi-dash/constants";
+// karma-team imports
+import type { TIssueFilterPriorityObject, TIssuePriorities } from "@karma-team/constants";
+import { ISSUE_DISPLAY_FILTERS_BY_PAGE, ISSUE_PRIORITY_FILTERS, STATE_GROUPS } from "@karma-team/constants";
 import type {
   IGanttBlock,
   IIssueDisplayFilterOptions,
@@ -22,8 +22,8 @@ import type {
   TStateGroups,
   TSubGroupedIssues,
   TUnGroupedIssues,
-} from "@pi-dash/types";
-import { EIssueLayoutTypes } from "@pi-dash/types";
+} from "@karma-team/types";
+import { EIssueLayoutTypes } from "@karma-team/types";
 // local imports
 import { orderArrayBy } from "../array";
 import { getDate } from "../datetime";

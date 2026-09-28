@@ -6,7 +6,7 @@
 
 import type { ReactNode } from "react";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 export interface ContentWrapperProps {
   className?: string;

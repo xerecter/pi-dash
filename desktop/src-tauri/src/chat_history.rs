@@ -4,7 +4,7 @@
 
 //! Local, on-device storage for direct chats with the built-in agent engine.
 //!
-//! A direct local chat never travels through the Pi Dash chat relay, and its
+//! A direct local chat never travels through the karma-team chat relay, and its
 //! transcript is never uploaded or synced. This module owns the on-disk record
 //! of those chats: a per-account SQLite database under the managed tree, plus
 //! the resolver for the working copy a local chat runs in.
@@ -33,7 +33,7 @@
 //! construction. See [`chat_working_dir`] and the `working_dirs_never_collide`
 //! test.
 //!
-//! See `pi-dash/.ai_design/managed_runner/design.md` and PDASHOSS01-159.
+//! See `karma-team/.ai_design/managed_runner/design.md` and PDASHOSS01-159.
 
 use std::path::{Path, PathBuf};
 
@@ -735,7 +735,10 @@ mod tests {
         // account root even before the DB is ever opened.
         let workdir = resolve_chat_working_dir(&paths, "user-perms", "acme", "web").unwrap();
         assert_eq!(mode(&base), 0o700, "account dir must be 0700 after resolve");
-        assert!(workdir.starts_with(&base), "working dir under the account root");
+        assert!(
+            workdir.starts_with(&base),
+            "working dir under the account root"
+        );
 
         // Open + write so the WAL sidecar exists while the connection is live.
         let conn = open(&paths, "user-perms").unwrap();
@@ -743,7 +746,10 @@ mod tests {
             .unwrap();
         assert_eq!(mode(&base.join("history.db")), 0o600, "db must be 0600");
         let wal = base.join("history.db-wal");
-        assert!(wal.exists(), "WAL sidecar should exist while the DB is open");
+        assert!(
+            wal.exists(),
+            "WAL sidecar should exist while the DB is open"
+        );
         assert_eq!(mode(&wal), 0o600, "WAL sidecar must not be world-readable");
     }
 

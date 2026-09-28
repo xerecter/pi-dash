@@ -7,11 +7,11 @@
 import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IUserEmailNotificationSettings } from "@pi-dash/types";
-import { ToggleSwitch } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IUserEmailNotificationSettings } from "@karma-team/types";
+import { ToggleSwitch } from "@karma-team/ui";
 // components
 import { SettingsControlItem } from "@/components/settings/control-item";
 // services
@@ -62,7 +62,9 @@ export const NotificationsProfileSettingsForm = observer(function NotificationsP
     <div className="flex flex-col gap-y-1">
       <SettingsControlItem
         title={t("Property changes")}
-        description={t("Notify me when work items' properties like assignees, priority, estimates or anything else changes.")}
+        description={t(
+          "Notify me when work items' properties like assignees, priority, estimates or anything else changes."
+        )}
         control={
           <Controller
             control={control}

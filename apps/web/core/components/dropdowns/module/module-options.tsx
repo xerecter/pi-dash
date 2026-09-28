@@ -9,11 +9,11 @@ import type { Placement } from "@popperjs/core";
 import { observer } from "mobx-react";
 import { usePopper } from "react-popper";
 import { Combobox } from "@headlessui/react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { CheckIcon, SearchIcon, ModuleIcon } from "@pi-dash/propel/icons";
-import type { IModule } from "@pi-dash/types";
-import { cn, sortBySelectedFirst } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { CheckIcon, SearchIcon, ModuleIcon } from "@karma-team/propel/icons";
+import type { IModule } from "@karma-team/types";
+import { cn, sortBySelectedFirst } from "@karma-team/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 
@@ -43,7 +43,7 @@ export const ModuleOptions = observer(function ModuleOptions(props: Props) {
   // states
   const [query, setQuery] = useState("");
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { isMobile } = usePlatformOS();

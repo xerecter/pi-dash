@@ -6,8 +6,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { observer } from "mobx-react";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-import type { TPageFilterProps, TPageFilters } from "@pi-dash/types";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+import type { TPageFilterProps, TPageFilters } from "@karma-team/types";
 // components
 import { FilterCreatedDate } from "@/components/common/filters/created-at";
 import { FilterCreatedBy } from "@/components/common/filters/created-by";

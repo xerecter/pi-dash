@@ -6,7 +6,7 @@
 
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import type { IPod, IRunner } from "@pi-dash/types";
+import type { IPod, IRunner } from "@karma-team/types";
 import { useSelectedPodFilter } from "@/hooks/use-selected-pod-filter";
 
 function makePod(id: string, name = id): IPod {

@@ -10,21 +10,21 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, usePathname, useSearchParams } from "next/navigation";
 import { Info, SquareUser } from "lucide-react";
-// pi dash package imports
+// karma-team package imports
 import {
   MODULE_STATUS,
   PROGRESS_STATE_GROUPS_DETAILS,
   EUserPermissions,
   EUserPermissionsLevel,
   IS_FAVORITE_MENU_OPEN,
-} from "@pi-dash/constants";
-import { useLocalStorage } from "@pi-dash/hooks";
-import { WorkItemsIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setPromiseToast, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IModule } from "@pi-dash/types";
-import { Card, FavoriteStar, LinearProgressIndicator } from "@pi-dash/ui";
-import { getDate, renderFormattedPayloadDate, generateQueryParams } from "@pi-dash/utils";
+} from "@karma-team/constants";
+import { useLocalStorage } from "@karma-team/hooks";
+import { WorkItemsIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setPromiseToast, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IModule } from "@karma-team/types";
+import { Card, FavoriteStar, LinearProgressIndicator } from "@karma-team/ui";
+import { getDate, renderFormattedPayloadDate, generateQueryParams } from "@karma-team/utils";
 // components
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";
 import { ButtonAvatars } from "@/components/dropdowns/member/avatar";

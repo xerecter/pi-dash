@@ -5,13 +5,13 @@
  */
 
 import type { Node as ProseMirrorNode } from "@tiptap/pm/model";
-// pi dash imports
-import type { ADDITIONAL_EXTENSIONS } from "@pi-dash/utils";
-import { CORE_EXTENSIONS } from "@pi-dash/utils";
+// karma-team imports
+import type { ADDITIONAL_EXTENSIONS } from "@karma-team/utils";
+import { CORE_EXTENSIONS } from "@karma-team/utils";
 // extensions
 import { getImageBlockId } from "@/extensions/custom-image/utils";
-// pi dash editor imports
-import { ADDITIONAL_ASSETS_META_DATA_RECORD } from "@/pi-dash-editor/constants/assets";
+// karma-team editor imports
+import { ADDITIONAL_ASSETS_META_DATA_RECORD } from "@/karma-team-editor/constants/assets";
 // types
 import type { TEditorAsset } from "@/types";
 

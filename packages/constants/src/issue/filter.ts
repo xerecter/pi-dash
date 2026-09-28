@@ -9,8 +9,8 @@ import type {
   ILayoutDisplayFiltersOptions,
   TIssueActivityComment,
   TWorkItemFilterProperty,
-} from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
+} from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
 import type { TIssueFilterPriorityObject } from "./common";
 import { ISSUE_DISPLAY_PROPERTIES_KEYS, SUB_ISSUES_DISPLAY_PROPERTIES_KEYS } from "./common";
 

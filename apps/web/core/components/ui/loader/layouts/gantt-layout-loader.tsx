@@ -5,7 +5,7 @@
  */
 
 import { range } from "lodash-es";
-import { Row } from "@pi-dash/ui";
+import { Row } from "@karma-team/ui";
 import { BLOCK_HEIGHT } from "@/components/gantt-chart/constants";
 import { getRandomLength } from "../utils";
 

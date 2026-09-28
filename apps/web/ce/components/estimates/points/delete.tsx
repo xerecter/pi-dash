@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TEstimatePointsObject, TEstimateSystemKeys, TEstimateTypeErrorObject } from "@pi-dash/types";
+import type { TEstimatePointsObject, TEstimateSystemKeys, TEstimateTypeErrorObject } from "@karma-team/types";
 
 export type TEstimatePointDelete = {
   workspaceSlug: string;

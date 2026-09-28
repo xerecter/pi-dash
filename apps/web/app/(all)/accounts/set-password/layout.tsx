@@ -11,4 +11,4 @@ export default function SetPasswordLayout() {
   return <Outlet />;
 }
 
-export const meta: Route.MetaFunction = () => [{ title: "Set Password - Pi Dash" }];
+export const meta: Route.MetaFunction = () => [{ title: "Set Password - karma-team" }];

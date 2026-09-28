@@ -6,18 +6,18 @@
 
 import React, { useMemo } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
+// karma-team imports
 import {
   WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS,
   WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS_LINKS,
   WORKSPACE_SIDEBAR_STATIC_PINNED_NAVIGATION_ITEMS_LINKS,
-} from "@pi-dash/constants";
+} from "@karma-team/constants";
 // constants
 import { extendedNavigationItems } from "@/constants/extended-navigation";
 // store hooks
 import { usePersonalNavigationPreferences } from "@/hooks/use-navigation-preferences";
-// pi-dash-web imports
-import { SidebarItem } from "@/pi-dash-web/components/workspace/sidebar/sidebar-item";
+// karma-team-web imports
+import { SidebarItem } from "@/karma-team-web/components/workspace/sidebar/sidebar-item";
 
 // Items relocated out of this section by the AI-orchestration layout:
 //   - drafts → top of Projects section

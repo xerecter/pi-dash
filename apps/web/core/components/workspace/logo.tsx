@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { cn, getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { cn, getFileURL } from "@karma-team/utils";
 
 type Props = {
   logo: string | null | undefined;

@@ -7,7 +7,7 @@
 import React from "react";
 import { Link } from "react-router";
 // ui
-import { Button } from "@pi-dash/propel/button";
+import { Button } from "@karma-team/propel/button";
 // images
 import Image404 from "@/app/assets/images/404.svg?url";
 

@@ -7,9 +7,9 @@
 import type { Editor } from "@tiptap/core";
 
 import { useCallback, useRef, useState } from "react";
-import { LinkIcon, TrashIcon, CheckIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+import { LinkIcon, TrashIcon, CheckIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 // constants
 import { CORE_EXTENSIONS } from "@/constants/extension";
 // helpers

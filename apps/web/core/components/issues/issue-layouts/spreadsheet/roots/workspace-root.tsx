@@ -6,10 +6,10 @@
 
 import React, { useCallback } from "react";
 import { observer } from "mobx-react";
-// pi dash constants
-import { ALL_ISSUES, EIssueFilterType, EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import type { IIssueDisplayFilterOptions } from "@pi-dash/types";
-import { EIssuesStoreType, EIssueLayoutTypes } from "@pi-dash/types";
+// karma-team constants
+import { ALL_ISSUES, EIssueFilterType, EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import type { IIssueDisplayFilterOptions } from "@karma-team/types";
+import { EIssuesStoreType, EIssueLayoutTypes } from "@karma-team/types";
 // components
 import { AllIssueQuickActions } from "@/components/issues/issue-layouts/quick-action-dropdowns";
 import { SpreadsheetLayoutLoader } from "@/components/ui/loader/layouts/spreadsheet-layout-loader";

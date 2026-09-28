@@ -2699,12 +2699,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "pi-dash-desktop"
+name = "karma-team-desktop"
 version = "0.3.2"
 dependencies = [
  "chrono",
  "libc",
- "pidash-ipc",
+ "karma-team-ipc",
  "reqwest",
  "rusqlite",
  "rustls",
@@ -2724,7 +2724,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pidash-ipc"
+name = "karma-team-ipc"
 version = "0.1.0"
 dependencies = [
  "anyhow",

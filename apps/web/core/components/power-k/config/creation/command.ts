@@ -5,11 +5,11 @@
  */
 
 import { FileText, FolderPlus, Layers, SquarePlus } from "lucide-react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { ContrastIcon, DiceIcon, LayersIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { ContrastIcon, DiceIcon, LayersIcon } from "@karma-team/propel/icons";
 // components
-import { EUserProjectRoles } from "@pi-dash/types";
+import { EUserProjectRoles } from "@karma-team/types";
 import type { TPowerKCommandConfig, TPowerKContext } from "@/components/power-k/core/types";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";

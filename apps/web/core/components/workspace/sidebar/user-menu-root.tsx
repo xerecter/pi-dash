@@ -8,12 +8,12 @@ import { useState, useEffect } from "react";
 import { observer } from "mobx-react";
 import { useRouter } from "next/navigation";
 import { ChevronsUpDown, Globe, LogOut, Settings } from "lucide-react";
-// pi dash imports
-import { GOD_MODE_URL } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Avatar, CustomMenu } from "@pi-dash/ui";
-import { cn, getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { GOD_MODE_URL } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Avatar, CustomMenu } from "@karma-team/ui";
+import { cn, getFileURL } from "@karma-team/utils";
 // components
 import { CoverImage } from "@/components/common/cover-image";
 import { AppSidebarItem } from "@/components/sidebar/sidebar-item";
@@ -21,8 +21,8 @@ import { AppSidebarItem } from "@/components/sidebar/sidebar-item";
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useUser } from "@/hooks/store/user";
-// pi dash web components
-import { PaidPlanUpgradeModal } from "@/pi-dash-web/components/license";
+// karma-team web components
+import { PaidPlanUpgradeModal } from "@/karma-team-web/components/license";
 
 type Props = {
   variant?: "compact" | "sidebar";

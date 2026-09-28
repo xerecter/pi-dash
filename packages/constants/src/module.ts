@@ -5,7 +5,7 @@
  */
 
 // types
-import type { TModuleLayoutOptions, TModuleOrderByOptions, TModuleStatus } from "@pi-dash/types";
+import type { TModuleLayoutOptions, TModuleOrderByOptions, TModuleStatus } from "@karma-team/types";
 
 export const MODULE_STATUS_COLORS: {
   [key in TModuleStatus]: string;

@@ -17,11 +17,11 @@
 >
 > **What this changes about today's code**
 >
-> - `pi_dash.prompting.composer.build_continuation` becomes dead code; deleted.
-> - `pi_dash.orchestration.service._create_continuation_run` always renders via
+> - `karma_team.prompting.composer.build_continuation` becomes dead code; deleted.
+> - `karma_team.orchestration.service._create_continuation_run` always renders via
 >   `build_first_turn`. Naming should be revisited (it's no longer
 >   "continuation"-distinct from a fresh dispatch).
-> - `pi_dash.runner.services.matcher._refresh_continuation_prompt` is deleted.
+> - `karma_team.runner.services.matcher._refresh_continuation_prompt` is deleted.
 > - On the runner side (Rust `runner/`), the Codex bridge no longer issues
 >   `thread/resume` JSON-RPC calls; the Claude Code bridge no longer passes
 >   `--resume <session_id>`. The `resume_thread_id` field is dropped from the
@@ -75,7 +75,7 @@ for this design.
 
 ### 1.2 Failover-induced silent context loss (plausible, no observed incident yet)
 
-Pi Dash's pod model lets any runner in the pod pick up an unpinned run.
+karma-team's pod model lets any runner in the pod pick up an unpinned run.
 `_pinned_runner_for` returns `None` when the original runner is offline,
 revoked, or has lost its session. The new runner has no local agent session
 for the captured `thread_id`. It gets handed the 50-byte continuation prompt
@@ -108,7 +108,7 @@ confirmed during implementation; see §7.4.
 
 ## 2. Product goal (the contract that actually matters)
 
-Pi Dash's user-facing promise is simple. A human creates an issue. An agent
+karma-team's user-facing promise is simple. A human creates an issue. An agent
 works it end-to-end when it can. When it can't (genuine ambiguity, missing
 auth, blocked dependency), it posts a focused comment and waits. When the
 human responds, the agent picks up. The user sees an issue moving toward
@@ -151,7 +151,7 @@ Already substantially encoded in fragments 07 (Step 0.5 — Analyze & scope)
 and 14 (Follow-up run context). Made explicit and uniform:
 
 1. Read the issue description.
-2. Read all comments via `pidash comment list`, in chronological order.
+2. Read all comments via `karma-team comment list`, in chronological order.
 3. Locate and read the existing `## Agent Workpad` comment end-to-end.
    - If present: this is the prior state. Reconcile the plan, check off items
      already done, expand for new scope. Do not restart from scratch.
@@ -199,7 +199,7 @@ compared to the cost of a single agent turn.
 
 ## 4. What changes
 
-### 4.1 Pi Dash (Python)
+### 4.1 karma-team (Python)
 
 | File                                 | Change                                                                                                                                                                                                                                                                                                                                                                                         |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -223,7 +223,7 @@ compared to the cost of a single agent turn.
 ### 4.3 Prompt fragments
 
 Most existing fragments are already written for fresh-each-tick because they
-tell the agent to read durable state via `pidash` CLI calls. Specific updates:
+tell the agent to read durable state via `karma-team` CLI calls. Specific updates:
 
 - **Fragment 14** — currently positioned as "follow-up run context (attempt
   count > 1)". Its "read the existing workpad end-to-end and resume from there"
@@ -233,7 +233,7 @@ tell the agent to read durable state via `pidash` CLI calls. Specific updates:
   fragment. The fragment 14 framing as a "special case" is itself a relic of
   the resume-is-default mental model that this design rejects.
 - **Fragment 07** — Step 0.5 step 1 already says "Pull all prior comments via
-  `pidash comment list`." Reinforce: the comment list is authoritative; do
+  `karma-team comment list`." Reinforce: the comment list is authoritative; do
   not assume any prior comment is already in your context.
 - **Fragment 04** — Default posture mentions "Maintain exactly one
   `## Agent Workpad` comment as your source of truth." Strengthen to:
@@ -296,9 +296,9 @@ In a hurry, Phase 0 can be skipped entirely; the design's correctness
 argument does not depend on it. The cost is forfeiting numerical claims
 in any future regression debate.
 
-### 6.1 Phase 1 — Pi Dash side
+### 6.1 Phase 1 — karma-team side
 
-Land the Pi Dash changes:
+Land the karma-team changes:
 
 1. `composer.build_continuation` removal.
 2. `_create_continuation_run` switches to `build_first_turn`.
@@ -453,13 +453,13 @@ during the audit in §7.1.
 ### 7.7 Rust runner protocol field removal
 
 Removing `resume_thread_id` from `ServerMsg::Assign` is a wire-format change.
-Pi Dash and the runner must deploy in lockstep, or one side must tolerate the
+karma-team and the runner must deploy in lockstep, or one side must tolerate the
 field's presence/absence during the rollout window. The simplest approach is
-to land Phase 1 (Pi Dash sends a self-sufficient prompt but still populates
+to land Phase 1 (karma-team sends a self-sufficient prompt but still populates
 `resume_thread_id` for any runner that expects it) and Phase 2 (runner stops
-reading it; Pi Dash stops sending it) as separate deploys with a backwards-
+reading it; karma-team stops sending it) as separate deploys with a backwards-
 compatible window in between. Within this PR, the field is removed in the
-same change to avoid drift; the deploy ordering must put Pi Dash first.
+same change to avoid drift; the deploy ordering must put karma-team first.
 
 ## 8. Alternatives considered
 
@@ -492,13 +492,13 @@ everywhere) outweighs the marginal token saving on Comment & Run.
 
 Suggested split. The ordering is **safety-critical**: Phase 1 must include
 dropping `resume_thread_id` from the assign envelope so the runner cannot
-resume — leaving the runner's resume code paths intact while Pi Dash sends
+resume — leaving the runner's resume code paths intact while karma-team sends
 the full template would land us in the §8.1 hybrid (template re-sent into a
 resumed session, with instruction-duplication ambiguity and unbroken
 context growth). With Phase 1 dropping the field, Phase 2 is dead-code
 removal on top of an already-correct system.
 
-1. **PR A — Pi Dash side.** Composer cleanup, orchestration switch,
+1. **PR A — karma-team side.** Composer cleanup, orchestration switch,
    matcher simplification (including dropping `resume_thread_id` from
    `_build_assign_msg`), prompt fragment refresh (fold fragment 14 into
    fragment 08, strengthen fragment 04), test updates. Self-contained

@@ -7,21 +7,21 @@
 import { observer } from "mobx-react";
 import { useRouter } from "next/navigation";
 import { MinusCircle } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TIssue } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import type { TIssue } from "@karma-team/types";
 // component
 // ui
-import { ControlLink, CustomMenu } from "@pi-dash/ui";
+import { ControlLink, CustomMenu } from "@karma-team/ui";
 // helpers
-import { generateWorkItemLink } from "@pi-dash/utils";
+import { generateWorkItemLink } from "@karma-team/utils";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 // types
 import type { TIssueOperations } from "../root";
 import { IssueParentSiblings } from "./siblings";

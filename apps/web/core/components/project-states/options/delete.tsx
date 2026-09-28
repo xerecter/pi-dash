@@ -7,13 +7,13 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { Loader } from "lucide-react";
-import { CloseIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IState, TStateOperationsCallbacks } from "@pi-dash/types";
-import { AlertModalCore } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { CloseIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IState, TStateOperationsCallbacks } from "@karma-team/types";
+import { AlertModalCore } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 

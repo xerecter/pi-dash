@@ -7,17 +7,17 @@
 import { uniq, unset, set, update, sortBy } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import { EUserPermissions } from "@pi-dash/constants";
+// karma-team imports
+import { EUserPermissions } from "@karma-team/constants";
 import type {
   EUserProjectRoles,
   IProjectBulkAddFormData,
   IProjectUserPropertiesResponse,
   IUserLite,
   TProjectMembership,
-} from "@pi-dash/types";
-// pi dash web imports
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+} from "@karma-team/types";
+// karma-team web imports
+import type { RootStore } from "@/karma-team-web/store/root.store";
 // services
 import { ProjectMemberService, ProjectService } from "@/services/project";
 // store

@@ -7,13 +7,13 @@
 import { useState, useEffect } from "react";
 import { observer } from "mobx-react";
 import { useRouter } from "next/navigation";
-// pi dash package imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import { Tabs } from "@pi-dash/propel/tabs";
+// karma-team package imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import { Tabs } from "@karma-team/propel/tabs";
 // components
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import AnalyticsFilterActions from "@/components/analytics/analytics-filter-actions";
 import { PageHead } from "@/components/core/page-title";
 // hooks
@@ -21,7 +21,7 @@ import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserPermissions } from "@/hooks/store/user";
-import { useAnalyticsTabs } from "@/pi-dash-web/components/analytics/use-analytics-tabs";
+import { useAnalyticsTabs } from "@/karma-team-web/components/analytics/use-analytics-tabs";
 import type { Route } from "./+types/page";
 
 function AnalyticsPage({ params }: Route.ComponentProps) {
@@ -30,7 +30,7 @@ function AnalyticsPage({ params }: Route.ComponentProps) {
   // hooks
   const router = useRouter();
 
-  // pi dash imports
+  // karma-team imports
   const { t } = useTranslation();
 
   // store hooks
@@ -119,7 +119,9 @@ function AnalyticsPage({ params }: Route.ComponentProps) {
             <EmptyStateDetailed
               assetKey="project"
               title={t("No project")}
-              description={t("To create work items or manage your work, you need to create a project or be a part of one.")}
+              description={t(
+                "To create work items or manage your work, you need to create a project or be a part of one."
+              )}
               actions={[
                 {
                   label: "Create a project",

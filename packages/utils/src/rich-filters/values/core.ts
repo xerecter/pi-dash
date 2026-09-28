@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { SingleOrArray, TFilterValue } from "@pi-dash/types";
+import type { SingleOrArray, TFilterValue } from "@karma-team/types";
 
 /**
  * Converts any value to a non-null array for UI components that expect arrays

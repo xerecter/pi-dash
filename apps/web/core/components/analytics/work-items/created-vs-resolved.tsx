@@ -8,17 +8,17 @@ import { useMemo } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-// pi dash package imports
-import { useTranslation } from "@pi-dash/i18n";
-import { AreaChart } from "@pi-dash/propel/charts/area-chart";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
-import type { IChartResponse, TChartData } from "@pi-dash/types";
-import { renderFormattedDate } from "@pi-dash/utils";
+// karma-team package imports
+import { useTranslation } from "@karma-team/i18n";
+import { AreaChart } from "@karma-team/propel/charts/area-chart";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
+import type { IChartResponse, TChartData } from "@karma-team/types";
+import { renderFormattedDate } from "@karma-team/utils";
 // hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";
 // services
 import { AnalyticsService } from "@/services/analytics.service";
-// pi dash web components
+// karma-team web components
 import AnalyticsSectionWrapper from "../analytics-section-wrapper";
 import { ChartLoader } from "../loaders";
 
@@ -90,11 +90,7 @@ const CreatedVsResolved = observer(function CreatedVsResolved() {
   );
 
   return (
-    <AnalyticsSectionWrapper
-      title={t("Created vs Resolved")}
-      subtitle={selectedDurationLabel}
-      className="col-span-1"
-    >
+    <AnalyticsSectionWrapper title={t("Created vs Resolved")} subtitle={selectedDurationLabel} className="col-span-1">
       {isCreatedVsResolvedLoading ? (
         <ChartLoader />
       ) : parsedData && parsedData.length > 0 ? (
@@ -129,7 +125,9 @@ const CreatedVsResolved = observer(function CreatedVsResolved() {
           assetKey="unknown"
           assetClassName="size-20"
           rootClassName="border border-subtle px-5 py-10 md:py-20 md:px-20"
-          title={t("Create projects with work items and assignees to start tracking performance, progress, and team impact here.")}
+          title={t(
+            "Create projects with work items and assignees to start tracking performance, progress, and team impact here."
+          )}
         />
       )}
     </AnalyticsSectionWrapper>

@@ -19,7 +19,7 @@
  * - migrateLegacyTheme: Converts old 5-color theme to new 2-color system
  *
  * For new implementations:
- * - Use: import { applyCustomTheme, clearCustomTheme } from '@pi-dash/utils/theme'
+ * - Use: import { applyCustomTheme, clearCustomTheme } from '@karma-team/utils/theme'
  * - See: packages/utils/src/theme/theme-application.ts
  */
 

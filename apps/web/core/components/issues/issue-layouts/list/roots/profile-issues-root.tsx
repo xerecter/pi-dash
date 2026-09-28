@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
 // hooks
 import { useUserPermissions } from "@/hooks/store/user";
 // local imports

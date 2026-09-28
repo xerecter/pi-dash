@@ -7,13 +7,13 @@
 import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useRouter, useSearchParams } from "next/navigation";
-// pi dash imports
-import type { TPageVersion } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type { TPageVersion } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useQueryParams } from "@/hooks/use-query-params";
-// pi dash web imports
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
+// karma-team web imports
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
 // local imports
 import { PAGE_NAVIGATION_PANE_VERSION_QUERY_PARAM, PAGE_NAVIGATION_PANE_WIDTH } from "../navigation-pane";
 import type { TVersionEditorProps } from "./editor";

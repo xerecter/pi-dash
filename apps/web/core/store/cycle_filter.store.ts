@@ -8,7 +8,7 @@ import { set } from "lodash-es";
 import { action, computed, observable, makeObservable, runInAction, reaction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { TCycleDisplayFilters, TCycleFilters, TCycleFiltersByState } from "@pi-dash/types";
+import type { TCycleDisplayFilters, TCycleFilters, TCycleFiltersByState } from "@karma-team/types";
 // store
 import type { CoreRootStore } from "./root.store";
 

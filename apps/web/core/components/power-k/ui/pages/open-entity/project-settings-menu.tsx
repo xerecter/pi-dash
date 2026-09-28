@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { EUserPermissionsLevel, PROJECT_SETTINGS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import { EUserPermissionsLevel, PROJECT_SETTINGS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // components
 import type { TPowerKContext } from "@/components/power-k/core/types";
 import { PowerKSettingsMenu } from "@/components/power-k/menus/settings";
@@ -22,7 +22,7 @@ type Props = {
 
 export const PowerKOpenProjectSettingsMenu = observer(function PowerKOpenProjectSettingsMenu(props: Props) {
   const { context, handleSelect } = props;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { allowPermissions } = useUserPermissions();

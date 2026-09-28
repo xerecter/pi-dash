@@ -85,20 +85,20 @@ class BundleAgentTests(unittest.TestCase):
                     patch.object(bundle, "download", side_effect=download),
                     patch.object(bundle.subprocess, "run", side_effect=lipo),
                 ):
-                    bundle.stage(target, "pidash-test", "engine-test", directory)
+                    bundle.stage(target, "karma-team-test", "engine-test", directory)
                 suffix = ".exe" if "windows" in target else ""
                 self.assertEqual(
                     {p.name for p in Path(directory).iterdir()},
-                    {f"pidash{suffix}", f"pidash-agent-engine{suffix}"},
+                    {f"karma-team{suffix}", f"karma-team-agent-engine{suffix}"},
                 )
                 self.assertEqual(len(downloads), 4 if target.startswith("universal") else 2)
                 self.assertEqual(len(lipo_calls), 4 if target.startswith("universal") else 0)
 
     def test_missing_or_ambiguous_executables_are_refused(self):
         for archive in ("test.tar.gz", "test.zip"):
-            for members in ({"pidash-helper": b"wrong"}, {"a/pidash": b"one", "b/pidash": b"two"}):
+            for members in ({"karma-team-helper": b"wrong"}, {"a/karma-team": b"one", "b/karma-team": b"two"}):
                 with self.assertRaises(ValueError):
-                    bundle.executable_bytes(archive_bytes(archive, members), archive, "pidash")
+                    bundle.executable_bytes(archive_bytes(archive, members), archive, "karma-team")
 
     def test_checksum_is_verified_before_using_download(self):
         payload = b"fake archive bytes"

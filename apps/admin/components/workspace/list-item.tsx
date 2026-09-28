@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 
-// pi dash internal packages
-import { WEB_BASE_URL } from "@pi-dash/constants";
-import { NewTabIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { getFileURL } from "@pi-dash/utils";
+// karma-team internal packages
+import { WEB_BASE_URL } from "@karma-team/constants";
+import { NewTabIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { getFileURL } from "@karma-team/utils";
 // hooks
 import { useWorkspace } from "@/hooks/store";
 

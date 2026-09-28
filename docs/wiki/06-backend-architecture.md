@@ -11,13 +11,13 @@ apps/api/
 ├── requirements.txt              ← pinned deps
 ├── pytest.ini                    ← --reuse-db --nomigrations
 ├── run_tests.py / run_tests.sh   ← test entrypoints (markers: unit | contract | smoke)
-├── apple_pi_dash/                ← legacy Django project name (settings module path)
-└── pi_dash/                      ← actual Django app modules (importable as `pi_dash.*`)
+├── apple_karma_team/                ← legacy Django project name (settings module path)
+└── karma_team/                      ← actual Django app modules (importable as `karma_team.*`)
 ```
 
-> Note: the Python package is named `pi_dash`, but `DJANGO_SETTINGS_MODULE` historically references `apple_pi_dash.settings.*` and you'll still see `apple_pi_dash` referenced in some files. They co-exist — don't rename them in a single PR.
+> Note: the Python package is named `karma_team`, but `DJANGO_SETTINGS_MODULE` historically references `apple_karma_team.settings.*` and you'll still see `apple_karma_team` referenced in some files. They co-exist — don't rename them in a single PR.
 
-## Django modules (`pi_dash/`)
+## Django modules (`karma_team/`)
 
 ```
 app/             ← main product API (workspaces, projects, work items, cycles, modules, …)
@@ -44,25 +44,25 @@ web/             ← server-rendered/static catch-all
 
 ## URL tree
 
-`pi_dash/urls.py`:
+`karma_team/urls.py`:
 
 ```
-api/                    → pi_dash.app.urls          ← internal app API (consumed by web/admin/space)
-api/public/             → pi_dash.space.urls        ← guest views of published content
-api/instances/          → pi_dash.license.urls
-api/runners/            → pi_dash.runner.web_urls   ← web UI calls for runner admin
-api/v1/                 → pi_dash.api.urls          ← public versioned REST API
-api/                    → pi_dash.prompting.urls    ← prompt templates
-api/v1/runner/          → pi_dash.runner.urls       ← runner HTTP + WS endpoints
-auth/                   → pi_dash.authentication.urls
-/                       → pi_dash.web.urls          ← static / catch-all
+api/                    → karma_team.app.urls          ← internal app API (consumed by web/admin/space)
+api/public/             → karma_team.space.urls        ← guest views of published content
+api/instances/          → karma_team.license.urls
+api/runners/            → karma_team.runner.web_urls   ← web UI calls for runner admin
+api/v1/                 → karma_team.api.urls          ← public versioned REST API
+api/                    → karma_team.prompting.urls    ← prompt templates
+api/v1/runner/          → karma_team.runner.urls       ← runner HTTP + WS endpoints
+auth/                   → karma_team.authentication.urls
+/                       → karma_team.web.urls          ← static / catch-all
 ```
 
 OpenAPI/Swagger is exposed at `/api/schema/swagger-ui/` and `/api/schema/redoc/` when `ENABLE_DRF_SPECTACULAR` is true. Use that as the live endpoint reference — this wiki intentionally does not duplicate it.
 
 ## ASGI + Channels
 
-`pi_dash/asgi.py` wires a `ProtocolTypeRouter`:
+`karma_team/asgi.py` wires a `ProtocolTypeRouter`:
 
 ```python
 application = ProtocolTypeRouter({
@@ -72,13 +72,13 @@ application = ProtocolTypeRouter({
 ```
 
 - **HTTP** → standard Django view tree.
-- **WebSocket** → routed by `pi_dash/runner/routing.py` to the runner consumers in `pi_dash/runner/consumers.py`.
+- **WebSocket** → routed by `karma_team/runner/routing.py` to the runner consumers in `karma_team/runner/consumers.py`.
 
 The runner WebSocket path is the legacy v3 transport; the current wire protocol (v4) uses per-runner HTTPS long-poll — see [08 — Cloud ↔ runner protocol](./08-cloud-runner-protocol.md).
 
 ## Settings layering
 
-`pi_dash/settings/`:
+`karma_team/settings/`:
 
 | File                                                  | Used for                                                      |
 | ----------------------------------------------------- | ------------------------------------------------------------- |
@@ -88,9 +88,9 @@ The runner WebSocket path is the legacy v3 transport; the current wire protocol 
 | `test.py`                                             | Test-only overrides — referenced by `pytest.ini`              |
 | `mongo.py` / `redis.py` / `storage.py` / `openapi.py` | Subsystem-specific bundles imported by the env files          |
 
-`manage.py` sets `DJANGO_SETTINGS_MODULE=apple_pi_dash.settings.production` as the default. For local work, export `apple_pi_dash.settings.local`.
+`manage.py` sets `DJANGO_SETTINGS_MODULE=apple_karma_team.settings.production` as the default. For local work, export `apple_karma_team.settings.local`.
 
-## Runner backend module (`pi_dash/runner/`)
+## Runner backend module (`karma_team/runner/`)
 
 This is the Django half of the runner integration — distinct from the Rust crate at the repo root. Highlights:
 
@@ -120,9 +120,9 @@ The session service is responsible for the `welcome` frame the runner receives o
 
 ## Background work (Celery)
 
-- Entry: `pi_dash/celery.py`.
+- Entry: `karma_team/celery.py`.
 - Broker: **RabbitMQ** (per `.env.example`).
-- Tasks live in `pi_dash/bgtasks/` plus task modules under feature apps.
+- Tasks live in `karma_team/bgtasks/` plus task modules under feature apps.
 
 ## Database
 
@@ -131,7 +131,7 @@ The session service is responsible for the `welcome` frame the runner receives o
 
 ## Linting & formatting
 
-Ruff handles Python format + lint (line-length **120**, `known-first-party = ["apple_pi_dash"]`). Ruff is **not** wired into the root `pnpm fix` — run it explicitly:
+Ruff handles Python format + lint (line-length **120**, `known-first-party = ["apple_karma_team"]`). Ruff is **not** wired into the root `pnpm fix` — run it explicitly:
 
 ```bash
 cd apps/api
@@ -141,6 +141,6 @@ ruff check . --fix
 
 ## Where to read next
 
-- [08 — Cloud ↔ runner protocol](./08-cloud-runner-protocol.md) — the wire contract `pi_dash/runner/` implements
+- [08 — Cloud ↔ runner protocol](./08-cloud-runner-protocol.md) — the wire contract `karma_team/runner/` implements
 - [09 — Agent orchestration](./09-agent-orchestration.md) — how `orchestration/` + `prompting/` produce runs
 - [11 — Authentication](./11-authentication.md) — the `authentication/` module + runner token model

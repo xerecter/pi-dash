@@ -6,12 +6,12 @@
 
 import { observer } from "mobx-react";
 // helpers
-import { getValidKeysFromObject } from "@pi-dash/utils";
+import { getValidKeysFromObject } from "@karma-team/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// pi dash web components
-import { IssueTypeActivity, AdditionalActivityRoot } from "@/pi-dash-web/components/issues/issue-details";
-import { useTimeLineRelationOptions } from "@/pi-dash-web/components/relations";
+// karma-team web components
+import { IssueTypeActivity, AdditionalActivityRoot } from "@/karma-team-web/components/issues/issue-details";
+import { useTimeLineRelationOptions } from "@/karma-team-web/components/relations";
 // local components
 import {
   IssueDefaultActivity,

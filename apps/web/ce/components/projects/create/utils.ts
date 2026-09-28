@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { RANDOM_EMOJI_CODES } from "@pi-dash/constants";
-import type { IProject } from "@pi-dash/types";
+import { RANDOM_EMOJI_CODES } from "@karma-team/constants";
+import type { IProject } from "@karma-team/types";
 import { getRandomCoverImage } from "@/helpers/cover-image.helper";
 
 // Detect the user's local IANA timezone from the browser so new projects

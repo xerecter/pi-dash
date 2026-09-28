@@ -7,12 +7,12 @@
 import { useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Star, StarOff } from "lucide-react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon } from "@pi-dash/propel/icons";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { copyTextToClipboard } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon } from "@karma-team/propel/icons";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { copyTextToClipboard } from "@karma-team/utils";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks
@@ -71,9 +71,7 @@ export const usePowerKCycleContextBasedActions = (): TPowerKCommandConfig[] => {
   return [
     {
       id: "toggle_cycle_favorite",
-      i18n_title: isFavorite
-        ? "Remove from favorites"
-        : "Add to favorites",
+      i18n_title: isFavorite ? "Remove from favorites" : "Add to favorites",
       icon: isFavorite ? StarOff : Star,
       group: "contextual",
       contextType: "cycle",

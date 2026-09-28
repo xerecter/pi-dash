@@ -8,24 +8,24 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { CircleDashed } from "lucide-react";
-import { PlusIcon } from "@pi-dash/propel/icons";
+import { PlusIcon } from "@karma-team/propel/icons";
 // types
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TIssue, ISearchIssueResponse, TIssueGroupByOptions } from "@pi-dash/types";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TIssue, ISearchIssueResponse, TIssueGroupByOptions } from "@karma-team/types";
 // ui
-import { CustomMenu } from "@pi-dash/ui";
+import { CustomMenu } from "@karma-team/ui";
 // components
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 import { MultipleSelectGroupAction } from "@/components/core/multiple-select";
 import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
 // constants
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
-// pi-dash-web
-import { CreateUpdateEpicModal } from "@/pi-dash-web/components/epics/epic-modal";
-// Pi Dash-web
-import { WorkFlowGroupTree } from "@/pi-dash-web/components/workflow";
+// karma-team-web
+import { CreateUpdateEpicModal } from "@/karma-team-web/components/epics/epic-modal";
+// karma-team-web
+import { WorkFlowGroupTree } from "@/karma-team-web/components/workflow";
 
 interface IHeaderGroupByCard {
   groupID: string;

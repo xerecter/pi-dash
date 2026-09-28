@@ -5,7 +5,7 @@
  */
 
 import { Logger as HocuspocusLogger } from "@hocuspocus/extension-logger";
-import { logger } from "@pi-dash/logger";
+import { logger } from "@karma-team/logger";
 
 export class Logger extends HocuspocusLogger {
   constructor() {

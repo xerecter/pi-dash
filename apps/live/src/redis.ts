@@ -5,7 +5,7 @@
  */
 
 import Redis from "ioredis";
-import { logger } from "@pi-dash/logger";
+import { logger } from "@karma-team/logger";
 import { env } from "./env";
 
 export class RedisManager {

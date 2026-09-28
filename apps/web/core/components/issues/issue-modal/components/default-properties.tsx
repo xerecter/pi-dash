@@ -8,14 +8,14 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import type { Control } from "react-hook-form";
 import { Controller, useController } from "react-hook-form";
-import { ETabIndices, EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { ParentPropertyIcon } from "@pi-dash/propel/icons";
+import { ETabIndices, EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { ParentPropertyIcon } from "@karma-team/propel/icons";
 // types
-import type { ISearchIssueResponse, TIssue } from "@pi-dash/types";
+import type { ISearchIssueResponse, TIssue } from "@karma-team/types";
 // ui
-import { CustomMenu } from "@pi-dash/ui";
-import { getDate, renderFormattedPayloadDate, getTabIndex } from "@pi-dash/utils";
+import { CustomMenu } from "@karma-team/ui";
+import { getDate, renderFormattedPayloadDate, getTabIndex } from "@karma-team/utils";
 // components
 import { CycleDropdown } from "@/components/dropdowns/cycle";
 import { DateDropdown } from "@/components/dropdowns/date";
@@ -39,8 +39,8 @@ import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 
 type TIssueDefaultPropertiesProps = {
   control: Control<TIssue>;

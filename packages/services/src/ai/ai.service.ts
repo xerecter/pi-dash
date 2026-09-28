@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash web constants
-import type { AI_EDITOR_TASKS } from "@pi-dash/constants";
-import { API_BASE_URL } from "@pi-dash/constants";
+// karma-team web constants
+import type { AI_EDITOR_TASKS } from "@karma-team/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 // services
 import { APIService } from "../api.service";
 

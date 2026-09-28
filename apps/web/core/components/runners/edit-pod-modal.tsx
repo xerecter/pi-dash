@@ -8,12 +8,12 @@ import { useEffect } from "react";
 import { observer } from "mobx-react";
 import type { SubmitHandler } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { PodService } from "@pi-dash/services";
-import type { IPod } from "@pi-dash/types";
-import { EModalPosition, EModalWidth, Input, ModalCore, ToggleSwitch } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { PodService } from "@karma-team/services";
+import type { IPod } from "@karma-team/types";
+import { EModalPosition, EModalWidth, Input, ModalCore, ToggleSwitch } from "@karma-team/ui";
 
 type Props = {
   isOpen: boolean;

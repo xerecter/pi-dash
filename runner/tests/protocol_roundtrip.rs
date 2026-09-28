@@ -1,15 +1,15 @@
 //! Integration tests that exercise the cloud protocol serde and approval
 //! router state machine at their public API.
 
-use pidash::approval::{
+use karma_team::approval::{
     policy::{Decision, Policy},
     router::{ApprovalRecord, ApprovalRouter, ApprovalStatus, DecisionSource},
 };
-use pidash::cloud::protocol::{
-    ApprovalDecision, ApprovalKind, ApprovalMode, ClientMsg, Envelope, RunEventRecord, RunnerStatus,
-    ServerMsg, WIRE_VERSION,
+use karma_team::cloud::protocol::{
+    ApprovalDecision, ApprovalKind, ApprovalMode, ClientMsg, Envelope, RunEventRecord,
+    RunnerStatus, ServerMsg, WIRE_VERSION,
 };
-use pidash::config::schema::ApprovalPolicySection;
+use karma_team::config::schema::ApprovalPolicySection;
 use std::path::Path;
 use uuid::Uuid;
 

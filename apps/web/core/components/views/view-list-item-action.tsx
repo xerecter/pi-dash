@@ -8,21 +8,21 @@ import React, { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { Earth } from "lucide-react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel, IS_FAVORITE_MENU_OPEN } from "@pi-dash/constants";
-import { useLocalStorage } from "@pi-dash/hooks";
-import { LockIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IProjectView } from "@pi-dash/types";
-import { EViewAccess } from "@pi-dash/types";
-import { FavoriteStar } from "@pi-dash/ui";
-import { getPublishViewLink } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel, IS_FAVORITE_MENU_OPEN } from "@karma-team/constants";
+import { useLocalStorage } from "@karma-team/hooks";
+import { LockIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IProjectView } from "@karma-team/types";
+import { EViewAccess } from "@karma-team/types";
+import { FavoriteStar } from "@karma-team/ui";
+import { getPublishViewLink } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useProjectView } from "@/hooks/store/use-project-view";
 import { useUserPermissions } from "@/hooks/store/user";
-// pi dash web imports
-import { PublishViewModal } from "@/pi-dash-web/components/views/publish";
+// karma-team web imports
+import { PublishViewModal } from "@/karma-team-web/components/views/publish";
 // local imports
 import { ButtonAvatars } from "../dropdowns/member/avatar";
 import { DeleteProjectViewModal } from "./delete-view-modal";

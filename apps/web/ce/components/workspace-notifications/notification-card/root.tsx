@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { ENotificationLoader, ENotificationQueryParamType } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import { ENotificationLoader, ENotificationQueryParamType } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // components
 import { NotificationItem } from "@/components/workspace-notifications/sidebar/notification-card/item";
 // hooks

@@ -16,16 +16,16 @@ import { createRoot } from "react-dom/client";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import { Settings, Share2, LogOut, MoreHorizontal } from "lucide-react";
 import { Disclosure, Transition } from "@headlessui/react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel, MEMBER_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { useTranslation } from "@pi-dash/i18n";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { LinkIcon, ArchiveIcon, ChevronRightIcon } from "@pi-dash/propel/icons";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { CustomMenu, DropIndicator, DragHandle, ControlLink } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel, MEMBER_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { useTranslation } from "@karma-team/i18n";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { LinkIcon, ArchiveIcon, ChevronRightIcon } from "@karma-team/propel/icons";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { CustomMenu, DropIndicator, DragHandle, ControlLink } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { DEFAULT_TAB_KEY, getTabUrl } from "@/components/navigation/tab-navigation-utils";
 import { useTabPreferences } from "@/components/navigation/use-tab-preferences";
@@ -38,9 +38,9 @@ import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useProjectNavigationPreferences } from "@/hooks/use-navigation-preferences";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web imports
-import { useNavigationItems } from "@/pi-dash-web/components/navigations";
-import { ProjectNavigationRoot } from "@/pi-dash-web/components/sidebar";
+// karma-team web imports
+import { useNavigationItems } from "@/karma-team-web/components/navigations";
+import { ProjectNavigationRoot } from "@/karma-team-web/components/sidebar";
 // local imports
 import { HIGHLIGHT_CLASS, highlightIssueOnDrop } from "../../issues/issue-layouts/utils";
 
@@ -331,11 +331,7 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
                     as="button"
                     type="button"
                     className={cn("flex w-full flex-grow items-center gap-1.5 text-left select-none", {})}
-                    aria-label={
-                      isProjectListOpen
-                        ? t("Close project menu")
-                        : t("Open project menu")
-                    }
+                    aria-label={isProjectListOpen ? t("Close project menu") : t("Open project menu")}
                   >
                     <div className="grid size-4 flex-shrink-0 place-items-center">
                       <Logo logo={project.logo_props} size={16} />
@@ -456,11 +452,7 @@ export const SidebarProjectsListItem = observer(function SidebarProjectsListItem
                     iconClassName={cn("transition-transform", {
                       "rotate-90": isProjectListOpen,
                     })}
-                    aria-label={t(
-                      isProjectListOpen
-                        ? "Close project menu"
-                        : "Open project menu"
-                    )}
+                    aria-label={t(isProjectListOpen ? "Close project menu" : "Open project menu")}
                   />
                 )}
               </div>

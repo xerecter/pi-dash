@@ -8,15 +8,15 @@ import { useCallback, useMemo, useRef } from "react";
 import { orderBy } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { WORKSPACE_SIDEBAR_DYNAMIC_NAVIGATION_ITEMS_LINKS, EUserPermissionsLevel } from "@pi-dash/constants";
-import type { EUserWorkspaceRoles } from "@pi-dash/types";
+// karma-team imports
+import { WORKSPACE_SIDEBAR_DYNAMIC_NAVIGATION_ITEMS_LINKS, EUserPermissionsLevel } from "@karma-team/constants";
+import type { EUserWorkspaceRoles } from "@karma-team/types";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useWorkspaceNavigationPreferences } from "@/hooks/use-navigation-preferences";
-// pi-dash-web imports
-import { ExtendedSidebarItem } from "@/pi-dash-web/components/workspace/sidebar/extended-sidebar-item";
+// karma-team-web imports
+import { ExtendedSidebarItem } from "@/karma-team-web/components/workspace/sidebar/extended-sidebar-item";
 import { ExtendedSidebarWrapper } from "./extended-sidebar-wrapper";
 
 type TOrderedNavigationItem = {

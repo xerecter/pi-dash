@@ -5,16 +5,16 @@
  */
 
 import React from "react";
-// pi dash imports
-import { LiteTextEditorWithRef } from "@pi-dash/editor";
-import type { EditorRefApi, ILiteTextEditorProps, TFileHandler } from "@pi-dash/editor";
-import type { MakeOptional } from "@pi-dash/types";
-import { cn, isCommentEmpty } from "@pi-dash/utils";
+// karma-team imports
+import { LiteTextEditorWithRef } from "@karma-team/editor";
+import type { EditorRefApi, ILiteTextEditorProps, TFileHandler } from "@karma-team/editor";
+import type { MakeOptional } from "@karma-team/types";
+import { cn, isCommentEmpty } from "@karma-team/utils";
 // helpers
 import { getEditorFileHandlers } from "@/helpers/editor.helper";
 // hooks
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
-// pi dash web imports
+// karma-team web imports
 import { useEditorFlagging } from "@/hooks/use-editor-flagging";
 // local imports
 import { EditorMentionsRoot } from "./embeds/mentions";

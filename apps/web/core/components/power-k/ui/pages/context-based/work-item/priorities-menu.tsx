@@ -6,10 +6,10 @@
 
 import { Command } from "cmdk";
 import { observer } from "mobx-react";
-// pi dash imports
-import { ISSUE_PRIORITIES } from "@pi-dash/constants";
-import { PriorityIcon } from "@pi-dash/propel/icons";
-import type { TIssue, TIssuePriorities } from "@pi-dash/types";
+// karma-team imports
+import { ISSUE_PRIORITIES } from "@karma-team/constants";
+import { PriorityIcon } from "@karma-team/propel/icons";
+import type { TIssue, TIssuePriorities } from "@karma-team/types";
 // local imports
 import { PowerKModalCommandItem } from "../../../modal/command-item";
 

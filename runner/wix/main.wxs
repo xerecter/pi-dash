@@ -60,7 +60,7 @@
 
     <Product
         Id='*'
-        Name='pidash'
+        Name='karma-team'
         UpgradeCode='28C00FE4-83DD-4D77-9AC9-22FC8736C353'
         Manufacturer='AI Republic'
         Language='1033'
@@ -69,7 +69,7 @@
 
         <Package Id='*'
             Keywords='Installer'
-            Description='Pi Dash local runner: connects a dev machine to the Pi Dash cloud and drives Codex for assigned tasks.'
+            Description='karma-team local runner: connects a dev machine to the karma-team cloud and drives Codex for assigned tasks.'
             Manufacturer='AI Republic'
             InstallerVersion='450'
             Languages='1033'
@@ -83,11 +83,11 @@
             DowngradeErrorMessage='A newer version of [ProductName] is already installed. Setup will now exit.'/>
 
         <Media Id='1' Cabinet='media1.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1'/>
-        <Property Id='DiskPrompt' Value='pidash Installation'/>
+        <Property Id='DiskPrompt' Value='karma-team Installation'/>
 
         <Directory Id='TARGETDIR' Name='SourceDir'>
             <!--
-              Declared so `[System64Folder]` in the LaunchPidashSetup command
+              Declared so `[System64Folder]` in the LaunchKarmaTeamSetup command
               line resolves. Referencing a standard directory in a formatted
               string does not by itself put it in the Directory table; without
               this the property expands to empty and the action would be
@@ -96,8 +96,8 @@
             <Directory Id='System64Folder'/>
 
             <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
-                <Directory Id='APPLICATIONFOLDER' Name='pidash'>
-                    
+                <Directory Id='APPLICATIONFOLDER' Name='karma-team'>
+
                     <!--
                       Enabling the license sidecar file in the installer is a four step process:
 
@@ -132,24 +132,24 @@
                         <Component Id='binary0' Guid='*'>
                             <File
                                 Id='exe0'
-                                Name='pidash.exe'
+                                Name='karma-team.exe'
                                 DiskId='1'
-                                Source='$(var.CargoTargetBinDir)\pidash.exe'
+                                Source='$(var.CargoTargetBinDir)\karma-team.exe'
                                 KeyPath='yes'/>
                         </Component>
 
                         <!--
                           Sign-in helper invoked by the ExitDialog checkbox.
-                          See wix\pidash-setup.cmd for why the flow goes
-                          through a .cmd rather than calling pidash.exe
+                          See wix\karma-team-setup.cmd for why the flow goes
+                          through a .cmd rather than calling karma-team.exe
                           directly.
                         -->
                         <Component Id='setupCmd' Guid='68DEF1C1-2FDA-46E9-AB0C-3ADDE5E6DB50'>
                             <File
                                 Id='setupCmdFile'
-                                Name='pidash-setup.cmd'
+                                Name='karma-team-setup.cmd'
                                 DiskId='1'
-                                Source='$(sys.SOURCEFILEDIR)pidash-setup.cmd'
+                                Source='$(sys.SOURCEFILEDIR)karma-team-setup.cmd'
                                 KeyPath='yes'/>
                         </Component>
                     </Directory>
@@ -157,20 +157,20 @@
             </Directory>
 
             <!--
-              Start Menu shortcut ("Sign in to Pi Dash"). This is the fallback
+              Start Menu shortcut ("Sign in to karma-team"). This is the fallback
               for the silent-install path (`msiexec /qn` — Group Policy /
               Intune / SCCM), where the ExitDialog never runs and nothing can
               be popped: the admin deploys the MSI, the user finds this
               shortcut and completes sign-in. Points at the same
-              pidash-setup.cmd the ExitDialog checkbox launches, so both routes
-              land in the identical console `pidash auth login` flow.
+              karma-team-setup.cmd the ExitDialog checkbox launches, so both routes
+              land in the identical console `karma-team auth login` flow.
             -->
             <Directory Id='ProgramMenuFolder'>
-                <Directory Id='ApplicationProgramsFolder' Name='Pi Dash'>
+                <Directory Id='ApplicationProgramsFolder' Name='karma-team'>
                     <Component Id='StartMenuShortcut' Guid='*'>
                         <Shortcut Id='SetupShortcut'
-                                  Name='Sign in to Pi Dash'
-                                  Description='Complete Pi Dash setup: sign in via the console pidash auth login flow.'
+                                  Name='Sign in to karma-team'
+                                  Description='Complete karma-team setup: sign in via the console karma-team auth login flow.'
                                   Target='[#setupCmdFile]'
                                   WorkingDirectory='Bin'/>
                         <RemoveFolder Id='CleanupProgramsFolder' Directory='ApplicationProgramsFolder' On='uninstall'/>
@@ -185,7 +185,7 @@
                           not a build failure.
                         -->
                         <RegistryValue Root='HKCU'
-                                       Key='Software\AI Republic\pidash'
+                                       Key='Software\AI Republic\karma-team'
                                        Name='StartMenuShortcut'
                                        Type='integer'
                                        Value='1'
@@ -205,7 +205,7 @@
             AllowAdvertise='no'
             Display='expand'
             Absent='disallow'>
-            
+
             <!--
               Uncomment the following `ComponentRef` tag to add the license
               sidecar file to the installer.
@@ -228,7 +228,7 @@
 
         <SetProperty Id='ARPINSTALLLOCATION' Value='[APPLICATIONFOLDER]' After='CostFinalize'/>
 
-        
+
         <!--
           Uncomment the following `Icon` and `Property` tags to change the product icon.
 
@@ -238,11 +238,11 @@
         <!--<Icon Id='ProductICO' SourceFile='wix\Product.ico'/>-->
         <!--<Property Id='ARPPRODUCTICON' Value='ProductICO' />-->
 
-        <Property Id='ARPHELPLINK' Value='https://github.com/The-AI-Republic/pi-dash'/>
-        
+        <Property Id='ARPHELPLINK' Value='https://github.com/xerecter/karma-team'/>
+
         <!--
           Offer to finish setup while the user is still here. Every other
-          install path (install.sh, install.ps1, and bare `pidash` with no
+          install path (install.sh, install.ps1, and bare `karma-team` with no
           config) starts the device-code flow automatically; without this the
           MSI is the one route that leaves the user holding an unauthenticated
           binary with no prompt to do anything about it.
@@ -261,7 +261,7 @@
               should land in.
         -->
         <Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOX' Value='1'/>
-        <Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT' Value='Sign in to Pi Dash now'/>
+        <Property Id='WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT' Value='Sign in to karma-team now'/>
 
         <!--
           Type 34 (Directory + ExeCommand) rather than a FileKey action: the
@@ -270,9 +270,9 @@
           so the window outlives msiexec.
         -->
         <CustomAction
-            Id='LaunchPidashSetup'
+            Id='LaunchKarmaTeamSetup'
             Directory='Bin'
-            ExeCommand='[System64Folder]cmd.exe /c start "Pi Dash setup" "[#setupCmdFile]"'
+            ExeCommand='[System64Folder]cmd.exe /c start "karma-team setup" "[#setupCmdFile]"'
             Execute='immediate'
             Impersonate='yes'
             Return='asyncNoWait'/>
@@ -290,7 +290,7 @@
               Compare run_default in runner/src/cli/mod.rs, which guards on an
               existing config for the same reason.
             -->
-            <Publish Dialog='ExitDialog' Control='Finish' Event='DoAction' Value='LaunchPidashSetup' Order='999'>WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed and NOT WIX_UPGRADE_DETECTED</Publish>
+            <Publish Dialog='ExitDialog' Control='Finish' Event='DoAction' Value='LaunchKarmaTeamSetup' Order='999'>WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 and NOT Installed and NOT WIX_UPGRADE_DETECTED</Publish>
 
             <!--
               Enabling the EULA dialog in the installer is a three step process:
@@ -307,7 +307,7 @@
 
         </UI>
 
-        
+
         <!--
           Enabling the EULA dialog in the installer requires uncommenting
           the following `WixUILicenseRTF` tag and changing the `Value`
@@ -315,7 +315,7 @@
         -->
         <!-- <WixVariable Id='WixUILicenseRtf' Value='Relative\Path\to\Eula.rtf'/> -->
 
-        
+
         <!--
           Uncomment the next `WixVariable` tag to customize the installer's
           Graphical User Interface (GUI) and add a custom banner image across
@@ -326,7 +326,7 @@
         -->
         <!--<WixVariable Id='WixUIBannerBmp' Value='wix\Banner.bmp'/>-->
 
-        
+
         <!--
           Uncomment the next `WixVariable` tag to customize the installer's
           Graphical User Interface (GUI) and add a custom image to the first

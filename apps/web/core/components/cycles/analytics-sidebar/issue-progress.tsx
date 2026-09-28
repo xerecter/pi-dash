@@ -9,17 +9,17 @@ import { isEmpty } from "lodash-es";
 import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
 import { Disclosure, Transition } from "@headlessui/react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronUpIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { ICycle, TCyclePlotType, TProgressSnapshot } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { getDate } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronUpIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import type { ICycle, TCyclePlotType, TProgressSnapshot } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { getDate } from "@karma-team/utils";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
-// pi dash web components
+// karma-team web components
 import { useWorkItemFilters } from "@/hooks/store/work-item-filters/use-work-item-filters";
-import { SidebarChartRoot } from "@/pi-dash-web/components/cycles";
+import { SidebarChartRoot } from "@/karma-team-web/components/cycles";
 // local imports
 import { CycleProgressStats } from "./progress-stats";
 
@@ -63,7 +63,7 @@ export const CycleAnalyticsProgress = observer(function CycleAnalyticsProgress(p
   // router
   const searchParams = useSearchParams();
   const peekCycle = searchParams.get("peekCycle") || undefined;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { getPlotTypeByCycleId, getEstimateTypeByCycleId, getCycleById } = useCycle();

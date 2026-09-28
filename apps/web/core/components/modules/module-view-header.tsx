@@ -8,17 +8,17 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { ListFilter } from "lucide-react";
-// pi dash helpers
-import { MODULE_VIEW_LAYOUTS } from "@pi-dash/constants";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+// karma-team helpers
+import { MODULE_VIEW_LAYOUTS } from "@karma-team/constants";
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TModuleFilters } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TModuleFilters } from "@karma-team/types";
 // ui
-import { cn, calculateTotalFilters } from "@pi-dash/utils";
-// pi dash utils
+import { cn, calculateTotalFilters } from "@karma-team/utils";
+// karma-team utils
 // components
 import { FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 import { ModuleFiltersSelection, ModuleOrderByDropdown } from "@/components/modules/dropdowns";
@@ -29,7 +29,7 @@ import { useMember } from "@/hooks/store/use-member";
 import { useModuleFilter } from "@/hooks/store/use-module-filter";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 import { ModuleLayoutIcon } from "./module-layout-icon";
-import { IconButton } from "@pi-dash/propel/icon-button";
+import { IconButton } from "@karma-team/propel/icon-button";
 // i18n
 
 export const ModuleViewHeader = observer(function ModuleViewHeader() {

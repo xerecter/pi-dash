@@ -8,10 +8,10 @@ import type { FC } from "react";
 import { useCallback, useEffect } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { ALL_ISSUES, EIssueFilterType, EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import type { EIssuesStoreType, IIssueDisplayFilterOptions } from "@pi-dash/types";
-import { EIssueLayoutTypes } from "@pi-dash/types";
+// karma-team imports
+import { ALL_ISSUES, EIssueFilterType, EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import type { EIssuesStoreType, IIssueDisplayFilterOptions } from "@karma-team/types";
+import { EIssueLayoutTypes } from "@karma-team/types";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { useUserPermissions } from "@/hooks/store/user";

@@ -6,9 +6,9 @@
 
 // external imports
 import { fileTypeFromBuffer } from "file-type";
-// pi dash imports
-import type { TFileMetaDataLite, TFileSignedURLResponse } from "@pi-dash/types";
-import { DANGEROUS_EXTENSIONS } from "@pi-dash/constants";
+// karma-team imports
+import type { TFileMetaDataLite, TFileSignedURLResponse } from "@karma-team/types";
+import { DANGEROUS_EXTENSIONS } from "@karma-team/constants";
 
 /**
  * @description Filename validation - checks for double extensions and dangerous patterns

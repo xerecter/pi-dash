@@ -7,9 +7,9 @@
 import type { Hocuspocus } from "@hocuspocus/server";
 import type { Request } from "express";
 import type WebSocket from "ws";
-// pi dash imports
-import { Controller, WebSocket as WSDecorator } from "@pi-dash/decorators";
-import { logger } from "@pi-dash/logger";
+// karma-team imports
+import { Controller, WebSocket as WSDecorator } from "@karma-team/decorators";
+import { logger } from "@karma-team/logger";
 
 @Controller("/collaboration")
 export class CollaborationController {

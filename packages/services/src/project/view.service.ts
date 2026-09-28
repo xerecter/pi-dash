@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { API_BASE_URL } from "@pi-dash/constants";
+// karma-team imports
+import { API_BASE_URL } from "@karma-team/constants";
 // api services
 import { APIService } from "../api.service";
 

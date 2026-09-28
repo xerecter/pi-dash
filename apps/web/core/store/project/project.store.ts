@@ -7,12 +7,12 @@
 import { sortBy, cloneDeep, update, set } from "lodash-es";
 import { observable, action, computed, makeObservable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import type { TFetchStatus, TLoader, TProjectAnalyticsCount, TProjectAnalyticsCountParams } from "@pi-dash/types";
+// karma-team imports
+import type { TFetchStatus, TLoader, TProjectAnalyticsCount, TProjectAnalyticsCountParams } from "@karma-team/types";
 // helpers
-import { orderProjects, shouldFilterProject } from "@pi-dash/utils";
+import { orderProjects, shouldFilterProject } from "@karma-team/utils";
 // services
-import type { TProject, TPartialProject } from "@/pi-dash-web/types/projects";
+import type { TProject, TPartialProject } from "@/karma-team-web/types/projects";
 import { IssueLabelService, IssueService } from "@/services/issue";
 import { ProjectService, ProjectStateService, ProjectArchiveService } from "@/services/project";
 // store

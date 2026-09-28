@@ -6,9 +6,9 @@
 
 import { autorun } from "mobx";
 // Store
-import type { RootStore } from "@/pi-dash-web/store/root.store";
-import { BaseTimeLineStore } from "@/pi-dash-web/store/timeline/base-timeline.store";
-import type { IBaseTimelineStore } from "@/pi-dash-web/store/timeline/base-timeline.store";
+import type { RootStore } from "@/karma-team-web/store/root.store";
+import { BaseTimeLineStore } from "@/karma-team-web/store/timeline/base-timeline.store";
+import type { IBaseTimelineStore } from "@/karma-team-web/store/timeline/base-timeline.store";
 
 export interface IModulesTimeLineStore extends IBaseTimelineStore {
   isDependencyEnabled: boolean;

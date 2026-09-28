@@ -7,8 +7,8 @@
 import { action, observable, makeObservable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import { APITokenService } from "@pi-dash/services";
-import type { IApiToken } from "@pi-dash/types";
+import { APITokenService } from "@karma-team/services";
+import type { IApiToken } from "@karma-team/types";
 // services
 // store
 import type { CoreRootStore } from "../root.store";

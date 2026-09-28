@@ -6,18 +6,18 @@
 
 import { observer } from "mobx-react";
 import { CheckCheck, RefreshCw } from "lucide-react";
-// pi dash imports
-import { ENotificationLoader, ENotificationQueryParamType } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { Spinner } from "@pi-dash/ui";
+// karma-team imports
+import { ENotificationLoader, ENotificationQueryParamType } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { Spinner } from "@karma-team/ui";
 // hooks
 import { useWorkspaceNotifications } from "@/hooks/store/notifications";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // local imports
 import { NotificationFilter } from "../../filters/menu";
 import { NotificationHeaderMenuOption } from "./menu-option";
-import { IconButton } from "@pi-dash/propel/icon-button";
+import { IconButton } from "@karma-team/propel/icon-button";
 
 type TNotificationSidebarHeaderOptions = {
   workspaceSlug: string;

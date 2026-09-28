@@ -7,16 +7,16 @@
 import { useCallback, useState } from "react";
 import { observer } from "mobx-react";
 import { ChartNoAxesColumn, SlidersHorizontal } from "lucide-react";
-// pi dash imports
-import { EIssueFilterType, ISSUE_STORE_TO_FILTERS_MAP } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@pi-dash/types";
-import { EIssueLayoutTypes, EIssuesStoreType } from "@pi-dash/types";
+// karma-team imports
+import { EIssueFilterType, ISSUE_STORE_TO_FILTERS_MAP } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@karma-team/types";
+import { EIssueLayoutTypes, EIssuesStoreType } from "@karma-team/types";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
-// pi dash web imports
-import type { TProject } from "@/pi-dash-web/types";
+// karma-team web imports
+import type { TProject } from "@/karma-team-web/types";
 // local imports
 import { WorkItemsModal } from "../analytics/work-items/modal";
 import { WorkItemFiltersToggle } from "../work-item-filters/filters-toggle";

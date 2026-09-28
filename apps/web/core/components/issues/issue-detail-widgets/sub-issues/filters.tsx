@@ -7,10 +7,10 @@
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { ListFilter } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-import type { IIssueFilterOptions, IState } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+import type { IIssueFilterOptions, IState } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 import {
   FilterAssignees,
   FilterDueDate,
@@ -22,7 +22,7 @@ import {
   FilterStateGroup,
 } from "@/components/issues/issue-layouts/filters";
 import { isFiltersApplied } from "@/components/issues/issue-layouts/utils";
-import { FilterIssueTypes } from "@/pi-dash-web/components/issues/filters/issue-types";
+import { FilterIssueTypes } from "@/karma-team-web/components/issues/filters/issue-types";
 type TSubIssueFiltersProps = {
   handleFiltersUpdate: (key: keyof IIssueFilterOptions, value: string | string[]) => void;
   filters: IIssueFilterOptions;
@@ -33,7 +33,7 @@ type TSubIssueFiltersProps = {
 
 export const SubIssueFilters = observer(function SubIssueFilters(props: TSubIssueFiltersProps) {
   const { handleFiltersUpdate, filters, memberIds, states, availableFilters } = props;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // states
   const [filtersSearchQuery, setFiltersSearchQuery] = useState("");

@@ -7,8 +7,8 @@
 import type { FC } from "react";
 import { CalendarDays, LayersIcon, Paperclip } from "lucide-react";
 // types
-import { ISSUE_GROUP_BY_OPTIONS } from "@pi-dash/constants";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
+import { ISSUE_GROUP_BY_OPTIONS } from "@karma-team/constants";
+import type { ISvgIcons } from "@karma-team/propel/icons";
 import {
   LinkIcon,
   CycleIcon,
@@ -20,14 +20,14 @@ import {
   LabelPropertyIcon,
   PriorityPropertyIcon,
   StartDatePropertyIcon,
-} from "@pi-dash/propel/icons";
+} from "@karma-team/propel/icons";
 import type {
   IGroupByColumn,
   IIssueDisplayProperties,
   TGetColumns,
   TIssueGroupByOptions,
   TSpreadsheetColumn,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // components
 import {
   SpreadsheetAssigneeColumn,

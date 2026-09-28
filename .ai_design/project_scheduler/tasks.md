@@ -16,11 +16,11 @@ Goal:
 
 Scope:
 
-- add `Scheduler` model (`apps/api/pi_dash/db/models/scheduler.py`) with conditional `UniqueConstraint(workspace, slug, deleted_at__isnull=True)`
+- add `Scheduler` model (`apps/api/karma_team/db/models/scheduler.py`) with conditional `UniqueConstraint(workspace, slug, deleted_at__isnull=True)`
 - add `SchedulerBinding` model (sibling file or same file) with conditional `UniqueConstraint(scheduler, project, deleted_at__isnull=True)` and `Index(enabled, next_run_at)`
-- add `AgentRun.scheduler_binding` FK (`SET_NULL`, nullable) in `apps/api/pi_dash/runner/models.py`
+- add `AgentRun.scheduler_binding` FK (`SET_NULL`, nullable) in `apps/api/karma_team/runner/models.py`
 - migration `0131_project_scheduler_mvp.py` — creates both tables and the `AgentRun` column
-- export `Scheduler`, `SchedulerBinding` from `pi_dash/db/models/__init__.py`
+- export `Scheduler`, `SchedulerBinding` from `karma_team/db/models/__init__.py`
 - add `croniter` to `apps/api/requirements/base.txt`
 
 Why first:
@@ -35,7 +35,7 @@ Goal:
 
 Scope:
 
-- add `dispatch_scheduler_run(binding, prompt) -> Optional[AgentRun]` in `apps/api/pi_dash/orchestration/service.py` (or `scheduling.py` next to its sibling)
+- add `dispatch_scheduler_run(binding, prompt) -> Optional[AgentRun]` in `apps/api/karma_team/orchestration/service.py` (or `scheduling.py` next to its sibling)
 - helper resolves pod via `Pod.default_for_workspace_id(binding.workspace_id)`
 - helper resolves `created_by` from `binding.actor` with fallback to the workspace's agent-system user (mirror `_resolve_creator_for_trigger`'s tick branch)
 - creates an `AgentRun` with `work_item=None`, `parent_run=None`, `scheduler_binding=binding`, `prompt=<resolved>`, status `QUEUED`
@@ -54,12 +54,12 @@ Goal:
 
 Scope:
 
-- add `scan_due_bindings` and `fire_scheduler_binding` in `apps/api/pi_dash/bgtasks/scheduler.py`
-- wire `scan-due-scheduler-bindings` into `apps/api/pi_dash/celery.py` (`crontab(minute="*")`)
+- add `scan_due_bindings` and `fire_scheduler_binding` in `apps/api/karma_team/bgtasks/scheduler.py`
+- wire `scan-due-scheduler-bindings` into `apps/api/karma_team/celery.py` (`crontab(minute="*")`)
 - add `SCHEDULER_ENABLED` setting (default `True`) and short-circuit `scan_due_bindings` when off, mirroring `_is_enabled` in `github_sync_task.py`
 - implement Phase 1 (SFU claim + cron-advance + commit), Phase 2 (dispatch outside tx), Phase 3 (post-dispatch rollback re-acquires SFU)
 - skip + log when `binding.last_run.status` is non-terminal (`{queued, assigned, running, awaiting_approval, awaiting_reauth, paused_awaiting_input, blocked}`)
-- extend the run-terminate hook in `apps/api/pi_dash/runner/consumers.py` (~line 699): when `run.scheduler_binding` is set, clear/populate `binding.last_error` based on terminal status
+- extend the run-terminate hook in `apps/api/karma_team/runner/consumers.py` (~line 699): when `run.scheduler_binding` is set, clear/populate `binding.last_error` based on terminal status
 - unit tests: skip-when-non-terminal without advancing `next_run_at`, successful claim advances `next_run_at`, three-phase rollback, terminate-hook updates
 
 Why third:
@@ -74,7 +74,7 @@ Goal:
 
 Scope:
 
-- create `apps/api/pi_dash/scheduler/builtins/__init__.py` with `BUILTINS` list and `ensure_builtin_schedulers(workspace)` helper
+- create `apps/api/karma_team/scheduler/builtins/__init__.py` with `BUILTINS` list and `ensure_builtin_schedulers(workspace)` helper
 - ship the `security-audit` `BuiltinScheduler` record (slug, name, description, prompt — see §6.6)
 - data migration `0132_seed_builtin_schedulers.py` — iterates existing `Workspace` rows and calls the helper
 - `post_save` signal on `Workspace` (`created=True`) calls the helper for new workspaces
@@ -92,7 +92,7 @@ Goal:
 
 Scope:
 
-- views, serializers, URL wiring under `apps/api/pi_dash/app/views/scheduler/` (mirror existing module layout)
+- views, serializers, URL wiring under `apps/api/karma_team/app/views/scheduler/` (mirror existing module layout)
 - definition endpoints:
   - `GET /api/workspaces/<slug>/schedulers/` readable by any workspace member
   - `POST /api/workspaces/<slug>/schedulers/` restricted to workspace admin
@@ -118,9 +118,9 @@ Goal:
 
 Scope (shared):
 
-- add `services/scheduler.ts` in `@pi-dash/services` covering both definition and binding endpoints
-- add `SchedulerDefinitionStore` (keyed by workspace) and `SchedulerBindingStore` (keyed by project) in `@pi-dash/shared-state`
-- extend the existing settings/navigation constants in `@pi-dash/constants` (`WORKSPACE_SETTINGS`, `PROJECT_SETTINGS`, and associated icon/menu wiring) so both tabs show up in the normal settings sidebars and Power-K menus
+- add `services/scheduler.ts` in `@karma-team/services` covering both definition and binding endpoints
+- add `SchedulerDefinitionStore` (keyed by workspace) and `SchedulerBindingStore` (keyed by project) in `@karma-team/shared-state`
+- extend the existing settings/navigation constants in `@karma-team/constants` (`WORKSPACE_SETTINGS`, `PROJECT_SETTINGS`, and associated icon/menu wiring) so both tabs show up in the normal settings sidebars and Power-K menus
 - cron input is plain text + server-side validation (no JS cron parser in the bundle)
 - i18n strings added to **every** locale under `packages/i18n/src/locales/` (English as placeholder where translations don't yet exist)
 

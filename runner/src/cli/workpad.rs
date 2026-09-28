@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-//! `pidash workpad …` subcommands.
+//! `karma-team workpad …` subcommands.
 //!
 //! The workpad is the coding agent's durable per-issue scratchpad. It used
 //! to live in a dedicated `## Agent Workpad` IssueComment; with the comment
@@ -29,17 +29,17 @@ pub struct WorkpadArgs {
 pub enum WorkpadCommand {
     /// Fetch the agent workpad for a work item.
     ///
-    /// Defaults the work-item identifier to `PIDASH_ISSUE_IDENTIFIER` when
-    /// omitted, so the agent can call `pidash workpad get` with no args.
+    /// Defaults the work-item identifier to `KARMA_TEAM_ISSUE_IDENTIFIER` when
+    /// omitted, so the agent can call `karma-team workpad get` with no args.
     Get {
         /// Work item identifier, e.g. `ENG-42`. Defaults to
-        /// `PIDASH_ISSUE_IDENTIFIER`.
+        /// `KARMA_TEAM_ISSUE_IDENTIFIER`.
         identifier: Option<String>,
     },
     /// Overwrite the agent workpad. An empty file clears it.
     Update {
         /// Work item identifier, e.g. `ENG-42`. Defaults to
-        /// `PIDASH_ISSUE_IDENTIFIER`.
+        /// `KARMA_TEAM_ISSUE_IDENTIFIER`.
         identifier: Option<String>,
         /// Path to a file containing the workpad body (markdown).
         #[arg(long = "body-file", value_name = "PATH")]
@@ -71,7 +71,7 @@ pub async fn run(args: WorkpadArgs, paths: &crate::util::paths::Paths) -> i32 {
 }
 
 async fn cmd_get(client: &ApiClient, identifier: Option<String>) -> Result<(), CliError> {
-    let current_issue = std::env::var("PIDASH_ISSUE_IDENTIFIER").ok();
+    let current_issue = std::env::var("KARMA_TEAM_ISSUE_IDENTIFIER").ok();
     let ident = resolve_identifier(identifier.as_deref(), current_issue.as_deref())?;
     let issue = resolve_issue(client, ident).await?;
     let path = format!(
@@ -92,7 +92,7 @@ async fn cmd_update(
     body_file: PathBuf,
 ) -> Result<(), CliError> {
     let body = load_workpad_body(&body_file)?;
-    let current_issue = std::env::var("PIDASH_ISSUE_IDENTIFIER").ok();
+    let current_issue = std::env::var("KARMA_TEAM_ISSUE_IDENTIFIER").ok();
     let ident = resolve_identifier(identifier.as_deref(), current_issue.as_deref())?;
     let issue = resolve_issue(client, ident).await?;
     let path = format!(
@@ -114,7 +114,7 @@ fn resolve_identifier<'a>(
     explicit.or(current_issue).ok_or_else(|| {
         CliError::new(
             EXIT_INVALID,
-            "workpad requires an issue identifier or PIDASH_ISSUE_IDENTIFIER",
+            "workpad requires an issue identifier or KARMA_TEAM_ISSUE_IDENTIFIER",
         )
     })
 }
@@ -149,7 +149,7 @@ mod tests {
         let err = resolve_identifier(None, None).expect_err("missing target");
         assert_eq!(
             err.message,
-            "workpad requires an issue identifier or PIDASH_ISSUE_IDENTIFIER"
+            "workpad requires an issue identifier or KARMA_TEAM_ISSUE_IDENTIFIER"
         );
     }
 

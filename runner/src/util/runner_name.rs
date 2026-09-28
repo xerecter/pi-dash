@@ -1,11 +1,11 @@
 //! `runner.name` rules: charset validation + default-name generator.
 //!
 //! Mirror of the cloud-side regex in
-//! `apps/api/pi_dash/runner/views/enrollment.py` (`_RUNNER_NAME_RE`):
+//! `apps/api/karma_team/runner/views/enrollment.py` (`_RUNNER_NAME_RE`):
 //! start with `[A-Za-z0-9_]`, then continue with `[A-Za-z0-9_.-]`,
 //! length 1..=128.
 //!
-//! Defaults follow the scheme `pidash_runner_<3 random chars from [A-Za-z0-9]>`.
+//! Defaults follow the scheme `karma_team_runner_<3 random chars from [A-Za-z0-9]>`.
 //! The collision domain is per-workspace (enforced by the cloud DB's
 //! `UNIQUE(workspace_id, name)` constraint), and 62³ ≈ 238k suffixes is ample
 //! at that scope — `configure` retries up to 5 times on `runner_name_taken`
@@ -20,7 +20,7 @@ const MAX_LEN: usize = 128;
 
 /// The 62-char alphabet used for the random suffix. No underscore or dash
 /// because the suffix is cosmetic — keeping it purely alphanumeric avoids
-/// awkward names like `pidash_runner_---`.
+/// awkward names like `karma_team_runner_---`.
 const SUFFIX_CHARSET: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
 const SUFFIX_LEN: usize = 3;
@@ -60,14 +60,14 @@ pub fn validate(name: &str) -> Result<(), NameValidationError> {
     Ok(())
 }
 
-/// Generate `pidash_runner_<3 random chars>`. Uses the thread-local RNG so
+/// Generate `karma_team_runner_<3 random chars>`. Uses the thread-local RNG so
 /// callers don't need to thread one through.
 pub fn generate_default() -> String {
     let mut rng = rand::thread_rng();
     let suffix: String = (0..SUFFIX_LEN)
         .map(|_| SUFFIX_CHARSET[rng.gen_range(0..SUFFIX_CHARSET.len())] as char)
         .collect();
-    format!("pidash_runner_{suffix}")
+    format!("karma_team_runner_{suffix}")
 }
 
 #[cfg(test)]
@@ -82,7 +82,7 @@ mod tests {
             "my-laptop",
             "my_laptop",
             "my.laptop",
-            "pidash_runner_aB3",
+            "karma_team_runner_aB3",
             "CAPS",
             "abc123",
             "a-b_c.1",
@@ -138,10 +138,13 @@ mod tests {
     fn generated_default_has_expected_shape() {
         for _ in 0..100 {
             let name = generate_default();
-            assert!(name.starts_with("pidash_runner_"), "missing prefix: {name}");
+            assert!(
+                name.starts_with("karma_team_runner_"),
+                "missing prefix: {name}"
+            );
             assert_eq!(
                 name.len(),
-                "pidash_runner_".len() + SUFFIX_LEN,
+                "karma_team_runner_".len() + SUFFIX_LEN,
                 "unexpected length: {name}"
             );
             // Every generated default must pass the validator — otherwise the
@@ -150,7 +153,7 @@ mod tests {
                 validate(&name).is_ok(),
                 "generated name failed validation: {name}"
             );
-            let suffix = &name["pidash_runner_".len()..];
+            let suffix = &name["karma_team_runner_".len()..];
             assert!(
                 suffix.chars().all(|c| c.is_ascii_alphanumeric()),
                 "suffix must be alphanumeric only: {suffix}"

@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { EUserPermissions, IJiraMetadata } from "@pi-dash/types";
+import type { EUserPermissions, IJiraMetadata } from "@karma-team/types";
 
 const paramsToKey = (params: any) => {
   const {

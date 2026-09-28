@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use clap::Parser;
-use pidash::cli;
+use karma_team::cli;
 
 fn main() -> Result<()> {
     let cli = cli::Cli::parse();

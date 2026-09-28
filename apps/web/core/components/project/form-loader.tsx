@@ -5,7 +5,7 @@
  */
 
 // components
-import { Loader } from "@pi-dash/ui";
+import { Loader } from "@karma-team/ui";
 
 export function ProjectDetailsFormLoader() {
   return (

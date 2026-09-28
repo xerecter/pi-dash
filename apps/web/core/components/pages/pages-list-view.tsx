@@ -6,10 +6,10 @@
 
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import type { TPageNavigationTabs } from "@pi-dash/types";
-// pi dash web hooks
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
-import { usePageStore } from "@/pi-dash-web/hooks/store";
+import type { TPageNavigationTabs } from "@karma-team/types";
+// karma-team web hooks
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
+import { usePageStore } from "@/karma-team-web/hooks/store";
 // local imports
 import { PagesListHeaderRoot } from "./header";
 import { PagesListMainContent } from "./pages-list-main-content";

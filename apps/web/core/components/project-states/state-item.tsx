@@ -9,11 +9,11 @@ import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { draggable, dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { attachClosestEdge, extractClosestEdge } from "@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge";
 import { observer } from "mobx-react";
-// Pi Dash
-import type { TDraggableData } from "@pi-dash/constants";
-import type { IState, TStateGroups, TStateOperationsCallbacks } from "@pi-dash/types";
-import { DropIndicator } from "@pi-dash/ui";
-import { cn, getCurrentStateSequence } from "@pi-dash/utils";
+// karma-team
+import type { TDraggableData } from "@karma-team/constants";
+import type { IState, TStateGroups, TStateOperationsCallbacks } from "@karma-team/types";
+import { DropIndicator } from "@karma-team/ui";
+import { cn, getCurrentStateSequence } from "@karma-team/utils";
 // components
 import { StateItemTitle, StateUpdate } from "@/components/project-states";
 // helpers

@@ -7,8 +7,8 @@
 import type { Editor } from "@tiptap/react";
 import { ALargeSmall, Ban } from "lucide-react";
 import { useMemo } from "react";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // constants
 import { COLORS_LIST } from "@/constants/common";
 // local imports

@@ -5,12 +5,12 @@ use tokio::process::Command;
 
 use crate::util::paths::Paths;
 
-const LABEL: &str = "so.pidash.daemon";
+const LABEL: &str = "so.karma-team.daemon";
 
 /// Upper bound on how long `stop()` will wait for `launchctl bootout` to
 /// finish tearing the daemon down before escalating to SIGKILL. 10s is
 /// generous compared to a healthy shutdown (typically <1s) but short
-/// enough that an operator running `pidash restart` doesn't sit and wait
+/// enough that an operator running `karma-team restart` doesn't sit and wait
 /// when the daemon is genuinely stuck.
 const STOP_GRACE: Duration = Duration::from_secs(10);
 const STOP_POLL_INTERVAL: Duration = Duration::from_millis(150);
@@ -26,8 +26,8 @@ const START_GRACE: Duration = Duration::from_secs(30);
 const START_POLL_INTERVAL: Duration = Duration::from_millis(150);
 
 /// Write the LaunchAgent plist. Does NOT bootstrap (load) it; that's deferred
-/// to `enable_and_start` so `pidash install` can gate activation on
-/// `pidash configure` completing first.
+/// to `enable_and_start` so `karma-team install` can gate activation on
+/// `karma-team configure` completing first.
 pub async fn write_unit(paths: &Paths) -> Result<()> {
     let plist_path = plist_path()?;
     if let Some(parent) = plist_path.parent() {
@@ -56,13 +56,7 @@ pub async fn write_unit(paths: &Paths) -> Result<()> {
 /// `EnvironmentVariables` so the daemon (and every subprocess it forks)
 /// inherits the operator's interactive PATH instead of launchd's stripped
 /// default. See `service::capture_install_time_path` for the full rationale.
-fn render_plist(
-    exe: &str,
-    config: &str,
-    data: &str,
-    logs: &str,
-    path_env: Option<&str>,
-) -> String {
+fn render_plist(exe: &str, config: &str, data: &str, logs: &str, path_env: Option<&str>) -> String {
     let path_entry = match path_env {
         Some(p) => format!("\n    <key>PATH</key><string>{p}</string>"),
         None => String::new(),
@@ -80,8 +74,8 @@ fn render_plist(
   </array>
   <key>EnvironmentVariables</key>
   <dict>
-    <key>PIDASH_CONFIG_DIR</key><string>{config}</string>
-    <key>PIDASH_DATA_DIR</key><string>{data}</string>{path_entry}
+    <key>KARMA_TEAM_CONFIG_DIR</key><string>{config}</string>
+    <key>KARMA_TEAM_DATA_DIR</key><string>{data}</string>{path_entry}
   </dict>
   <key>KeepAlive</key><true/>
   <key>RunAtLoad</key><true/>
@@ -138,7 +132,7 @@ pub async fn uninstall(_: &Paths) -> Result<()> {
 /// `Bootstrap failed: 5: Input/output error` rather than "already
 /// loaded." `stop()` now waits for unload to complete so the race
 /// is rare, but the `probe_loaded_pid` check stays as a safety net
-/// for operators calling `pidash start` into a partially-loaded label.
+/// for operators calling `karma-team start` into a partially-loaded label.
 ///
 /// We do NOT chain to kickstart unconditionally: kickstart on a
 /// not-loaded service fails with exit 113, which would mask genuine
@@ -154,9 +148,9 @@ pub async fn start() -> Result<()> {
     // launchctl. macOS reports "plist not found" as the opaque
     // `Bootstrap failed: 5: Input/output error` — indistinguishable
     // from the teardown-race EIO without out-of-band knowledge — so
-    // surface it here with an actionable hint. `pidash restart` rewrites
+    // surface it here with an actionable hint. `karma-team restart` rewrites
     // the plist via `reload::restart_and_verify_with_progress` before
-    // reaching this point; this bail only fires for direct `pidash start`
+    // reaching this point; this bail only fires for direct `karma-team start`
     // callers on a plist-less machine.
     ensure_plist_present(&plist)?;
 
@@ -208,7 +202,7 @@ pub async fn start() -> Result<()> {
 /// Poll `launchctl list LABEL` until [`is_fresh_pid`] accepts what we
 /// see. Returns an error on timeout but does NOT signal the daemon: at
 /// this point the caller has *just* asked launchd to start it, and any
-/// failure to actually exec is launchd's to report (next `pidash status`
+/// failure to actually exec is launchd's to report (next `karma-team status`
 /// will pick up a non-zero LastExitStatus). Sending SIGKILL here would
 /// race a daemon that's legitimately mid-init.
 async fn wait_for_running(pre_pid: Option<i32>, timeout: Duration) -> Result<()> {
@@ -267,7 +261,7 @@ pub async fn stop() -> Result<()> {
         // older releases, the same "Could not find service in domain" code as
         // kickstart on newer ones), so we match on the stderr text — stable in
         // launchctl's source — instead of pinning to a single exit code. Stay
-        // quiet so `pidash restart` after an update / crash doesn't spam stderr
+        // quiet so `karma-team restart` after an update / crash doesn't spam stderr
         // with a benign warning.
         if is_not_loaded_error(&stderr) {
             return Ok(());
@@ -292,7 +286,7 @@ pub async fn stop() -> Result<()> {
     // Wait until launchd has actually let go of the label before returning.
     // If the daemon is wedged (e.g. stuck in a long network call inside its
     // shutdown handler — exactly what we observed in production), escalate
-    // to SIGKILL on the captured PID rather than letting `pidash restart`
+    // to SIGKILL on the captured PID rather than letting `karma-team restart`
     // fail with a launchctl error the operator can't act on.
     wait_for_unload(STOP_GRACE).await
 }
@@ -301,7 +295,7 @@ pub async fn stop() -> Result<()> {
 /// domain. If the polite window expires, ask launchctl to SIGKILL the
 /// service by label and re-check. Returns Err only if even SIGKILL
 /// couldn't dislodge the label; the caller (`stop()`) currently propagates
-/// that so `pidash restart` surfaces a clean "daemon would not exit"
+/// that so `karma-team restart` surfaces a clean "daemon would not exit"
 /// rather than the cryptic EIO from the next bootstrap.
 ///
 /// Kill is routed through `launchctl kill SIGKILL <target>` rather than a
@@ -476,11 +470,11 @@ fn describe_exit_status(status: LaunchdExitStatus, raw_status: i32) -> String {
              exec'd it. On macOS this is almost always a code-signing rejection by \
              AMFI — common when a freshly built binary's signature isn't trusted \
              for launchd-spawned processes even though it runs fine from the shell. \
-             Verify with: `codesign -v /Users/<you>/.local/bin/pidash`. \
+             Verify with: `codesign -v /Users/<you>/.local/bin/karma-team`. \
              For details: `log show --last 5m --predicate \
              'subsystem == \"com.apple.kernel.amfi\"'`. \
              Re-sign locally with `codesign --force --sign - <binary>` if needed; \
-             release builds shipped via `pidash-installer.sh` are Developer-ID \
+             release builds shipped via `karma-team-installer.sh` are Developer-ID \
              signed and unaffected."
         ),
         LaunchdExitStatus::Signaled {
@@ -489,7 +483,7 @@ fn describe_exit_status(status: LaunchdExitStatus, raw_status: i32) -> String {
         } => format!(
             "Daemon aborted (LastExitStatus={raw_status} = SIGABRT{}) shortly after launch. \
              Most likely a Rust panic or a libc assertion. Check the daemon's \
-             stderr log at `~/Library/Application Support/so.pidash.pidash/logs/runner.err.log` \
+             stderr log at `~/Library/Application Support/so.karma-team.karma-team/logs/runner.err.log` \
              (macOS) for the panic message.",
             if core_dumped { ", core dumped" } else { "" }
         ),
@@ -510,11 +504,11 @@ fn describe_exit_status(status: LaunchdExitStatus, raw_status: i32) -> String {
             "Daemon exited with non-zero status {code} (LastExitStatus={raw_status}) shortly \
              after launch. \
              Usually a config / credential error — check the daemon's stderr \
-             log at `~/Library/Application Support/so.pidash.pidash/logs/runner.err.log`."
+             log at `~/Library/Application Support/so.karma-team.karma-team/logs/runner.err.log`."
         ),
         LaunchdExitStatus::Other(raw) => format!(
             "Daemon stopped with unrecognized launchd LastExitStatus={raw}. \
-             Check the daemon's stderr log at `~/Library/Application Support/so.pidash.pidash/logs/runner.err.log`."
+             Check the daemon's stderr log at `~/Library/Application Support/so.karma-team.karma-team/logs/runner.err.log`."
         ),
     }
 }
@@ -555,15 +549,15 @@ fn ensure_plist_present(plist: &Path) -> Result<()> {
         return Ok(());
     }
     anyhow::bail!(
-        "launchd plist missing at {}. Run `pidash install` to (re)write it; \
-         `pidash update` only swaps the binary and does not touch the plist.",
+        "launchd plist missing at {}. Run `karma-team install` to (re)write it; \
+         `karma-team update` only swaps the binary and does not touch the plist.",
         plist.display()
     );
 }
 
 /// Self-heal entry point used by `reload::restart_and_verify_with_progress`:
 /// returns `Ok(true)` when the plist was missing and got rewritten, `Ok(false)`
-/// when it was already present. Lets `pidash restart` after `pidash update` on
+/// when it was already present. Lets `karma-team restart` after `karma-team update` on
 /// a plist-less machine recover transparently instead of bailing with the
 /// `ensure_plist_present` error the operator would have to act on by hand.
 ///
@@ -620,10 +614,10 @@ mod tests {
         // env var was a misleading no-op. Keep it out so both backends share
         // the same runtime-dir contract.
         let body = render_plist(
-            "/usr/local/bin/pidash",
-            "/Users/user/Library/Application Support/pidash",
-            "/Users/user/Library/Application Support/pidash",
-            "/Users/user/Library/Application Support/pidash/logs",
+            "/usr/local/bin/karma-team",
+            "/Users/user/Library/Application Support/karma-team",
+            "/Users/user/Library/Application Support/karma-team",
+            "/Users/user/Library/Application Support/karma-team/logs",
             None,
         );
         assert!(
@@ -634,11 +628,11 @@ mod tests {
 
     #[test]
     fn plist_body_includes_program_args_and_logs() {
-        let body = render_plist("/bin/pidash", "/cfg", "/data", "/logs", None);
-        assert!(body.contains("<string>/bin/pidash</string>"));
+        let body = render_plist("/bin/karma-team", "/cfg", "/data", "/logs", None);
+        assert!(body.contains("<string>/bin/karma-team</string>"));
         assert!(body.contains("<string>__run</string>"));
-        assert!(body.contains("<key>PIDASH_CONFIG_DIR</key><string>/cfg</string>"));
-        assert!(body.contains("<key>PIDASH_DATA_DIR</key><string>/data</string>"));
+        assert!(body.contains("<key>KARMA_TEAM_CONFIG_DIR</key><string>/cfg</string>"));
+        assert!(body.contains("<key>KARMA_TEAM_DATA_DIR</key><string>/data</string>"));
         assert!(body.contains("<string>/logs/runner.out.log</string>"));
         assert!(body.contains("<string>/logs/runner.err.log</string>"));
     }
@@ -648,7 +642,7 @@ mod tests {
         // None means we couldn't (or shouldn't) snapshot $PATH at install
         // time. The plist must not contain a PATH key in that case — an
         // empty PATH would be worse than launchd's default.
-        let body = render_plist("/bin/pidash", "/cfg", "/data", "/logs", None);
+        let body = render_plist("/bin/karma-team", "/cfg", "/data", "/logs", None);
         assert!(
             !body.contains("<key>PATH</key>"),
             "plist body must not declare PATH when path_env is None; got:\n{body}"
@@ -662,13 +656,15 @@ mod tests {
         // Newer macOS phrasing — same wording kickstart uses for the
         // not-in-domain case; bootout has been observed to share it:
         assert!(is_not_loaded_error(
-            "Could not find service \"so.pidash.daemon\" in domain for user gui: 501"
+            "Could not find service \"so.karma-team.daemon\" in domain for user gui: 501"
         ));
         // Variant seen on some releases:
         assert!(is_not_loaded_error("Service not loaded"));
         // Real failures we MUST surface, not silently absorb:
         assert!(!is_not_loaded_error("Operation not permitted"));
-        assert!(!is_not_loaded_error("Bootstrap failed: 5: Input/output error"));
+        assert!(!is_not_loaded_error(
+            "Bootstrap failed: 5: Input/output error"
+        ));
         assert!(!is_not_loaded_error(""));
     }
 
@@ -698,23 +694,25 @@ mod tests {
         assert!(!is_already_loaded_error(
             "Load failed: 2: No such file or directory"
         ));
-        assert!(!is_already_loaded_error("Path had bad ownership/permissions"));
+        assert!(!is_already_loaded_error(
+            "Path had bad ownership/permissions"
+        ));
         assert!(!is_already_loaded_error(""));
     }
 
     #[test]
     fn parse_loaded_pid_extracts_pid_from_launchctl_list_output() {
-        // Exact shape of `launchctl list so.pidash.daemon` from the
+        // Exact shape of `launchctl list so.karma-team.daemon` from the
         // reporter's session — the EIO repro we cut this fix from.
         let stdout = r#"{
-	"StandardOutPath" = "/Users/irichard/Library/Application Support/so.pidash.pidash/logs/runner.out.log";
+	"StandardOutPath" = "/Users/irichard/Library/Application Support/so.karma-team.karma-team/logs/runner.out.log";
 	"LimitLoadToSessionType" = "Aqua";
-	"StandardErrorPath" = "/Users/irichard/Library/Application Support/so.pidash.pidash/logs/runner.err.log";
-	"Label" = "so.pidash.daemon";
+	"StandardErrorPath" = "/Users/irichard/Library/Application Support/so.karma-team.karma-team/logs/runner.err.log";
+	"Label" = "so.karma-team.daemon";
 	"OnDemand" = false;
 	"LastExitStatus" = 0;
 	"PID" = 884;
-	"Program" = "/Users/irichard/.local/bin/pidash";
+	"Program" = "/Users/irichard/.local/bin/karma-team";
 };
 "#;
         assert_eq!(parse_loaded_pid(stdout), Some(884));
@@ -728,7 +726,7 @@ mod tests {
         // as "still loaded, keep polling," which depends on parse
         // distinguishing "no PID line" from "PID = N".
         let stdout = r#"{
-	"Label" = "so.pidash.daemon";
+	"Label" = "so.karma-team.daemon";
 	"OnDemand" = false;
 	"LastExitStatus" = 0;
 };
@@ -781,7 +779,7 @@ mod tests {
         let stdout = r#"{
 	"PPID" = 1;
 	"LastExitStatus" = 0;
-	"Label" = "so.pidash.daemon";
+	"Label" = "so.karma-team.daemon";
 };
 "#;
         assert_eq!(parse_loaded_pid(stdout), None);
@@ -789,14 +787,14 @@ mod tests {
 
     #[test]
     fn parse_last_exit_status_extracts_signal_value() {
-        // Exact shape of `launchctl list so.pidash.daemon` after a
+        // Exact shape of `launchctl list so.karma-team.daemon` after a
         // daemon dies from SIGKILL — the AMFI repro that motivated
         // the diagnosis path.
         let stdout = r#"{
-	"Label" = "so.pidash.daemon";
+	"Label" = "so.karma-team.daemon";
 	"OnDemand" = false;
 	"LastExitStatus" = 9;
-	"Program" = "/Users/u/.local/bin/pidash";
+	"Program" = "/Users/u/.local/bin/karma-team";
 };
 "#;
         assert_eq!(parse_last_exit_status(stdout), Some(9));
@@ -806,7 +804,7 @@ mod tests {
     fn parse_last_exit_status_returns_none_when_absent() {
         // Fresh load, no prior exit yet — no LastExitStatus line at all.
         let stdout = r#"{
-	"Label" = "so.pidash.daemon";
+	"Label" = "so.karma-team.daemon";
 	"OnDemand" = false;
 };
 "#;
@@ -816,7 +814,7 @@ mod tests {
     #[test]
     fn parse_last_exit_status_handles_clean_zero() {
         let stdout = r#"{
-	"Label" = "so.pidash.daemon";
+	"Label" = "so.karma-team.daemon";
 	"LastExitStatus" = 0;
 };
 "#;
@@ -899,18 +897,18 @@ mod tests {
 
     #[test]
     fn ensure_plist_present_errors_with_install_hint_when_missing() {
-        // The error must point the operator at `pidash install` (the
+        // The error must point the operator at `karma-team install` (the
         // command that writes the plist) and include the missing path,
         // replacing the cryptic `Bootstrap failed: 5: Input/output error`
         // launchctl returns for a missing plist. Use a tempdir-scoped
         // path so parallel test invocations can't collide.
         let dir = tempfile::tempdir().expect("tempdir");
-        let missing = dir.path().join("so.pidash.daemon.plist");
+        let missing = dir.path().join("so.karma-team.daemon.plist");
         let err = ensure_plist_present(&missing).expect_err("missing plist must error");
         let msg = format!("{err}");
         assert!(
-            msg.contains("pidash install"),
-            "missing-plist error must point at `pidash install`; got: {msg}"
+            msg.contains("karma-team install"),
+            "missing-plist error must point at `karma-team install`; got: {msg}"
         );
         assert!(
             msg.contains(&missing.display().to_string()),
@@ -924,7 +922,7 @@ mod tests {
         // matter. tempdir-scoped so parallel runs can't race on the
         // same path.
         let dir = tempfile::tempdir().expect("tempdir");
-        let present = dir.path().join("so.pidash.daemon.plist");
+        let present = dir.path().join("so.karma-team.daemon.plist");
         std::fs::write(&present, b"x").unwrap();
         assert!(ensure_plist_present(&present).is_ok());
     }
@@ -932,7 +930,7 @@ mod tests {
     #[test]
     fn plist_body_bakes_in_path_when_provided() {
         let body = render_plist(
-            "/bin/pidash",
+            "/bin/karma-team",
             "/cfg",
             "/data",
             "/logs",

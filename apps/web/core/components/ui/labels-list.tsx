@@ -5,8 +5,8 @@
  */
 
 // ui
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IIssueLabel } from "@pi-dash/types";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IIssueLabel } from "@karma-team/types";
 // types
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // hooks

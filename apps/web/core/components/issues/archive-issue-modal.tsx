@@ -6,12 +6,12 @@
 
 import { useState } from "react";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // types
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TDeDupeIssue, TIssue } from "@pi-dash/types";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TDeDupeIssue, TIssue } from "@karma-team/types";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { useProject } from "@/hooks/store/use-project";
@@ -73,7 +73,9 @@ export function ArchiveIssueModal(props: Props) {
         <h3 className="text-18 font-medium 2xl:text-20">
           {t("Archive Work item")} {projectDetails?.identifier} {issue.sequence_id}
         </h3>
-        <p className="mt-3 text-13 text-secondary">{t("Are you sure you want to archive the work item? All your archived work items can be restored later.")}</p>
+        <p className="mt-3 text-13 text-secondary">
+          {t("Are you sure you want to archive the work item? All your archived work items can be restored later.")}
+        </p>
         <div className="mt-3 flex justify-end gap-2">
           <Button variant="secondary" size="lg" onClick={onClose}>
             {t("Cancel")}

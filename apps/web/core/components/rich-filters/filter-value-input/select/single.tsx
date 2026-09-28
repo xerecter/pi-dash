@@ -6,14 +6,14 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
+// karma-team imports
 import type {
   IFilterOption,
   TFilterProperty,
   TSingleSelectFilterFieldConfig,
   TFilterConditionNodeForDisplay,
-} from "@pi-dash/types";
-import { CustomSearchSelect } from "@pi-dash/ui";
+} from "@karma-team/types";
+import { CustomSearchSelect } from "@karma-team/ui";
 // local imports
 import { SelectedOptionsDisplay } from "./selected-options-display";
 import { getCommonCustomSearchSelectProps, getFormattedOptions, loadOptions } from "./shared";

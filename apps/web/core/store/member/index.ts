@@ -6,12 +6,12 @@
 
 import { makeObservable, observable } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import type { IUserLite } from "@pi-dash/types";
-// pi dash web imports
-import type { IProjectMemberStore } from "@/pi-dash-web/store/member/project-member.store";
-import { ProjectMemberStore } from "@/pi-dash-web/store/member/project-member.store";
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+// karma-team imports
+import type { IUserLite } from "@karma-team/types";
+// karma-team web imports
+import type { IProjectMemberStore } from "@/karma-team-web/store/member/project-member.store";
+import { ProjectMemberStore } from "@/karma-team-web/store/member/project-member.store";
+import type { RootStore } from "@/karma-team-web/store/root.store";
 // local imports
 import type { IWorkspaceMemberStore } from "./workspace/workspace-member.store";
 import { WorkspaceMemberStore } from "./workspace/workspace-member.store";

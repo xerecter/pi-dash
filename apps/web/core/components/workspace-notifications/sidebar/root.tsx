@@ -7,19 +7,19 @@
 import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import type { TNotificationTab } from "@pi-dash/constants";
-import { NOTIFICATION_TABS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Header, Row, ERowVariant, EHeaderVariant, ContentWrapper } from "@pi-dash/ui";
-import { cn, getNumberCount } from "@pi-dash/utils";
+// karma-team imports
+import type { TNotificationTab } from "@karma-team/constants";
+import { NOTIFICATION_TABS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Header, Row, ERowVariant, EHeaderVariant, ContentWrapper } from "@karma-team/ui";
+import { cn, getNumberCount } from "@karma-team/utils";
 // components
 import { CountChip } from "@/components/common/count-chip";
 // hooks
 import { useWorkspaceNotifications } from "@/hooks/store/notifications";
 import { useWorkspace } from "@/hooks/store/use-workspace";
-// pi dash web components
-import { NotificationListRoot } from "@/pi-dash-web/components/workspace-notifications/list-root";
+// karma-team web components
+import { NotificationListRoot } from "@/karma-team-web/components/workspace-notifications/list-root";
 // local imports
 import { NotificationEmptyState } from "./empty-state";
 import { AppliedFilters } from "./filters/applied-filter";

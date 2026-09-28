@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash web imports
-import { POWER_K_MODAL_PAGE_DETAILS_EXTENDED } from "@/pi-dash-web/components/command-palette/power-k/constants";
+// karma-team web imports
+import { POWER_K_MODAL_PAGE_DETAILS_EXTENDED } from "@/karma-team-web/components/command-palette/power-k/constants";
 // local imports
 import type { TPowerKPageType } from "../../core/types";
 

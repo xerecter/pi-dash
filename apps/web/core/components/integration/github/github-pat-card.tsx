@@ -8,11 +8,11 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import { CheckCircle } from "lucide-react";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Input, Loader } from "@pi-dash/ui";
-import type { IAppIntegration } from "@pi-dash/types";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Input, Loader } from "@karma-team/ui";
+import type { IAppIntegration } from "@karma-team/types";
 // assets
 import GithubLogo from "@/app/assets/services/github.png?url";
 // constants
@@ -105,7 +105,7 @@ export function GithubPatCard({ integration }: Props) {
               ? "Loading..."
               : status.connected
                 ? `Connected as ${status.github_user_login}. Bind a repository on a project's Settings → GitHub.`
-                : "Paste a GitHub fine-grained PAT with read access to issues. Pi Dash mirrors issues and comments into projects every 4 hours."}
+                : "Paste a GitHub fine-grained PAT with read access to issues. karma-team mirrors issues and comments into projects every 4 hours."}
           </p>
           <a
             className="text-body-xs-regular text-primary underline"

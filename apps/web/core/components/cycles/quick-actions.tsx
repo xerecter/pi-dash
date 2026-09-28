@@ -8,13 +8,13 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { MoreHorizontal } from "lucide-react";
 // ui
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TContextMenuItem } from "@pi-dash/ui";
-import { ContextMenu, CustomMenu } from "@pi-dash/ui";
-import { copyUrlToClipboard, cn } from "@pi-dash/utils";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TContextMenuItem } from "@karma-team/ui";
+import { ContextMenu, CustomMenu } from "@karma-team/ui";
+import { copyUrlToClipboard, cn } from "@karma-team/utils";
 // hooks
 import { useCycleMenuItems } from "@/components/common/quick-actions-helper";
 import { useCycle } from "@/hooks/store/use-cycle";

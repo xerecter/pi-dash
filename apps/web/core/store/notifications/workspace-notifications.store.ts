@@ -7,9 +7,9 @@
 import { orderBy, isEmpty, update, set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import type { TNotificationTab } from "@pi-dash/constants";
-import { ENotificationTab, ENotificationLoader, ENotificationQueryParamType } from "@pi-dash/constants";
+// karma-team imports
+import type { TNotificationTab } from "@karma-team/constants";
+import { ENotificationTab, ENotificationLoader, ENotificationQueryParamType } from "@karma-team/constants";
 import type {
   TNotification,
   TNotificationFilter,
@@ -17,9 +17,9 @@ import type {
   TNotificationPaginatedInfo,
   TNotificationPaginatedInfoQueryParams,
   TUnreadNotificationsCount,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // helpers
-import { convertToEpoch } from "@pi-dash/utils";
+import { convertToEpoch } from "@karma-team/utils";
 // services
 import workspaceNotificationService from "@/services/workspace-notification.service";
 // store

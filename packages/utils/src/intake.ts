@@ -5,8 +5,8 @@
  */
 
 import { subDays } from "date-fns";
-// pi dash imports
-import { EPastDurationFilters } from "@pi-dash/constants";
+// karma-team imports
+import { EPastDurationFilters } from "@karma-team/constants";
 // local imports
 import { renderFormattedPayloadDate } from "./datetime";
 

@@ -5,10 +5,10 @@
  */
 
 import { AlertTriangle, CheckCircle2, Clock, XCircle } from "lucide-react";
-import { CopyIcon } from "@pi-dash/propel/icons";
-import type { TInboxIssueStatus } from "@pi-dash/types";
-import { EInboxIssueStatus } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import { CopyIcon } from "@karma-team/propel/icons";
+import type { TInboxIssueStatus } from "@karma-team/types";
+import { EInboxIssueStatus } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 
 export const ICON_PROPERTIES = {
   [EInboxIssueStatus.PENDING]: {

@@ -8,10 +8,10 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // ui
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { ContextMenu, CustomMenu } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { EIssuesStoreType } from "@karma-team/types";
+import { ContextMenu, CustomMenu } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { useUserPermissions } from "@/hooks/store/user";

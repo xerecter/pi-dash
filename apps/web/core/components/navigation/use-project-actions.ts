@@ -5,8 +5,8 @@
  */
 
 import { useCallback, useState } from "react";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { copyUrlToClipboard } from "@pi-dash/utils";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { copyUrlToClipboard } from "@karma-team/utils";
 import type { TNavigationItem } from "@/components/navigation/tab-navigation-root";
 
 type UseProjectActionsProps = {

@@ -6,14 +6,14 @@
 
 import { observer } from "mobx-react";
 // ui
-import { CustomMenu } from "@pi-dash/ui";
+import { CustomMenu } from "@karma-team/ui";
 // helpers
-import { generateWorkItemLink } from "@pi-dash/utils";
+import { generateWorkItemLink } from "@karma-team/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 
 type TIssueParentSiblingItem = {
   workspaceSlug: string;

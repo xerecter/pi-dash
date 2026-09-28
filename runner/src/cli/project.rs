@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-//! `pidash project …` subcommands.
+//! `karma-team project …` subcommands.
 
 use clap::{Args, Subcommand};
 use serde::{Deserialize, Serialize};

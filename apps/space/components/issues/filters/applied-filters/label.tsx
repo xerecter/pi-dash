@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { CloseIcon } from "@pi-dash/propel/icons";
+import { CloseIcon } from "@karma-team/propel/icons";
 // types
 import type { IIssueLabel } from "@/types/issue";
 

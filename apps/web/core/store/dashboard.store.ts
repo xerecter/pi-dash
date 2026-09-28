@@ -15,10 +15,10 @@ import type {
   TWidgetStatsResponse,
   TWidgetKeys,
   TWidgetStatsRequestParams,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // services
 import { DashboardService } from "@/services/dashboard.service";
-// pi dash web store
+// karma-team web store
 import type { CoreRootStore } from "./root.store";
 
 export interface IDashboardStore {

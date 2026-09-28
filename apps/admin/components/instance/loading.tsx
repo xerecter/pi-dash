@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-import { PiSymbol } from "@pi-dash/propel/icons";
+import { KarmaTeamSymbol } from "@karma-team/propel/icons";
 
 export function InstanceLoading() {
   return (
     <div className="flex items-center justify-center">
-      <PiSymbol className="h-6 w-auto animate-pulse text-primary sm:h-11" />
+      <KarmaTeamSymbol className="h-6 w-auto animate-pulse text-primary sm:h-11" />
     </div>
   );
 }

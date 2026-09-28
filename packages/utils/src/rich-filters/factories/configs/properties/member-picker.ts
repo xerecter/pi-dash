@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { IUserLite, TFilterProperty } from "@pi-dash/types";
-import { EQUALITY_OPERATOR } from "@pi-dash/types";
+// karma-team imports
+import type { IUserLite, TFilterProperty } from "@karma-team/types";
+import { EQUALITY_OPERATOR } from "@karma-team/types";
 // local imports
 import type { TCreateFilterConfig } from "../shared";
 import { createFilterConfig, createOperatorConfigEntry } from "../shared";

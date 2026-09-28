@@ -6,7 +6,7 @@
 
 import type { ReactNode } from "react";
 import { observer } from "mobx-react";
-import type { IIssueDisplayProperties } from "@pi-dash/types";
+import type { IIssueDisplayProperties } from "@karma-team/types";
 
 interface IWithDisplayPropertiesHOC {
   displayProperties: IIssueDisplayProperties;

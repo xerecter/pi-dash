@@ -11,13 +11,13 @@ import { useParams } from "next/navigation";
 import { createPortal } from "react-dom";
 import { usePopper } from "react-popper";
 import { Combobox } from "@headlessui/react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { CheckIcon, SearchIcon, SuspendedUserIcon } from "@pi-dash/propel/icons";
-import { EPillSize, EPillVariant, Pill } from "@pi-dash/propel/pill";
-import type { IUserLite } from "@pi-dash/types";
-import { Avatar } from "@pi-dash/ui";
-import { cn, getFileURL, sortByCurrentUserThenSelected } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { CheckIcon, SearchIcon, SuspendedUserIcon } from "@karma-team/propel/icons";
+import { EPillSize, EPillVariant, Pill } from "@karma-team/propel/pill";
+import type { IUserLite } from "@karma-team/types";
+import { Avatar } from "@karma-team/ui";
+import { cn, getFileURL, sortByCurrentUserThenSelected } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useUser } from "@/hooks/store/user";
@@ -53,7 +53,7 @@ export const MemberOptions = observer(function MemberOptions(props: Props) {
   // states
   const [query, setQuery] = useState("");
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { data: currentUser } = useUser();

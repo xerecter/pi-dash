@@ -1,18 +1,18 @@
-# Pi Dash Cloud Agent (In-house Runner) — Design
+# karma-team Cloud Agent (In-house Runner) — Design
 
 - **Status:** Ready for implementation
 - **Date:** 2026-08-14
-- **Scope:** MVP architecture for executing `AgentRun`s in Pi Dash Cloud without a user-installed CLI, local development machine, Codex/Claude Code process, filesystem, or per-tenant worker.
+- **Scope:** MVP architecture for executing `AgentRun`s in karma-team Cloud without a user-installed CLI, local development machine, Codex/Claude Code process, filesystem, or per-tenant worker.
 
 This revision closes the MVP product choices, defines the prompt, tool, API,
 lifecycle, migration, and deployment contracts, and maps them to the existing
-Pi Dash code. No architectural decision remains open for implementation. The
+karma-team code. No architectural decision remains open for implementation. The
 deployment must still supply a supported model credential and explicitly turn
 the feature on; those are environment inputs, not design gaps.
 
 > **Naming correction:** this directory keeps the discussion's historical name,
 > `inhouse_runner`, but the product described here is **not a `Runner`** in the
-> existing Pi Dash data model. Its user-visible name is **Pi Dash Cloud Agent**
+> existing karma-team data model. Its user-visible name is **karma-team Cloud Agent**
 > and its executor kind is `cloud_agent`. `Runner` continues to mean a daemon on
 > a user's development machine.
 
@@ -26,10 +26,10 @@ stateful coding-agent process such as Codex or Claude Code. That is powerful,
 but it creates two adoption barriers:
 
 1. Some users do not have a coding agent installed or configured.
-2. Some users do not want to install and connect the Pi Dash CLI before they can
-   get value from Pi Dash.
+2. Some users do not want to install and connect the karma-team CLI before they can
+   get value from karma-team.
 
-Pi Dash needs an out-of-box execution path that can serve many workspaces and
+karma-team needs an out-of-box execution path that can serve many workspaces and
 users concurrently. The first version does not need a checkout, shell, or local
 filesystem. It may reason over the issue and call approved tools—primarily over
 MCP—to perform the work that those tools support.
@@ -54,17 +54,17 @@ the process that happens to execute it.
 4. **Do not run Codex or Claude Code.** The Cloud Agent calls an LLM API through
    PydanticAI and performs its model/tool loop in process.
 5. **No filesystem, worktree, repository clone, or shell in the MVP.** The
-   Cloud Agent can only do what its approved Pi Dash and MCP tools expose.
+   Cloud Agent can only do what its approved karma-team and MCP tools expose.
 6. **MCP is the tool-provider boundary.** Users cannot supply arbitrary URLs or
    stdio commands. The first integration is an in-process, per-run FastMCP
-   GitHub adapter backed by Pi Dash's existing GitHub App connection. This
+   GitHub adapter backed by karma-team's existing GitHub App connection. This
    proves the same MCP tool contract without adding another service or relying
    on an unverified remote authentication flow. Curated remote HTTPS MCP
    endpoints can use the same registry after contract testing.
 7. **Reuse the AI assistant's code patterns, not its chat identity or storage
    model.** The current stateless PydanticAI/Celery implementation is the
    foundation, while `AgentRun` remains the canonical execution record.
-8. **Cloud is the default executor for new Pi Dash Cloud projects.** Existing
+8. **Cloud is the default executor for new karma-team Cloud projects.** Existing
    projects stay local unless an administrator opts in. Self-hosted CE defaults
    to local Runner unless its operator enables and configures the Cloud Agent.
 9. **No automatic cross-executor fallback.** A run snapshots its executor when
@@ -75,7 +75,7 @@ the process that happens to execute it.
     triggers resolve an eligible responsible human when the run is created.
     The global agent system bot may author system activity, but is never Cloud
     tool authority. Authorization is revalidated at execution time and for
-    every Pi Dash write. A local run continues to execute as its matched
+    every karma-team write. A local run continues to execute as its matched
     `runner.owner`; `AgentRun.owner` remains that local billable/execution party
     and is `NULL` for Cloud Agent runs.
 11. **MVP write tools are pre-approved and bounded.** Destructive, broad-admin,
@@ -101,18 +101,18 @@ the process that happens to execute it.
     unchanged. Cloud recipes are locked, declare the exact available tools,
     omit CLI/worktree/Git assumptions, and return a structured result.
 17. **MVP external tools are read-only.** The only unattended writes are the
-    exact Pi Dash first-party operations listed in §10.1. They are
+    exact karma-team first-party operations listed in §10.1. They are
     transactional and idempotent. External MCP writes and interactive approval
     are future work.
 
-MCP providers are not execution workers. The first MVP uses in-process Pi Dash
-tools plus a per-run in-process GitHub MCP adapter; it does not require Pi Dash
+MCP providers are not execution workers. The first MVP uses in-process karma-team
+tools plus a per-run in-process GitHub MCP adapter; it does not require karma-team
 to build or deploy a second agent service before shipping.
 
 ## 3. Goals
 
-- A new Pi Dash Cloud project can run an issue from day one without installing
-  the Pi Dash CLI or a local coding agent.
+- A new karma-team Cloud project can run an issue from day one without installing
+  the karma-team CLI or a local coding agent.
 - Many tenants can submit runs concurrently without receiving a dedicated
   long-lived agent process.
 - Preserve the current `AgentRun` lifecycle, prompt composition, run detail,
@@ -151,16 +151,16 @@ machine until the hosted filesystem/sandbox phase exists.
 | `Runner`               | A private daemon on a user's development machine. It owns local agent configuration, repository state, worktrees, and a long-lived authenticated session.                   |
 | `Pod`                  | The existing project-scoped queue/routing anchor. Local Runner matching occurs inside a Pod. Cloud runs retain a Pod for project/routing context but do not match a Runner. |
 | `AgentRun`             | The durable request and lifecycle record, regardless of executor. It snapshots `executor_kind`.                                                                             |
-| Pi Dash Cloud Agent    | A stateless PydanticAI model/tool loop executed by generic Celery capacity. It is not represented by a database identity.                                                   |
+| karma-team Cloud Agent | A stateless PydanticAI model/tool loop executed by generic Celery capacity. It is not represented by a database identity.                                                   |
 | Celery worker          | Deployment machinery that executes tasks. It is not a user-visible Worker/Runner and has no tenant affinity.                                                                |
-| MCP server             | A tool provider. MCP does not establish Pi Dash authorization or tenancy; Pi Dash must scope every connection and call.                                                     |
-| Dashboard AI assistant | Interactive chat for navigating/managing Pi Dash. It shares runtime foundations with the Cloud Agent but is not an `AgentRun` executor.                                     |
+| MCP server             | A tool provider. MCP does not establish karma-team authorization or tenancy; karma-team must scope every connection and call.                                               |
+| Dashboard AI assistant | Interactive chat for navigating/managing karma-team. It shares runtime foundations with the Cloud Agent but is not an `AgentRun` executor.                                  |
 
 The important product distinction is:
 
 ```text
 Local Runner:   AgentRun -> a named user's machine -> coding-agent process -> filesystem/tools
-Cloud Agent:    AgentRun -> generic Celery capacity -> LLM API <-> approved Pi Dash/MCP tools
+Cloud Agent:    AgentRun -> generic Celery capacity -> LLM API <-> approved karma-team/MCP tools
 ```
 
 There is no “default in-house Runner” row per project. A project instead stores
@@ -181,9 +181,9 @@ flowchart LR
     Q --> A[Stateless PydanticAI agent]
     A --> M[Platform LLM API]
     A --> T[Per-run tool registry]
-    T --> I[Pi Dash in-process tools]
+    T --> I[karma-team in-process tools]
     T --> G[Per-run GitHub MCP adapter]
-    I --> DB[(Pi Dash data)]
+    I --> DB[(karma-team data)]
     G --> X[GitHub API via existing GitHub App]
     Q --> E[(AgentRun status, events, usage, result)]
 ```
@@ -235,17 +235,17 @@ are passed to each `.run(...)` call.
 
 ### 7.1 Executor enum and per-run snapshot
 
-Define the enum once in `pi_dash/core/agent_execution.py`, then import it from
+Define the enum once in `karma_team/core/agent_execution.py`, then import it from
 both model-owning apps:
 
 ```python
-# pi_dash/core/agent_execution.py
+# karma_team/core/agent_execution.py
 class AgentExecutorKind(models.TextChoices):
     LOCAL_RUNNER = "local_runner", "Local Runner"
-    CLOUD_AGENT = "cloud_agent", "Pi Dash Cloud Agent"
+    CLOUD_AGENT = "cloud_agent", "karma-team Cloud Agent"
 
 
-# pi_dash/runner/models.py
+# karma_team/runner/models.py
 class AgentRun(models.Model):
     executor_kind = models.CharField(
         max_length=24,
@@ -296,7 +296,7 @@ Invariants:
   {
     "v": 1,
     "catalog_version": 1,
-    "tools": ["pidash_get_current_issue", "github_get_file"],
+    "tools": ["karma_team_get_current_issue", "github_get_file"],
     "required_tools": [],
     "limits": {
       "model_requests": 25,
@@ -395,10 +395,10 @@ models.Index(
 
 ### 7.2 Project policy
 
-Add to `pi_dash/db/models/project.py`:
+Add to `karma_team/db/models/project.py`:
 
 ```python
-from pi_dash.core.agent_execution import (
+from karma_team.core.agent_execution import (
     AgentExecutorKind,
     get_default_agent_executor,
 )
@@ -414,7 +414,7 @@ default_agent_executor = models.CharField(
 Importing a Runner-app enum into the DB app would create an undesirable model
 dependency, which is why the enum lives in the neutral core module. Its callable
 reads the validated instance setting
-`DEFAULT_AGENT_EXECUTOR`, whose CE default is `local_runner` and whose Pi Dash
+`DEFAULT_AGENT_EXECUTOR`, whose CE default is `local_runner` and whose karma-team
 Cloud overlay becomes `cloud_agent` at Phase 3. This model-level default covers
 every current `Project.objects.create(...)` path; individual serializers must
 not inject an environment-specific default.
@@ -430,16 +430,16 @@ during migration while still centralizing the default for every future project.
 
 Policy behavior:
 
-- New Pi Dash Cloud projects: the instance default yields `cloud_agent` after
+- New karma-team Cloud projects: the instance default yields `cloud_agent` after
   the feature reaches default-on.
-- Existing Pi Dash Cloud projects: retain `local_runner` during beta, with an
+- Existing karma-team Cloud projects: retain `local_runner` during beta, with an
   explicit administrator switch. The MVP never auto-migrates them.
 - CE/self-hosted: the instance default remains `local_runner`. An operator may
   explicitly set `DEFAULT_AGENT_EXECUTOR=cloud_agent` only after configuring the
   Cloud runtime/provider. Enabling the feature alone does not change the default
   or rewrite existing project rows.
 - Changing the project field affects only future runs.
-- A project admin may choose “Pi Dash Cloud Agent” or “Local Runner.”
+- A project admin may choose “karma-team Cloud Agent” or “Local Runner.”
 - Per-run executor override is not exposed in the MVP API. A future retry UI may
   allow an authorized explicit override by creating a child run.
 
@@ -593,7 +593,7 @@ are capped at 2 KiB. A duplicate `(run, tool_call_id)`:
 - never resubmits when the prior state is `SUBMITTED` or `UNKNOWN` without a
   tool-specific reconciliation check.
 
-For Pi Dash-controlled writes, one `transaction.atomic()` locks/creates the
+For karma-team-controlled writes, one `transaction.atomic()` locks/creates the
 ledger row, performs the domain mutation through the existing service, and
 records `SUCCEEDED`. A crash rolls back both the mutation and ledger state; a
 duplicate tool-call ID either returns the saved result or rejects a fingerprint
@@ -776,7 +776,7 @@ Follow-up rules:
 ### 8.1 Executor-aware prompt composition
 
 The current `prompting/recipes.py` recipes are coding-machine instructions:
-they require `pidash` CLI commands, a worktree, workpad files, Git, tests, and
+they require `karma-team` CLI commands, a worktree, workpad files, Git, tests, and
 PR operations. Passing those recipes to a no-filesystem Cloud Agent would make
 its first successful execution depend on disobeying its own prompt.
 
@@ -831,10 +831,10 @@ The locked recipes encode these outcome rules:
 | Kind               | Cloud behavior                                                                                                                                                                                                            |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Coding task/direct | Complete only work achievable through the listed tools. Repository modification, tests, shell, or an absent required integration yields `outcome=blocked` with evidence/next step; never pretend implementation occurred. |
-| Review             | Inspect only an already-linked GitHub PR and Pi Dash context. Summarize diff/check/review evidence and optionally write the Pi Dash workpad/comment. Never approve, merge, push, or claim tests were run.                 |
+| Review             | Inspect only an already-linked GitHub PR and karma-team context. Summarize diff/check/review evidence and optionally write the karma-team workpad/comment. Never approve, merge, push, or claim tests were run.           |
 | Scheduler          | In `create_issue` mode, de-duplicate and create no more than one backlog issue. Return `noop` when no distinct supported finding exists.                                                                                  |
 
-`pidash_transition_current_issue` is not an automatic “success” step. The model
+`karma_team_transition_current_issue` is not an automatic “success” step. The model
 may call it only when the requested task was actually completed through tools
 and the target state matches the project workflow. A blocked/noop response must
 not move the issue to a completed state.
@@ -851,7 +851,7 @@ wrapper. The Cloud context always includes:
 {
   "run": {
     "executor_kind": "cloud_agent",
-    "available_tools": ["pidash_get_current_issue", "github_get_file"],
+    "available_tools": ["karma_team_get_current_issue", "github_get_file"],
     "unavailable_capabilities": ["filesystem", "shell", "worktree"],
     "limits": { "tool_calls": 20, "writes": 3 }
   }
@@ -900,7 +900,7 @@ Add a lightweight Django app/package (this is code organization and Celery
 task discovery, not a separately deployed service):
 
 ```text
-apps/api/pi_dash/cloud_agent/
+apps/api/karma_team/cloud_agent/
   apps.py           # AppConfig; enables Celery tasks autodiscovery
   agent.py          # module-level stateless PydanticAI Agent
   model.py          # CE instance-configured model builder
@@ -911,19 +911,19 @@ apps/api/pi_dash/cloud_agent/
   events.py         # append/sanitize AgentRunEvent helpers
   tools/
     registry.py     # local + MCP tool assembly and policy filtering
-    internal.py     # thin wrappers around reusable Pi Dash services
+    internal.py     # thin wrappers around reusable karma-team services
     mcp.py          # MCPToolset wrapper, ledger, limits, sanitization
     github_mcp.py   # per-run FastMCP server over existing GithubClient
   errors.py         # stable public error codes
 ```
 
-Add `pi_dash.cloud_agent` to `INSTALLED_APPS` so the existing
+Add `karma_team.cloud_agent` to `INSTALLED_APPS` so the existing
 `app.autodiscover_tasks()` imports `cloud_agent/tasks.py`. The app owns no
 database models or migrations in MVP; its schema fields remain with the `db`
 and `runner` apps that own `Project` and `AgentRun`.
 
 Only code that is truly generic should move from `assistant/runtime/` into a
-neutral `pi_dash/ai_runtime/` package: provider-error classification, usage
+neutral `karma_team/ai_runtime/` package: provider-error classification, usage
 extraction, secret-safe result truncation, and possibly stream batching. The
 Cloud Agent must not import chat-specific `AssistantThread`, `AssistantTurn`,
 or `AssistantMessage` persistence.
@@ -985,10 +985,10 @@ Zero-setup Cloud execution cannot depend on `UserLLMConfig`; otherwise it fails
 the first product goal. Follow the repository's existing EE overlay convention:
 
 ```text
-pi_dash/cloud_agent/model.py
+karma_team/cloud_agent/model.py
   build_instance_cloud_agent_model()
 
-pi_dash/ee/cloud_agent/model_provider.py
+karma_team/ee/cloud_agent/model_provider.py
   resolve_cloud_agent_model(run, actor)
   cloud_agent_model_label(run, actor)
   check_cloud_agent_plan(run, actor)
@@ -996,12 +996,12 @@ pi_dash/ee/cloud_agent/model_provider.py
 ```
 
 The checked-in CE seam delegates to `build_instance_cloud_agent_model()` and
-the numeric instance limits. The Pi Dash Cloud build overlays that module with
+the numeric instance limits. The karma-team Cloud build overlays that module with
 platform credentials, plan/quota, region, and usage-charging policy. The task
 imports only the EE seam, exactly as the assistant imports
 `ee.assistant.model_provider`.
 
-- Pi Dash Cloud overlay: use the instance's one configured platform model in
+- karma-team Cloud overlay: use the instance's one configured platform model in
   MVP plus plan/quota and region policy. There is no per-user model picker or
   model allowlist UI in the first release.
 - CE: use instance-level `CLOUD_AGENT_PROVIDER`, model, base URL, and secret
@@ -1015,7 +1015,7 @@ imports only the EE seam, exactly as the assistant imports
 DECISION UPDATE: the Cloud Agent has no platform model config. Every run
 executes against its creator's BYOK LLM config — the same per-user
 `UserLLMConfig` (provider, model, encrypted key, SSRF-guarded base URL) that
-Pi Dash AI uses, resolved through the assistant's `resolve_byok_model`. One
+karma-team AI uses, resolved through the assistant's `resolve_byok_model`. One
 LLM config powers both; there is no second, instance-level credential.
 `CLOUD_AGENT_ENABLED` remains the operator kill switch. A run whose creator
 has no usable config is refused at creation (`llm_config_missing` /
@@ -1029,7 +1029,7 @@ a candidate with a usable config.
 
 The model sees one bounded tool catalog assembled for the run:
 
-1. **Pi Dash in-process tools** for first-party issue/project operations. These
+1. **karma-team in-process tools** for first-party issue/project operations. These
    call existing service/query functions directly and reuse the assistant's
    scoping rules. Calling the same Django process through MCP would add network
    and auth complexity without a trust-boundary benefit.
@@ -1057,29 +1057,29 @@ thin, deps-appropriate wrapper.
 
 The version-1 catalog is closed and explicit:
 
-| Tool                                  | Runs                    | Risk and enforced scope                                                                                                                                      |
-| ------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `pidash_get_current_issue`            | issue/direct-with-issue | Read only; the run's `work_item_id`, with comments omitted.                                                                                                  |
-| `pidash_list_current_issue_comments`  | issue/direct-with-issue | Read only; current issue, newest 50, bounded text.                                                                                                           |
-| `pidash_list_project_states`          | all                     | Read only; current project.                                                                                                                                  |
-| `pidash_search_project_issues`        | all                     | Read only; current project, model-supplied text/status filters, maximum 50.                                                                                  |
-| `pidash_get_project_issue`            | scheduler/direct        | Read only; ID must resolve inside the current project.                                                                                                       |
-| `pidash_list_linked_code_reviews`     | issue/direct-with-issue | Read only; links already attached to the current issue.                                                                                                      |
-| `pidash_add_current_issue_comment`    | issue/direct-with-issue | Write; current issue only, sanitized Markdown/HTML, 10,000 characters.                                                                                       |
-| `pidash_update_current_issue_workpad` | issue/direct-with-issue | Write; replace current issue workpad, 32,000 characters.                                                                                                     |
-| `pidash_transition_current_issue`     | issue/direct-with-issue | Write; target must be an existing state in the current project; existing transition permission is required.                                                  |
-| `pidash_create_project_issue`         | scheduler               | Write; current project, title ≤255 and description ≤20,000, default/backlog state, no assignees/labels/parent, created by the run actor.                     |
-| `github_get_file`                     | all                     | MCP read; path and ref only, always inject repository from the active project binding; maximum 64 KiB decoded content.                                       |
-| `github_get_linked_pull_request`      | issue/direct-with-issue | MCP read; link ID must already belong to the current issue; aspect is one of `summary`, `diff`, `files`, `checks`, `reviews`, or `comments`; maximum 64 KiB. |
+| Tool                                      | Runs                    | Risk and enforced scope                                                                                                                                      |
+| ----------------------------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `karma_team_get_current_issue`            | issue/direct-with-issue | Read only; the run's `work_item_id`, with comments omitted.                                                                                                  |
+| `karma_team_list_current_issue_comments`  | issue/direct-with-issue | Read only; current issue, newest 50, bounded text.                                                                                                           |
+| `karma_team_list_project_states`          | all                     | Read only; current project.                                                                                                                                  |
+| `karma_team_search_project_issues`        | all                     | Read only; current project, model-supplied text/status filters, maximum 50.                                                                                  |
+| `karma_team_get_project_issue`            | scheduler/direct        | Read only; ID must resolve inside the current project.                                                                                                       |
+| `karma_team_list_linked_code_reviews`     | issue/direct-with-issue | Read only; links already attached to the current issue.                                                                                                      |
+| `karma_team_add_current_issue_comment`    | issue/direct-with-issue | Write; current issue only, sanitized Markdown/HTML, 10,000 characters.                                                                                       |
+| `karma_team_update_current_issue_workpad` | issue/direct-with-issue | Write; replace current issue workpad, 32,000 characters.                                                                                                     |
+| `karma_team_transition_current_issue`     | issue/direct-with-issue | Write; target must be an existing state in the current project; existing transition permission is required.                                                  |
+| `karma_team_create_project_issue`         | scheduler               | Write; current project, title ≤255 and description ≤20,000, default/backlog state, no assignees/labels/parent, created by the run actor.                     |
+| `github_get_file`                         | all                     | MCP read; path and ref only, always inject repository from the active project binding; maximum 64 KiB decoded content.                                       |
+| `github_get_linked_pull_request`          | issue/direct-with-issue | MCP read; link ID must already belong to the current issue; aspect is one of `summary`, `diff`, `files`, `checks`, `reviews`, or `comments`; maximum 64 KiB. |
 
-Phase 1 exposes the nine read tools only. Phase 2 enables the four Pi Dash
+Phase 1 exposes the nine read tools only. Phase 2 enables the four karma-team
 writes behind `CLOUD_AGENT_WRITES_ENABLED`; that Phase 2 set is the complete
 MVP. The registry never exposes arbitrary issue/project/repository IDs as a way
 to escape the run scope. Every list has a fixed maximum and every string/result
 has a schema limit. External MCP writes, deletion, arbitrary URL fetch, and Git
 mutation remain absent even if a server advertises them.
 
-Issue runs without an active GitHub binding remain useful through Pi Dash tools;
+Issue runs without an active GitHub binding remain useful through karma-team tools;
 the two GitHub tools are simply absent and the prompt lists that limitation.
 Scheduler runs can create at most one issue per run even though the global write
 budget is three. Each write tool may be submitted at most once per run, so a
@@ -1150,7 +1150,7 @@ Start with this code-owned definition:
 MCPServerDefinition(
     key="github",
     transport="in_process",
-    factory="pi_dash.cloud_agent.tools.github_mcp.build_github_mcp",
+    factory="karma_team.cloud_agent.tools.github_mcp.build_github_mcp",
     allowed_tools=(
         "github_get_file",
         "github_get_linked_pull_request",
@@ -1200,7 +1200,7 @@ metadata plus an unsupported-content indication rather than arbitrary bytes.
 
 PAT, OAuth, GitLab, unverified/degraded/revoked accounts, bindings without a
 GitHub App installation, and GitHub Enterprise hosts are not Cloud MCP inputs
-in MVP. They only make GitHub tools unavailable; they do not block the Pi Dash
+in MVP. They only make GitHub tools unavailable; they do not block the karma-team
 tool-only run. General remote MCP and connection management is a later phase.
 
 ### 10.4 Tool authorization and attribution
@@ -1217,18 +1217,18 @@ shared service user. At task start:
 Every first-party tool still revalidates its target. Every external tool
 receives a run-scoped credential. Writes should carry both the ordinary actor
 and an execution marker such as `created_via="cloud_agent"` or
-`speaker_label="Pi Dash Cloud Agent"` where the domain supports it.
+`speaker_label="karma-team Cloud Agent"` where the domain supports it.
 
 Automatic triggers use the human-principal resolution matrix in §8; the global
 agent bot is rejected before an AgentRun exists. An external provider may show
 the connected integration/app identity rather than the human in its own audit
-log. Pi Dash therefore records `created_by` as the responsible human,
+log. karma-team therefore records `created_by` as the responsible human,
 `created_via="cloud_agent"`, the connection/server key, and the provider's
 external operation ID. The design does not falsely promise that every external
 system can impersonate the human principal.
 
 Tool annotations are hints, not authorization. A server marking a tool
-read-only does not override Pi Dash's allowlist or enforcement.
+read-only does not override karma-team's allowlist or enforcement.
 
 ### 10.5 Write policy and idempotency
 
@@ -1256,7 +1256,7 @@ idempotent. Therefore:
 
 - Every attempted tool call follows the `AgentRunToolCall` state machine in
   §7.5; transcript events are only its UI projection.
-- Pi Dash-controlled write tools use an idempotency key derived from
+- karma-team-controlled write tools use an idempotency key derived from
   `(run_id, tool_call_id)` and persist the prior outcome. Reuse of a tool-call ID
   with a different request fingerprint is rejected rather than resubmitted.
 - The atomic write callable locks AgentRun, confirms
@@ -1296,7 +1296,7 @@ The synchronous wrapper calls `close_old_connections()` before and after the
 event loop. The async body carries IDs/plain dataclasses across awaits, never a
 live QuerySet, transaction, or mutable Django model instance.
 
-MVP sends the task to the existing default Celery queue, so every normal Pi Dash
+MVP sends the task to the existing default Celery queue, so every normal karma-team
 worker can consume it and no deployment can accidentally enable Cloud while
 leaving a new queue unserved. A dedicated `cloud_agent` queue is a Phase 4
 operational change, not an MVP setting. It still would not be a standalone
@@ -1599,7 +1599,7 @@ the dispatcher seam must allow it later.
 
 Add a project-admin setting named **Default AI execution**:
 
-- **Pi Dash Cloud Agent — recommended:** works without local installation;
+- **karma-team Cloud Agent — recommended:** works without local installation;
   executes only through connected Cloud tools; no filesystem or shell.
 - **Local Runner:** uses a connected development machine and its coding agent;
   supports repository/filesystem execution according to that Runner's setup.
@@ -1644,7 +1644,7 @@ The computed options field is app/session API only in MVP.
 Expose `executor_kind` in `AgentRunSerializer` and API types. Run lists/details
 show an executor badge:
 
-- `Pi Dash Cloud Agent`
+- `karma-team Cloud Agent`
 - `Local Runner · <runner name>` once assigned
 
 Also expose `cancel_requested_at` so a running Cloud row can render
@@ -1697,13 +1697,13 @@ Runner” endpoint is local-only and returns a stable conflict for Cloud runs.
 
 ### 13.3 Day-one flow
 
-On Pi Dash Cloud after default-on rollout:
+On karma-team Cloud after default-on rollout:
 
-1. the Pi Dash Cloud instance default causes every project-creation path to
+1. the karma-team Cloud instance default causes every project-creation path to
    persist `default_agent_executor=cloud_agent`;
 2. the user creates/assigns an issue and selects Run AI (or enters an automated
    phase);
-3. Pi Dash creates and executes the Cloud run immediately; and
+3. karma-team creates and executes the Cloud run immediately; and
 4. local Runner setup is offered as an optional upgrade for repository and
    shell capabilities, not a prerequisite.
 
@@ -1731,7 +1731,7 @@ Reuse those mechanics, but keep product records separate:
 | Durable root       | `AssistantThread` / `AssistantTurn`                     | `AgentRun`                               |
 | History            | Prior completed assistant turns                         | None across runs in MVP                  |
 | Default credential | User BYOK in CE; Cloud overlay may provide platform key | Platform/instance Cloud Agent provider   |
-| Tools              | Pi Dash navigation/management tools                     | Bounded execution tools + approved MCP   |
+| Tools              | karma-team navigation/management tools                  | Bounded execution tools + approved MCP   |
 | UI events          | `AssistantEvent` + assistant SSE                        | `AgentRunEvent` + run detail stream/poll |
 | Actor              | Thread user                                             | `AgentRun.created_by`                    |
 
@@ -1777,7 +1777,7 @@ not depend on Redis recovery.
 
 ## 16. Configuration
 
-Add typed entries to `pi_dash/config/registry.py` and settings. These values are
+Add typed entries to `karma_team/config/registry.py` and settings. These values are
 the launch profile, not examples:
 
 | Setting                                          |     CE default | Validation / meaning                                           |
@@ -1818,7 +1818,7 @@ the launch profile, not examples:
 | `CLOUD_AGENT_BLOCK_PRIVATE_URLS`                 |         `true` | Applies when remote MCP is introduced                          |
 
 There is no platform model credential: runs use each creator's BYOK key,
-stored encrypted on `UserLLMConfig` exactly as for Pi Dash AI. Cloud/EE
+stored encrypted on `UserLLMConfig` exactly as for karma-team AI. Cloud/EE
 overlays may reduce limits or deny admission by plan, but may not raise past
 operator hard caps without explicit operator configuration. OSS/CE has no
 billing-plan dependency: configured instances use the table limits directly.
@@ -1927,7 +1927,7 @@ not on the Phase 2 release path and contains no remote write test.
 ### 18.4 End-to-end and regression
 
 - new Cloud project -> issue with linked GitHub PR -> Run AI -> inspect the PR
-  through MCP -> add a Pi Dash issue comment or workpad update -> structured
+  through MCP -> add a karma-team issue comment or workpad update -> structured
   visible result and tool audit;
 - scheduler Cloud run -> search current project -> create at most one backlog
   issue idempotently -> scheduler hooks advance exactly once;
@@ -1969,7 +1969,7 @@ not on the Phase 2 release path and contains no remote write test.
 
 ### Phase 2 — bounded execution beta
 
-- Enable exactly the four atomic Pi Dash writes from §10.1; GitHub MCP remains
+- Enable exactly the four atomic karma-team writes from §10.1; GitHub MCP remains
   read-only.
 - Add project setting, run executor badge, tool activity, cost metrics, and
   operator kill switches.
@@ -1977,7 +1977,7 @@ not on the Phase 2 release path and contains no remote write test.
 
 ### Phase 3 — Cloud default
 
-- Make new Pi Dash Cloud projects default to `cloud_agent`.
+- Make new karma-team Cloud projects default to `cloud_agent`.
 - Keep self-hosted default local unless configured.
 - Preserve explicit local projects and do not rewrite queued runs.
 - Existing projects remain local unless an administrator explicitly switches
@@ -2013,7 +2013,7 @@ Deploy each phase with this order:
    and tenant isolation.
 5. Enable writes for selected beta workspaces through the EE admission hook;
    the global write setting remains an operator kill switch. Only after Phase 2
-   acceptance may Pi Dash Cloud set the new-project default to Cloud.
+   acceptance may karma-team Cloud set the new-project default to Cloud.
 
 Rollback is flag-first: set `CLOUD_AGENT_ENABLED=false`; new creation is
 rejected, the scanner closes queued rows, running tasks close at their next
@@ -2086,7 +2086,7 @@ hosted environment phase.
 | Models           | `core/agent_execution.py`; `db/models/project.py`; `runner/models.py` executor/dispatch/cancel/error fields, constraints, and `AgentRunToolCall`; additive/data migrations                               |
 | Creation/routing | `orchestration/service.py`, `orchestration/scheduling.py`, scheduler dispatch, direct-run validation/views, human-principal resolver, matcher local filter, `cloud_agent/dispatch.py`                    |
 | Prompting        | executor axis in `prompting/recipes.py`; locked Cloud sections/registry; executor/tool context and v2 manifest in composer/context; executor-aware preview/validation                                    |
-| Runtime          | new `pi_dash/cloud_agent/` package; only provider errors, usage extraction, and redaction move to neutral `ai_runtime` utilities                                                                         |
+| Runtime          | new `karma_team/cloud_agent/` package; only provider errors, usage extraction, and redaction move to neutral `ai_runtime` utilities                                                                      |
 | Provider         | CE builder in `cloud_agent/model.py`; checked-in/overlayable `ee/cloud_agent/model_provider.py` seam; instance secret/config checks                                                                      |
 | MCP/GitHub       | requirements pins; `tools/mcp.py`; per-run `tools/github_mcp.py`; bounded read additions to existing `utils/github_client.py`                                                                            |
 | Lifecycle        | new `runner/services/agent_run_finalization.py`; local adapter and terminal-effect tasks/cursors/reconciler; Cloud task, dispatch/scanner/sweeper, ledger/events, durable cancellation and Redis wake-up |
@@ -2098,11 +2098,11 @@ hosted environment phase.
 
 The MVP is complete when all of the following are true:
 
-1. A new Pi Dash Cloud project can create and complete a Cloud `AgentRun`
+1. A new karma-team Cloud project can create and complete a Cloud `AgentRun`
    without any CLI, Runner, local agent, user LLM key, or filesystem.
 2. The run is never offered to the Pod matcher and has no Runner identity.
 3. At least one useful issue-execution flow completes through a controlled MCP
-   GitHub read plus an atomic Pi Dash comment/workpad write and appears in the
+   GitHub read plus an atomic karma-team comment/workpad write and appears in the
    issue/run audit trail under the correct actor.
 4. Two tenants can execute concurrently in the same Celery deployment with
    isolation tests proving no deps, credentials, tools, results, or events leak.
@@ -2142,11 +2142,11 @@ There are no unresolved product choices blocking implementation:
 | Model             | Instance/platform-owned PydanticAI `openai` or `anthropic` provider; one configured model, no user BYOK/model picker         |
 | First MCP         | Per-run in-process FastMCP GitHub adapter using the existing verified GitHub App installation and project repository binding |
 | MCP operations    | `github_get_file` and `github_get_linked_pull_request`, read-only                                                            |
-| Pi Dash writes    | Phase 1 read-only; Phase 2 enables only current-issue comment/workpad/transition and one scheduler-created backlog issue     |
+| karma-team writes | Phase 1 read-only; Phase 2 enables only current-issue comment/workpad/transition and one scheduler-created backlog issue     |
 | Approval          | No interactive approval; unavailable/high-risk tools are absent/denied                                                       |
 | Limits            | Numeric launch profile in §16; CE uses it directly and EE may only reduce it per plan/workspace                              |
 | Existing projects | Remain `local_runner` until an admin opts in; no bulk/prompted migration in MVP                                              |
-| New projects      | Local by default in CE; Cloud by default in Pi Dash Cloud only after Phase 3 acceptance                                      |
+| New projects      | Local by default in CE; Cloud by default in karma-team Cloud only after Phase 3 acceptance                                   |
 | Celery deployment | Existing default queue and generic workers; no independent service                                                           |
 | MCP protocol      | In-process for launch; remote adapter pinned to `2025-11-25`; no 2026-07-28 claim                                            |
 
@@ -2161,13 +2161,13 @@ neutral. They do not require a design change.
 - Existing Runner/Pod design: `../issue_runner/design.md`
 - Existing AI assistant design: `../integrate_ai_agent/README.md`
 - Existing Loop/assistant reuse precedent: `../loop_project_management/design.md`
-- Current models: `../../apps/api/pi_dash/runner/models.py`
-- Current matcher: `../../apps/api/pi_dash/runner/services/matcher.py`
-- Current assistant task pattern: `../../apps/api/pi_dash/assistant/tasks.py`
-- Current terminal hooks: `../../apps/api/pi_dash/runner/services/run_lifecycle.py`
-- Current prompt recipes: `../../apps/api/pi_dash/prompting/recipes.py`
-- Current GitHub App/client: `../../apps/api/pi_dash/db/models/integration/github.py`
-  and `../../apps/api/pi_dash/utils/github_client.py`
+- Current models: `../../apps/api/karma_team/runner/models.py`
+- Current matcher: `../../apps/api/karma_team/runner/services/matcher.py`
+- Current assistant task pattern: `../../apps/api/karma_team/assistant/tasks.py`
+- Current terminal hooks: `../../apps/api/karma_team/runner/services/run_lifecycle.py`
+- Current prompt recipes: `../../apps/api/karma_team/prompting/recipes.py`
+- Current GitHub App/client: `../../apps/api/karma_team/db/models/integration/github.py`
+  and `../../apps/api/karma_team/utils/github_client.py`
 - [PydanticAI MCP client documentation](https://ai.pydantic.dev/mcp/client/)
 - [PydanticAI 1.107.0 release](https://github.com/pydantic/pydantic-ai/releases/tag/v1.107.0)
 - [FastMCP package releases](https://pypi.org/project/fastmcp/)

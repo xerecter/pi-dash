@@ -6,11 +6,11 @@
 
 import React, { useEffect, useState } from "react";
 import { CircleCheck, XCircle } from "lucide-react";
-// pi dash imports
-import { API_BASE_URL } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { AuthService } from "@pi-dash/services";
-import { Input, Spinner } from "@pi-dash/ui";
+// karma-team imports
+import { API_BASE_URL } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { AuthService } from "@karma-team/services";
+import { Input, Spinner } from "@karma-team/ui";
 // hooks
 import useTimer from "@/hooks/use-timer";
 // types

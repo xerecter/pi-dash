@@ -7,8 +7,8 @@
 import { observer } from "mobx-react";
 import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
-// pi dash imports
-import type { IUserTheme } from "@pi-dash/types";
+// karma-team imports
+import type { IUserTheme } from "@karma-team/types";
 
 type Props = {
   control: Control<IUserTheme>;

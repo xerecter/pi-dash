@@ -5,8 +5,8 @@
  */
 
 import type { Hocuspocus } from "@hocuspocus/server";
-import type { BroadcastedEvent } from "@pi-dash/editor";
-import { logger } from "@pi-dash/logger";
+import type { BroadcastedEvent } from "@karma-team/editor";
+import { logger } from "@karma-team/logger";
 import { Redis } from "@/extensions/redis";
 import { AppError } from "@/lib/errors";
 

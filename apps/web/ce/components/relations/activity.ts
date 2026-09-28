@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TIssueActivity } from "@pi-dash/types";
+import type { TIssueActivity } from "@karma-team/types";
 
 export const getRelationActivityContent = (activity: TIssueActivity | undefined): string | undefined => {
   if (!activity) return;

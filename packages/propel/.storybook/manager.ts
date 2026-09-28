@@ -7,14 +7,14 @@
 import { addons } from "storybook/manager-api";
 import { create } from "storybook/theming";
 
-const piDashTheme = create({
+const karmaTeamTheme = create({
   base: "dark",
-  brandTitle: "Pi Dash UI",
+  brandTitle: "karma-team UI",
   brandUrl: "https://airepublic.com",
-  brandImage: "pi-dash-lockup-light.svg",
+  brandImage: "karma-team-lockup-light.svg",
   brandTarget: "_self",
 });
 
 addons.setConfig({
-  theme: piDashTheme,
+  theme: karmaTeamTheme,
 });

@@ -8,9 +8,9 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-// pi dash utils
-import { useTranslation } from "@pi-dash/i18n";
-import { cn } from "@pi-dash/utils";
+// karma-team utils
+import { useTranslation } from "@karma-team/i18n";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useSticky } from "@/hooks/use-stickies";
 // components

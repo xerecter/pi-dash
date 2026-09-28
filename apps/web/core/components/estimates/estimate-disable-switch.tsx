@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { ToggleSwitch } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { ToggleSwitch } from "@karma-team/ui";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useProject } from "@/hooks/store/use-project";
@@ -37,12 +37,8 @@ export const EstimateDisableSwitch = observer(function EstimateDisableSwitch(pro
       });
       setToast({
         type: TOAST_TYPE.SUCCESS,
-        title: currentProjectActiveEstimate
-          ? t("Success!")
-          : t("Success!"),
-        message: currentProjectActiveEstimate
-          ? t("Estimates have been disabled.")
-          : t("Estimates have been enabled."),
+        title: currentProjectActiveEstimate ? t("Success!") : t("Success!"),
+        message: currentProjectActiveEstimate ? t("Estimates have been disabled.") : t("Estimates have been enabled."),
       });
     } catch (_err) {
       setToast({

@@ -5,11 +5,11 @@
  */
 
 import { Controller, useForm } from "react-hook-form";
-import { Button } from "@pi-dash/propel/button";
-import { Calendar } from "@pi-dash/propel/calendar";
-import { CloseIcon } from "@pi-dash/propel/icons";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
-import { renderFormattedPayloadDate, renderFormattedDate, getDate } from "@pi-dash/utils";
+import { Button } from "@karma-team/propel/button";
+import { Calendar } from "@karma-team/propel/calendar";
+import { CloseIcon } from "@karma-team/propel/icons";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
+import { renderFormattedPayloadDate, renderFormattedDate, getDate } from "@karma-team/utils";
 import { DateFilterSelect } from "./date-filter-select";
 type Props = {
   title: string;

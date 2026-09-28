@@ -53,9 +53,9 @@ venv
 *.pyc
 staticfiles
 # Django collectstatic output for the api app (STATIC_ROOT in
-# apps/api/pi_dash/settings/common.py). Regenerated on every deploy;
+# apps/api/karma_team/settings/common.py). Regenerated on every deploy;
 # never source-of-truth.
-apps/api/pi_dash/static-assets/
+apps/api/karma_team/static-assets/
 mediafiles
 .env
 .DS_Store
@@ -88,13 +88,13 @@ package-lock.json
 
 .secrets
 tmp/
-.pidash/
+.karma-team/
 .pnpm-store/
 
 ## packages
 dist
 .temp/
-deploy/selfhost/pi-dash-app/
+deploy/selfhost/karma-team-app/
 
 ## Storybook
 *storybook.log

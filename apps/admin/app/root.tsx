@@ -24,9 +24,9 @@ import "@fontsource/material-symbols-rounded";
 // eslint-disable-next-line import/no-unassigned-import
 import "@fontsource/ibm-plex-mono";
 
-const APP_TITLE = "Pi Dash | Open-source AI agent orchestration platform";
+const APP_TITLE = "karma-team | Open-source AI agent orchestration platform";
 const APP_DESCRIPTION =
-  "Pi Dash is an open-source AI agent orchestration platform built for As Coding — define what needs to be built and let coding agents handle the implementation in the background.";
+  "karma-team is an open-source AI agent orchestration platform built for As Coding — define what needs to be built and let coding agents handle the implementation in the background.";
 
 export const links: LinksFunction = () => [
   { rel: "apple-touch-icon", sizes: "180x180", href: appleTouchIcon },

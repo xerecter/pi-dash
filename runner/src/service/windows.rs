@@ -4,16 +4,16 @@ use tokio::process::Command;
 
 use crate::util::paths::Paths;
 
-const TASK_NAME: &str = "PiDash";
+const TASK_NAME: &str = "KarmaTeam";
 
 /// Register a per-user scheduled task that starts the daemon at logon.
 ///
 /// This mirrors the user-level systemd/launchd setup used on Unix-like hosts:
 /// it does not require administrator privileges and keeps the daemon scoped to
-/// the interactive user who installed Pi Dash.
+/// the interactive user who installed karma-team.
 pub async fn write_unit(paths: &Paths) -> Result<()> {
     paths.ensure()?;
-    let exe = std::env::current_exe().context("resolving current pidash.exe path")?;
+    let exe = std::env::current_exe().context("resolving current karma-team.exe path")?;
     let exe = validate_exe_path(&exe)?;
     let task_run = format!("\"{exe}\" __run");
     run_schtasks(&[
@@ -39,7 +39,7 @@ pub async fn uninstall(_paths: &Paths) -> Result<()> {
     }
 }
 
-/// Self-heal for `pidash restart`: re-register the task when it's gone.
+/// Self-heal for `karma-team restart`: re-register the task when it's gone.
 ///
 /// Unlike systemd/launchd there is no file to stat, so existence is decided
 /// by `schtasks /Query` succeeding. Deliberately *not* by classifying its

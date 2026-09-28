@@ -7,14 +7,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import { CircleAlert, CircleCheck, CirclePause, CircleX, Clock3, LoaderCircle, RotateCw } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-// pi dash imports
-import { Badge } from "@pi-dash/propel/badge";
-import type { TBadgeVariant } from "@pi-dash/propel/badge";
-import { Button } from "@pi-dash/propel/button";
-import type { TAgentRunStatus, TIssue, TIssueAgentRunSummary, TIssueAgentTicker } from "@pi-dash/types";
-import { AlertModalCore } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+// karma-team imports
+import { Badge } from "@karma-team/propel/badge";
+import type { TBadgeVariant } from "@karma-team/propel/badge";
+import { Button } from "@karma-team/propel/button";
+import type { TAgentRunStatus, TIssue, TIssueAgentRunSummary, TIssueAgentTicker } from "@karma-team/types";
+import { AlertModalCore } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // local imports
 import type { TIssueOperations } from "./root";
 import { useAbortRun } from "./use-abort-run";
@@ -169,7 +169,7 @@ function getRunView(
         title: t("AI agent is queued"),
         detail:
           run.executor_kind === "cloud_agent"
-            ? t("Waiting for Pi Dash Cloud Agent capacity.")
+            ? t("Waiting for karma-team Cloud Agent capacity.")
             : (runnerDetail ?? t("Waiting for an available runner.")),
         badge: t("Queued"),
         badgeVariant: "neutral",
@@ -190,7 +190,7 @@ function getRunView(
         title: t("AI agent is working on this issue"),
         detail:
           run.executor_kind === "cloud_agent"
-            ? t("Pi Dash Cloud Agent is using the project's bounded tools.")
+            ? t("karma-team Cloud Agent is using the project's bounded tools.")
             : (liveDetail ?? runnerDetail),
         badge: t("Working"),
         badgeVariant: "brand",
@@ -452,7 +452,7 @@ export function IssueAgentStatusPanel({ workspaceSlug, projectId, issueId, issue
             <div className="rounded-sm bg-layer-2 px-2 py-1">
               <span className="block text-placeholder">{t("Executor")}</span>
               <span className="text-primary">
-                {status.latest_run.executor_kind === "cloud_agent" ? t("Pi Dash Cloud Agent") : t("Local Runner")}
+                {status.latest_run.executor_kind === "cloud_agent" ? t("karma-team Cloud Agent") : t("Local Runner")}
               </span>
             </div>
           ) : null}

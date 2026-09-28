@@ -6,10 +6,10 @@
 
 import { set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
-// pi dash imports
-import { UserService } from "@pi-dash/services";
-import type { TUserProfile } from "@pi-dash/types";
-import { EStartOfTheWeek } from "@pi-dash/types";
+// karma-team imports
+import { UserService } from "@karma-team/services";
+import type { TUserProfile } from "@karma-team/types";
+import { EStartOfTheWeek } from "@karma-team/types";
 // store
 import type { RootStore } from "@/store/root.store";
 

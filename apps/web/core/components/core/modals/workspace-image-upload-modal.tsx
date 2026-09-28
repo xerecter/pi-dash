@@ -8,14 +8,14 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { useDropzone } from "react-dropzone";
-// pi dash imports
-import { ACCEPTED_AVATAR_IMAGE_MIME_TYPES_FOR_REACT_DROPZONE, MAX_FILE_SIZE } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { UserCirclePropertyIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { EFileAssetType } from "@pi-dash/types";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
-import { getAssetIdFromUrl, getFileURL, checkURLValidity } from "@pi-dash/utils";
+// karma-team imports
+import { ACCEPTED_AVATAR_IMAGE_MIME_TYPES_FOR_REACT_DROPZONE, MAX_FILE_SIZE } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { UserCirclePropertyIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { EFileAssetType } from "@karma-team/types";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
+import { getAssetIdFromUrl, getFileURL, checkURLValidity } from "@karma-team/utils";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 // services

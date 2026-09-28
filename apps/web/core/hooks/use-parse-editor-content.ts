@@ -5,15 +5,15 @@
  */
 
 import { useCallback } from "react";
-// pi dash types
-import type { TSearchEntities } from "@pi-dash/types";
+// karma-team types
+import type { TSearchEntities } from "@karma-team/types";
 // helpers
-import { getBase64Image, getEditorAssetSrc } from "@pi-dash/utils";
-import type { TCustomComponentsMetaData } from "@pi-dash/utils";
+import { getBase64Image, getEditorAssetSrc } from "@karma-team/utils";
+import type { TCustomComponentsMetaData } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
-// pi dash web hooks
-import { useAdditionalEditorMention } from "@/pi-dash-web/hooks/use-additional-editor-mention";
+// karma-team web hooks
+import { useAdditionalEditorMention } from "@/karma-team-web/hooks/use-additional-editor-mention";
 
 type TArgs = {
   projectId?: string;

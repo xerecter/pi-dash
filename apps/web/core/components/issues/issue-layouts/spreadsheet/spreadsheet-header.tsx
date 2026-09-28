@@ -7,11 +7,11 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // constants
-import { SPREADSHEET_SELECT_GROUP } from "@pi-dash/constants";
+import { SPREADSHEET_SELECT_GROUP } from "@karma-team/constants";
 // ui
-import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@pi-dash/types";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@karma-team/types";
 // components
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import { MultipleSelectGroupAction } from "@/components/core/multiple-select";
 // hooks
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";

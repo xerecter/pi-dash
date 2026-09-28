@@ -4,15 +4,15 @@
  * See the LICENSE file for details.
  */
 
-// pi dash package imports
+// karma-team package imports
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-import type { IInsightField } from "@pi-dash/constants";
-import { ANALYTICS_INSIGHTS_FIELDS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { IAnalyticsResponse, TAnalyticsTabsBase } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import type { IInsightField } from "@karma-team/constants";
+import { ANALYTICS_INSIGHTS_FIELDS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { IAnalyticsResponse, TAnalyticsTabsBase } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";
 // services
@@ -29,9 +29,7 @@ const getInsightLabel = (
   t: (key: string, params?: Record<string, unknown>) => string
 ) => {
   if (analyticsType === "work-items") {
-    return isEpic
-      ? t(item.i18nKey, { entity: t("Epics") })
-      : t(item.i18nKey, { entity: t("Work items") });
+    return isEpic ? t(item.i18nKey, { entity: t("Epics") }) : t(item.i18nKey, { entity: t("Work items") });
   }
 
   // Get the base translation with entity

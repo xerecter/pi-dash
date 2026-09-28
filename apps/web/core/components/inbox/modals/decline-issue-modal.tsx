@@ -6,10 +6,10 @@
 
 import React, { useState } from "react";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import type { TIssue } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import type { TIssue } from "@karma-team/types";
 // ui
-import { AlertModalCore } from "@pi-dash/ui";
+import { AlertModalCore } from "@karma-team/ui";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 

@@ -6,11 +6,11 @@
 
 import { observable, action, makeObservable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import type { TCreateModalStoreTypes, TCreatePageModal } from "@pi-dash/constants";
-import { DEFAULT_CREATE_PAGE_MODAL_DATA, EPageAccess } from "@pi-dash/constants";
-import type { TProfileSettingsTabs } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
+// karma-team imports
+import type { TCreateModalStoreTypes, TCreatePageModal } from "@karma-team/constants";
+import { DEFAULT_CREATE_PAGE_MODAL_DATA, EPageAccess } from "@karma-team/constants";
+import type { TProfileSettingsTabs } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
 // lib
 import { store } from "@/lib/store-context";
 

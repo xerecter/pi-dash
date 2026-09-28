@@ -8,19 +8,19 @@ import { useState } from "react";
 import { omit } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { ARCHIVABLE_STATE_GROUPS, EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import type { TIssue } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { ContextMenu, CustomMenu } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { ARCHIVABLE_STATE_GROUPS, EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import type { TIssue } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { ContextMenu, CustomMenu } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useIssues } from "@/hooks/store/use-issues";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import { useUserPermissions } from "@/hooks/store/user";
-// pi-dash-web imports
-import { DuplicateWorkItemModal } from "@/pi-dash-web/components/issues/issue-layouts/quick-action-dropdowns/duplicate-modal";
+// karma-team-web imports
+import { DuplicateWorkItemModal } from "@/karma-team-web/components/issues/issue-layouts/quick-action-dropdowns/duplicate-modal";
 // helper
 import { ArchiveIssueModal } from "../../archive-issue-modal";
 import { DeleteIssueModal } from "../../delete-issue-modal";

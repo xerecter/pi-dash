@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { IUser, TUserProfile } from "@pi-dash/types";
+// karma-team imports
+import { API_BASE_URL } from "@karma-team/constants";
+import type { IUser, TUserProfile } from "@karma-team/types";
 // api service
 import { APIService } from "../api.service";
 

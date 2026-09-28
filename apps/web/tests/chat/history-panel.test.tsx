@@ -8,8 +8,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 // Mock the lightweight class-name helper so the test doesn't pull the full
-// @pi-dash/utils barrel (which transitively imports @pi-dash/constants).
-vi.mock("@pi-dash/utils", () => ({
+// @karma-team/utils barrel (which transitively imports @karma-team/constants).
+vi.mock("@karma-team/utils", () => ({
   cn: (...args: unknown[]) => args.filter(Boolean).join(" "),
 }));
 

@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 
-import type { TProjectActivity } from "@/pi-dash-web/types";
+import type { TProjectActivity } from "@/karma-team-web/types";
 import { ActivityBlockComponent } from "./activity-block";
 import { iconsMap, messages } from "./helper";
 

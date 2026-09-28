@@ -7,8 +7,8 @@
 import { useMemo, useState } from "react";
 import { Controller } from "react-hook-form";
 import type { Control, FieldErrors, FieldValues, Path } from "react-hook-form";
-import { useTranslation } from "@pi-dash/i18n";
-import { TextArea, ToggleSwitch } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { TextArea, ToggleSwitch } from "@karma-team/ui";
 import { humanizeRrule } from "./rrule-text";
 
 type RhfPath<T extends FieldValues> = Path<T>;

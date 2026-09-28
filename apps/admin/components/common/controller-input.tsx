@@ -9,9 +9,9 @@ import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
 // icons
 import { Eye, EyeOff } from "lucide-react";
-// pi dash internal packages
-import { Input } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team internal packages
+import { Input } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   control: Control<any>;

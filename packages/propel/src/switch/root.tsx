@@ -60,6 +60,6 @@ function Switch({ value, onChange, label, size = "sm", disabled, className }: IT
   );
 }
 
-Switch.displayName = "pi-dash-ui-switch";
+Switch.displayName = "karma-team-ui-switch";
 
 export { Switch };

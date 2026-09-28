@@ -9,11 +9,11 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { TPageVersion } from "@pi-dash/types";
-import { Avatar } from "@pi-dash/ui";
-import { cn, getFileURL, renderFormattedDate, renderFormattedTime } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { TPageVersion } from "@karma-team/types";
+import { Avatar } from "@karma-team/ui";
+import { cn, getFileURL, renderFormattedDate, renderFormattedTime } from "@karma-team/utils";
 // components
 import type { TPageRootHandlers } from "@/components/pages/editor/page-root";
 // hooks

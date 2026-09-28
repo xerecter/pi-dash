@@ -7,17 +7,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { Placement } from "@popperjs/core";
 import { observer } from "mobx-react";
-// pi dash helpers
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+// karma-team helpers
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
-import { LabelPropertyIcon } from "@pi-dash/propel/icons";
+import { useTranslation } from "@karma-team/i18n";
+import { LabelPropertyIcon } from "@karma-team/propel/icons";
 // types
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IIssueLabel } from "@pi-dash/types";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IIssueLabel } from "@karma-team/types";
 // ui
 // hooks
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import { useLabel } from "@/hooks/store/use-label";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 import { LabelDropdown } from "./label-dropdown";

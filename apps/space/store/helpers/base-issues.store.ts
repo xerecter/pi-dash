@@ -7,9 +7,9 @@
 import { concat, get, set, uniq, update } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import { ALL_ISSUES } from "@pi-dash/constants";
-import { SitesIssueService } from "@pi-dash/services";
+// karma-team imports
+import { ALL_ISSUES } from "@karma-team/constants";
+import { SitesIssueService } from "@karma-team/services";
 import type {
   TIssueGroupByOptions,
   TGroupedIssues,
@@ -20,7 +20,7 @@ import type {
   TIssuePaginationData,
   TGroupedIssueCount,
   TPaginationData,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // types
 import type { IIssue, TIssuesResponse } from "@/types/issue";
 import type { RootStore } from "../root.store";

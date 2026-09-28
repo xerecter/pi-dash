@@ -8,10 +8,10 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import { CheckCircle } from "lucide-react";
 import { Tab } from "@headlessui/react";
-// pi dash imports
+// karma-team imports
 // helpers
-import type { EProductSubscriptionEnum, TBillingFrequency, TSubscriptionPrice } from "@pi-dash/types";
-import { cn, getBaseSubscriptionName, getSubscriptionName } from "@pi-dash/utils";
+import type { EProductSubscriptionEnum, TBillingFrequency, TSubscriptionPrice } from "@karma-team/types";
+import { cn, getBaseSubscriptionName, getSubscriptionName } from "@karma-team/utils";
 
 export type TBasePaidPlanCardProps = {
   planVariant: EProductSubscriptionEnum;
@@ -37,8 +37,8 @@ export const BasePaidPlanCard = observer(function BasePaidPlanCard(props: TBaseP
   // states
   const [selectedPlan, setSelectedPlan] = useState<TBillingFrequency>("month");
   const basePlan = getBaseSubscriptionName(planVariant);
-  // Pi Dash details
-  const piDashName = getSubscriptionName(planVariant);
+  // karma-team details
+  const karmaTeamName = getSubscriptionName(planVariant);
 
   return (
     <div className="flex flex-col rounded-xl border border-subtle bg-layer-2 px-3 py-6">
@@ -67,7 +67,7 @@ export const BasePaidPlanCard = observer(function BasePaidPlanCard(props: TBaseP
           {prices.map((price: TSubscriptionPrice) => (
             <Tab.Panel key={price.key}>
               <div className="pt-6 text-center">
-                <div className="text-h4-medium">Pi Dash {piDashName}</div>
+                <div className="text-h4-medium">karma-team {karmaTeamName}</div>
                 {renderActionButton(price)}
               </div>
               <div className="px-2 pt-6 pb-2">

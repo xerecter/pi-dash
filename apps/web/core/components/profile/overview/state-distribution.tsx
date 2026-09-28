@@ -4,14 +4,14 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { STATE_GROUPS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { PieChart } from "@pi-dash/propel/charts/pie-chart";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
-import type { IUserProfileData, IUserStateDistribution } from "@pi-dash/types";
-import { Card } from "@pi-dash/ui";
-import { capitalizeFirstLetter } from "@pi-dash/utils";
+// karma-team imports
+import { STATE_GROUPS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { PieChart } from "@karma-team/propel/charts/pie-chart";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
+import type { IUserProfileData, IUserStateDistribution } from "@karma-team/types";
+import { Card } from "@karma-team/ui";
+import { capitalizeFirstLetter } from "@karma-team/utils";
 
 type Props = {
   stateDistribution: IUserStateDistribution[];
@@ -78,11 +78,7 @@ export function ProfileStateDistribution({ stateDistribution, userProfile }: Pro
             </div>
           </div>
         ) : (
-          <EmptyStateCompact
-            assetKey="priority"
-            assetClassName="size-20"
-            title={t("No work item assigned yet")}
-          />
+          <EmptyStateCompact assetKey="priority" assetClassName="size-20" title={t("No work item assigned yet")} />
         )}
       </Card>
     </div>

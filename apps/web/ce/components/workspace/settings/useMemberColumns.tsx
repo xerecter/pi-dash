@@ -6,9 +6,9 @@
 
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { EUserPermissions, EUserPermissionsLevel, LOGIN_MEDIUM_LABELS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { renderFormattedDate } from "@pi-dash/utils";
+import { EUserPermissions, EUserPermissionsLevel, LOGIN_MEDIUM_LABELS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { renderFormattedDate } from "@karma-team/utils";
 import { MemberHeaderColumn } from "@/components/project/member-header-column";
 import type { RowData } from "@/components/workspace/settings/member-columns";
 import { AccountTypeColumn, NameColumn } from "@/components/workspace/settings/member-columns";

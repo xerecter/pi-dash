@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { ChevronDownIcon, ChevronUpIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { ChevronDownIcon, ChevronUpIcon } from "@karma-team/propel/icons";
 
 type Props = {
   title: string;

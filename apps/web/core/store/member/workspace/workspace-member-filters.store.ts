@@ -7,8 +7,8 @@
 import { action, makeObservable, observable } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { EUserPermissions } from "@pi-dash/constants";
-import type { IUserLite } from "@pi-dash/types";
+import type { EUserPermissions } from "@karma-team/constants";
+import type { IUserLite } from "@karma-team/types";
 // local imports
 import type { IMemberFilters } from "../utils";
 import { sortWorkspaceMembers } from "../utils";

@@ -6,7 +6,7 @@
 
 import { useEffect } from "react";
 
-import { SITE_TITLE } from "@pi-dash/constants";
+import { SITE_TITLE } from "@karma-team/constants";
 
 type PageHeadTitleProps = {
   title?: string;

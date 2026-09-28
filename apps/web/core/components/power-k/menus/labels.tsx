@@ -6,8 +6,8 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { IIssueLabel } from "@pi-dash/types";
+// karma-team imports
+import type { IIssueLabel } from "@karma-team/types";
 // local imports
 import { PowerKMenuBuilder } from "./builder";
 

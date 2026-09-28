@@ -5,14 +5,14 @@
  */
 
 import { useParams } from "next/navigation";
-// pi dash imports
-import { getPageName } from "@pi-dash/utils";
+// karma-team imports
+import { getPageName } from "@karma-team/utils";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useModule } from "@/hooks/store/use-module";
-// pi dash web imports
-import { useExtendedContextIndicator } from "@/pi-dash-web/components/command-palette/power-k/hooks/use-extended-context-indicator";
-import { EPageStoreType, usePageStore } from "@/pi-dash-web/hooks/store";
+// karma-team web imports
+import { useExtendedContextIndicator } from "@/karma-team-web/components/command-palette/power-k/hooks/use-extended-context-indicator";
+import { EPageStoreType, usePageStore } from "@/karma-team-web/hooks/store";
 // local imports
 import type { TPowerKContextType } from "../core/types";
 

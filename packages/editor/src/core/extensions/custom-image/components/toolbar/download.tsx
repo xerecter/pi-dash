@@ -5,8 +5,8 @@
  */
 
 import { Download } from "lucide-react";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
 
 type Props = {
   src: string;

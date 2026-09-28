@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { CheckIcon } from "@pi-dash/propel/icons";
+import { CheckIcon } from "@karma-team/propel/icons";
 
 type Props = {
   icon?: React.ReactNode;

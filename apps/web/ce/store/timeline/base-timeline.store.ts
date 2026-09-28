@@ -14,8 +14,8 @@ import type {
   IGanttBlock,
   TGanttViews,
   EGanttBlockType,
-} from "@pi-dash/types";
-import { renderFormattedPayloadDate } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { renderFormattedPayloadDate } from "@karma-team/utils";
 import { currentViewDataWithView } from "@/components/gantt-chart/data";
 import {
   getDateFromPositionOnGantt,
@@ -24,7 +24,7 @@ import {
 } from "@/components/gantt-chart/views/helpers";
 // helpers
 // store
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import type { RootStore } from "@/karma-team-web/store/root.store";
 
 // types
 type BlockData = {

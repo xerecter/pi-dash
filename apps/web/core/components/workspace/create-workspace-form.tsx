@@ -8,14 +8,14 @@ import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-import { ORGANIZATION_SIZE, RESTRICTED_URLS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IWorkspace } from "@pi-dash/types";
+import { ORGANIZATION_SIZE, RESTRICTED_URLS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IWorkspace } from "@karma-team/types";
 // ui
-import { CustomSelect, Input } from "@pi-dash/ui";
-import { validateWorkspaceName, validateSlug } from "@pi-dash/utils";
+import { CustomSelect, Input } from "@karma-team/ui";
+import { validateWorkspaceName, validateSlug } from "@karma-team/utils";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useAppRouter } from "@/hooks/use-app-router";
@@ -191,13 +191,11 @@ export const CreateWorkspaceForm = observer(function CreateWorkspaceForm(props: 
               )}
             />
           </div>
-          {slugError && (
-            <p className="-mt-3 text-13 text-danger-primary">
-              {t("Workspace URL is already taken!")}
-            </p>
-          )}
+          {slugError && <p className="-mt-3 text-13 text-danger-primary">{t("Workspace URL is already taken!")}</p>}
           {invalidSlug && (
-            <p className="text-13 text-danger-primary">{t("URLs can contain only ('-') and alphanumeric characters.")}</p>
+            <p className="text-13 text-danger-primary">
+              {t("URLs can contain only ('-') and alphanumeric characters.")}
+            </p>
           )}
           {errors.slug && <span className="text-11 text-danger-primary">{errors.slug.message}</span>}
         </div>
@@ -217,9 +215,7 @@ export const CreateWorkspaceForm = observer(function CreateWorkspaceForm(props: 
                   onChange={onChange}
                   label={
                     ORGANIZATION_SIZE.find((c) => c === value) ?? (
-                      <span className="text-placeholder">
-                        {t("Select a range")}
-                      </span>
+                      <span className="text-placeholder">{t("Select a range")}</span>
                     )
                   }
                   buttonClassName="border border-subtle bg-layer-2 !shadow-none !rounded-md"

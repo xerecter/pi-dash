@@ -8,11 +8,11 @@ import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
 import useSWR from "swr";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { TIssue } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { TIssue } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
 // assets
 import emptyIssueDark from "@/app/assets/empty-state/search/issues-dark.webp?url";
 import emptyIssueLight from "@/app/assets/empty-state/search/issues-light.webp?url";
@@ -27,9 +27,9 @@ import { useAppRouter } from "@/hooks/use-app-router";
 import type { TIssueLite } from "@/store/issue/issue-details/issue.store";
 // layouts
 import { ProjectAuthWrapper } from "@/layouts/auth-layout/project-wrapper";
-// pi dash web imports
-import { useWorkItemProperties } from "@/pi-dash-web/hooks/use-issue-properties";
-import { WorkItemDetailRoot } from "@/pi-dash-web/components/browse/workItem-detail";
+// karma-team web imports
+import { useWorkItemProperties } from "@/karma-team-web/hooks/use-issue-properties";
+import { WorkItemDetailRoot } from "@/karma-team-web/components/browse/workItem-detail";
 
 import type { Route } from "./+types/page";
 

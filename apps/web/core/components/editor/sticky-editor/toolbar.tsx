@@ -7,14 +7,14 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Palette } from "lucide-react";
 // editor
-import type { EditorRefApi } from "@pi-dash/editor";
+import type { EditorRefApi } from "@karma-team/editor";
 // ui
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { TrashIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TSticky } from "@pi-dash/types";
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { TrashIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TSticky } from "@karma-team/types";
 // constants
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import type { ToolbarMenuItem } from "@/constants/editor";
 import { TOOLBAR_ITEMS } from "@/constants/editor";
 // helpers

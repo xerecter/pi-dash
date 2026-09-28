@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-// pi dash package imports
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { ProjectIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { cn } from "@pi-dash/utils";
-// pi dash web hooks
+// karma-team package imports
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { ProjectIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { cn } from "@karma-team/utils";
+// karma-team web hooks
 import { useProject } from "@/hooks/store/use-project";
 
 type Props = {

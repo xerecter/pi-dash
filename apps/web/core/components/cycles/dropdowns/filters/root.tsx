@@ -6,9 +6,9 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import type { TCycleFilters, TCycleGroups } from "@pi-dash/types";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import type { TCycleFilters, TCycleGroups } from "@karma-team/types";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // local imports

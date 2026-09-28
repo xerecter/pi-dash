@@ -1,8 +1,8 @@
-# Pi Dash Prompt System — MVP Design
+# karma-team Prompt System — MVP Design
 
-This document specifies the MVP prompt system that turns a Pi Dash **Issue** into a fully-rendered instruction string sent to the coding agent (Codex) via a runner.
+This document specifies the MVP prompt system that turns a karma-team **Issue** into a fully-rendered instruction string sent to the coding agent (Codex) via a runner.
 
-The design borrows from Symphony's `WORKFLOW.md` approach: the prompt is not a task description, it is a **workflow handbook** that teaches the agent how to move an issue through Pi Dash's state machine and record its progress in a structured comment on the issue.
+The design borrows from Symphony's `WORKFLOW.md` approach: the prompt is not a task description, it is a **workflow handbook** that teaches the agent how to move an issue through karma-team's state machine and record its progress in a structured comment on the issue.
 
 Companion docs in this directory:
 
@@ -14,16 +14,16 @@ Companion docs in this directory:
 
 ### In scope
 
-- A Django module (`apps/api/pi_dash/prompting/`) that renders a prompt string for a given `AgentRun` at creation time.
+- A Django module (`apps/api/karma_team/prompting/`) that renders a prompt string for a given `AgentRun` at creation time.
 - A DB-backed `PromptTemplate` model with workspace-scoped overrides and a seeded global default.
 - Jinja2 (sandboxed) as the template engine.
 - A narrow, stable **template context** of issue + workspace + project + run fields.
 - A first-turn renderer. (Continuation-turn rendering is stubbed but deferred — runner is single-turn in MVP.)
 - A **preview endpoint** for rendering a template against a sample issue without creating a run.
-- A default `workflow-handbook` seed that encodes Pi Dash's state machine, instructs the agent to maintain an **Agent Workpad** comment on the issue, and defines the **done-signal** the agent must emit at the end.
+- A default `workflow-handbook` seed that encodes karma-team's state machine, instructs the agent to maintain an **Agent Workpad** comment on the issue, and defines the **done-signal** the agent must emit at the end.
 - Milestone-style progress tracking inside the Agent Workpad (`investigation_complete`, `design_choice_recorded`, `implementation_complete`, `validation_complete`, `pr_opened`, `review_feedback_addressed`) rather than an arbitrary percentage, with optional checkpoints allowed to be marked `n/a`.
 - A structured escalation model in the prompt contract so the agent can report when it can continue autonomously vs when it should pause for human input.
-- An internal orchestration module at `apps/api/pi_dash/orchestration/service.py` that reacts to issue-state transitions, creates follow-up `AgentRun`s when appropriate, renders prompts, and enqueues work to the runner.
+- An internal orchestration module at `apps/api/karma_team/orchestration/service.py` that reacts to issue-state transitions, creates follow-up `AgentRun`s when appropriate, renders prompts, and enqueues work to the runner.
 - Storage of the rendered prompt on `AgentRun.prompt` at creation time (immutable after).
 
 ### Out of scope for MVP
@@ -42,30 +42,30 @@ Companion docs in this directory:
 
 ## 2. Committed decisions
 
-| #   | Topic                    | Decision                                                                                                                                                                                    |
-| --- | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1   | Where prompts are built  | Pi Dash cloud (Django). Runner receives a ready-to-use string. (Confirms runner-design decision #4.)                                                                                         |
-| 2   | Template engine          | Jinja2 with `SandboxedEnvironment`. Closest Python analog to Symphony's Liquid; templates are workspace-admin-editable so unsandboxed execution is unacceptable.                            |
-| 3   | Template storage         | DB model `PromptTemplate`, scoped per-workspace, with a global default row seeded at migrate time from `prompting/templates/default.j2` (the rendered form of `workflow-handbook.md`).      |
-| 4   | Template selection       | Lookup order: `(workspace, name="coding-task")` → global `(workspace=NULL, name="coding-task")`. No per-project override in MVP.                                                            |
-| 5   | Task mode                | All `AgentRun`s are coding tasks in MVP. No mode detection / no branching templates by intent.                                                                                              |
-| 6   | Render timing            | At `AgentRun` creation. The rendered string is stored on `AgentRun.prompt` and is **immutable** for the lifetime of that run. Edits to the template after do not affect in-flight runs.    |
-| 7   | First turn vs continuation | MVP renders first turn only. The `composer.build_continuation()` entry point is stubbed to raise `NotImplementedError` so the shape is reserved.                                          |
-| 8   | Dynamic variables        | Narrow, explicit set (see §5). No arbitrary ORM access from templates. Adding variables is a deliberate code change, not a template-author concern.                                        |
-| 9   | Workflow encoding        | Static handbook content carries the workflow rules (per-state routing, escape hatches, workpad template, done-signal). Dynamic fields only identify *which* issue this run is for.         |
-| 10  | Progress model           | The handbook uses milestone completion and current phase in the workpad to express progress. The system does **not** ask the agent for a scalar percent-complete estimate.                   |
-| 11  | Escalation model         | The handbook instructs Codex to emit a structured autonomy/escalation payload (`score`, `type`, `reason`, `question_for_human`, `safe_to_continue`) as metadata. Cloud-side branching keys off `status`; autonomy fields explain why that outcome was chosen. |
-| 12  | Workpad pattern          | The handbook instructs the agent to maintain exactly one `IssueComment` with a `## Agent Workpad` marker header per issue, edited in place across turns. See `workflow-handbook.md`.        |
-| 13  | Done signal              | The handbook instructs Codex to emit a structured JSON block as its final turn output. Runner forwards it verbatim (per runner-design decision #5); cloud parses and acts.                  |
-| 14  | Orchestration boundary   | Run-trigger logic lives in `apps/api/pi_dash/orchestration/service.py`. Prompting renders strings; orchestration decides when runs are created and queued.                                   |
-| 15  | Preview surface          | `POST /workspaces/{slug}/prompt-templates/{id}/preview` with `{"issue_id": ...}` returns the rendered string. Admin-only. Critical for iterating on the handbook.                          |
+| #   | Topic                      | Decision                                                                                                                                                                                                                                                      |
+| --- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Where prompts are built    | karma-team cloud (Django). Runner receives a ready-to-use string. (Confirms runner-design decision #4.)                                                                                                                                                       |
+| 2   | Template engine            | Jinja2 with `SandboxedEnvironment`. Closest Python analog to Symphony's Liquid; templates are workspace-admin-editable so unsandboxed execution is unacceptable.                                                                                              |
+| 3   | Template storage           | DB model `PromptTemplate`, scoped per-workspace, with a global default row seeded at migrate time from `prompting/templates/default.j2` (the rendered form of `workflow-handbook.md`).                                                                        |
+| 4   | Template selection         | Lookup order: `(workspace, name="coding-task")` → global `(workspace=NULL, name="coding-task")`. No per-project override in MVP.                                                                                                                              |
+| 5   | Task mode                  | All `AgentRun`s are coding tasks in MVP. No mode detection / no branching templates by intent.                                                                                                                                                                |
+| 6   | Render timing              | At `AgentRun` creation. The rendered string is stored on `AgentRun.prompt` and is **immutable** for the lifetime of that run. Edits to the template after do not affect in-flight runs.                                                                       |
+| 7   | First turn vs continuation | MVP renders first turn only. The `composer.build_continuation()` entry point is stubbed to raise `NotImplementedError` so the shape is reserved.                                                                                                              |
+| 8   | Dynamic variables          | Narrow, explicit set (see §5). No arbitrary ORM access from templates. Adding variables is a deliberate code change, not a template-author concern.                                                                                                           |
+| 9   | Workflow encoding          | Static handbook content carries the workflow rules (per-state routing, escape hatches, workpad template, done-signal). Dynamic fields only identify _which_ issue this run is for.                                                                            |
+| 10  | Progress model             | The handbook uses milestone completion and current phase in the workpad to express progress. The system does **not** ask the agent for a scalar percent-complete estimate.                                                                                    |
+| 11  | Escalation model           | The handbook instructs Codex to emit a structured autonomy/escalation payload (`score`, `type`, `reason`, `question_for_human`, `safe_to_continue`) as metadata. Cloud-side branching keys off `status`; autonomy fields explain why that outcome was chosen. |
+| 12  | Workpad pattern            | The handbook instructs the agent to maintain exactly one `IssueComment` with a `## Agent Workpad` marker header per issue, edited in place across turns. See `workflow-handbook.md`.                                                                          |
+| 13  | Done signal                | The handbook instructs Codex to emit a structured JSON block as its final turn output. Runner forwards it verbatim (per runner-design decision #5); cloud parses and acts.                                                                                    |
+| 14  | Orchestration boundary     | Run-trigger logic lives in `apps/api/karma_team/orchestration/service.py`. Prompting renders strings; orchestration decides when runs are created and queued.                                                                                                 |
+| 15  | Preview surface            | `POST /workspaces/{slug}/prompt-templates/{id}/preview` with `{"issue_id": ...}` returns the rendered string. Admin-only. Critical for iterating on the handbook.                                                                                             |
 
 ---
 
 ## 3. Architecture
 
 ```
-┌──────────────────────────── Pi Dash (Django) ────────────────────────────┐
+┌──────────────────────────── karma-team (Django) ────────────────────────────┐
 │                                                                         │
 │  Issue enters a delegated execution state                               │
 │  (default: `In Progress`; generally any configured `started` state)     │
@@ -97,12 +97,12 @@ Companion docs in this directory:
 └─────────────────────────────────────┬───────────────────────────────────┘
                                       │ WebSocket (existing)
                                       ▼
-                              pi-dash-runner
+                              karma-team-runner
                               (thin — receives string verbatim,
                                passes to `codex app-server`)
 ```
 
-The runner is unchanged. The new surface area is the Django-side `prompting/` module plus `apps/api/pi_dash/orchestration/service.py`, which owns run-trigger and enqueue logic when an issue enters a delegated execution state.
+The runner is unchanged. The new surface area is the Django-side `prompting/` module plus `apps/api/karma_team/orchestration/service.py`, which owns run-trigger and enqueue logic when an issue enters a delegated execution state.
 
 ---
 
@@ -147,7 +147,7 @@ class Project(TimeAuditModel):
 ```
 
 ```python
-# apps/api/pi_dash/prompting/models.py
+# apps/api/karma_team/prompting/models.py
 
 class PromptTemplate(TimeAuditModel):
     workspace    = FK(Workspace, null=True, on_delete=CASCADE)   # NULL = global default
@@ -170,9 +170,10 @@ class PromptTemplate(TimeAuditModel):
 
 **Seeding**: a post-migrate signal (or data migration) inserts the global default row from `prompting/templates/default.j2`. The file lives in-repo; the row is the source of truth at runtime. The file is only read during the seed step and after schema migrations that ship an updated default (operator opts in to re-seed via a management command — we do not silently overwrite edited workspace rows).
 
-**Why DB, not files at runtime**: Pi Dash is multi-tenant. Filesystem-backed templates don't give per-workspace isolation, can't be edited from the web UI later, and require SSH for tweaks. DB storage keeps the "edit your prompt" story sane as soon as we add a UI.
+**Why DB, not files at runtime**: karma-team is multi-tenant. Filesystem-backed templates don't give per-workspace isolation, can't be edited from the web UI later, and require SSH for tweaks. DB storage keeps the "edit your prompt" story sane as soon as we add a UI.
 
 **AgentRun semantics**:
+
 - An `Issue` is the task.
 - An `AgentRun` is one concrete execution attempt of the coding agent on that task.
 - An issue may have many runs over time, but at most one active run (`queued` or `running`) at once.
@@ -269,7 +270,7 @@ orchestration.service.handle_issue_state_transition(issue, from_state, to_state,
 Module layout:
 
 ```
-apps/api/pi_dash/prompting/
+apps/api/karma_team/prompting/
   ├─ __init__.py
   ├─ apps.py
   ├─ models.py               # PromptTemplate
@@ -307,9 +308,10 @@ Full content lives in `workflow-handbook.md`. Summary here so this design doc is
   - `review_feedback_addressed`
 
 Checkpoint values are tri-state:
-  - `true` — completed in this run or a prior run
-  - `false` — still incomplete
-  - `"n/a"` — not applicable for this task or this run (for example, a non-PR investigative task)
+
+- `true` — completed in this run or a prior run
+- `false` — still incomplete
+- `"n/a"` — not applicable for this task or this run (for example, a non-PR investigative task)
 
 - **Escalation / human-involvement signal** — the handbook requires the agent to maintain a structured autonomy payload in the workpad and final done signal:
 
@@ -324,13 +326,14 @@ Checkpoint values are tri-state:
 ```
 
 The score is a policy hint, not the sole control signal. `type` and `safe_to_continue` carry the real semantics, but `status` remains the parser's source of truth for run outcome:
-  - `none` / `assumption` generally means the agent may continue and should record its rationale.
-  - `decision` means a human-visible choice is needed; cloud policy may pause based on workspace threshold.
-  - `blocker` means the task cannot responsibly continue without an external dependency, missing access, or explicit human action.
 
-- **Done signal** — the agent's final message must include a fenced JSON block tagged `pi-dash-done` carrying `{status, summary, state_transition, changes, validation, progress, autonomy, blockers}`. The runner forwards this verbatim (runner-design decision #5); the cloud parses it and decides what to do (move the issue to the requested state, post a summary, etc.). `status` is the branch point; `autonomy` is explanatory metadata. Schema is pinned in `workflow-handbook.md`.
+- `none` / `assumption` generally means the agent may continue and should record its rationale.
+- `decision` means a human-visible choice is needed; cloud policy may pause based on workspace threshold.
+- `blocker` means the task cannot responsibly continue without an external dependency, missing access, or explicit human action.
 
-- **Done-payload ingestion** — in MVP, the cloud parses the terminal `pi-dash-done` block from the final `AgentRunEvent`, normalizes it, and persists the normalized JSON to `AgentRun.done_payload`. `AgentRunEvent` remains the raw audit trail; `done_payload` is the structured backend field used for orchestration follow-up and UI summaries.
+- **Done signal** — the agent's final message must include a fenced JSON block tagged `karma-team-done` carrying `{status, summary, state_transition, changes, validation, progress, autonomy, blockers}`. The runner forwards this verbatim (runner-design decision #5); the cloud parses it and decides what to do (move the issue to the requested state, post a summary, etc.). `status` is the branch point; `autonomy` is explanatory metadata. Schema is pinned in `workflow-handbook.md`.
+
+- **Done-payload ingestion** — in MVP, the cloud parses the terminal `karma-team-done` block from the final `AgentRunEvent`, normalizes it, and persists the normalized JSON to `AgentRun.done_payload`. `AgentRunEvent` remains the raw audit trail; `done_payload` is the structured backend field used for orchestration follow-up and UI summaries.
 
 The cloud-side parser for the done signal is a separate piece of work not scoped here — this design only guarantees that the prompt produces a parseable signal.
 
@@ -338,13 +341,13 @@ The cloud-side parser for the done signal is a separate piece of work not scoped
 
 ## 8. Integration points
 
-- **Run trigger policy** — Pi Dash is a pure agent-orchestration system, so issue state is operational rather than descriptive. An issue entering a delegated execution state means the task has been handed to the coding agent for autonomous execution. In the default workflow this state is named `In Progress`; in custom workflows it should be interpreted as a state in the `started` group that carries delegation semantics.
+- **Run trigger policy** — karma-team is a pure agent-orchestration system, so issue state is operational rather than descriptive. An issue entering a delegated execution state means the task has been handed to the coding agent for autonomous execution. In the default workflow this state is named `In Progress`; in custom workflows it should be interpreted as a state in the `started` group that carries delegation semantics.
   - `Todo` means queued and ready, but not yet delegated.
   - `In Progress` is the only delegation-trigger state in MVP.
   - other states in the `started` group do not auto-trigger runs unless explicitly wired in later
   - `Blocked`, `Done`, and `Cancelled` are not runnable.
   - `In Review` is a first-class issue state in MVP. If review feedback later sends the task back to `In Progress`, that transition triggers a new follow-up run.
-- **Orchestration service** — `apps/api/pi_dash/orchestration/service.py` is an internal application module, not a separate product or external service. Its job is to react to issue-state transitions and own the delegation workflow:
+- **Orchestration service** — `apps/api/karma_team/orchestration/service.py` is an internal application module, not a separate product or external service. Its job is to react to issue-state transitions and own the delegation workflow:
   - detect whether the transition should trigger an agent run
   - enforce the single-active-run guardrail
   - create a new `AgentRun` or follow-up `AgentRun`

@@ -5,19 +5,19 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { setPromiseToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IProject } from "@pi-dash/types";
-import { CycleIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { setPromiseToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IProject } from "@karma-team/types";
+import { CycleIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon } from "@karma-team/propel/icons";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 import { SettingsHeading } from "@/components/settings/heading";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
-// pi dash web imports
-import { UpgradeBadge } from "@/pi-dash-web/components/workspace/upgrade-badge";
+// karma-team web imports
+import { UpgradeBadge } from "@/karma-team-web/components/workspace/upgrade-badge";
 // local imports
 import { ProjectFeatureToggle } from "./helper";
 

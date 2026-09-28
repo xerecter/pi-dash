@@ -8,8 +8,8 @@ import type { RefObject } from "react";
 import { useRef } from "react";
 import { observer } from "mobx-react";
 // components
-import type { IBlockUpdateDependencyData } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import type { IBlockUpdateDependencyData } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 import RenderIfVisible from "@/components/core/render-if-visible-HOC";
 // helpers
 // hooks

@@ -6,13 +6,13 @@
 
 import { set } from "lodash-es";
 import { action, computed, makeObservable, observable, reaction, runInAction } from "mobx";
-// pi dash imports
-import { EPageAccess } from "@pi-dash/constants";
-import type { TChangeHandlerProps } from "@pi-dash/propel/emoji-icon-picker";
-import type { TDocumentPayload, TLogoProps, TNameDescriptionLoader, TPage } from "@pi-dash/types";
-// pi dash web store
-import { ExtendedBasePage } from "@/pi-dash-web/store/pages/extended-base-page";
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+// karma-team imports
+import { EPageAccess } from "@karma-team/constants";
+import type { TChangeHandlerProps } from "@karma-team/propel/emoji-icon-picker";
+import type { TDocumentPayload, TLogoProps, TNameDescriptionLoader, TPage } from "@karma-team/types";
+// karma-team web store
+import { ExtendedBasePage } from "@/karma-team-web/store/pages/extended-base-page";
+import type { RootStore } from "@/karma-team-web/store/root.store";
 // local imports
 import { PageEditorInstance } from "./page-editor-info";
 

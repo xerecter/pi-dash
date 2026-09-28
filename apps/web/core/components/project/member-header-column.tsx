@@ -8,12 +8,12 @@
 import { observer } from "mobx-react";
 import { ArrowDownWideNarrow, ArrowUpNarrowWide, CheckIcon, ChevronDownIcon, Eraser, MoveRight } from "lucide-react";
 // constants
-import type { IProjectMemberDisplayProperties, TMemberOrderByOptions } from "@pi-dash/constants";
-import { MEMBER_PROPERTY_DETAILS } from "@pi-dash/constants";
+import type { IProjectMemberDisplayProperties, TMemberOrderByOptions } from "@karma-team/constants";
+import { MEMBER_PROPERTY_DETAILS } from "@karma-team/constants";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // types
-import { CustomMenu } from "@pi-dash/ui";
+import { CustomMenu } from "@karma-team/ui";
 import type { IMemberFilters } from "@/store/member/utils";
 
 interface Props {

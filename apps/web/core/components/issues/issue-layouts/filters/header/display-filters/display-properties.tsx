@@ -6,12 +6,12 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash constants
-import { ISSUE_DISPLAY_PROPERTIES } from "@pi-dash/constants";
-// pi dash i18n
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team constants
+import { ISSUE_DISPLAY_PROPERTIES } from "@karma-team/constants";
+// karma-team i18n
+import { useTranslation } from "@karma-team/i18n";
 // types
-import type { IIssueDisplayProperties } from "@pi-dash/types";
+import type { IIssueDisplayProperties } from "@karma-team/types";
 // components
 import { FilterHeader } from "../helpers/filter-header";
 

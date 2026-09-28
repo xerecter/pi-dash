@@ -6,7 +6,7 @@
       "@/app/*": ["./app/*"],
       "@/helpers/*": ["./helpers/*"],
       "@/styles/*": ["./styles/*"],
-      "@/pi-dash-web/*": ["./ce/*"],
+      "@/karma-team-web/*": ["./ce/*"],
       "package.json": ["./package.json"]
     },
     "strictNullChecks": true,
@@ -17,6 +17,6 @@
     "noImplicitOverride": false,
     "types": ["vite/client"]
   },
-  "extends": "@pi-dash/typescript-config/react-router.json",
+  "extends": "@karma-team/typescript-config/react-router.json",
   "include": ["**/*", "**/.server/**/*", "**/.client/**/*", ".react-router/types/**/*"]
 }

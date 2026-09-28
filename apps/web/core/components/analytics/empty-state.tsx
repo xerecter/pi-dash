@@ -5,8 +5,8 @@
  */
 
 import { useTheme } from "next-themes";
-// pi dash package imports
-import { cn } from "@pi-dash/utils";
+// karma-team package imports
+import { cn } from "@karma-team/utils";
 // assets
 import darkBackgroundAsset from "@/app/assets/empty-state/analytics/empty-grid-background-dark.webp?url";
 import lightBackgroundAsset from "@/app/assets/empty-state/analytics/empty-grid-background-light.webp?url";

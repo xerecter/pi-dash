@@ -6,14 +6,19 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { EEstimateSystem, ESTIMATE_SYSTEMS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { ChevronLeftIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IEstimateFormData, TEstimateSystemKeys, TEstimatePointsObject, TEstimateTypeError } from "@pi-dash/types";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+// karma-team imports
+import { EEstimateSystem, ESTIMATE_SYSTEMS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { ChevronLeftIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type {
+  IEstimateFormData,
+  TEstimateSystemKeys,
+  TEstimatePointsObject,
+  TEstimateTypeError,
+} from "@karma-team/types";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 // local imports
@@ -126,7 +131,8 @@ export const CreateEstimateModal = observer(function CreateEstimateModal(props: 
             delete newError[currentKey];
           } else {
             newError[currentKey].message =
-              newError[currentKey].message || t("Estimate can't be empty. Enter a value in each field or remove those you don't have values for.");
+              newError[currentKey].message ||
+              t("Estimate can't be empty. Enter a value in each field or remove those you don't have values for.");
           }
         });
         return newError;

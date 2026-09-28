@@ -6,10 +6,10 @@
 
 import { observer } from "mobx-react";
 import { CircleX } from "lucide-react";
-// pi dash constants
-import { FREE_PLAN_UPGRADE_FEATURES } from "@pi-dash/constants";
+// karma-team constants
+import { FREE_PLAN_UPGRADE_FEATURES } from "@karma-team/constants";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type FreePlanCardProps = {
   isOnFreePlan: boolean;

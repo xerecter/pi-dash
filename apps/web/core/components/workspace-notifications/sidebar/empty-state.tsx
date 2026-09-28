@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { ENotificationTab } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
+// karma-team imports
+import { ENotificationTab } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
 
 type TNotificationEmptyStateProps = {
   currentNotificationTab: ENotificationTab;
@@ -17,7 +17,7 @@ type TNotificationEmptyStateProps = {
 export const NotificationEmptyState = observer(function NotificationEmptyState({
   currentNotificationTab,
 }: TNotificationEmptyStateProps) {
-  // pi dash imports
+  // karma-team imports
   const { t } = useTranslation();
 
   return (

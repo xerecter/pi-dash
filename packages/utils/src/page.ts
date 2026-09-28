@@ -5,14 +5,14 @@
  */
 
 import { sortBy } from "lodash-es";
-// pi dash imports
+// karma-team imports
 import type {
   TPage,
   TPageFilterProps,
   TPageFiltersSortBy,
   TPageFiltersSortKey,
   TPageNavigationTabs,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // local imports
 import { getDate } from "./datetime";
 import { satisfiesDateFilter } from "./filter";

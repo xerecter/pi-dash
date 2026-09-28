@@ -6,9 +6,9 @@
 
 import { format } from "date-fns";
 import { get, set } from "lodash-es";
-// pi dash imports
-import { COMPLETED_STATE_GROUPS, STATE_DISTRIBUTION } from "@pi-dash/constants";
-import type { ICycle, IEstimatePoint, IModule, IState, TIssue } from "@pi-dash/types";
+// karma-team imports
+import { COMPLETED_STATE_GROUPS, STATE_DISTRIBUTION } from "@karma-team/constants";
+import type { ICycle, IEstimatePoint, IModule, IState, TIssue } from "@karma-team/types";
 // helper
 import { getDate } from "./datetime";
 

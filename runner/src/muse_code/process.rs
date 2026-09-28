@@ -45,7 +45,7 @@ impl PromptFile {
     /// `/proc`), and the guard bounds its lifetime to the run.
     pub fn create(prompt: &str) -> Result<Self> {
         let mut path = std::env::temp_dir();
-        path.push(format!("pidash-muse-prompt-{}.md", Uuid::new_v4()));
+        path.push(format!("karma-team-muse-prompt-{}.md", Uuid::new_v4()));
         std::fs::write(&path, prompt)
             .with_context(|| format!("writing muse prompt file to {}", path.display()))?;
         Ok(Self { path })

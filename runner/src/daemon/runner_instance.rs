@@ -176,7 +176,7 @@ mod tests {
             project_slug: Some("PROJECT".into()),
             pod_id: None,
             workspace: WorkspaceSection {
-                working_dir: std::env::temp_dir().join("pidash-runner-instance-test"),
+                working_dir: std::env::temp_dir().join("karma-team-runner-instance-test"),
             },
             agent: AgentSection::default(),
             codex: CodexSection::default(),

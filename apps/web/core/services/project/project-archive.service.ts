@@ -5,7 +5,7 @@
  */
 
 // helpers
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 // services
 import { APIService } from "@/services/api.service";
 

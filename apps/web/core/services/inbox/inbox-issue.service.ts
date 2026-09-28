@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { TInboxIssue, TIssue, TInboxIssueWithPagination } from "@pi-dash/types";
-import { EInboxIssueSource } from "@pi-dash/types";
+// karma-team imports
+import { API_BASE_URL } from "@karma-team/constants";
+import type { TInboxIssue, TIssue, TInboxIssueWithPagination } from "@karma-team/types";
+import { EInboxIssueSource } from "@karma-team/types";
 // helpers
 // services
 import { APIService } from "@/services/api.service";

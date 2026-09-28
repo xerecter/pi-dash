@@ -7,15 +7,15 @@
 import { useMemo } from "react";
 import { observer } from "mobx-react";
 import { MoreHorizontal, FoldVertical, UnfoldVertical } from "lucide-react";
-// pi dash imports
-import { EIssueCommentAccessSpecifier } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { LinkIcon, GlobeIcon, LockIcon, EditIcon, TrashIcon } from "@pi-dash/propel/icons";
-import type { TIssueComment, TCommentsOperations } from "@pi-dash/types";
-import type { TContextMenuItem } from "@pi-dash/ui";
-import { CustomMenu } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { EIssueCommentAccessSpecifier } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { LinkIcon, GlobeIcon, LockIcon, EditIcon, TrashIcon } from "@karma-team/propel/icons";
+import type { TIssueComment, TCommentsOperations } from "@karma-team/types";
+import type { TContextMenuItem } from "@karma-team/ui";
+import { CustomMenu } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useUser } from "@/hooks/store/user";
 

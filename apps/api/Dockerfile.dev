@@ -34,7 +34,7 @@ RUN pip install -r requirements/local.txt --compile --no-cache-dir
 
 COPY . .
 
-RUN mkdir -p /code/pi_dash/logs
+RUN mkdir -p /code/karma_team/logs
 RUN chmod -R +x /code/bin
 RUN chmod -R 777 /code
 

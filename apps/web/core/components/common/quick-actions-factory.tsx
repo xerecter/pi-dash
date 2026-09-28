@@ -5,9 +5,9 @@
  */
 
 import { Pencil, ExternalLink, Link, Trash2, ArchiveRestoreIcon } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { ArchiveIcon } from "@pi-dash/propel/icons";
-import type { TContextMenuItem } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { ArchiveIcon } from "@karma-team/propel/icons";
+import type { TContextMenuItem } from "@karma-team/ui";
 
 /**
  * Unified factory for creating menu items across all entities (cycles, modules, views, epics)

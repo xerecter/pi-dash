@@ -5,12 +5,12 @@
  */
 
 import type { LucideIcon } from "lucide-react";
-// pi dash ui
-import { useTranslation } from "@pi-dash/i18n";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team ui
+import { useTranslation } from "@karma-team/i18n";
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 
 type Props = {
   onChange: (value: number) => void;

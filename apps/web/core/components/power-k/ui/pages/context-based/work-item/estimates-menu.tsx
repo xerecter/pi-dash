@@ -7,12 +7,12 @@
 import { Command } from "cmdk";
 import { observer } from "mobx-react";
 import { Triangle } from "lucide-react";
-// pi dash types
-import { useTranslation } from "@pi-dash/i18n";
-import { EEstimateSystem } from "@pi-dash/types";
-import type { TIssue } from "@pi-dash/types";
-import { Spinner } from "@pi-dash/ui";
-import { convertMinutesToHoursMinutesString } from "@pi-dash/utils";
+// karma-team types
+import { useTranslation } from "@karma-team/i18n";
+import { EEstimateSystem } from "@karma-team/types";
+import type { TIssue } from "@karma-team/types";
+import { Spinner } from "@karma-team/ui";
+import { convertMinutesToHoursMinutesString } from "@karma-team/utils";
 // hooks
 import { useEstimate, useProjectEstimates } from "@/hooks/store/estimates";
 // local imports

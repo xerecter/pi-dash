@@ -6,8 +6,8 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-// pi dash imports
-import { SUPPORT_EMAIL } from "@pi-dash/constants";
+// karma-team imports
+import { SUPPORT_EMAIL } from "@karma-team/constants";
 
 export enum EPageTypes {
   PUBLIC = "PUBLIC",

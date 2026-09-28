@@ -7,7 +7,7 @@
 import React from "react";
 import { observer } from "mobx-react";
 // helpers
-import { formatDateRange, getDate } from "@pi-dash/utils";
+import { formatDateRange, getDate } from "@karma-team/utils";
 
 type Props = {
   startDate: Date | string | null | undefined;

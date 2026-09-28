@@ -7,7 +7,7 @@
 /**
  * Per-agent LLM model catalogs for the "Add runner" form. Selecting an
  * option appends `--model` (and, for Codex, `--reasoning-effort`) to the
- * generated `pidash runner add` command; the runner persists it as the
+ * generated `karma-team runner add` command; the runner persists it as the
  * agent's `model_default` in its local config.toml.
  *
  * The runner itself does NOT validate against these exact strings — it only

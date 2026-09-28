@@ -5,9 +5,9 @@
  */
 
 import { Disclosure, Transition } from "@headlessui/react";
-import { WORKSPACE_SETTINGS_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { ChevronDownIcon, ChevronUpIcon } from "@pi-dash/propel/icons";
+import { WORKSPACE_SETTINGS_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { ChevronDownIcon, ChevronUpIcon } from "@karma-team/propel/icons";
 
 type Props = {
   openDeleteModal: () => void;

@@ -7,9 +7,9 @@
 import { cloneDeep, isEqual, set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash internal
-import { ISSUE_DISPLAY_FILTERS_BY_LAYOUT } from "@pi-dash/constants";
-import type { IssuePaginationOptions, TIssueParams } from "@pi-dash/types";
+// karma-team internal
+import { ISSUE_DISPLAY_FILTERS_BY_LAYOUT } from "@karma-team/constants";
+import type { IssuePaginationOptions, TIssueParams } from "@karma-team/types";
 // store
 import type { RootStore } from "@/store/root.store";
 // types

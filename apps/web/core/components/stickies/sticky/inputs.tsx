@@ -7,10 +7,10 @@
 import { useCallback, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
-import type { TSticky } from "@pi-dash/types";
-import { cn, isCommentEmpty } from "@pi-dash/utils";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
+import type { TSticky } from "@karma-team/types";
+import { cn, isCommentEmpty } from "@karma-team/utils";
 import { StickyEditor } from "@/components/editor/sticky-editor";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";

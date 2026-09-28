@@ -2,8 +2,8 @@
 
 ## Goal
 
-A built-in AI assistant in pi-dash cloud that any workspace member can chat with from the landing
-page. The assistant operates pi-dash _as the user_ — querying and creating projects, issues,
+A built-in AI assistant in karma-team cloud that any workspace member can chat with from the landing
+page. The assistant operates karma-team _as the user_ — querying and creating projects, issues,
 comments, and dispatching coding agent runs — through a multi-turn agent loop, with strict
 access-control parity and per-workspace chat history.
 
@@ -26,7 +26,7 @@ access-control parity and per-workspace chat history.
                           ▼                         │
    ┌────────────────── Django API (ASGI: gunicorn + UvicornWorker) ──────────────────┐
    │                                                                                 │
-   │  DRF views: pi_dash.assistant (NEW OSS app)                                     │
+   │  DRF views: karma_team.assistant (NEW OSS app)                                     │
    │   threads / messages / events(SSE) / llm-config                                 │
    │        │ enqueue turn                                  ▲ subscribe              │
    │        ▼                                               │                        │
@@ -39,7 +39,7 @@ access-control parity and per-workspace chat history.
    │                         message_history (loaded from Postgres)                  │
    │        │ tool calls                                                             │
    │        ▼                                                                        │
-   │  TOOLS (pi_dash/assistant/tools/) ── reuse existing scoping + role checks       │
+   │  TOOLS (karma_team/assistant/tools/) ── reuse existing scoping + role checks       │
    │   query/create issues, comments, projects … dispatch AgentRun                   │
    │        │                                                                        │
    │        ▼                                                                        │
@@ -88,18 +88,18 @@ access-control parity and per-workspace chat history.
 
 ## Key existing code this builds on
 
-| Piece                                                    | Path                                                                                                    |
-| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Role model (Admin 20 / Member 15 / Guest 5)              | `apps/api/pi_dash/db/models/workspace.py:19`                                                            |
-| Workspace membership                                     | `apps/api/pi_dash/db/models/workspace.py:198-231`                                                       |
-| Project membership + role decorator                      | `apps/api/pi_dash/app/permissions/base.py:19-88` (membership/role layer — separate from queryset layer) |
-| Authenticated issue queryset (workspace/project scope)   | `apps/api/pi_dash/app/views/issue/base.py:199-215` (`IssueViewSet.get_queryset`)                        |
-| Workspace role helpers (to be moved to a neutral module) | `apps/api/pi_dash/runner/services/permissions.py`                                                       |
-| Representative scoped queryset (comments)                | `apps/api/pi_dash/app/views/issue/comment.py:43-46,68-75`                                               |
-| Coding-run dispatch entry point                          | `apps/api/pi_dash/orchestration/service.py:99` (`handle_issue_state_transition`)                        |
-| Comment attribution fields (`speaker_type`…)             | `apps/api/pi_dash/db/models/issue.py:519-556`                                                           |
-| SSE chat precedent (API)                                 | `apps/api/pi_dash/runner/views/chat.py`                                                                 |
-| SSE chat precedent (web hook)                            | `apps/web/core/components/runners/chat/use-agent-chat-events.ts`                                        |
-| Chat page UI template                                    | `apps/web/app/(all)/[workspaceSlug]/runners/chat/[runnerId]/page.tsx`                                   |
-| Landing page (auth'd)                                    | `apps/web/app/(all)/[workspaceSlug]/(projects)/page.tsx`                                                |
-| Cloud plan/quota seams                                   | `private-pi-dash/pi_dash_cloud/billing/plans.py`, `quotas/middleware.py`                                |
+| Piece                                                    | Path                                                                                                       |
+| -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Role model (Admin 20 / Member 15 / Guest 5)              | `apps/api/karma_team/db/models/workspace.py:19`                                                            |
+| Workspace membership                                     | `apps/api/karma_team/db/models/workspace.py:198-231`                                                       |
+| Project membership + role decorator                      | `apps/api/karma_team/app/permissions/base.py:19-88` (membership/role layer — separate from queryset layer) |
+| Authenticated issue queryset (workspace/project scope)   | `apps/api/karma_team/app/views/issue/base.py:199-215` (`IssueViewSet.get_queryset`)                        |
+| Workspace role helpers (to be moved to a neutral module) | `apps/api/karma_team/runner/services/permissions.py`                                                       |
+| Representative scoped queryset (comments)                | `apps/api/karma_team/app/views/issue/comment.py:43-46,68-75`                                               |
+| Coding-run dispatch entry point                          | `apps/api/karma_team/orchestration/service.py:99` (`handle_issue_state_transition`)                        |
+| Comment attribution fields (`speaker_type`…)             | `apps/api/karma_team/db/models/issue.py:519-556`                                                           |
+| SSE chat precedent (API)                                 | `apps/api/karma_team/runner/views/chat.py`                                                                 |
+| SSE chat precedent (web hook)                            | `apps/web/core/components/runners/chat/use-agent-chat-events.ts`                                           |
+| Chat page UI template                                    | `apps/web/app/(all)/[workspaceSlug]/runners/chat/[runnerId]/page.tsx`                                      |
+| Landing page (auth'd)                                    | `apps/web/app/(all)/[workspaceSlug]/(projects)/page.tsx`                                                   |
+| Cloud plan/quota seams                                   | `private-karma-team/karma_team_cloud/billing/plans.py`, `quotas/middleware.py`                             |

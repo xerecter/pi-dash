@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TAllAvailableOperatorsForDisplay, TSupportedOperators } from "@pi-dash/types";
+import type { TAllAvailableOperatorsForDisplay, TSupportedOperators } from "@karma-team/types";
 
 /**
  * Result type for operator conversion

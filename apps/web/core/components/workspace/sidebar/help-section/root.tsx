@@ -7,17 +7,17 @@
 import React, { useState } from "react";
 import { observer } from "mobx-react";
 import { HelpCircle, User } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { PageIcon } from "@pi-dash/propel/icons";
+import { useTranslation } from "@karma-team/i18n";
+import { PageIcon } from "@karma-team/propel/icons";
 // ui
-import { CustomMenu } from "@pi-dash/ui";
+import { CustomMenu } from "@karma-team/ui";
 // components
 import { ProductUpdatesModal } from "@/components/global";
 import { AppSidebarItem } from "@/components/sidebar/sidebar-item";
 // hooks
 import { usePowerK } from "@/hooks/store/use-power-k";
-// pi dash web components
-import { PiDashVersionNumber } from "@/pi-dash-web/components/global";
+// karma-team web components
+import { KarmaTeamVersionNumber } from "@/karma-team-web/components/global";
 
 export const HelpMenuRoot = observer(function HelpMenuRoot() {
   // store hooks
@@ -48,7 +48,7 @@ export const HelpMenuRoot = observer(function HelpMenuRoot() {
         maxHeight="lg"
         closeOnSelect
       >
-        <CustomMenu.MenuItem onClick={() => window.open("https://github.com/The-AI-Republic/pi-dash#readme", "_blank")}>
+        <CustomMenu.MenuItem onClick={() => window.open("https://github.com/xerecter/karma-team#readme", "_blank")}>
           <div className="flex items-center gap-x-2 rounded-sm text-11">
             <PageIcon className="h-3.5 w-3.5 text-secondary" height={14} width={14} />
             <span className="text-11">{t("Documentation")}</span>
@@ -81,7 +81,7 @@ export const HelpMenuRoot = observer(function HelpMenuRoot() {
         </CustomMenu.MenuItem>
         <CustomMenu.MenuItem
           onClick={() =>
-            window.open("https://github.com/The-AI-Republic/pi-dash/discussions", "_blank", "noopener,noreferrer")
+            window.open("https://github.com/xerecter/karma-team/discussions", "_blank", "noopener,noreferrer")
           }
         >
           <div className="flex items-center gap-x-2 rounded-sm text-11">
@@ -89,7 +89,7 @@ export const HelpMenuRoot = observer(function HelpMenuRoot() {
           </div>
         </CustomMenu.MenuItem>
         <div className="mt-1 border-t border-subtle px-1 pt-2 text-11 text-secondary">
-          <PiDashVersionNumber />
+          <KarmaTeamVersionNumber />
         </div>
       </CustomMenu>
     </>

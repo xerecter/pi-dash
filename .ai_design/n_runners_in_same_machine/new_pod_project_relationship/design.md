@@ -1,7 +1,7 @@
 # Pod ↔ Project ↔ Runner — Relationship Refactor
 
 **Status:** in design
-**Supersedes (within this dir):** the workspace-default-pod assumption baked into the parent `design.md` §4–§6 and `apps/api/pi_dash/runner/migrations/0004_add_pod_and_run_identity.py`'s "one default pod per workspace" model.
+**Supersedes (within this dir):** the workspace-default-pod assumption baked into the parent `design.md` §4–§6 and `apps/api/karma_team/runner/migrations/0004_add_pod_and_run_identity.py`'s "one default pod per workspace" model.
 
 This doc refines the multi-runner design so that **a runner is bound to one project** (not just to a workspace), and **a pod is a sub-grouping of runners within one project** (not a workspace-wide bucket). The token + WebSocket multiplex layer (parent `design.md` §4–§6) is unchanged; only the pod/project/runner data model and the dispatch path are reshaped.
 
@@ -11,9 +11,9 @@ The parent `decisions.md` and `tasks.md` continue to govern the multi-runner she
 
 ## 1. Why
 
-The shipped multi-runner design assumed one pod per workspace and used a runner's `working_dir` as the only de-facto link to a project. That works for a one-project workspace and breaks the moment a developer has multiple repos / multiple Pi Dash projects on the same machine. The two real-world scenarios that motivate the change:
+The shipped multi-runner design assumed one pod per workspace and used a runner's `working_dir` as the only de-facto link to a project. That works for a one-project workspace and breaks the moment a developer has multiple repos / multiple karma-team projects on the same machine. The two real-world scenarios that motivate the change:
 
-- **One developer, three projects.** Dev machine A has `~/work/repoP`, `~/work/repoQ`, `~/work/repoR` — three separate repos that map to three Pi Dash projects (P, Q, R). Today, all three would land in firstdream's single workspace pod, and any issue from any project could be dispatched to any of A's runners regardless of which repo each runner has cloned. The runner would then fail (wrong repo) or — worse — overwrite the wrong tree.
+- **One developer, three projects.** Dev machine A has `~/work/repoP`, `~/work/repoQ`, `~/work/repoR` — three separate repos that map to three karma-team projects (P, Q, R). Today, all three would land in firstdream's single workspace pod, and any issue from any project could be dispatched to any of A's runners regardless of which repo each runner has cloned. The runner would then fail (wrong repo) or — worse — overwrite the wrong tree.
 - **One project, two contributors.** Dev machine A and dev machine B both work on project P. The "fleet for P" is the union of runners-on-A-serving-P and runners-on-B-serving-P. That fleet is a useful primitive: routing, capacity reporting, tier separation. It is what we want a _pod_ to mean.
 
 The refactor makes those two scenarios first-class and replaces "pod = workspace-wide bucket" with "**pod = project-scoped runner group**."
@@ -39,7 +39,7 @@ The refactor makes those two scenarios first-class and replaces "pod = workspace
 
 | Term             | Meaning                                                                                                                                                                                    |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Workspace**    | Pi Dash tenant (e.g. `firstdream`). Existing concept, unchanged.                                                                                                                           |
+| **Workspace**    | karma-team tenant (e.g. `firstdream`). Existing concept, unchanged.                                                                                                                        |
 | **Project**      | A workspace-scoped product / repo (e.g. `firstdream-WEB`). Existing concept; gains an auto-created default pod.                                                                            |
 | **Pod**          | A project-scoped runner grouping. Cardinality ≥ 1 per project (the default pod is auto-created; user can add tier pods). Each pod owns exactly one project; one project can own many pods. |
 | **Runner**       | A logical agent. Bound to exactly one project, exactly one pod, and one git working directory on its host machine.                                                                         |
@@ -137,7 +137,7 @@ No schema change. The `pod` FK is unchanged; what changes is **how `pod_id` is f
 No schema change. `Issue.assigned_pod` (a `PROTECT` FK to `Pod`, today auto-filled from the workspace default in `Issue.save()`) gets two behavior changes:
 
 - `Issue.save()`'s auto-resolution flips from `Pod.default_for_workspace_id(workspace_id)` to `Pod.default_for_project_id(project_id)`. New issues land in their project's default pod.
-- The serializer in `apps/api/pi_dash/app/serializers/issue.py` (`validate_assigned_pod`-style block at line 180–194) currently checks `pod.workspace_id == issue.workspace_id`. Under the new model that's a cross-project escape hatch (a Project P issue could be assigned a pod belonging to Project Q in the same workspace, and dispatch would happily route P's runs into Q's pod). The check changes to `pod.project_id == issue.project_id`. Pod-soft-deleted check is kept.
+- The serializer in `apps/api/karma_team/app/serializers/issue.py` (`validate_assigned_pod`-style block at line 180–194) currently checks `pod.workspace_id == issue.workspace_id`. Under the new model that's a cross-project escape hatch (a Project P issue could be assigned a pod belonging to Project Q in the same workspace, and dispatch would happily route P's runs into Q's pod). The check changes to `pod.project_id == issue.project_id`. Pod-soft-deleted check is kept.
 
 The `PROTECT` FK is intentional and stays — it ensures pods can't be physically removed while issues still reference them. This shapes the migration story (see §11): pre-existing `issues.assigned_pod` rows must be NULLed (or re-pointed) before pods can be deleted.
 
@@ -160,7 +160,7 @@ The `PROTECT` FK is intentional and stays — it ensures pods can't be physicall
 - On **update**, no-op.
 - Idempotent: if a default pod already exists for the project, do nothing.
 
-The signal lives in `pi_dash/runner/signals.py` (or wherever existing pod lifecycle lives) and is connected in `apps/runner/apps.RunnerConfig.ready`.
+The signal lives in `karma_team/runner/signals.py` (or wherever existing pod lifecycle lives) and is connected in `apps/runner/apps.RunnerConfig.ready`.
 
 ### 6.2 User-created additional pods
 
@@ -223,7 +223,7 @@ Response (changed):
 
 ### 7.2 Legacy registration (`/api/v1/runner/register/`)
 
-The same shape change: the request body now requires `project` (and optionally `pod`). The legacy single-runner enrollment flow has no notion of which project the runner serves until the user picks one, so the one-time-token-paired-with-CLI invocation has to surface this. The `pidash configure` CLI gains `--project <slug>` to pass it through (§9).
+The same shape change: the request body now requires `project` (and optionally `pod`). The legacy single-runner enrollment flow has no notion of which project the runner serves until the user picks one, so the one-time-token-paired-with-CLI invocation has to surface this. The `karma-team configure` CLI gains `--project <slug>` to pass it through (§9).
 
 For installs that target a workspace with exactly one project, **the runner-side CLI can pre-fill the project for ergonomics**, but the wire request always carries it explicitly so the cloud is never guessing.
 
@@ -238,11 +238,11 @@ pub struct RunnerConfig {
     pub workspace_slug: Option<String>,   // existing, kept
 
     // NEW: project this runner serves. Set at registration. The
-    // daemon never re-binds; rerun `pidash token add-runner` to
+    // daemon never re-binds; rerun `karma-team token add-runner` to
     // change.
     pub project_slug: String,
 
-    // NEW: pod_id the cloud assigned. Used only for `pidash status`
+    // NEW: pod_id the cloud assigned. Used only for `karma-team status`
     // displays and as a self-check at Hello time. Not authoritative —
     // cloud's runner row is the source of truth.
     pub pod_id: Option<Uuid>,
@@ -271,7 +271,7 @@ The MachineToken still authorises the runner_id; the project field is purely a s
 
 Pod resolution flips at three call sites; they collectively constitute "dispatch" in this design:
 
-**8.1 `Issue.save()`** (in `apps/api/pi_dash/db/models/issue.py:199`). Auto-resolution flips:
+**8.1 `Issue.save()`** (in `apps/api/karma_team/db/models/issue.py:199`). Auto-resolution flips:
 
 ```python
 # Before: workspace default
@@ -281,7 +281,7 @@ default_pod = Pod.default_for_workspace_id(workspace_id)
 default_pod = Pod.default_for_project_id(self.project_id)
 ```
 
-**8.2 Issue serializer cross-check** (in `apps/api/pi_dash/app/serializers/issue.py:180–194`). The "pod must be in the same workspace" guard is replaced by "pod must be in the same project":
+**8.2 Issue serializer cross-check** (in `apps/api/karma_team/app/serializers/issue.py:180–194`). The "pod must be in the same workspace" guard is replaced by "pod must be in the same project":
 
 ```python
 # Before
@@ -321,10 +321,10 @@ Runs whose issue has no project (legacy, shouldn't exist post-refactor) trigger 
 
 ## 9. CLI surface
 
-### 9.1 `pidash configure` (initial registration)
+### 9.1 `karma-team configure` (initial registration)
 
 ```
-pidash configure \
+karma-team configure \
   --url <CLOUD_URL> \
   --token <ONE_TIME_REG_TOKEN> \
   --project <PROJECT_IDENTIFIER> \      # NEW, required
@@ -336,10 +336,10 @@ pidash configure \
 
 If `--project` is omitted on a fresh setup, the CLI hard-errors with a hint listing the workspace's projects and their identifiers (one-shot REST call to `/api/runners/projects/` with the registration token's workspace).
 
-### 9.2 `pidash token add-runner`
+### 9.2 `karma-team token add-runner`
 
 ```
-pidash token add-runner \
+karma-team token add-runner \
   --project <PROJECT_IDENTIFIER> \
   [--pod <POD_NAME>] \
   --name <RUNNER_NAME> \
@@ -349,13 +349,13 @@ pidash token add-runner \
 
 `--project` is always required (even if the workspace has only one project — explicitness over magic). `--pod` defaults to the project's default pod.
 
-### 9.3 `pidash token list-projects` (new)
+### 9.3 `karma-team token list-projects` (new)
 
 For discovery. Calls `/api/runners/projects/` with the locally-installed token credentials, prints `identifier` + `name` so the user can pick.
 
-### 9.4 `pidash status` (and other CLI verbs)
+### 9.4 `karma-team status` (and other CLI verbs)
 
-Multi-runner UX (separate task block in `tasks.md`): list all configured runners with their project + pod + status. The `--runner <name>` selector applies to per-runner verbs (`pidash issue`, `pidash comment`, etc.).
+Multi-runner UX (separate task block in `tasks.md`): list all configured runners with their project + pod + status. The `--runner <name>` selector applies to per-runner verbs (`karma-team issue`, `karma-team comment`, etc.).
 
 ## 10. Validation rules (consolidated)
 
@@ -367,7 +367,7 @@ Multi-runner UX (separate task block in `tasks.md`): list all configured runners
 | Cloud API      | Pod name matches `^{project.identifier}_[A-Za-z0-9._-]{1,96}$`.                                                                      | `pods.py` view validation                                           |
 | Cloud API      | `register-under-token/` rejects unknown project / wrong-workspace project.                                                           | `machine_tokens.py` view                                            |
 | Cloud API      | `register-under-token/` rejects soft-deleted pod.                                                                                    | `machine_tokens.py` view                                            |
-| Cloud API      | Issue serializer rejects `assigned_pod` whose `project_id` ≠ issue's `project_id`. (Was: workspace-equality check.)                  | `apps/api/pi_dash/app/serializers/issue.py`                         |
+| Cloud API      | Issue serializer rejects `assigned_pod` whose `project_id` ≠ issue's `project_id`. (Was: workspace-equality check.)                  | `apps/api/karma_team/app/serializers/issue.py`                      |
 | Cloud WS       | Hello with `project_id` mismatching `runner.pod.project_id` → reply with `RemoveRunner`.                                             | `consumers._handle_token_hello`                                     |
 | Runner config  | Every `[[runner]]` has non-empty `project_slug`.                                                                                     | `Config::validate()`                                                |
 | Runner config  | No two `[[runner]]` blocks share a `working_dir`, including nested-prefix overlap.                                                   | `Config::validate()` (existing)                                     |

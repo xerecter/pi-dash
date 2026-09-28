@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { TSupportedOperators } from "@pi-dash/types";
-import { CORE_OPERATORS } from "@pi-dash/types";
+import type { TSupportedOperators } from "@karma-team/types";
+import { CORE_OPERATORS } from "@karma-team/types";
 
 export type TFiltersOperatorConfigs = {
   allowedOperators: Set<TSupportedOperators>;

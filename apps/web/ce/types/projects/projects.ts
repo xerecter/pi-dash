@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { IPartialProject, IProject } from "@pi-dash/types";
+import type { IPartialProject, IProject } from "@karma-team/types";
 
 export type TPartialProject = IPartialProject;
 

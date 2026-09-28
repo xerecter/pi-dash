@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
-# Pi Dash runner installer.
+# karma-team runner installer.
 #
-# Installs the local runner binary and then launches `pidash auth login` so
+# Installs the local runner binary and then launches `karma-team auth login` so
 # the user lands in the device-code flow on the same command. A checked-out
 # source tree is enough to install the runner: an existing local binary is
 # reused, and a release binary is built from `runner/Cargo.toml` when needed.
@@ -12,12 +12,12 @@ set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
-INSTALL_DIR=${PIDASH_INSTALL_DIR:-"$HOME/.local/bin"}
+INSTALL_DIR=${KARMA_TEAM_INSTALL_DIR:-"$HOME/.local/bin"}
 
 # A caller can point at a locally built binary explicitly. Relative paths are
-# resolved from the repository root so `PIDASH_LOCAL_BIN=target/debug/pidash`
+# resolved from the repository root so `KARMA_TEAM_LOCAL_BIN=target/debug/karma-team`
 # works regardless of the caller's current directory.
-LOCAL_BIN=${PIDASH_LOCAL_BIN:-}
+LOCAL_BIN=${KARMA_TEAM_LOCAL_BIN:-}
 if [ -n "$LOCAL_BIN" ]; then
   case "$LOCAL_BIN" in
     /*) ;;
@@ -45,16 +45,16 @@ find_local_binary() {
   fi
 
   for candidate in \
-    "$TARGET_DIR/release/pidash" \
-    "$TARGET_DIR/release/pidash.exe" \
-    "$TARGET_DIR/debug/pidash" \
-    "$TARGET_DIR/debug/pidash.exe" \
-    "$SCRIPT_DIR/target/release/pidash" \
-    "$SCRIPT_DIR/target/release/pidash.exe" \
-    "$SCRIPT_DIR/target/debug/pidash" \
-    "$SCRIPT_DIR/target/debug/pidash.exe" \
-    "$INSTALL_DIR/pidash" \
-    "$INSTALL_DIR/pidash.exe"; do
+    "$TARGET_DIR/release/karma-team" \
+    "$TARGET_DIR/release/karma-team.exe" \
+    "$TARGET_DIR/debug/karma-team" \
+    "$TARGET_DIR/debug/karma-team.exe" \
+    "$SCRIPT_DIR/target/release/karma-team" \
+    "$SCRIPT_DIR/target/release/karma-team.exe" \
+    "$SCRIPT_DIR/target/debug/karma-team" \
+    "$SCRIPT_DIR/target/debug/karma-team.exe" \
+    "$INSTALL_DIR/karma-team" \
+    "$INSTALL_DIR/karma-team.exe"; do
     if is_executable_file "$candidate"; then
       printf '%s\n' "$candidate"
       return 0
@@ -71,7 +71,7 @@ find_local_binary() {
 # lives inside the WSL distro is a legitimate setup.
 if grep -qi microsoft /proc/version 2>/dev/null || [ -n "${WSL_DISTRO_NAME:-}" ]; then
   echo ""
-  echo "Warning: this looks like WSL, so the Linux build of pidash will be installed."
+  echo "Warning: this looks like WSL, so the Linux build of karma-team will be installed."
   echo "It will drive coding agents inside this WSL distro only — not ones installed"
   echo "on Windows. If your agents live on the Windows side, cancel and run this"
   echo "from PowerShell instead:"
@@ -104,33 +104,33 @@ if grep -qi microsoft /proc/version 2>/dev/null || [ -n "${WSL_DISTRO_NAME:-}" ]
   fi
 fi
 
-echo "==> Looking for a local pidash binary..."
+echo "==> Looking for a local karma-team binary..."
 SOURCE_BIN=$(find_local_binary || true)
 
 if [ -z "$SOURCE_BIN" ]; then
   if ! command -v cargo >/dev/null 2>&1; then
     echo ""
-    echo "No local pidash binary was found, and cargo is not installed."
+    echo "No local karma-team binary was found, and cargo is not installed."
     echo "Install Rust 1.93 or newer, then rerun: bash ./runner/install.sh"
     exit 1
   fi
 
-  echo "==> Building pidash from local source..."
+  echo "==> Building karma-team from local source..."
   (
     cd "$REPO_ROOT"
     CARGO_TARGET_DIR="$TARGET_DIR" cargo build \
       --manifest-path "$SCRIPT_DIR/Cargo.toml" \
       --locked \
-      --bin pidash \
+      --bin karma-team \
       --release
   )
-  SOURCE_BIN="$TARGET_DIR/release/pidash"
-  if [ ! -x "$SOURCE_BIN" ] && [ -x "$TARGET_DIR/release/pidash.exe" ]; then
-    SOURCE_BIN="$TARGET_DIR/release/pidash.exe"
+  SOURCE_BIN="$TARGET_DIR/release/karma-team"
+  if [ ! -x "$SOURCE_BIN" ] && [ -x "$TARGET_DIR/release/karma-team.exe" ]; then
+    SOURCE_BIN="$TARGET_DIR/release/karma-team.exe"
   fi
   if [ ! -x "$SOURCE_BIN" ]; then
     echo ""
-    echo "cargo completed, but the pidash binary was not found at:"
+    echo "cargo completed, but the karma-team binary was not found at:"
     echo "  $SOURCE_BIN"
     exit 1
   fi
@@ -140,21 +140,21 @@ fi
 
 mkdir -p "$INSTALL_DIR"
 case "$SOURCE_BIN" in
-  *.exe) PIDASH_BIN="$INSTALL_DIR/pidash.exe" ;;
-  *) PIDASH_BIN="$INSTALL_DIR/pidash" ;;
+  *.exe) KARMA_TEAM_BIN="$INSTALL_DIR/karma-team.exe" ;;
+  *) KARMA_TEAM_BIN="$INSTALL_DIR/karma-team" ;;
 esac
 
-if [ "$SOURCE_BIN" != "$PIDASH_BIN" ]; then
-  # Stage first and replace atomically. A running pidash process keeps its
+if [ "$SOURCE_BIN" != "$KARMA_TEAM_BIN" ]; then
+  # Stage first and replace atomically. A running karma-team process keeps its
   # existing inode open, so upgrades also work while the daemon is active.
-  STAGED_BIN="$PIDASH_BIN.tmp.$$"
+  STAGED_BIN="$KARMA_TEAM_BIN.tmp.$$"
   cp "$SOURCE_BIN" "$STAGED_BIN"
   chmod 0755 "$STAGED_BIN"
-  mv -f "$STAGED_BIN" "$PIDASH_BIN"
+  mv -f "$STAGED_BIN" "$KARMA_TEAM_BIN"
 fi
-chmod 0755 "$PIDASH_BIN"
+chmod 0755 "$KARMA_TEAM_BIN"
 
-echo "Installed pidash at $PIDASH_BIN"
+echo "Installed karma-team at $KARMA_TEAM_BIN"
 
 echo ""
 echo "==> Starting authentication..."
@@ -170,12 +170,12 @@ echo ""
 # "No such device or address". Probe openability by actually trying to
 # read from /dev/tty in a subshell.
 if (: </dev/tty) 2>/dev/null; then
-  exec "$PIDASH_BIN" auth login < /dev/tty
+  exec "$KARMA_TEAM_BIN" auth login < /dev/tty
 fi
 
 # No TTY (CI, Dockerfile, piped without a terminal): don't try to
 # auth — there's no one to approve the device code. Point at the
 # headless path instead.
 echo "No terminal detected — skipping auto-auth."
-echo "Run \`pidash auth login --no-browser --url <URL>\`, approve the printed"
-echo "URL from another browser, then run \`pidash runner add --project <PROJECT>\`."
+echo "Run \`karma-team auth login --no-browser --url <URL>\`, approve the printed"
+echo "URL from another browser, then run \`karma-team runner add --project <PROJECT>\`."

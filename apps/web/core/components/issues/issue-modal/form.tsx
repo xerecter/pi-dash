@@ -9,16 +9,16 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
 // editor
-import { ETabIndices, DEFAULT_WORK_ITEM_FORM_VALUES } from "@pi-dash/constants";
-import type { EditorRefApi } from "@pi-dash/editor";
+import { ETabIndices, DEFAULT_WORK_ITEM_FORM_VALUES } from "@karma-team/constants";
+import type { EditorRefApi } from "@karma-team/editor";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { AssistantService } from "@pi-dash/services";
-import type { TIssue, TWorkspaceDraftIssue } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { AssistantService } from "@karma-team/services";
+import type { TIssue, TWorkspaceDraftIssue } from "@karma-team/types";
 // hooks
-import { ToggleSwitch } from "@pi-dash/ui";
+import { ToggleSwitch } from "@karma-team/ui";
 import {
   convertWorkItemDataToSearchResponse,
   getUpdateFormDataForReset,
@@ -26,7 +26,7 @@ import {
   getTextContent,
   getChangedIssuefields,
   getTabIndex,
-} from "@pi-dash/utils";
+} from "@karma-team/utils";
 // components
 import { useLLMConfig } from "@/components/assistant/use-llm-config";
 import {
@@ -46,12 +46,12 @@ import { useProjectState } from "@/hooks/store/use-project-state";
 import { useWorkspaceDraftIssues } from "@/hooks/store/workspace-draft";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 import { useProjectIssueProperties } from "@/hooks/use-project-issue-properties";
-// pi dash web imports
-import { DeDupeButtonRoot } from "@/pi-dash-web/components/de-dupe/de-dupe-button";
-import { DuplicateModalRoot } from "@/pi-dash-web/components/de-dupe/duplicate-modal";
-import { IssueTypeSelect, WorkItemTemplateSelect } from "@/pi-dash-web/components/issues/issue-modal";
-import { WorkItemModalAdditionalProperties } from "@/pi-dash-web/components/issues/issue-modal/modal-additional-properties";
-import { useDebouncedDuplicateIssues } from "@/pi-dash-web/hooks/use-debounced-duplicate-issues";
+// karma-team web imports
+import { DeDupeButtonRoot } from "@/karma-team-web/components/de-dupe/de-dupe-button";
+import { DuplicateModalRoot } from "@/karma-team-web/components/de-dupe/duplicate-modal";
+import { IssueTypeSelect, WorkItemTemplateSelect } from "@/karma-team-web/components/issues/issue-modal";
+import { WorkItemModalAdditionalProperties } from "@/karma-team-web/components/issues/issue-modal/modal-additional-properties";
+import { useDebouncedDuplicateIssues } from "@/karma-team-web/hooks/use-debounced-duplicate-issues";
 
 const assistantService = new AssistantService();
 const AI_TITLE_GENERATION_TIMEOUT_MS = 30_000;
@@ -113,7 +113,7 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
   const [isMoving, setIsMoving] = useState<boolean>(false);
   const [isGeneratingTitle, setIsGeneratingTitle] = useState<boolean>(false);
 
-  // Pi Dash AI assistant availability — when configured, the title becomes
+  // karma-team AI assistant availability — when configured, the title becomes
   // optional and is generated from the description on save. This only applies
   // to creating a brand-new (non-draft) work item: editing a saved issue keeps
   // the title required, and drafts skip generation so closing the modal never
@@ -278,7 +278,7 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
     )
       return;
 
-    // If the user left the title blank on a new work item and has a Pi Dash AI
+    // If the user left the title blank on a new work item and has a karma-team AI
     // assistant configured, generate a title from the description before saving.
     // `titleOptional` already excludes edits and drafts.
     const titleIsBlank = (formData.name ?? "").trim() === "";
@@ -288,7 +288,7 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
         setToast({
           type: TOAST_TYPE.ERROR,
           title: t("Error"),
-          message: t("Add a description so Pi Dash AI can generate a title."),
+          message: t("Add a description so karma-team AI can generate a title."),
         });
         return;
       }
@@ -305,7 +305,7 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
         setToast({
           type: TOAST_TYPE.ERROR,
           title: t("Error"),
-          message: detail ?? t("Pi Dash AI couldn't generate a title. Try again or enter a title manually."),
+          message: detail ?? t("karma-team AI couldn't generate a title. Try again or enter a title manually."),
         });
         return;
       } finally {
@@ -539,7 +539,7 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
                     role="status"
                     aria-live="polite"
                   >
-                    {t("Pi Dash AI is generating a title.")}
+                    {t("karma-team AI is generating a title.")}
                   </div>
                 )}
               </div>

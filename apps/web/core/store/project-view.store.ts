@@ -8,10 +8,10 @@ import { set } from "lodash-es";
 import { observable, action, makeObservable, runInAction, computed } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { IProjectView, TViewFilters } from "@pi-dash/types";
+import type { IProjectView, TViewFilters } from "@karma-team/types";
 // constants
 // helpers
-import { getValidatedViewFilters, getViewName, orderViews, shouldFilterView } from "@pi-dash/utils";
+import { getValidatedViewFilters, getViewName, orderViews, shouldFilterView } from "@karma-team/utils";
 // services
 import { ViewService } from "@/services/view.service";
 // store

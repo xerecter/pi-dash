@@ -6,11 +6,11 @@
 
 import React, { useEffect, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash package imports
-import { ModalPortal, EPortalWidth, EPortalPosition } from "@pi-dash/propel/portal";
-import type { ICycle, IModule, IProject } from "@pi-dash/types";
+// karma-team package imports
+import { ModalPortal, EPortalWidth, EPortalPosition } from "@karma-team/propel/portal";
+import type { ICycle, IModule, IProject } from "@karma-team/types";
 import { useAnalytics } from "@/hooks/store/use-analytics";
-// pi dash web components
+// karma-team web components
 import { WorkItemsModalMainContent } from "./content";
 import { WorkItemsModalHeader } from "./header";
 

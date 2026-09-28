@@ -8,11 +8,11 @@ import React from "react";
 import { observer } from "mobx-react";
 import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
-// pi dash imports
-import { ETabIndices } from "@pi-dash/constants";
+// karma-team imports
+import { ETabIndices } from "@karma-team/constants";
 // types
-import type { TIssue } from "@pi-dash/types";
-import { getTabIndex } from "@pi-dash/utils";
+import type { TIssue } from "@karma-team/types";
+import { getTabIndex } from "@karma-team/utils";
 // components
 import { ProjectDropdown } from "@/components/dropdowns/project/dropdown";
 // hooks

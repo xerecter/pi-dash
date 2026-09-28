@@ -10,8 +10,8 @@ import { EditorWrapper } from "@/components/editors";
 import { BlockMenu, EditorBubbleMenu } from "@/components/menus";
 // extensions
 import { SideMenuExtension } from "@/extensions";
-// pi dash editor imports
-import { RichTextEditorAdditionalExtensions } from "@/pi-dash-editor/extensions/rich-text-extensions";
+// karma-team editor imports
+import { RichTextEditorAdditionalExtensions } from "@/karma-team-editor/extensions/rich-text-extensions";
 // types
 import type { EditorRefApi, IRichTextEditorProps } from "@/types";
 

@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import { EIssuesStoreType, EUserProjectRoles } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import { EIssuesStoreType, EUserProjectRoles } from "@karma-team/types";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -20,7 +20,7 @@ export const ProjectEmptyState = observer(function ProjectEmptyState() {
   // router
   const { projectId: routerProjectId } = useParams();
   const projectId = routerProjectId ? routerProjectId.toString() : undefined;
-  // pi dash imports
+  // karma-team imports
   const { t } = useTranslation();
   // store hooks
   const { toggleCreateIssueModal } = useCommandPalette();
@@ -53,7 +53,9 @@ export const ProjectEmptyState = observer(function ProjectEmptyState() {
         <EmptyStateDetailed
           assetKey="work-item"
           title={t("Start with your first work item.")}
-          description={t("Work items are the building blocks of your project — assign owners, set priorities, and track progress easily.")}
+          description={t(
+            "Work items are the building blocks of your project — assign owners, set priorities, and track progress easily."
+          )}
           actions={[
             {
               label: t("Create your first work item"),

@@ -6,9 +6,9 @@
 
 import { observer } from "mobx-react";
 import { MessageSquare } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 // store
 import type { INotification } from "@/store/notifications/notification";
 // local imports

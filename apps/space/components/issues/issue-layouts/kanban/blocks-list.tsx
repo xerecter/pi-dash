@@ -7,7 +7,7 @@
 import type { MutableRefObject } from "react";
 import { observer } from "mobx-react";
 //types
-import type { IIssueDisplayProperties } from "@pi-dash/types";
+import type { IIssueDisplayProperties } from "@karma-team/types";
 // components
 import { KanbanIssueBlock } from "./block";
 

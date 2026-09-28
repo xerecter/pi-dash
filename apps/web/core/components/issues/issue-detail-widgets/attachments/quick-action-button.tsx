@@ -8,14 +8,14 @@ import React, { useCallback, useState } from "react";
 import { observer } from "mobx-react";
 import type { FileRejection } from "react-dropzone";
 import { useDropzone } from "react-dropzone";
-import { PlusIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TIssueServiceType } from "@pi-dash/types";
+import { PlusIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TIssueServiceType } from "@karma-team/types";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// pi dash web hooks
-import { useFileSize } from "@/pi-dash-web/hooks/use-file-size";
+// karma-team web hooks
+import { useFileSize } from "@/karma-team-web/hooks/use-file-size";
 // local imports
 import { useAttachmentOperations } from "./helper";
 

@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 // components
-import { ThemeSwitcher } from "@/pi-dash-web/components/preferences/theme-switcher";
+import { ThemeSwitcher } from "@/karma-team-web/components/preferences/theme-switcher";
 
 export const ProfileSettingsDefaultPreferencesList = observer(function ProfileSettingsDefaultPreferencesList() {
   return (

@@ -8,9 +8,9 @@ import React, { useEffect } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-// pi dash imports
-import { ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@pi-dash/constants";
-import { EIssuesStoreType } from "@pi-dash/types";
+// karma-team imports
+import { ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@karma-team/constants";
+import { EIssuesStoreType } from "@karma-team/types";
 // components
 import { ProfileIssuesKanBanLayout } from "@/components/issues/issue-layouts/kanban/roots/profile-issues-root";
 import { ProfileIssuesListLayout } from "@/components/issues/issue-layouts/list/roots/profile-issues-root";

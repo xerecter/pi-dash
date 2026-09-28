@@ -1,4 +1,4 @@
-//! `pidash auth status` — show login state.
+//! `karma-team auth status` — show login state.
 
 use anyhow::{Context, Result};
 use clap::Args as ClapArgs;
@@ -24,9 +24,7 @@ struct UserMe {
 
 pub async fn run(_args: Args, paths: &Paths) -> Result<()> {
     let token = runner_ops::load_cli_token(paths)?.ok_or_else(|| {
-        anyhow::anyhow!(
-            "not logged in — run `pidash auth login` to authenticate this host"
-        )
+        anyhow::anyhow!("not logged in — run `karma-team auth login` to authenticate this host")
     })?;
 
     let cfg = file::load_config(paths).ok();
@@ -35,7 +33,7 @@ pub async fn run(_args: Args, paths: &Paths) -> Result<()> {
         .map(|c| c.daemon.cloud_url.clone())
         .unwrap_or_default();
     if cloud_url.is_empty() {
-        anyhow::bail!("config.toml is missing [daemon].cloud_url — re-run `pidash auth login`");
+        anyhow::bail!("config.toml is missing [daemon].cloud_url — re-run `karma-team auth login`");
     }
 
     let client = reqwest::Client::builder()
@@ -51,7 +49,7 @@ pub async fn run(_args: Args, paths: &Paths) -> Result<()> {
     let status = resp.status();
     if status.as_u16() == 401 || status.as_u16() == 403 {
         anyhow::bail!(
-            "logged in to {cloud_url} but the cloud rejected the token (HTTP {status}) — run `pidash auth login` to re-authenticate"
+            "logged in to {cloud_url} but the cloud rejected the token (HTTP {status}) — run `karma-team auth login` to re-authenticate"
         );
     }
     if !status.is_success() {
@@ -82,7 +80,7 @@ pub async fn run(_args: Args, paths: &Paths) -> Result<()> {
         let runner_count = c.runners.len();
         if runner_count == 0 {
             println!("  - No runners registered on this host.");
-            println!("    Run `pidash runner add` to register one.");
+            println!("    Run `karma-team runner add` to register one.");
         } else {
             println!("  ✓ Runners on this host: {runner_count}");
             for r in &c.runners {

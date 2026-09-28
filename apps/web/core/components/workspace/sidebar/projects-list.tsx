@@ -11,21 +11,21 @@ import { observer } from "mobx-react";
 import { useParams, usePathname } from "next/navigation";
 import { Ellipsis } from "lucide-react";
 import { Disclosure, Transition } from "@headlessui/react";
-// pi dash imports
+// karma-team imports
 import {
   EUserPermissions,
   EUserPermissionsLevel,
   PROJECT_TRACKER_ELEMENTS,
   WORKSPACE_SIDEBAR_DYNAMIC_NAVIGATION_ITEMS,
   WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS,
-} from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { PlusIcon, ChevronRightIcon } from "@pi-dash/propel/icons";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { Loader } from "@pi-dash/ui";
-import { copyUrlToClipboard, cn, orderJoinedProjects } from "@pi-dash/utils";
+} from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { PlusIcon, ChevronRightIcon } from "@karma-team/propel/icons";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { Loader } from "@karma-team/ui";
+import { copyUrlToClipboard, cn, orderJoinedProjects } from "@karma-team/utils";
 // components
 import { CreateProjectModal } from "@/components/project/create-project-modal";
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
@@ -35,9 +35,9 @@ import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
 import { usePersonalNavigationPreferences, useProjectNavigationPreferences } from "@/hooks/use-navigation-preferences";
-// pi dash web imports
-import { SidebarItem } from "@/pi-dash-web/components/workspace/sidebar/sidebar-item";
-import type { TProject } from "@/pi-dash-web/types";
+// karma-team web imports
+import { SidebarItem } from "@/karma-team-web/components/workspace/sidebar/sidebar-item";
+import type { TProject } from "@/karma-team-web/types";
 // local imports
 import { SidebarProjectsListItem } from "./projects-list-item";
 
@@ -196,11 +196,7 @@ export const SidebarProjectsList = observer(function SidebarProjectsList() {
                 type="button"
                 className="flex w-full items-center gap-1 text-left text-13 font-semibold whitespace-nowrap text-placeholder"
                 onClick={() => toggleListDisclosure(!isAllProjectsListOpen)}
-                aria-label={t(
-                  isAllProjectsListOpen
-                    ? "Close projects menu"
-                    : "Open projects menu"
-                )}
+                aria-label={t(isAllProjectsListOpen ? "Close projects menu" : "Open projects menu")}
               >
                 <span className="text-13 font-semibold">{t("Projects")}</span>
               </Disclosure.Button>
@@ -229,11 +225,7 @@ export const SidebarProjectsList = observer(function SidebarProjectsList() {
                   iconClassName={cn("transition-transform", {
                     "rotate-90": isAllProjectsListOpen,
                   })}
-                  aria-label={t(
-                    isAllProjectsListOpen
-                      ? "Close projects menu"
-                      : "Open projects menu"
-                  )}
+                  aria-label={t(isAllProjectsListOpen ? "Close projects menu" : "Open projects menu")}
                 />
               </div>
             </div>
@@ -293,9 +285,7 @@ export const SidebarProjectsList = observer(function SidebarProjectsList() {
                           className="flex flex-grow items-center gap-1.5 text-13 font-medium text-tertiary"
                           id="extended-project-sidebar-toggle"
                           aria-label={t(
-                            isExtendedProjectSidebarOpened
-                              ? "Close extended sidebar"
-                              : "Open extended sidebar"
+                            isExtendedProjectSidebarOpened ? "Close extended sidebar" : "Open extended sidebar"
                           )}
                         >
                           <Ellipsis className="size-4 flex-shrink-0" />

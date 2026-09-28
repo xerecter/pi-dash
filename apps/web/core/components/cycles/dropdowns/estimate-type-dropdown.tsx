@@ -6,9 +6,9 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import type { TCycleEstimateType } from "@pi-dash/types";
-import { EEstimateSystem } from "@pi-dash/types";
-import { CustomSelect } from "@pi-dash/ui";
+import type { TCycleEstimateType } from "@karma-team/types";
+import { EEstimateSystem } from "@karma-team/types";
+import { CustomSelect } from "@karma-team/ui";
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useCycle } from "@/hooks/store/use-cycle";
 // local imports

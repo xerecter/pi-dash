@@ -18,7 +18,7 @@ type NativeCore = {
   Channel: new <T>() => NativeChannel<T>;
 };
 type NativeWindow = Window & {
-  __PIDASH_NATIVE_HTTP__?: string;
+  __KARMA_TEAM_NATIVE_HTTP__?: string;
   __TAURI__?: { core: NativeCore };
 };
 export type NativeApi = { apiOrigin: string; core: NativeCore };
@@ -33,8 +33,8 @@ const TIMED_OUT = "API request timed out";
 export function getNativeApi(): NativeApi | undefined {
   if (typeof window === "undefined") return undefined;
   const native = window as NativeWindow;
-  if (typeof native.__PIDASH_NATIVE_HTTP__ !== "string" || !native.__TAURI__?.core) return undefined;
-  return { apiOrigin: native.__PIDASH_NATIVE_HTTP__, core: native.__TAURI__.core };
+  if (typeof native.__KARMA_TEAM_NATIVE_HTTP__ !== "string" || !native.__TAURI__?.core) return undefined;
+  return { apiOrigin: native.__KARMA_TEAM_NATIVE_HTTP__, core: native.__TAURI__.core };
 }
 
 /** Whether `url` (resolved like the webview would) targets the native API

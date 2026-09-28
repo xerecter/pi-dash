@@ -16,10 +16,10 @@ Goal:
 
 Scope:
 
-- add `IssueAgentTicker` model in `apps/api/pi_dash/db/models/issue_agent_ticker.py` (fields per design §7.1)
+- add `IssueAgentTicker` model in `apps/api/karma_team/db/models/issue_agent_ticker.py` (fields per design §7.1)
 - add three fields to `Project`: `agent_default_interval_seconds`, `agent_default_max_ticks`, `agent_ticking_enabled`
 - migration M1: `CreateModel(IssueAgentTicker)` + `AddField × 3` on `Project`, plus the `(enabled, next_run_at)` index
-- update `apps/api/pi_dash/seeds/data/states.json` to include a `Paused` entry in the `backlog` group
+- update `apps/api/karma_team/seeds/data/states.json` to include a `Paused` entry in the `backlog` group
 - migration M2: `RunPython` data migration backfilling a `Paused` state in every existing project that lacks one (idempotent)
 - migration M3: `RunPython` data migration backfilling `IssueAgentTicker` rows for every issue currently in the literal "In Progress" state, with `next_run_at = NOW() + project_default_interval + jitter`
 - register `IssueAgentTicker` in Django admin (read-only is fine; primarily for ops)
@@ -37,7 +37,7 @@ Goal:
 
 Scope:
 
-- create `apps/api/pi_dash/orchestration/scheduling.py` with:
+- create `apps/api/karma_team/orchestration/scheduling.py` with:
   - `arm_ticker(issue, *, dispatch_immediate=True)`
   - `disarm_ticker(issue)`
   - `reset_ticker_after_comment_and_run(issue)`
@@ -62,7 +62,7 @@ Goal:
 
 Scope:
 
-- create `apps/api/pi_dash/bgtasks/agent_ticker.py` with:
+- create `apps/api/karma_team/bgtasks/agent_ticker.py` with:
   - `scan_due_tickers` (Celery beat target; fans out `fire_tick` per due row)
   - `fire_tick(sched_id)` (atomic claim + dispatch per design §6.1, including the literal "In Progress" name check)
 - add `CELERY_BEAT_SCHEDULE` entry: `scan-due-agent-tickers` runs `crontab(minute="*")`
@@ -109,7 +109,7 @@ Goal:
 
 Scope:
 
-- update prompt fragments in `apps/api/pi_dash/prompting/templates/` so the agent:
+- update prompt fragments in `apps/api/karma_team/prompting/templates/` so the agent:
   - emits `noop` when nothing has changed since the last run (don't fabricate a `paused` question)
   - emits `paused` only when there's a genuine question for the human
   - emits `completed` / `blocked` per existing semantics
@@ -123,10 +123,10 @@ Why optional:
 
 ### Schema + migrations
 
-- [ ] `apps/api/pi_dash/db/models/issue_agent_ticker.py` (new file): model class with fields per design §7.1
-- [ ] `apps/api/pi_dash/db/models/__init__.py`: export the new model
+- [ ] `apps/api/karma_team/db/models/issue_agent_ticker.py` (new file): model class with fields per design §7.1
+- [ ] `apps/api/karma_team/db/models/__init__.py`: export the new model
 - [ ] M1 migration: `CreateModel(IssueAgentTicker)` + `AddField × 3` on `Project` + `Index(fields=['enabled', 'next_run_at'])`
-- [ ] Update `apps/api/pi_dash/seeds/data/states.json`: add `Paused` entry, `"group": "backlog"`, distinct color and sequence
+- [ ] Update `apps/api/karma_team/seeds/data/states.json`: add `Paused` entry, `"group": "backlog"`, distinct color and sequence
 - [ ] M2 migration: `RunPython` backfilling `Paused` state for every existing project that lacks one. Idempotent — skip projects that already have it.
 - [ ] M3 migration: `RunPython` backfilling `IssueAgentTicker` rows for issues currently in literal "In Progress" state. `next_run_at = NOW() + project_default_interval + jitter`, `tick_count = 0`, `enabled = NOT user_disabled`.
 - [ ] Verify all three migrations are reversible (M1 drops the model + fields; M2/M3 delete the inserted rows)
@@ -137,7 +137,7 @@ Why optional:
 - [ ] `disarm_ticker(issue)` — idempotent; sets `enabled = false`
 - [ ] `reset_ticker_after_comment_and_run(issue)` — uses `select_for_update` to serialize against `fire_tick`; resets `tick_count = 0` and `next_run_at = NOW() + interval + jitter`
 - [ ] `dispatch_continuation_run(issue, *, triggered_by)` — resolves parent (latest prior run), creator (system bot for ticks; comment author for Comment & Run), pod; calls `_create_continuation_run`; returns the created run or `None` when blocked by `_active_run_for`
-- [ ] `maybe_apply_deferred_pause(run)` — implements design §4.4.1: when schedule disarmed AND issue still in Started AND no other active runs, transition issue In Progress → Paused with the `pi_dash_agent` bot as actor
+- [ ] `maybe_apply_deferred_pause(run)` — implements design §4.4.1: when schedule disarmed AND issue still in Started AND no other active runs, transition issue In Progress → Paused with the `karma_team_agent` bot as actor
 - [ ] `IssueAgentTicker.effective_interval()` and `effective_max_ticks()` model methods returning override-or-project-default
 - [ ] `jitter(interval_seconds)` helper — uniform `random(0, interval × 0.1)`
 
@@ -182,7 +182,7 @@ Per design §12.3.
 
 ### Convert (still test the function, just call it explicitly)
 
-In `apps/api/pi_dash/tests/unit/orchestration/test_service.py`:
+In `apps/api/karma_team/tests/unit/orchestration/test_service.py`:
 
 - [ ] `test_comment_creates_pinned_continuation` (line 253) — call `handle_issue_comment` directly
 - [ ] `test_comment_from_bot_is_ignored` (line 277)
@@ -232,7 +232,7 @@ In `apps/api/pi_dash/tests/unit/orchestration/test_service.py`:
 
 - Generalize ticking to "any Started-group state," not just literal "In Progress" (Q4 in design §10).
 - Quiet hours / business-hours awareness — additional gate inside `fire_tick` (Q5).
-- Distinct system actor user separate from `pi_dash_agent` if the activity feed needs to differentiate workpad updates from system-driven state transitions (Q3).
+- Distinct system actor user separate from `karma_team_agent` if the activity feed needs to differentiate workpad updates from system-driven state transitions (Q3).
 - Optional `triggered_by` (`state_transition` / `tick` / `comment_and_run`) field on `AgentRun` for analytics (deferred per design §7.4).
 - "Real progress" detection beyond the agent's own done-signal — file-diff or PR-event introspection. Explicitly out of scope for v1.
 - Operational dashboard: "schedules firing in the next hour," cap-hit count, average tick_count per project, etc.

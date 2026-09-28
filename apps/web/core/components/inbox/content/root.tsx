@@ -7,10 +7,10 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import type { TNameDescriptionLoader } from "@pi-dash/types";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import type { TNameDescriptionLoader } from "@karma-team/types";
 // components
-import { ContentWrapper } from "@pi-dash/ui";
+import { ContentWrapper } from "@karma-team/ui";
 // hooks
 import { useProjectInbox } from "@/hooks/store/use-project-inbox";
 import { useUser, useUserPermissions } from "@/hooks/store/user";

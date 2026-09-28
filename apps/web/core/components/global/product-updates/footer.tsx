@@ -4,13 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import { USER_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+import { USER_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import { getButtonStyling } from "@pi-dash/propel/button";
-import { PiDashLogo } from "@pi-dash/propel/icons";
+import { getButtonStyling } from "@karma-team/propel/button";
+import { KarmaTeamLogo } from "@karma-team/propel/icons";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 export function ProductUpdatesFooter() {
   const { t } = useTranslation();
@@ -18,7 +18,7 @@ export function ProductUpdatesFooter() {
     <div className="m-6 mb-4 flex flex-shrink-0 items-center justify-between gap-4">
       <div className="flex items-center gap-2">
         <a
-          href="https://github.com/The-AI-Republic/pi-dash#readme"
+          href="https://github.com/xerecter/karma-team#readme"
           target="_blank"
           className="text-13 text-secondary underline-offset-1 outline-none hover:text-primary hover:underline"
           rel="noreferrer"
@@ -30,7 +30,7 @@ export function ProductUpdatesFooter() {
         </svg>
         <a
           data-ph-element={USER_TRACKER_ELEMENTS.CHANGELOG_REDIRECTED}
-          href="https://github.com/The-AI-Republic/pi-dash#readme"
+          href="https://github.com/xerecter/karma-team#readme"
           target="_blank"
           className="text-13 text-secondary underline-offset-1 outline-none hover:text-primary hover:underline"
           rel="noreferrer"
@@ -52,7 +52,7 @@ export function ProductUpdatesFooter() {
           <circle cx={1} cy={1} r={1} />
         </svg>
         <a
-          href="https://github.com/The-AI-Republic/pi-dash/discussions"
+          href="https://github.com/xerecter/karma-team/discussions"
           target="_blank"
           className="text-13 text-secondary underline-offset-1 outline-none hover:text-primary hover:underline"
           rel="noreferrer"
@@ -69,8 +69,8 @@ export function ProductUpdatesFooter() {
         )}
         rel="noreferrer"
       >
-        <PiDashLogo className="h-4 w-auto text-primary" />
-        {t("Powered by Pi Dash Pages")}
+        <KarmaTeamLogo className="h-4 w-auto text-primary" />
+        {t("Powered by karma-team Pages")}
       </a>
     </div>
   );

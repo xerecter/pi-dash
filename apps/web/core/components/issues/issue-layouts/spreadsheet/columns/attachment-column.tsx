@@ -7,8 +7,8 @@
 import React from "react";
 import { observer } from "mobx-react";
 // types
-import type { TIssue } from "@pi-dash/types";
-import { Row } from "@pi-dash/ui";
+import type { TIssue } from "@karma-team/types";
+import { Row } from "@karma-team/ui";
 
 type Props = {
   issue: TIssue;

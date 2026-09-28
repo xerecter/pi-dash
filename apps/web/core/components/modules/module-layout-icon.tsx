@@ -5,9 +5,9 @@
  */
 
 import * as React from "react";
-import { TimelineLayoutIcon, GridLayoutIcon, ListLayoutIcon } from "@pi-dash/propel/icons";
-import type { TModuleLayoutOptions } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import { TimelineLayoutIcon, GridLayoutIcon, ListLayoutIcon } from "@karma-team/propel/icons";
+import type { TModuleLayoutOptions } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 
 interface ILayoutIcon {
   className?: string;

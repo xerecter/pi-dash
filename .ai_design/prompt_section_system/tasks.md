@@ -27,21 +27,21 @@ Goal:
 - make the section the unit of storage; move assembly from seed time
   (`fragments/assemble()` → `PromptTemplate` blob) to compose time
 - fix the review-prompt defect: it instructs the agent to use
-  `pidash` but never includes the CLI documentation
+  `karma-team` but never includes the CLI documentation
 
 Scope:
 
-- create `apps/api/pi_dash/prompting/sections/` — markdown files with
+- create `apps/api/karma_team/prompting/sections/` — markdown files with
   YAML front-matter (`key`, `title`, `customizable`); port the 13
   fragments 1:1 (drop `NN_` prefixes; order moves to recipes)
 - split `seed.py::REVIEW_TEMPLATE_BODY` into `review-intro` +
   `review-cycle` sections; review recipe reuses `session-framing`,
-  `pidash-cli`, `guardrails`, `ending-run`
+  `karma-team-cli`, `guardrails`, `ending-run`
 - registry loader (`PromptSection` dataclass, front-matter parse at
   import, `REGISTRY` dict) + CI checks: recipe keys ⊆ registry, valid
   front-matter, `validate_syntax()` on every default body, no
   orphan files in `sections/`
-- create `apps/api/pi_dash/prompting/recipes.py` (`RECIPES`,
+- create `apps/api/karma_team/prompting/recipes.py` (`RECIPES`,
   kind names = `PhaseConfig.template_name` values); kind lookup
   written as `kind_for(phase, work_kind)` with `work_kind` hardcoded
   to `"coding"` (design §9.5 seam)
@@ -85,10 +85,10 @@ Scope:
   FAILED with attributed error, `binding.last_run` points at it;
   `binding.last_error` keeps its no-run-short-circuit-only semantic;
   `(run, fail_reason)` contract preserved for short-circuits
-- shared-section guard pass (§5.2): `session-framing`, `pidash-cli`,
+- shared-section guard pass (§5.2): `session-framing`, `karma-team-cli`,
   `guardrails` currently reference `issue.*` (e.g.
   `{{ issue.identifier }}`, `{{ issue.project_states }}` in
-  `03_pidash_cli.md`) — guard issue-specific lines with
+  `03_karma_team_cli.md`) — guard issue-specific lines with
   `{% if run.kind != "scheduler" %}` branches; StrictUndefined means
   unguarded references crash, so the §3.2 CI check renders every
   kind's full default prompt
@@ -142,7 +142,7 @@ comment_and_run | tick | scheduler | direct`; promotes the
 - `PromptTemplate` retirement (§8.2): delete the §8.1 legacy
   whole-body fallback, `load_template`, seed machinery,
   `reseed_default_template` command, `post_migrate` receiver,
-  `PI_DASH_SKIP_PROMPT_SEED`; archive active workspace-scoped rows
+  `KARMA_TEAM_SKIP_PROMPT_SEED`; archive active workspace-scoped rows
   (body preserved for copy-out); table drop deferred one release
 - contract tests for section CRUD replacing
   `tests/contract/prompting/test_crud.py`; resolution-matrix unit

@@ -5,16 +5,16 @@
  */
 
 import { Info } from "lucide-react";
-// pi dash imports
-import { EEstimateSystem, ESTIMATE_SYSTEMS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TEstimateSystemKeys } from "@pi-dash/types";
+// karma-team imports
+import { EEstimateSystem, ESTIMATE_SYSTEMS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TEstimateSystemKeys } from "@karma-team/types";
 // components
-import { convertMinutesToHoursMinutesString } from "@pi-dash/utils";
-// pi dash web imports
-import { isEstimateSystemEnabled } from "@/pi-dash-web/components/estimates/helper";
-import { UpgradeBadge } from "@/pi-dash-web/components/workspace/upgrade-badge";
+import { convertMinutesToHoursMinutesString } from "@karma-team/utils";
+// karma-team web imports
+import { isEstimateSystemEnabled } from "@/karma-team-web/components/estimates/helper";
+import { UpgradeBadge } from "@/karma-team-web/components/workspace/upgrade-badge";
 import { RadioInput } from "../radio-select";
 // local imports
 
@@ -76,9 +76,7 @@ export function EstimateCreateStageOne(props: TEstimateCreateStageOne) {
       {ESTIMATE_SYSTEMS[estimateSystem]?.is_available && !ESTIMATE_SYSTEMS[estimateSystem]?.is_ee && (
         <>
           <div className="space-y-1.5">
-            <div className="text-13 font-medium text-secondary">
-              {t("Start from scratch")}
-            </div>
+            <div className="text-13 font-medium text-secondary">{t("Start from scratch")}</div>
             <button
               className="block w-full space-y-1 rounded-md border border-subtle p-3 py-2.5 text-left hover:bg-layer-transparent-hover"
               onClick={() => handleEstimatePoints("custom")}
@@ -92,9 +90,7 @@ export function EstimateCreateStageOne(props: TEstimateCreateStageOne) {
           </div>
 
           <div className="space-y-1.5">
-            <div className="text-13 font-medium text-secondary">
-              {t("Choose a template")}
-            </div>
+            <div className="text-13 font-medium text-secondary">{t("Choose a template")}</div>
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               {Object.keys(currentEstimateSystem.templates).map((name) =>
                 currentEstimateSystem.templates[name]?.hide ? null : (

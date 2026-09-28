@@ -1,6 +1,6 @@
 # 10 — Realtime Collaboration
 
-Pi Dash supports realtime multi-user editing of rich-text content (pages, work item descriptions, comments). This is done by a dedicated **Node service**, not by Django Channels — Django's WS layer is reserved for the runner protocol and per-feature notifications.
+karma-team supports realtime multi-user editing of rich-text content (pages, work item descriptions, comments). This is done by a dedicated **Node service**, not by Django Channels — Django's WS layer is reserved for the runner protocol and per-feature notifications.
 
 ## The two pieces
 
@@ -22,13 +22,13 @@ Runs with `node --env-file=.env`. Builds via `tsdown`. The default OxLint ceilin
 
 **Responsibilities:**
 
-- Accept WebSocket connections from editor clients (`@pi-dash/editor`).
+- Accept WebSocket connections from editor clients (`@karma-team/editor`).
 - Sync Yjs documents between clients (CRDT merge — conflict-free).
-- Authenticate each connection against the Pi Dash session.
+- Authenticate each connection against the karma-team session.
 - Persist document snapshots back to the main store (so reopening a page picks up where you left off).
 - Broadcast presence (cursors, selections).
 
-### 2. `@pi-dash/editor` — Tiptap/ProseMirror editor (frontend)
+### 2. `@karma-team/editor` — Tiptap/ProseMirror editor (frontend)
 
 Located at `packages/editor/`. This is the React component layer that:
 
@@ -43,14 +43,14 @@ Pages, rich descriptions, and inline comment editors all consume this package.
 ```
 Browser tab                       apps/live                    Postgres
 ┌─────────────────┐  WS (Yjs)  ┌──────────────┐   persist   ┌──────────┐
-│ @pi-dash/editor │ ─────────▶ │ Hocuspocus   │ ──────────▶ │ docs/    │
+│ @karma-team/editor │ ─────────▶ │ Hocuspocus   │ ──────────▶ │ docs/    │
 │  (Tiptap)       │            │  + Express   │             │ pages    │
 └─────────────────┘            └──────────────┘             └──────────┘
        ▲                              │
-       │  WS (presence + ops)         │ Pi Dash session auth
+       │  WS (presence + ops)         │ karma-team session auth
        ▼                              ▼
 ┌─────────────────┐            ┌──────────────┐
-│ Other tabs /    │            │ Pi Dash API  │  (apps/api)
+│ Other tabs /    │            │ karma-team API  │  (apps/api)
 │ collaborators   │            │ /auth/...    │
 └─────────────────┘            └──────────────┘
 ```
@@ -86,6 +86,6 @@ pnpm --filter live test
 
 ## Where to read next
 
-- [05 — Frontend architecture](./05-frontend-architecture.md) — how `@pi-dash/editor` plugs into apps
+- [05 — Frontend architecture](./05-frontend-architecture.md) — how `@karma-team/editor` plugs into apps
 - [12 — Deployment](./12-deployment.md) — where `apps/live` sits in each topology
 - `apps/live/src/` — the server entry, persistence hooks, auth bridge

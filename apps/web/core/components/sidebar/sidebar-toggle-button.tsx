@@ -8,8 +8,8 @@ import { observer } from "mobx-react";
 import { PanelLeft } from "lucide-react";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
-import { isSidebarToggleVisible } from "@/pi-dash-web/components/desktop";
-import { IconButton } from "@pi-dash/propel/icon-button";
+import { isSidebarToggleVisible } from "@/karma-team-web/components/desktop";
+import { IconButton } from "@karma-team/propel/icon-button";
 
 export const AppSidebarToggleButton = observer(function AppSidebarToggleButton() {
   // store hooks

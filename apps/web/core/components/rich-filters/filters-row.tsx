@@ -8,11 +8,11 @@ import React, { useCallback, useState } from "react";
 import { observer } from "mobx-react";
 import { ListFilterPlus } from "lucide-react";
 import { Transition } from "@headlessui/react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import type { IFilterInstance } from "@pi-dash/shared-state";
-import type { TExternalFilter, TFilterProperty } from "@pi-dash/types";
-import { cn, EHeaderVariant, Header, Loader } from "@pi-dash/ui";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import type { IFilterInstance } from "@karma-team/shared-state";
+import type { TExternalFilter, TFilterProperty } from "@karma-team/types";
+import { cn, EHeaderVariant, Header, Loader } from "@karma-team/ui";
 // local imports
 import type { TAddFilterButtonProps } from "./add-filters/button";
 import { AddFilterButton } from "./add-filters/button";

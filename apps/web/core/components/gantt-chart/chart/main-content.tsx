@@ -14,25 +14,25 @@ import type {
   IBlockUpdateDependencyData,
   IGanttBlock,
   TGanttViews,
-} from "@pi-dash/types";
-import { cn, getDate } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { cn, getDate } from "@karma-team/utils";
 // components
 import { MultipleSelectGroup } from "@/components/core/multiple-select";
 import { GanttChartSidebar, MonthChartView, QuarterChartView, WeekChartView } from "@/components/gantt-chart";
 // helpers
 // hooks
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
-// pi dash web components
+// karma-team web components
 import {
   TimelineDependencyPaths,
   TimelineDraggablePath,
   GanttAdditionalLayers,
-} from "@/pi-dash-web/components/gantt-chart";
-import { GanttChartRowList } from "@/pi-dash-web/components/gantt-chart/blocks/block-row-list";
-import { GanttChartBlocksList } from "@/pi-dash-web/components/gantt-chart/blocks/blocks-list";
-import { IssueBulkOperationsRoot } from "@/pi-dash-web/components/issues/bulk-operations";
-// pi dash web hooks
-import { useBulkOperationStatus } from "@/pi-dash-web/hooks/use-bulk-operation-status";
+} from "@/karma-team-web/components/gantt-chart";
+import { GanttChartRowList } from "@/karma-team-web/components/gantt-chart/blocks/block-row-list";
+import { GanttChartBlocksList } from "@/karma-team-web/components/gantt-chart/blocks/blocks-list";
+import { IssueBulkOperationsRoot } from "@/karma-team-web/components/issues/bulk-operations";
+// karma-team web hooks
+import { useBulkOperationStatus } from "@/karma-team-web/hooks/use-bulk-operation-status";
 //
 import { DEFAULT_BLOCK_WIDTH, GANTT_SELECT_GROUP, HEADER_HEIGHT } from "../constants";
 import { getItemPositionWidth } from "../views";
@@ -94,7 +94,7 @@ export const GanttChartMainContent = observer(function GanttChartMainContent(pro
   const ganttContainerRef = useRef<HTMLDivElement>(null);
   // chart hook
   const { currentView, currentViewData } = useTimeLineChartStore();
-  // pi dash web hooks
+  // karma-team web hooks
   const isBulkOperationsEnabled = useBulkOperationStatus();
 
   // Enable Auto Scroll for Ganttlist

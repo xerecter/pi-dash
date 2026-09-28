@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { IGroupHeaderProps } from "@pi-dash/types";
+import type { IGroupHeaderProps } from "@karma-team/types";
 
 export function GroupHeader({ group, itemCount, onToggleGroup }: IGroupHeaderProps) {
   return (

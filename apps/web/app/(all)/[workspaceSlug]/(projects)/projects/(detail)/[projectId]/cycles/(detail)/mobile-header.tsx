@@ -7,13 +7,13 @@
 import { useCallback, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { EIssueFilterType, ISSUE_LAYOUTS, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { CalendarLayoutIcon, BoardLayoutIcon, ListLayoutIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, EIssueLayoutTypes } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
+// karma-team imports
+import { EIssueFilterType, ISSUE_LAYOUTS, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { CalendarLayoutIcon, BoardLayoutIcon, ListLayoutIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, EIssueLayoutTypes } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
 // components
 import { WorkItemsModal } from "@/components/analytics/work-items/modal";
 import { DisplayFiltersSelection, FiltersDropdown } from "@/components/issues/issue-layouts/filters";
@@ -34,7 +34,7 @@ export const CycleIssuesMobileHeader = observer(function CycleIssuesMobileHeader
   const { workspaceSlug, projectId, cycleId } = useParams();
   // states
   const [analyticsModal, setAnalyticsModal] = useState(false);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { currentProjectDetails } = useProject();
@@ -101,9 +101,7 @@ export const CycleIssuesMobileHeader = observer(function CycleIssuesMobileHeader
           maxHeight={"md"}
           className="flex flex-grow justify-center text-13 text-secondary"
           placement="bottom-start"
-          customButton={
-            <span className="flex flex-grow justify-center text-13 text-secondary">{t("Layout")}</span>
-          }
+          customButton={<span className="flex flex-grow justify-center text-13 text-secondary">{t("Layout")}</span>}
           customButtonClassName="flex flex-grow justify-center text-secondary text-13"
           closeOnSelect
         >

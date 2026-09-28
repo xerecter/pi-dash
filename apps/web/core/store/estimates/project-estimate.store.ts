@@ -8,12 +8,12 @@ import { unset, orderBy, set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { IEstimate as IEstimateType, IEstimateFormData, TEstimateSystemKeys } from "@pi-dash/types";
-// pi dash web services
+import type { IEstimate as IEstimateType, IEstimateFormData, TEstimateSystemKeys } from "@karma-team/types";
+// karma-team web services
 import estimateService from "@/services/estimate.service";
-// pi dash web store
-import type { IEstimate } from "@/pi-dash-web/store/estimates/estimate";
-import { Estimate } from "@/pi-dash-web/store/estimates/estimate";
+// karma-team web store
+import type { IEstimate } from "@/karma-team-web/store/estimates/estimate";
+import { Estimate } from "@/karma-team-web/store/estimates/estimate";
 // store
 import type { CoreRootStore } from "../root.store";
 

@@ -7,10 +7,10 @@
 import { useCallback, useEffect } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-// pi dash imports
-import { ENotificationLoader, ENotificationQueryParamType } from "@pi-dash/constants";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { ENotificationLoader, ENotificationQueryParamType } from "@karma-team/constants";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
+import { cn } from "@karma-team/utils";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 // hooks
@@ -18,8 +18,8 @@ import { useWorkspaceNotifications } from "@/hooks/store/notifications";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserPermissions } from "@/hooks/store/user";
 import { useWorkspaceIssueProperties } from "@/hooks/use-workspace-issue-properties";
-// pi dash web imports
-import { useNotificationPreview } from "@/pi-dash-web/hooks/use-notification-preview";
+// karma-team web imports
+import { useNotificationPreview } from "@/karma-team-web/hooks/use-notification-preview";
 // local imports
 import { InboxContentRoot } from "../inbox/content";
 

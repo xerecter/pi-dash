@@ -5,9 +5,9 @@
  */
 
 import { Info } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { CloseIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { CloseIcon } from "@karma-team/propel/icons";
 // helpers
 import type React from "react";
 

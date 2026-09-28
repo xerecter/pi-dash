@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
 // hooks
 import useOnlineStatus from "@/hooks/use-online-status";
 // store

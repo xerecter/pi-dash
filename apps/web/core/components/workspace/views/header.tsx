@@ -8,11 +8,11 @@ import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 
-// pi dash imports
-import { DEFAULT_GLOBAL_VIEWS_LIST, EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { PlusIcon } from "@pi-dash/propel/icons";
-import type { TStaticViewTypes } from "@pi-dash/types";
-import { Header, EHeaderVariant } from "@pi-dash/ui";
+// karma-team imports
+import { DEFAULT_GLOBAL_VIEWS_LIST, EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { PlusIcon } from "@karma-team/propel/icons";
+import type { TStaticViewTypes } from "@karma-team/types";
+import { Header, EHeaderVariant } from "@karma-team/ui";
 // hooks
 import { useGlobalView } from "@/hooks/store/use-global-view";
 import { useUserPermissions } from "@/hooks/store/user";

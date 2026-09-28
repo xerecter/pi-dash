@@ -5,13 +5,13 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { CloseIcon } from "@pi-dash/propel/icons";
-import type { TCycleFilters } from "@pi-dash/types";
-import { Tag } from "@pi-dash/ui";
-import { replaceUnderscoreIfSnakeCase } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { CloseIcon } from "@karma-team/propel/icons";
+import type { TCycleFilters } from "@karma-team/types";
+import { Tag } from "@karma-team/ui";
+import { replaceUnderscoreIfSnakeCase } from "@karma-team/utils";
 // hooks
 import { useUserPermissions } from "@/hooks/store/user";
 // local imports

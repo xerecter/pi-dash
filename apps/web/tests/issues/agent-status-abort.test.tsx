@@ -6,38 +6,38 @@
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 
 const { abortRun, reTick } = vi.hoisted(() => ({
   abortRun: vi.fn(),
   reTick: vi.fn(),
 }));
 
-vi.mock("@pi-dash/constants", () => ({
+vi.mock("@karma-team/constants", () => ({
   API_BASE_URL: "",
 }));
 
-vi.mock("@pi-dash/utils", () => ({
+vi.mock("@karma-team/utils", () => ({
   cn: (...args: unknown[]) => args.filter(Boolean).join(" "),
 }));
 
-vi.mock("@pi-dash/i18n", () => ({
+vi.mock("@karma-team/i18n", () => ({
   useTranslation: () => ({
     t: (key: string, vars?: Record<string, unknown>) =>
       vars ? key.replace(/\{(\w+)\}/g, (_m, k) => String(vars[k] ?? "")) : key,
   }),
 }));
 
-vi.mock("@pi-dash/propel/toast", () => ({
+vi.mock("@karma-team/propel/toast", () => ({
   TOAST_TYPE: { SUCCESS: "success", ERROR: "error", INFO: "info" },
   setToast: vi.fn(),
 }));
 
-vi.mock("@pi-dash/propel/badge", () => ({
+vi.mock("@karma-team/propel/badge", () => ({
   Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
 }));
 
-vi.mock("@pi-dash/propel/button", () => ({
+vi.mock("@karma-team/propel/button", () => ({
   Button: ({
     children,
     onClick,
@@ -55,7 +55,7 @@ vi.mock("@pi-dash/propel/button", () => ({
 
 // Surface the confirmation dialog's submit affordance only while open so the
 // test can drive the confirm path without the real modal implementation.
-vi.mock("@pi-dash/ui", () => ({
+vi.mock("@karma-team/ui", () => ({
   AlertModalCore: ({ isOpen, handleSubmit }: { isOpen: boolean; handleSubmit: () => void }) =>
     isOpen ? (
       <button type="button" onClick={handleSubmit}>

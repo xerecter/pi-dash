@@ -10,13 +10,13 @@ import { TwitterPicker } from "react-color";
 import type { SubmitHandler } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
 import { Popover, Transition } from "@headlessui/react";
-// pi dash imports
-import { getRandomLabelColor, LABEL_COLOR_OPTIONS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IIssueLabel } from "@pi-dash/types";
-import { Input } from "@pi-dash/ui";
+// karma-team imports
+import { getRandomLabelColor, LABEL_COLOR_OPTIONS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IIssueLabel } from "@karma-team/types";
+import { Input } from "@karma-team/ui";
 
 // error codes
 const errorCodes = {

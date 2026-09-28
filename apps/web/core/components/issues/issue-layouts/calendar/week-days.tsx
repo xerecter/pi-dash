@@ -5,9 +5,16 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TGroupedIssues, TIssue, TIssueMap, TPaginationData, ICalendarDate, ICalendarWeek } from "@pi-dash/types";
-import { cn, getOrderedDays, renderFormattedPayloadDate } from "@pi-dash/utils";
+// karma-team imports
+import type {
+  TGroupedIssues,
+  TIssue,
+  TIssueMap,
+  TPaginationData,
+  ICalendarDate,
+  ICalendarWeek,
+} from "@karma-team/types";
+import { cn, getOrderedDays, renderFormattedPayloadDate } from "@karma-team/utils";
 // hooks
 import { useUserProfile } from "@/hooks/store/user";
 // types

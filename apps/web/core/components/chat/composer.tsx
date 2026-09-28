@@ -7,8 +7,8 @@
 import { useCallback, useRef, type ReactNode } from "react";
 import { Mic, Send, Square } from "lucide-react";
 import { Link, useNavigate } from "react-router";
-import { Button } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { Button } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 import { DICTATION_SETTINGS_ANCHOR } from "@/components/settings/profile/content/pages/dictation-settings";
 import { useDictation } from "@/hooks/use-dictation";
 
@@ -49,7 +49,7 @@ export function ChatComposer({
   busy = false,
   sending = false,
   disabledReason = null,
-  placeholder = "Ask Pi Dash to do something…",
+  placeholder = "Ask karma-team to do something…",
   bordered = true,
 }: ChatComposerProps) {
   const disabled = !!disabledReason;

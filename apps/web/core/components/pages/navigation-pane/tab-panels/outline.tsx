@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { ScrollArea } from "@pi-dash/propel/scrollarea";
-// pi dash web imports
-import { PageNavigationPaneOutlineTabEmptyState } from "@/pi-dash-web/components/pages/navigation-pane/tab-panels/empty-states/outline";
+// karma-team imports
+import { ScrollArea } from "@karma-team/propel/scrollarea";
+// karma-team web imports
+import { PageNavigationPaneOutlineTabEmptyState } from "@/karma-team-web/components/pages/navigation-pane/tab-panels/empty-states/outline";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports

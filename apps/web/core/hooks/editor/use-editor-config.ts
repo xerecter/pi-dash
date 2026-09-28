@@ -5,14 +5,14 @@
  */
 
 import { useCallback } from "react";
-// pi dash imports
-import type { TFileHandler } from "@pi-dash/editor";
-import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@pi-dash/utils";
+// karma-team imports
+import type { TFileHandler } from "@karma-team/editor";
+import { getEditorAssetDownloadSrc, getEditorAssetSrc } from "@karma-team/utils";
 // hooks
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
-// pi dash web hooks
-import { useExtendedEditorConfig } from "@/pi-dash-web/hooks/editor/use-extended-editor-config";
-import { useFileSize } from "@/pi-dash-web/hooks/use-file-size";
+// karma-team web hooks
+import { useExtendedEditorConfig } from "@/karma-team-web/hooks/editor/use-extended-editor-config";
+import { useFileSize } from "@/karma-team-web/hooks/use-file-size";
 // services
 import { FileService } from "@/services/file.service";
 const fileService = new FileService();

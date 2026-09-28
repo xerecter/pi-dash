@@ -6,9 +6,9 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-import { ISSUE_GROUP_BY_OPTIONS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { IIssueDisplayFilterOptions, TIssueGroupByOptions } from "@pi-dash/types";
+import { ISSUE_GROUP_BY_OPTIONS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { IIssueDisplayFilterOptions, TIssueGroupByOptions } from "@karma-team/types";
 // components
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 // constants

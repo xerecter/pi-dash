@@ -6,18 +6,18 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import type { TDisplayConfig } from "@pi-dash/editor";
-import type { JSONContent, TPageVersion } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
-import { isJSONContentEmpty } from "@pi-dash/utils";
+// karma-team imports
+import type { TDisplayConfig } from "@karma-team/editor";
+import type { JSONContent, TPageVersion } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
+import { isJSONContentEmpty } from "@karma-team/utils";
 // components
 import { DocumentEditor } from "@/components/editor/document/editor";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { usePageFilters } from "@/hooks/use-page-filters";
-// pi dash web hooks
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
+// karma-team web hooks
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
 
 export type TVersionEditorProps = {
   activeVersion: string | null;

@@ -5,10 +5,10 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from "react";
-import type { TDocumentEventsServer } from "@pi-dash/editor";
-import type { TDocumentEventsClient } from "@pi-dash/editor/lib";
-import { DocumentCollaborativeEvents, getServerEventName } from "@pi-dash/editor/lib";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
+import type { TDocumentEventsServer } from "@karma-team/editor";
+import type { TDocumentEventsClient } from "@karma-team/editor/lib";
+import { DocumentCollaborativeEvents, getServerEventName } from "@karma-team/editor/lib";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

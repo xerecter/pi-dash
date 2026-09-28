@@ -6,10 +6,10 @@
 
 import React from "react";
 // ui
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { ControlLink, Row } from "@pi-dash/ui";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { ControlLink, Row } from "@karma-team/ui";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useAppRouter } from "@/hooks/use-app-router";
 

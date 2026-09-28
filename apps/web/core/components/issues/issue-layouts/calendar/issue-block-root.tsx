@@ -8,8 +8,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { observer } from "mobx-react";
-// pi dash helpers
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+// karma-team helpers
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // components
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import type { TRenderQuickActions } from "../list/list-view-types";

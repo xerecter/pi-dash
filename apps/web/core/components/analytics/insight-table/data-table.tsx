@@ -22,13 +22,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-// pi dash package imports
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@pi-dash/propel/table";
-import { cn } from "@pi-dash/utils";
-// pi dash web components
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+// karma-team package imports
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@karma-team/propel/table";
+import { cn } from "@karma-team/utils";
+// karma-team web components
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -162,7 +162,9 @@ export function DataTable<TData, TValue>({ columns, data, searchPlaceholder, act
                     assetKey="unknown"
                     assetClassName="size-20"
                     rootClassName="border border-subtle px-5 py-10 md:py-20 md:px-20"
-                    title={t("Create projects with work items and assignees to start tracking performance, progress, and team impact here.")}
+                    title={t(
+                      "Create projects with work items and assignees to start tracking performance, progress, and team impact here."
+                    )}
                   />
                 </TableCell>
               </TableRow>

@@ -6,19 +6,19 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { TIssue, TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
-import { Collapsible } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { TIssue, TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
+import { Collapsible } from "@karma-team/ui";
 // components
 import { CreateUpdateIssueModal } from "@/components/issues/issue-modal/modal";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// Pi Dash-web
-import { CreateUpdateEpicModal } from "@/pi-dash-web/components/epics/epic-modal";
-import { useTimeLineRelationOptions } from "@/pi-dash-web/components/relations";
-import type { TIssueRelationTypes } from "@/pi-dash-web/types";
+// karma-team-web
+import { CreateUpdateEpicModal } from "@/karma-team-web/components/epics/epic-modal";
+import { useTimeLineRelationOptions } from "@/karma-team-web/components/relations";
+import type { TIssueRelationTypes } from "@/karma-team-web/types";
 // helper
 import { DeleteIssueModal } from "../../delete-issue-modal";
 import { RelationIssueList } from "../../relations/issue-list";
@@ -43,7 +43,7 @@ export type TRelationObject = {
 
 export const RelationsCollapsibleContent = observer(function RelationsCollapsibleContent(props: Props) {
   const { workspaceSlug, issueId, disabled = false, issueServiceType = EIssueServiceType.ISSUES } = props;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // state
   const [issueCrudState, setIssueCrudState] = useState<{

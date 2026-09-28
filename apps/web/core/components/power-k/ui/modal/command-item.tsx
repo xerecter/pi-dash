@@ -7,9 +7,9 @@
 import React from "react";
 import { Command } from "cmdk";
 
-import { CheckIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+import { CheckIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 // local imports
 import { KeySequenceBadge, ShortcutBadge } from "./command-item-shortcut-badge";
 

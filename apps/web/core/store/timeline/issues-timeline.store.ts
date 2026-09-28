@@ -5,10 +5,10 @@
  */
 
 import { autorun } from "mobx";
-// Pi Dash-web
-import type { RootStore } from "@/pi-dash-web/store/root.store";
-import type { IBaseTimelineStore } from "@/pi-dash-web/store/timeline/base-timeline.store";
-import { BaseTimeLineStore } from "@/pi-dash-web/store/timeline/base-timeline.store";
+// karma-team-web
+import type { RootStore } from "@/karma-team-web/store/root.store";
+import type { IBaseTimelineStore } from "@/karma-team-web/store/timeline/base-timeline.store";
+import { BaseTimeLineStore } from "@/karma-team-web/store/timeline/base-timeline.store";
 
 export interface IIssuesTimeLineStore extends IBaseTimelineStore {
   isDependencyEnabled: boolean;

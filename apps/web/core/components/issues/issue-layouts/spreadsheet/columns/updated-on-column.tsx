@@ -7,10 +7,10 @@
 import React from "react";
 import { observer } from "mobx-react";
 // types
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 // helpers
-import { Row } from "@pi-dash/ui";
-import { renderFormattedDate } from "@pi-dash/utils";
+import { Row } from "@karma-team/ui";
+import { renderFormattedDate } from "@karma-team/utils";
 
 type Props = {
   issue: TIssue;

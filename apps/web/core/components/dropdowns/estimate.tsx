@@ -10,12 +10,12 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { usePopper } from "react-popper";
 import { Combobox } from "@headlessui/react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { CheckIcon, SearchIcon, EstimatePropertyIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import { EEstimateSystem } from "@pi-dash/types";
-import { ComboDropDown } from "@pi-dash/ui";
-import { convertMinutesToHoursMinutesString, cn } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { CheckIcon, SearchIcon, EstimatePropertyIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import { EEstimateSystem } from "@karma-team/types";
+import { ComboDropDown } from "@karma-team/ui";
+import { convertMinutesToHoursMinutesString, cn } from "@karma-team/utils";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useEstimate } from "@/hooks/store/estimates/use-estimate";

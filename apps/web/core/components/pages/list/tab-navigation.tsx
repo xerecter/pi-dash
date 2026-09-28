@@ -6,9 +6,9 @@
 
 import Link from "next/link";
 // types
-import type { TPageNavigationTabs } from "@pi-dash/types";
+import type { TPageNavigationTabs } from "@karma-team/types";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type TPageTabNavigation = {
   workspaceSlug: string;

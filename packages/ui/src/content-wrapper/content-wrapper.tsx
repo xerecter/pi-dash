@@ -41,6 +41,6 @@ const ContentWrapper = React.forwardRef(function ContentWrapper(
   );
 });
 
-ContentWrapper.displayName = "pi-dash-ui-wrapper";
+ContentWrapper.displayName = "karma-team-ui-wrapper";
 
 export { ContentWrapper };

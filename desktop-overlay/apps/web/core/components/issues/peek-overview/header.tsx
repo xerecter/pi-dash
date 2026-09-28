@@ -8,16 +8,16 @@ import { useRef } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { MoveDiagonal, MoveRight } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { CenterPanelIcon, CopyLinkIcon, FullScreenPanelIcon, SidePanelIcon } from "@pi-dash/propel/icons";
-import { IconButton } from "@pi-dash/propel/icon-button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TNameDescriptionLoader } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { CustomSelect } from "@pi-dash/ui";
-import { copyTextToClipboard, generateWorkItemLink } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { CenterPanelIcon, CopyLinkIcon, FullScreenPanelIcon, SidePanelIcon } from "@karma-team/propel/icons";
+import { IconButton } from "@karma-team/propel/icon-button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TNameDescriptionLoader } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { CustomSelect } from "@karma-team/ui";
+import { copyTextToClipboard, generateWorkItemLink } from "@karma-team/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssues } from "@/hooks/store/use-issues";

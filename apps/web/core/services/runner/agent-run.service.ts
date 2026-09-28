@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 // services
 import { APIService } from "@/services/api.service";
 
@@ -15,7 +15,7 @@ import { APIService } from "@/services/api.service";
  * client never sends a prompt body; the manual button produces the
  * same prompt a state transition / tick produces for that phase.
  *
- * Server-side wiring: see ``apps/api/pi_dash/runner/views/runs.py``
+ * Server-side wiring: see ``apps/api/karma_team/runner/views/runs.py``
  * ``_post_run_ai`` (gated on ``triggered_by === "run_ai"``).
  */
 export type TRunAiPayload = {
@@ -29,7 +29,7 @@ export type TRunAiPayload = {
  * IssueComment; the prompt is rebuilt from issue + comments at dispatch
  * time, so no `prompt` body is required.
  *
- * Server-side wiring: see ``apps/api/pi_dash/runner/views/runs.py``
+ * Server-side wiring: see ``apps/api/karma_team/runner/views/runs.py``
  * ``_post_comment_and_run`` (gated on ``triggered_by === "comment_and_run"``).
  */
 export type TCommentAndRunPayload = {
@@ -55,7 +55,7 @@ export type TAgentRun = {
  * its budget exhausted); when they don't hold it responds ``granted:
  * false`` with a machine-readable ``reason`` rather than an error.
  *
- * Server-side wiring: ``apps/api/pi_dash/runner/views/runs.py``
+ * Server-side wiring: ``apps/api/karma_team/runner/views/runs.py``
  * ``AgentReTickEndpoint``.
  */
 export type TReTickPayload = {
@@ -130,7 +130,7 @@ export class AgentRunService extends APIService {
    * and marks the AgentRun terminal (``cancelled``) server-side. The server
    * enforces authorization and rejects an already-terminal run.
    *
-   * Server-side wiring: ``apps/api/pi_dash/runner/views/runs.py``
+   * Server-side wiring: ``apps/api/karma_team/runner/views/runs.py``
    * ``AgentRunCancelEndpoint``.
    */
   async abortRun(runId: string, reason?: string): Promise<TAgentRun> {

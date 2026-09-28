@@ -38,7 +38,7 @@ RUN corepack enable pnpm
 # Copy full directory structure before fetch to ensure all package.json files are available
 COPY --from=builder /app/out/full/ .
 COPY turbo.json turbo.json
-COPY pi-symbol-light.svg pi-symbol-light.svg
+COPY karma-team-symbol-light.svg karma-team-symbol-light.svg
 
 # Fetch dependencies to cache store, then install offline with dev deps
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store pnpm fetch --store-dir=/pnpm/store

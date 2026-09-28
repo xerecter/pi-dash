@@ -8,15 +8,15 @@ import { useRef } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { MoveDiagonal, MoveRight } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { CenterPanelIcon, CopyLinkIcon, FullScreenPanelIcon, SidePanelIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TNameDescriptionLoader } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { CustomSelect } from "@pi-dash/ui";
-import { copyUrlToClipboard, generateWorkItemLink } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { CenterPanelIcon, CopyLinkIcon, FullScreenPanelIcon, SidePanelIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TNameDescriptionLoader } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { CustomSelect } from "@karma-team/ui";
+import { copyUrlToClipboard, generateWorkItemLink } from "@karma-team/utils";
 // hooks
 import { useAppRouter } from "@/hooks/use-app-router";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -28,7 +28,7 @@ import { usePlatformOS } from "@/hooks/use-platform-os";
 import { IssueSubscription } from "../issue-detail/subscription";
 import { WorkItemDetailQuickActions } from "../issue-layouts/quick-action-dropdowns";
 import { NameDescriptionUpdateStatus } from "../issue-update-status";
-import { IconButton } from "@pi-dash/propel/icon-button";
+import { IconButton } from "@karma-team/propel/icon-button";
 
 export type TPeekModes = "side-peek" | "modal" | "full-screen";
 

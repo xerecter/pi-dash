@@ -7,11 +7,11 @@
 import type { FC, ReactNode } from "react";
 import { Network } from "lucide-react";
 // types
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TWorkspaceBaseActivity } from "@pi-dash/types";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TWorkspaceBaseActivity } from "@karma-team/types";
 // ui
 // helpers
-import { renderFormattedTime, renderFormattedDate, calculateTimeAgo } from "@pi-dash/utils";
+import { renderFormattedTime, renderFormattedDate, calculateTimeAgo } from "@karma-team/utils";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // local components

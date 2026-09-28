@@ -5,8 +5,8 @@
  */
 
 import { observable, action, makeObservable } from "mobx";
-// pi dash imports
-import type { EIssuesStoreType } from "@pi-dash/types";
+// karma-team imports
+import type { EIssuesStoreType } from "@karma-team/types";
 // components
 import type { IPowerKCommandRegistry } from "@/components/power-k/core/registry";
 import { PowerKCommandRegistry } from "@/components/power-k/core/registry";

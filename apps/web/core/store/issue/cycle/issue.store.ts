@@ -7,8 +7,8 @@
 import { get, set, concat, uniq, update } from "lodash-es";
 import { action, observable, makeObservable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import { ALL_ISSUES } from "@pi-dash/constants";
+// karma-team imports
+import { ALL_ISSUES } from "@karma-team/constants";
 import type {
   TIssue,
   TLoader,
@@ -16,9 +16,9 @@ import type {
   TIssuesResponse,
   ViewFlags,
   TBulkOperationsPayload,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // helpers
-import { getDistributionPathsPostUpdate } from "@pi-dash/utils";
+import { getDistributionPathsPostUpdate } from "@karma-team/utils";
 //local
 import { storage } from "@/lib/local-storage";
 import type { IBaseIssuesStore } from "../helpers/base-issues.store";

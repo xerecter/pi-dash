@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
+// karma-team imports
 import type { IncomingHttpHeaders } from "http";
-import type { TUserDetails } from "@pi-dash/editor";
-import { logger } from "@pi-dash/logger";
+import type { TUserDetails } from "@karma-team/editor";
+import { logger } from "@karma-team/logger";
 import { AppError } from "@/lib/errors";
 // services
 import { UserService } from "@/services/user.service";

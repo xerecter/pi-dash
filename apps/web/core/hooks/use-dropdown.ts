@@ -5,8 +5,8 @@
  */
 
 import { useEffect } from "react";
-// pi dash helpers
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+// karma-team helpers
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // hooks
 import { useDropdownKeyDown } from "@/hooks/use-dropdown-key-down";
 import { usePlatformOS } from "./use-platform-os";

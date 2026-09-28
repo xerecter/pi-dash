@@ -5,11 +5,11 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { EditorRefApi, CollaborationState } from "@pi-dash/editor";
-// pi dash editor
-import { convertBinaryDataToBase64String, getBinaryDataFromDocumentEditorHTMLString } from "@pi-dash/editor";
-// pi dash types
-import type { TDocumentPayload } from "@pi-dash/types";
+import type { EditorRefApi, CollaborationState } from "@karma-team/editor";
+// karma-team editor
+import { convertBinaryDataToBase64String, getBinaryDataFromDocumentEditorHTMLString } from "@karma-team/editor";
+// karma-team types
+import type { TDocumentPayload } from "@karma-team/types";
 // hooks
 import useAutoSave from "@/hooks/use-auto-save";
 import type { TPageInstance } from "@/store/pages/base-page";

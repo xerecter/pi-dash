@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 // utils
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type EmptyStateSize = "sm" | "lg";
 

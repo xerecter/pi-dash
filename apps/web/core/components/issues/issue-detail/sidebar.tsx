@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // ui
 import {
   CycleIcon,
@@ -20,8 +20,8 @@ import {
   UserCirclePropertyIcon,
   EstimatePropertyIcon,
   ParentPropertyIcon,
-} from "@pi-dash/propel/icons";
-import { cn, getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@pi-dash/utils";
+} from "@karma-team/propel/icons";
+import { cn, getDate, renderFormattedPayloadDate, shouldHighlightIssueDueDate } from "@karma-team/utils";
 import { Container } from "lucide-react";
 // components
 import { DateDropdown } from "@/components/dropdowns/date";
@@ -44,13 +44,13 @@ import { useMember } from "@/hooks/store/use-member";
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
 import useSize from "@/hooks/use-window-size";
-// pi dash web components
+// karma-team web components
 // components
-import { WorkItemAdditionalSidebarProperties } from "@/pi-dash-web/components/issues/issue-details/additional-properties";
-import { IssueParentSelectRoot } from "@/pi-dash-web/components/issues/issue-details/parent-select-root";
-import { DateAlert } from "@/pi-dash-web/components/issues/issue-details/sidebar/date-alert";
-import { TransferHopInfo } from "@/pi-dash-web/components/issues/issue-details/sidebar/transfer-hop-info";
-import { IssueWorklogProperty } from "@/pi-dash-web/components/issues/worklog/property";
+import { WorkItemAdditionalSidebarProperties } from "@/karma-team-web/components/issues/issue-details/additional-properties";
+import { IssueParentSelectRoot } from "@/karma-team-web/components/issues/issue-details/parent-select-root";
+import { DateAlert } from "@/karma-team-web/components/issues/issue-details/sidebar/date-alert";
+import { TransferHopInfo } from "@/karma-team-web/components/issues/issue-details/sidebar/transfer-hop-info";
+import { IssueWorklogProperty } from "@/karma-team-web/components/issues/worklog/property";
 import { SidebarPropertyListItem } from "@/components/common/layout/sidebar/property-list-item";
 import { IssueAgentStatusPanel } from "./agent-status";
 import { IssueCycleSelect } from "./cycle-select";

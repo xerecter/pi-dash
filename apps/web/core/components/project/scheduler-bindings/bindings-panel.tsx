@@ -7,13 +7,13 @@
 import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IScheduler, ISchedulerBinding } from "@pi-dash/services";
-import { SchedulerService } from "@pi-dash/services";
-import { Button, ToggleSwitch } from "@pi-dash/ui";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IScheduler, ISchedulerBinding } from "@karma-team/services";
+import { SchedulerService } from "@karma-team/services";
+import { Button, ToggleSwitch } from "@karma-team/ui";
 // components
 import { EditSchedulerBindingModal } from "@/components/project/scheduler-bindings/edit-binding-modal";
 import { InstallSchedulerBindingModal } from "@/components/project/scheduler-bindings/install-binding-modal";
@@ -62,7 +62,11 @@ export const SchedulerBindingsPanel = observer(function SchedulerBindingsPanel(p
         <header className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-16 font-semibold text-primary">{t("Schedulers")}</h1>
-            <p className="mt-1 text-13 text-secondary">{t("Schedulers installed on this project. Each install fires its prompt against the project on the configured cron.")}</p>
+            <p className="mt-1 text-13 text-secondary">
+              {t(
+                "Schedulers installed on this project. Each install fires its prompt against the project on the configured cron."
+              )}
+            </p>
           </div>
           {canManage && <Button onClick={() => setInstallOpen(true)}>{t("Install scheduler")}</Button>}
         </header>
@@ -135,7 +139,9 @@ export const SchedulerBindingsPanel = observer(function SchedulerBindingsPanel(p
               {rows.length === 0 && (
                 <tr>
                   <td colSpan={7} className="px-3 py-8 text-center text-secondary">
-                    {t("No schedulers installed on this project yet. Click “Install scheduler” to add one from the workspace catalog.")}
+                    {t(
+                      "No schedulers installed on this project yet. Click “Install scheduler” to add one from the workspace catalog."
+                    )}
                   </td>
                 </tr>
               )}
@@ -233,13 +239,9 @@ function BindingRow({ binding, canManage, onEdit, onUninstall, onToggle }: RowPr
             value={binding.enabled}
             onChange={handleToggle}
             disabled={toggling || !canManage}
-            aria-label={
-              binding.enabled ? t("Disable scheduler") : t("Enable scheduler")
-            }
+            aria-label={binding.enabled ? t("Disable scheduler") : t("Enable scheduler")}
           />
-          <span className="text-12 text-secondary">
-            {binding.enabled ? t("Enabled") : t("Disabled")}
-          </span>
+          <span className="text-12 text-secondary">{binding.enabled ? t("Enabled") : t("Disabled")}</span>
         </div>
       </td>
       <td className="px-3 py-2 text-secondary">{new Date(binding.updated_at).toLocaleString()}</td>

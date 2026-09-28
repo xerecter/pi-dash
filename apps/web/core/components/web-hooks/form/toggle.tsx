@@ -7,9 +7,9 @@
 import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
 // constants
-import type { IWebhook } from "@pi-dash/types";
+import type { IWebhook } from "@karma-team/types";
 // ui
-import { ToggleSwitch } from "@pi-dash/ui";
+import { ToggleSwitch } from "@karma-team/ui";
 
 interface IWebHookToggle {
   control: Control<IWebhook, any>;

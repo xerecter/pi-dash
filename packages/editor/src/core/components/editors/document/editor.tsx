@@ -7,8 +7,8 @@
 import type { Extensions } from "@tiptap/core";
 import type { MutableRefObject } from "react";
 import { forwardRef, useMemo } from "react";
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 // components
 import { PageRenderer } from "@/components/editors";
 // constants
@@ -19,8 +19,8 @@ import { HeadingListExtension, SideMenuExtension } from "@/extensions";
 import { getEditorClassNames } from "@/helpers/common";
 // hooks
 import { useEditor } from "@/hooks/use-editor";
-// pi dash editor extensions
-import { DocumentEditorAdditionalExtensions } from "@/pi-dash-editor/extensions";
+// karma-team editor extensions
+import { DocumentEditorAdditionalExtensions } from "@/karma-team-editor/extensions";
 // types
 import type { EditorRefApi, IDocumentEditorProps } from "@/types";
 

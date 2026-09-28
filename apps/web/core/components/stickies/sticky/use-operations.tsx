@@ -5,12 +5,12 @@
  */
 
 import { useMemo } from "react";
-// pi dash types
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { InstructionType, TSticky } from "@pi-dash/types";
-// pi dash utils
-import { isCommentEmpty } from "@pi-dash/utils";
+// karma-team types
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { InstructionType, TSticky } from "@karma-team/types";
+// karma-team utils
+import { isCommentEmpty } from "@karma-team/utils";
 // components
 import { STICKY_COLORS_LIST } from "@/components/editor/sticky-editor/color-palette";
 // hooks

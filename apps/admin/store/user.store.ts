@@ -5,11 +5,11 @@
  */
 
 import { action, observable, runInAction, makeObservable } from "mobx";
-// pi dash internal packages
-import type { TUserStatus } from "@pi-dash/constants";
-import { EUserStatus } from "@pi-dash/constants";
-import { AuthService, UserService } from "@pi-dash/services";
-import type { IUser } from "@pi-dash/types";
+// karma-team internal packages
+import type { TUserStatus } from "@karma-team/constants";
+import { EUserStatus } from "@karma-team/constants";
+import { AuthService, UserService } from "@karma-team/services";
+import type { IUser } from "@karma-team/types";
 // root store
 import type { RootStore } from "@/store/root.store";
 

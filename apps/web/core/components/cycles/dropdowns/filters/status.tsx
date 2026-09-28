@@ -6,9 +6,9 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-import { CYCLE_STATUS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TCycleGroups } from "@pi-dash/types";
+import { CYCLE_STATUS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { TCycleGroups } from "@karma-team/types";
 // components
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 // types

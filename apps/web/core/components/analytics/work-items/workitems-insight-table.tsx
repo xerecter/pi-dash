@@ -10,19 +10,19 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 import { UserRound } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { ProjectIcon } from "@pi-dash/propel/icons";
-// pi dash package imports
-import type { AnalyticsTableDataMap, WorkItemInsightColumns } from "@pi-dash/types";
-// pi dash web components
-import { Avatar } from "@pi-dash/ui";
-import { getFileURL } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { ProjectIcon } from "@karma-team/propel/icons";
+// karma-team package imports
+import type { AnalyticsTableDataMap, WorkItemInsightColumns } from "@karma-team/types";
+// karma-team web components
+import { Avatar } from "@karma-team/ui";
+import { getFileURL } from "@karma-team/utils";
 // hooks
 import { useAnalytics } from "@/hooks/store/use-analytics";
 import { useProject } from "@/hooks/store/use-project";
 import { AnalyticsService } from "@/services/analytics.service";
-// pi dash web components
+// karma-team web components
 import { exportCSV } from "../export";
 import { InsightTable } from "../insight-table";
 

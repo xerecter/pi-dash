@@ -6,12 +6,12 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import { MODULE_STATUS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TModuleStatus } from "@pi-dash/propel/icons";
-import { ModuleStatusIcon } from "@pi-dash/propel/icons";
-import type { IModule } from "@pi-dash/types";
-import { CustomSelect } from "@pi-dash/ui";
+import { MODULE_STATUS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { TModuleStatus } from "@karma-team/propel/icons";
+import { ModuleStatusIcon } from "@karma-team/propel/icons";
+import type { IModule } from "@karma-team/types";
+import { CustomSelect } from "@karma-team/ui";
 
 type Props = {
   isDisabled: boolean;

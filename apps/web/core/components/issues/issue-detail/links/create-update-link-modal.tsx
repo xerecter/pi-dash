@@ -7,12 +7,12 @@
 import { useEffect } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-import { useTranslation } from "@pi-dash/i18n";
-// pi dash types
-import { Button } from "@pi-dash/propel/button";
-import type { TIssueLinkEditableFields, TIssueServiceType } from "@pi-dash/types";
-// pi dash ui
-import { Input, ModalCore } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+// karma-team types
+import { Button } from "@karma-team/propel/button";
+import type { TIssueLinkEditableFields, TIssueServiceType } from "@karma-team/types";
+// karma-team ui
+import { Input, ModalCore } from "@karma-team/ui";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // types
@@ -78,9 +78,7 @@ export const IssueLinkCreateUpdateModal = observer(function IssueLinkCreateUpdat
     <ModalCore isOpen={isModalOpen} handleClose={onClose}>
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <div className="space-y-5 p-5">
-          <h3 className="text-h4-medium text-secondary">
-            {preloadedData?.id ? t("Update link") : t("Add link")}
-          </h3>
+          <h3 className="text-h4-medium text-secondary">{preloadedData?.id ? t("Update link") : t("Add link")}</h3>
           <div className="mt-2 space-y-3">
             <div>
               <label htmlFor="url" className="mb-2 text-secondary">
@@ -105,9 +103,7 @@ export const IssueLinkCreateUpdateModal = observer(function IssueLinkCreateUpdat
                   />
                 )}
               />
-              {errors.url && (
-                <span className="text-caption-sm-regular text-danger-primary">{t("URL is invalid")}</span>
-              )}
+              {errors.url && <span className="text-caption-sm-regular text-danger-primary">{t("URL is invalid")}</span>}
             </div>
             <div>
               <label htmlFor="title" className="mb-2 text-secondary">
@@ -139,13 +135,7 @@ export const IssueLinkCreateUpdateModal = observer(function IssueLinkCreateUpdat
           </Button>
           <Button variant="primary" size="lg" type="submit" loading={isSubmitting}>
             {`${
-              preloadedData?.id
-                ? isSubmitting
-                  ? t("Updating")
-                  : t("Update")
-                : isSubmitting
-                  ? t("Adding")
-                  : t("Add")
+              preloadedData?.id ? (isSubmitting ? t("Updating") : t("Update")) : isSubmitting ? t("Adding") : t("Add")
             } ${t("Link")}`}
           </Button>
         </div>

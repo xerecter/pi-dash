@@ -6,14 +6,14 @@
 
 import { Command } from "cmdk";
 import { observer } from "mobx-react";
-// pi dash types
+// karma-team types
 import { useParams } from "next/navigation";
-import type { TIssue } from "@pi-dash/types";
-import { Spinner } from "@pi-dash/ui";
+import type { TIssue } from "@karma-team/types";
+import { Spinner } from "@karma-team/ui";
 // hooks
 import { useProjectState } from "@/hooks/store/use-project-state";
 // local imports
-import { PowerKProjectStatesMenuItems } from "@/pi-dash-web/components/command-palette/power-k/pages/context-based/work-item/state-menu-item";
+import { PowerKProjectStatesMenuItems } from "@/karma-team-web/components/command-palette/power-k/pages/context-based/work-item/state-menu-item";
 
 type Props = {
   handleSelect: (stateId: string) => void;

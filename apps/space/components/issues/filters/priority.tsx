@@ -6,10 +6,10 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { ISSUE_PRIORITY_FILTERS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { PriorityIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { ISSUE_PRIORITY_FILTERS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { PriorityIcon } from "@karma-team/propel/icons";
 // local imports
 import { FilterHeader } from "./helpers/filter-header";
 import { FilterOption } from "./helpers/filter-option";

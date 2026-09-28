@@ -7,8 +7,8 @@
 import { Command } from "cmdk";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import type { IWorkspaceSearchResults } from "@pi-dash/types";
+// karma-team imports
+import type { IWorkspaceSearchResults } from "@karma-team/types";
 // hooks
 import { useAppRouter } from "@/hooks/use-app-router";
 // helpers

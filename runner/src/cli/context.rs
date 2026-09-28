@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-//! `pidash context …` subcommands.
+//! `karma-team context …` subcommands.
 
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -22,7 +22,7 @@ pub struct ContextArgs {
 
 #[derive(Debug, Subcommand)]
 pub enum ContextCommand {
-    /// Write .pidash/context.md for this workspace.
+    /// Write .karma-team/context.md for this workspace.
     Init(InitArgs),
 }
 
@@ -104,10 +104,10 @@ fn write_context_file(
     workspace_slug: &str,
     project: &ProjectRow,
 ) -> Result<PathBuf, CliError> {
-    let pidash_dir = workspace_dir.join(".pidash");
-    fs::create_dir_all(&pidash_dir)
-        .map_err(|e| CliError::new(EXIT_UNKNOWN, format!("creating {:?}: {e}", pidash_dir)))?;
-    let path = pidash_dir.join("context.md");
+    let karma_team_dir = workspace_dir.join(".karma-team");
+    fs::create_dir_all(&karma_team_dir)
+        .map_err(|e| CliError::new(EXIT_UNKNOWN, format!("creating {:?}: {e}", karma_team_dir)))?;
+    let path = karma_team_dir.join("context.md");
     let mut doc = fs::read_to_string(&path)
         .ok()
         .and_then(|body| parse_context(&body))
@@ -158,7 +158,7 @@ fn render_context(doc: &ContextDoc) -> String {
         ));
     }
     out.push_str(
-        "---\n\n# Pi Dash Workspace Context\n\nThis workspace is linked to the Pi Dash projects above.\n",
+        "---\n\n# karma-team Workspace Context\n\nThis workspace is linked to the karma-team projects above.\n",
     );
     out
 }

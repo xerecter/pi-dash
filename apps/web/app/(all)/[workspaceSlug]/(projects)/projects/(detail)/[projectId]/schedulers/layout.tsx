@@ -6,8 +6,8 @@
 
 import { Link, Outlet, useLocation, useParams } from "react-router";
 import { CalendarClock, List as ListIcon } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { cn } from "@karma-team/utils";
 import { AppHeader } from "@/components/core/app-header";
 import { ContentWrapper } from "@/components/core/content-wrapper";
 import { ProjectSchedulersHeader } from "./header";

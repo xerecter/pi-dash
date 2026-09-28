@@ -13,7 +13,7 @@ import type {
   IssuePaginationOptions,
   TIssuesResponse,
   TBulkOperationsPayload,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // services
 // types
 import type { IBaseIssuesStore } from "../helpers/base-issues.store";

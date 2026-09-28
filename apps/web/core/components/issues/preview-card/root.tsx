@@ -5,14 +5,14 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { PriorityIcon, StateGroupIcon } from "@pi-dash/propel/icons";
-import type { TIssue, TStateGroups } from "@pi-dash/types";
+// karma-team imports
+import { PriorityIcon, StateGroupIcon } from "@karma-team/propel/icons";
+import type { TIssue, TStateGroups } from "@karma-team/types";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useProjectState } from "@/hooks/store/use-project-state";
-// pi dash web imports
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web imports
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 // local imports
 import { WorkItemPreviewCardDate } from "./date";
 

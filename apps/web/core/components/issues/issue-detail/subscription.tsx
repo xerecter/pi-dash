@@ -8,14 +8,14 @@ import { useState } from "react";
 import { isNil } from "lodash-es";
 import { observer } from "mobx-react";
 import { Bell, BellOff } from "lucide-react";
-// pi-dash-i18n
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team-i18n
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // UI
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { EIssueServiceType } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { EIssueServiceType } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useUserPermissions } from "@/hooks/store/user";
@@ -57,9 +57,7 @@ export const IssueSubscription = observer(function IssueSubscription(props: TIss
       setToast({
         type: TOAST_TYPE.SUCCESS,
         title: t("Success!"),
-        message: isSubscribed
-          ? t("Work item unsubscribed successfully")
-          : t("Work item subscribed successfully"),
+        message: isSubscribed ? t("Work item unsubscribed successfully") : t("Work item subscribed successfully"),
       });
       setLoading(false);
     } catch {

@@ -7,14 +7,14 @@
 import { useCallback } from "react";
 import { useParams } from "next/navigation";
 import { Star, StarOff, Users } from "lucide-react";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon, ModuleStatusIcon } from "@pi-dash/propel/icons";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import type { IModule, TModuleStatus } from "@pi-dash/types";
-import { EUserPermissions } from "@pi-dash/types";
-import { copyTextToClipboard } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon, ModuleStatusIcon } from "@karma-team/propel/icons";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import type { IModule, TModuleStatus } from "@karma-team/types";
+import { EUserPermissions } from "@karma-team/types";
+import { copyTextToClipboard } from "@karma-team/utils";
 // components
 import type { TPowerKCommandConfig } from "@/components/power-k/core/types";
 // hooks
@@ -136,9 +136,7 @@ export const usePowerKModuleContextBasedActions = (): TPowerKCommandConfig[] => 
     },
     {
       id: "toggle_module_favorite",
-      i18n_title: isFavorite
-        ? "Remove from favorites"
-        : "Add to favorites",
+      i18n_title: isFavorite ? "Remove from favorites" : "Add to favorites",
       icon: isFavorite ? StarOff : Star,
       group: "contextual",
       contextType: "module",

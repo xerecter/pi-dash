@@ -7,8 +7,8 @@
 import { useEffect } from "react";
 import type { Control, FieldArrayWithId, FormState, UseFormWatch } from "react-hook-form";
 import { useFieldArray, useForm } from "react-hook-form";
-// pi dash imports
-import { EUserPermissions } from "@pi-dash/constants";
+// karma-team imports
+import { EUserPermissions } from "@karma-team/constants";
 
 type EmailRole = {
   email: string;

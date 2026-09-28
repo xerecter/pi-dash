@@ -6,10 +6,10 @@
 
 import { useState } from "react";
 // ui
-import { Button } from "@pi-dash/propel/button";
-import type { IExportData } from "@pi-dash/types";
+import { Button } from "@karma-team/propel/button";
+import type { IExportData } from "@karma-team/types";
 // helpers
-import { getDate, renderFormattedDate } from "@pi-dash/utils";
+import { getDate, renderFormattedDate } from "@karma-team/utils";
 // types
 
 type Props = {

@@ -9,14 +9,14 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Settings, UserPlus } from "lucide-react";
 import { Menu } from "@headlessui/react";
-// pi dash imports
-import { EUserPermissions } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { CheckIcon } from "@pi-dash/propel/icons";
-import type { IWorkspace } from "@pi-dash/types";
-import { cn, getFileURL, getUserRole } from "@pi-dash/utils";
-// pi dash web imports
-import { SubscriptionPill } from "@/pi-dash-web/components/common/subscription/subscription-pill";
+// karma-team imports
+import { EUserPermissions } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { CheckIcon } from "@karma-team/propel/icons";
+import type { IWorkspace } from "@karma-team/types";
+import { cn, getFileURL, getUserRole } from "@karma-team/utils";
+// karma-team web imports
+import { SubscriptionPill } from "@/karma-team-web/components/common/subscription/subscription-pill";
 
 type TProps = {
   workspace: IWorkspace;
@@ -76,7 +76,9 @@ const SidebarDropdownItem = observer(function SidebarDropdownItem(props: TProps)
               <div className="flex w-fit gap-2 text-13 text-tertiary capitalize">
                 <span>{getUserRole(workspace.role)?.toLowerCase() || "guest"}</span>
                 <div className="m-auto h-1 w-1 rounded-full bg-layer-1/50" />
-                <span className="capitalize">{t("{count, plural, one{# member} other{# members}}", { count: workspace.total_members || 0 })}</span>
+                <span className="capitalize">
+                  {t("{count, plural, one{# member} other{# members}}", { count: workspace.total_members || 0 })}
+                </span>
               </div>
             </div>
           </div>
@@ -114,9 +116,7 @@ const SidebarDropdownItem = observer(function SidebarDropdownItem(props: TProps)
                   className="flex gap-1.5 rounded-md border border-strong bg-layer-2 px-2.5 py-1.5 text-secondary transition-colors hover:border-strong hover:text-secondary hover:shadow-raised-100"
                 >
                   <UserPlus className="my-auto h-4 w-4 flex-shrink-0" />
-                  <span className="my-auto text-13 font-medium whitespace-nowrap">
-                    {t("Invite members")}
-                  </span>
+                  <span className="my-auto text-13 font-medium whitespace-nowrap">{t("Invite members")}</span>
                 </Link>
               )}
             </div>

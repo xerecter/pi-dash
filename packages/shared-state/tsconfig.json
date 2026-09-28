@@ -1,5 +1,5 @@
 {
-  "extends": "@pi-dash/typescript-config/react-library.json",
+  "extends": "@karma-team/typescript-config/react-library.json",
   "compilerOptions": {
     "exactOptionalPropertyTypes": false,
     "paths": {

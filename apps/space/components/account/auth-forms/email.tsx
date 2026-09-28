@@ -10,12 +10,12 @@ import { observer } from "mobx-react";
 // icons
 import { CircleAlert, XCircle } from "lucide-react";
 // types
-import { Button } from "@pi-dash/propel/button";
-import type { IEmailCheckData } from "@pi-dash/types";
+import { Button } from "@karma-team/propel/button";
+import type { IEmailCheckData } from "@karma-team/types";
 // ui
-import { Input, Spinner } from "@pi-dash/ui";
+import { Input, Spinner } from "@karma-team/ui";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import { checkEmailValidity } from "@/helpers/string.helper";
 
 type TAuthEmailForm = {

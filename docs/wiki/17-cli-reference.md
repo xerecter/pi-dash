@@ -1,6 +1,6 @@
-# 17 — `pidash` CLI Reference
+# 17 — `karma-team` CLI Reference
 
-Complete reference for the `pidash` binary. All commands, all flags, brief examples.
+Complete reference for the `karma-team` binary. All commands, all flags, brief examples.
 
 For the _guided_ setup walkthrough use [02 — Cloud Quickstart](./02-cloud-quickstart.md). For the runner's internals see [07 — Runner architecture](./07-runner-architecture.md).
 
@@ -8,51 +8,51 @@ For the _guided_ setup walkthrough use [02 — Cloud Quickstart](./02-cloud-quic
 
 Available on every command:
 
-| Flag                  | Env                 | Default        | Purpose                                              |
-| --------------------- | ------------------- | -------------- | ---------------------------------------------------- |
-| `--config-dir <PATH>` | `PIDASH_CONFIG_DIR` | XDG config dir | Override config location                             |
-| `--data-dir <PATH>`   | `PIDASH_DATA_DIR`   | XDG data dir   | Override data location                               |
-| `--log <LEVEL>`       | `PIDASH_LOG`        | `info`         | Log level: `trace`, `debug`, `info`, `warn`, `error` |
-| `--help`              | —                   | —              | Show help for any command                            |
-| `--version`           | —                   | —              | Print version                                        |
+| Flag                  | Env                     | Default        | Purpose                                              |
+| --------------------- | ----------------------- | -------------- | ---------------------------------------------------- |
+| `--config-dir <PATH>` | `KARMA_TEAM_CONFIG_DIR` | XDG config dir | Override config location                             |
+| `--data-dir <PATH>`   | `KARMA_TEAM_DATA_DIR`   | XDG data dir   | Override data location                               |
+| `--log <LEVEL>`       | `KARMA_TEAM_LOG`        | `info`         | Log level: `trace`, `debug`, `info`, `warn`, `error` |
+| `--help`              | —                       | —              | Show help for any command                            |
+| `--version`           | —                       | —              | Print version                                        |
 
-## `pidash` (no subcommand)
+## `karma-team` (no subcommand)
 
-First-run launcher. If no config exists, drops into `pidash auth login`. Otherwise prints help.
+First-run launcher. If no config exists, drops into `karma-team auth login`. Otherwise prints help.
 
 ---
 
 ## Setup & auth
 
-### `pidash auth login`
+### `karma-team auth login`
 
 Browser-based device-code login. Same UX as `gh auth login` / `stripe login`.
 
 ```
-pidash auth login [--url <URL>] [--no-browser]
+karma-team auth login [--url <URL>] [--no-browser]
 ```
 
-| Flag           | Purpose                                                                                    |
-| -------------- | ------------------------------------------------------------------------------------------ |
-| `--url <URL>`  | Cloud base URL (e.g. `https://pidash.airepublic.com`). Optional if config already has one. |
-| `--no-browser` | Don't try to open the verification URL automatically.                                      |
+| Flag           | Purpose                                                                                     |
+| -------------- | ------------------------------------------------------------------------------------------- |
+| `--url <URL>`  | Cloud base URL (e.g. `https://karma-team.example.com`). Optional if config already has one. |
+| `--no-browser` | Don't try to open the verification URL automatically.                                       |
 
-Writes the CLI token to `config.toml`, then confirms the account and workspace and points you at the cloud URL. Registering a runner is a separate, explicit step — see `pidash runner add`.
+Writes the CLI token to `config.toml`, then confirms the account and workspace and points you at the cloud URL. Registering a runner is a separate, explicit step — see `karma-team runner add`.
 
-### `pidash auth status`
+### `karma-team auth status`
 
 Show who you're logged in as and which runners are registered on this host.
 
 ```
-pidash auth status
+karma-team auth status
 ```
 
-### `pidash auth logout`
+### `karma-team auth logout`
 
 Revoke the CLI token server-side and clear it locally. `[[runner]]` blocks are left intact — the daemon keeps running under its own identity.
 
 ```
-pidash auth logout [--local-only]
+karma-team auth logout [--local-only]
 ```
 
 | Flag           | Purpose                                                                            |
@@ -61,24 +61,24 @@ pidash auth logout [--local-only]
 
 ## Local config
 
-### `pidash config set default-project <PROJECT>`
+### `karma-team config set default-project <PROJECT>`
 
-Set the local default project for non-interactive CLI calls (e.g. `pidash issue list` without `--project`).
+Set the local default project for non-interactive CLI calls (e.g. `karma-team issue list` without `--project`).
 
 ```
-pidash config set default-project <PROJECT_IDENTIFIER_OR_UUID>
+karma-team config set default-project <PROJECT_IDENTIFIER_OR_UUID>
 ```
 
 ---
 
 ## Runner management
 
-### `pidash runner add`
+### `karma-team runner add`
 
-Register a new runner. Uses the CLI token from `pidash auth login`.
+Register a new runner. Uses the CLI token from `karma-team auth login`.
 
 ```
-pidash runner add --project <PROJECT> [--name <NAME>] [--workspace <SLUG>]
+karma-team runner add --project <PROJECT> [--name <NAME>] [--workspace <SLUG>]
                   [--pod <POD>] [--working-dir <PATH>] [--agent codex|claude-code]
 ```
 
@@ -93,68 +93,68 @@ pidash runner add --project <PROJECT> [--name <NAME>] [--workspace <SLUG>]
 
 On the first runner: installs the OS service (systemd user unit / launchd agent / Windows scheduled task) and starts the daemon.
 
-### `pidash runner list`
+### `karma-team runner list`
 
 List runners configured on this machine.
 
 ```
-pidash runner list
+karma-team runner list
 ```
 
-### `pidash runner remove`
+### `karma-team runner remove`
 
 Deregister a runner (cloud + local).
 
 ```
-pidash runner remove <NAME> [--local-only] [-y|--yes]
+karma-team runner remove <NAME> [--local-only] [-y|--yes]
 ```
 
-| Flag           | Purpose                                                                            |
-| -------------- | ---------------------------------------------------------------------------------- |
-| `<NAME>`       | Runner name from `pidash runner list`. Must match a `[[runner]]` in `config.toml`. |
-| `--local-only` | Skip cloud-side delete; just clean local config + data dir.                        |
-| `-y`, `--yes`  | Skip the y/N confirm. Required for scripted callers.                               |
+| Flag           | Purpose                                                                                |
+| -------------- | -------------------------------------------------------------------------------------- |
+| `<NAME>`       | Runner name from `karma-team runner list`. Must match a `[[runner]]` in `config.toml`. |
+| `--local-only` | Skip cloud-side delete; just clean local config + data dir.                            |
+| `-y`, `--yes`  | Skip the y/N confirm. Required for scripted callers.                                   |
 
 ---
 
 ## Service lifecycle
 
-### `pidash install`
+### `karma-team install`
 
 Write or refresh the OS service unit. Safe to re-run after binary upgrades.
 
 ```
-pidash install [--skip-linger]
+karma-team install [--skip-linger]
 ```
 
 | Flag            | Purpose                                                                                                       |
 | --------------- | ------------------------------------------------------------------------------------------------------------- |
 | `--skip-linger` | Linux only — skip `sudo loginctl enable-linger`. Without linger the daemon only starts at login, not at boot. |
 
-### `pidash uninstall`
+### `karma-team uninstall`
 
 Remove the OS service unit. Local config + runner credentials are kept.
 
 ```
-pidash uninstall
+karma-team uninstall
 ```
 
-### `pidash start` / `pidash stop` / `pidash restart`
+### `karma-team start` / `karma-team stop` / `karma-team restart`
 
 Control the installed service.
 
 ```
-pidash start
-pidash stop
-pidash restart
+karma-team start
+karma-team stop
+karma-team restart
 ```
 
-### `pidash status`
+### `karma-team status`
 
 Combined service-level + daemon-runtime status.
 
 ```
-pidash status [--json]
+karma-team status [--json]
 ```
 
 | Flag     | Purpose                                |
@@ -163,12 +163,12 @@ pidash status [--json]
 
 If the daemon isn't running, prints just the service-level state and a note (instead of an IPC error).
 
-### `pidash tui`
+### `karma-team tui`
 
 Attach the interactive Ratatui UI to the running daemon.
 
 ```
-pidash tui [--tab <TAB>]
+karma-team tui [--tab <TAB>]
 ```
 
 | Flag          | Purpose                                                                                                      |
@@ -177,12 +177,12 @@ pidash tui [--tab <TAB>]
 
 Press `q` to quit; the daemon keeps running in the background.
 
-### `pidash doctor`
+### `karma-team doctor`
 
 Preflight checks: agent installed + on `PATH`, agent authed, git configured, cloud reachable.
 
 ```
-pidash doctor [--json] [--runner <NAME>]
+karma-team doctor [--json] [--runner <NAME>]
 ```
 
 | Flag              | Purpose                                                                  |
@@ -190,12 +190,12 @@ pidash doctor [--json] [--runner <NAME>]
 | `--json`          | Machine-readable report.                                                 |
 | `--runner <NAME>` | Restrict per-runner checks to one runner. Daemon-wide checks always run. |
 
-### `pidash update`
+### `karma-team update`
 
-Swap the on-disk `pidash` binary for the latest GitHub release. Only works for cargo-dist installs (those leave an install receipt).
+Swap the on-disk `karma-team` binary for the latest GitHub release. Only works for cargo-dist installs (those leave an install receipt).
 
 ```
-pidash update [--check] [--restart]
+karma-team update [--check] [--restart]
 ```
 
 | Flag        | Purpose                                                                    |
@@ -203,16 +203,16 @@ pidash update [--check] [--restart]
 | `--check`   | Report whether an update is available, don't swap.                         |
 | `--restart` | After swap, restart the daemon so the new binary takes effect immediately. |
 
-Without `--restart`, the swap only takes effect on the next natural restart (`pidash restart`, reboot, service respawn). The running process is never disturbed.
+Without `--restart`, the swap only takes effect on the next natural restart (`karma-team restart`, reboot, service respawn). The running process is never disturbed.
 
-For a one-command manual upgrade, run `pidash update --restart` when the runner is idle.
+For a one-command manual upgrade, run `karma-team update --restart` when the runner is idle.
 
-### `pidash remove --all`
+### `karma-team remove --all`
 
 Full teardown: stop service → uninstall service unit → deregister with cloud → delete local `config.toml` + credentials.
 
 ```
-pidash remove --all [--local-only]
+karma-team remove --all [--local-only]
 ```
 
 | Flag           | Purpose                                                                             |
@@ -220,34 +220,34 @@ pidash remove --all [--local-only]
 | `--all`        | **Required.** Explicit confirmation that you want to wipe ALL runners on this host. |
 | `--local-only` | Delete local state without contacting the cloud.                                    |
 
-> To drop a single runner instead, use `pidash runner remove <name>`.
+> To drop a single runner instead, use `karma-team runner remove <name>`.
 
 ---
 
 ## Workspace / project / context
 
-### `pidash workspace me`
+### `karma-team workspace me`
 
-Verify CLI credentials end-to-end (token + cloud reachability + TLS + active user). The probe `pidash doctor` uses.
+Verify CLI credentials end-to-end (token + cloud reachability + TLS + active user). The probe `karma-team doctor` uses.
 
 ```
-pidash workspace me
+karma-team workspace me
 ```
 
-### `pidash project list`
+### `karma-team project list`
 
 List projects in the active workspace. Prints JSON.
 
 ```
-pidash project list
+karma-team project list
 ```
 
-### `pidash context init`
+### `karma-team context init`
 
-Write `.pidash/context.md` for a local workspace directory.
+Write `.karma-team/context.md` for a local workspace directory.
 
 ```
-pidash context init --project <PROJECT> [--workspace <PATH>]
+karma-team context init --project <PROJECT> [--workspace <PATH>]
 ```
 
 | Flag              | Purpose                                             |
@@ -259,39 +259,39 @@ pidash context init --project <PROJECT> [--workspace <PATH>]
 
 ## Work items
 
-### `pidash issue get <IDENTIFIER>`
+### `karma-team issue get <IDENTIFIER>`
 
 Fetch one work item. Prints full JSON. The payload includes an absolute `url`
 pointing at the issue in the web UI, built from the deployment's `WEB_URL` (or
 `APP_BASE_URL`); the field is omitted when neither is configured.
 
 ```
-pidash issue get ENG-42
+karma-team issue get ENG-42
 ```
 
-### `pidash issue create`
+### `karma-team issue create`
 
 Create a work item under a project.
 
 ```
-pidash issue create --title <TITLE> [--project <P>] [--description <D>]
+karma-team issue create --title <TITLE> [--project <P>] [--description <D>]
                     [--priority <P>] [--state <S>]
 ```
 
-| Flag                | Purpose                                                                                                        |
-| ------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `--title <T>`       | **Required.**                                                                                                  |
-| `--project <P>`     | Project identifier or UUID. If omitted: `PIDASH_PROJECT_ID` env → local `default_project` → workspace default. |
-| `--description <D>` | Plain text or markdown.                                                                                        |
-| `--priority <P>`    | `none` \| `low` \| `medium` \| `high` \| `urgent`.                                                             |
-| `--state <S>`       | Initial state — name (case-insensitive) or UUID.                                                               |
+| Flag                | Purpose                                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `--title <T>`       | **Required.**                                                                                                      |
+| `--project <P>`     | Project identifier or UUID. If omitted: `KARMA_TEAM_PROJECT_ID` env → local `default_project` → workspace default. |
+| `--description <D>` | Plain text or markdown.                                                                                            |
+| `--priority <P>`    | `none` \| `low` \| `medium` \| `high` \| `urgent`.                                                                 |
+| `--state <S>`       | Initial state — name (case-insensitive) or UUID.                                                                   |
 
-### `pidash issue list --project <P>`
+### `karma-team issue list --project <P>`
 
 List work items in a project. Returns the paginated envelope `{count, next_cursor, prev_cursor, results}`.
 
 ```
-pidash issue list --project <P> [--cursor <C>] [--per-page <N>] [--order-by <F>]
+karma-team issue list --project <P> [--cursor <C>] [--per-page <N>] [--order-by <F>]
 ```
 
 | Flag             | Purpose                                                              |
@@ -301,12 +301,12 @@ pidash issue list --project <P> [--cursor <C>] [--per-page <N>] [--order-by <F>]
 | `--per-page <N>` | Items per page. Server default if omitted.                           |
 | `--order-by <F>` | Sort field, e.g. `-created_at` (default), `priority`, `state__name`. |
 
-### `pidash issue patch <IDENTIFIER>`
+### `karma-team issue patch <IDENTIFIER>`
 
 Update fields. Pass only the fields you want to change.
 
 ```
-pidash issue patch ENG-42 [--state <S>] [--title <T>] [--description <D>] [--priority <P>]
+karma-team issue patch ENG-42 [--state <S>] [--title <T>] [--description <D>] [--priority <P>]
 ```
 
 | Flag                | Purpose                                            |
@@ -316,69 +316,69 @@ pidash issue patch ENG-42 [--state <S>] [--title <T>] [--description <D>] [--pri
 | `--description <D>` | New description.                                   |
 | `--priority <P>`    | `none` \| `low` \| `medium` \| `high` \| `urgent`. |
 
-### `pidash issue move <IDENTIFIER> --project <P>`
+### `karma-team issue move <IDENTIFIER> --project <P>`
 
 Move a work item into another project in the same workspace.
 
 ```
-pidash issue move ENG-42 --project OPS
+karma-team issue move ENG-42 --project OPS
 ```
 
 ---
 
 ## Comments
 
-### `pidash comment list <IDENTIFIER>`
+### `karma-team comment list <IDENTIFIER>`
 
 List comments on a work item.
 
 ```
-pidash comment list ENG-42
+karma-team comment list ENG-42
 ```
 
-### `pidash comment add <IDENTIFIER>`
+### `karma-team comment add <IDENTIFIER>`
 
 Post a new comment.
 
 ```
-pidash comment add ENG-42 (--body <BODY> | --body-file <PATH>) [--as-agent <NAME>] [--agent-run-id <UUID>]
+karma-team comment add ENG-42 (--body <BODY> | --body-file <PATH>) [--as-agent <NAME>] [--agent-run-id <UUID>]
 ```
 
-| Flag                    | Purpose                                                                 |
-| ----------------------- | ----------------------------------------------------------------------- |
-| `--body <B>`            | Comment body (plain text or markdown).                                  |
-| `--body-file <PATH>`    | Read body from file.                                                    |
-| `--as-agent <NAME>`     | Mark the comment as spoken by an AI agent with this display name.       |
-| `--agent-run-id <UUID>` | Record the Pi Dash agent run UUID that produced the agent-spoken reply. |
+| Flag                    | Purpose                                                                    |
+| ----------------------- | -------------------------------------------------------------------------- |
+| `--body <B>`            | Comment body (plain text or markdown).                                     |
+| `--body-file <PATH>`    | Read body from file.                                                       |
+| `--as-agent <NAME>`     | Mark the comment as spoken by an AI agent with this display name.          |
+| `--agent-run-id <UUID>` | Record the karma-team agent run UUID that produced the agent-spoken reply. |
 
-### `pidash comment update <IDENTIFIER> <COMMENT_UUID>`
+### `karma-team comment update <IDENTIFIER> <COMMENT_UUID>`
 
 Edit an existing comment owned by you.
 
 ```
-pidash comment update ENG-42 <COMMENT_UUID> (--body <BODY> | --body-file <PATH>)
+karma-team comment update ENG-42 <COMMENT_UUID> (--body <BODY> | --body-file <PATH>)
 ```
 
 ---
 
 ## AI assistant
 
-### `pidash ai <COMMAND>`
+### `karma-team ai <COMMAND>`
 
-Send a command to the AI assistant in your connected Pi Dash cloud and print its
+Send a command to the AI assistant in your connected karma-team cloud and print its
 reply. This is the CLI door to the same built-in assistant available on the web
-landing page — it operates Pi Dash **as you** (querying and creating projects,
+landing page — it operates karma-team **as you** (querying and creating projects,
 issues, and comments, and dispatching coding runs), scoped to your permissions.
 
 Everything after `ai` is joined into one message, so quoting is optional:
 
 ```
-pidash ai "create an issue in ENG for the flaky login test and set priority high"
-pidash ai what changed on ENG-42 this week
+karma-team ai "create an issue in ENG for the flaky login test and set priority high"
+karma-team ai what changed on ENG-42 this week
 ```
 
 Because everything after `ai` is treated as the message, put `--json` and
-`--timeout` **before** the command (e.g. `pidash ai --json what changed on ENG-42`);
+`--timeout` **before** the command (e.g. `karma-team ai --json what changed on ENG-42`);
 otherwise they are swallowed into the message text.
 
 The command opens a fresh assistant thread, sends your message, waits for the
@@ -391,12 +391,12 @@ answer on stdout.
 | `--timeout <SECS>` | Give up waiting after this many seconds (default `180`). The turn may still finish in the cloud; only the local wait is bounded. |
 
 **BYOK (bring your own key).** The assistant is BYOK-only: you must configure an
-LLM provider and API key under **Settings → AI assistant** in Pi Dash. If it is
-not set up, `pidash ai` prints a clear reason and exits non-zero rather than
+LLM provider and API key under **Settings → AI assistant** in karma-team. If it is
+not set up, `karma-team ai` prints a clear reason and exits non-zero rather than
 hanging:
 
 ```
-{"error":"the Pi Dash AI assistant is not set up yet. It is BYOK (bring your own key): add your LLM provider and API key under Settings → AI assistant in Pi Dash, then run `pidash ai` again"}
+{"error":"the karma-team AI assistant is not set up yet. It is BYOK (bring your own key): add your LLM provider and API key under Settings → AI assistant in karma-team, then run `karma-team ai` again"}
 ```
 
 Exit code is `0` when the assistant replies, and non-zero when the assistant
@@ -407,22 +407,22 @@ branch on it.
 
 ## States
 
-### `pidash state list [PROJECT_OR_ISSUE]`
+### `karma-team state list [PROJECT_OR_ISSUE]`
 
-List workflow states for a project. Without an argument, uses the current issue context from `PIDASH_ISSUE_IDENTIFIER`.
+List workflow states for a project. Without an argument, uses the current issue context from `KARMA_TEAM_ISSUE_IDENTIFIER`.
 
 ```
-pidash state list             # uses current issue context
-pidash state list ENG         # project slug
-pidash state list ENG-42      # via work-item identifier
-pidash state list <UUID>      # project UUID
+karma-team state list             # uses current issue context
+karma-team state list ENG         # project slug
+karma-team state list ENG-42      # via work-item identifier
+karma-team state list <UUID>      # project UUID
 ```
 
 ---
 
 ## Hidden / internal
 
-### `pidash __run`
+### `karma-team __run`
 
 Internal daemon entry point. Invoked by systemd / launchd / Windows scheduled task via the generated unit file. **Not a user-facing command.**
 
@@ -438,21 +438,21 @@ Other commands return `0` on success and surface anyhow errors on failure (non-z
 
 ## Common environment variables
 
-| Variable                  | Used by        | Purpose                                  |
-| ------------------------- | -------------- | ---------------------------------------- |
-| `PIDASH_CONFIG_DIR`       | All            | Override config dir                      |
-| `PIDASH_DATA_DIR`         | All            | Override data dir                        |
-| `PIDASH_LOG`              | All            | Log level                                |
-| `PIDASH_PROJECT_ID`       | `issue create` | Default project when `--project` omitted |
-| `PIDASH_ISSUE_IDENTIFIER` | `state list`   | Default issue context                    |
+| Variable                      | Used by        | Purpose                                  |
+| ----------------------------- | -------------- | ---------------------------------------- |
+| `KARMA_TEAM_CONFIG_DIR`       | All            | Override config dir                      |
+| `KARMA_TEAM_DATA_DIR`         | All            | Override data dir                        |
+| `KARMA_TEAM_LOG`              | All            | Log level                                |
+| `KARMA_TEAM_PROJECT_ID`       | `issue create` | Default project when `--project` omitted |
+| `KARMA_TEAM_ISSUE_IDENTIFIER` | `state list`   | Default issue context                    |
 
 ## Common file locations
 
 | What                   | Linux / macOS                               | Windows                                     |
 | ---------------------- | ------------------------------------------- | ------------------------------------------- |
-| Config + CLI token     | `~/.config/pidash/config.toml`              | `%APPDATA%\pidash\config.toml`              |
+| Config + CLI token     | `~/.config/karma-team/config.toml`          | `%APPDATA%\karma-team\config.toml`          |
 | Per-runner credentials | `<data_dir>/runners/<rid>/credentials.toml` | `<data_dir>\runners\<rid>\credentials.toml` |
 | Run transcripts        | `<data_dir>/runners/<rid>/history/`         | `<data_dir>\runners\<rid>\history\`         |
-| IPC socket / pipe      | `$XDG_RUNTIME_DIR/pidash/...`               | local named pipe                            |
+| IPC socket / pipe      | `$XDG_RUNTIME_DIR/karma-team/...`           | local named pipe                            |
 
 All secrets and the IPC socket are `0600` on Unix.

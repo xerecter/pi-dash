@@ -9,7 +9,7 @@ import Link from "next/link";
 // headless ui
 import { Dialog, Transition } from "@headlessui/react";
 // ui
-import { Button, getButtonStyling } from "@pi-dash/propel/button";
+import { Button, getButtonStyling } from "@karma-team/propel/button";
 
 type Props = {
   isOpen: boolean;

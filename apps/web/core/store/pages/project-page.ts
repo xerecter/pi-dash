@@ -7,10 +7,10 @@
 import { computed, makeObservable } from "mobx";
 import { computedFn } from "mobx-utils";
 // constants
-import { EPageAccess, EUserPermissions } from "@pi-dash/constants";
-import type { TPage } from "@pi-dash/types";
-// pi dash web store
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import { EPageAccess, EUserPermissions } from "@karma-team/constants";
+import type { TPage } from "@karma-team/types";
+// karma-team web store
+import type { RootStore } from "@/karma-team-web/store/root.store";
 // services
 import { ProjectPageService } from "@/services/page";
 const projectPageService = new ProjectPageService();

@@ -5,8 +5,8 @@
  */
 
 import { useTheme } from "next-themes";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
 // assets
 import darkOutlineAsset from "@/app/assets/empty-state/wiki/navigation-pane/outline-dark.webp?url";
 import lightOutlineAsset from "@/app/assets/empty-state/wiki/navigation-pane/outline-light.webp?url";

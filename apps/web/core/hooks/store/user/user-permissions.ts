@@ -7,8 +7,8 @@
 import { useContext } from "react";
 // mobx store
 import { StoreContext } from "@/lib/store-context";
-// pi dash web imports
-import type { IUserPermissionStore } from "@/pi-dash-web/store/user/permission.store";
+// karma-team web imports
+import type { IUserPermissionStore } from "@/karma-team-web/store/user/permission.store";
 
 export const useUserPermissions = (): IUserPermissionStore => {
   const context = useContext(StoreContext);

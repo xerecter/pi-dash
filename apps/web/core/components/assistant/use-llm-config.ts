@@ -5,8 +5,8 @@
  */
 
 import useSWR from "swr";
-import { AssistantService } from "@pi-dash/services";
-import type { IUserLLMConfig } from "@pi-dash/types";
+import { AssistantService } from "@karma-team/services";
+import type { IUserLLMConfig } from "@karma-team/types";
 
 const service = new AssistantService();
 

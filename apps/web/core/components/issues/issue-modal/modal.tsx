@@ -7,10 +7,10 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import type { EIssuesStoreType, TIssue } from "@pi-dash/types";
-// pi dash web imports
-import { IssueModalProvider } from "@/pi-dash-web/components/issues/issue-modal/provider";
+// karma-team imports
+import type { EIssuesStoreType, TIssue } from "@karma-team/types";
+// karma-team web imports
+import { IssueModalProvider } from "@/karma-team-web/components/issues/issue-modal/provider";
 import { CreateUpdateIssueModalBase } from "./base";
 
 export interface IssuesModalProps {

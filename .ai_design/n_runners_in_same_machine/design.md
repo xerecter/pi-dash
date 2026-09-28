@@ -8,10 +8,10 @@
 > [`new_pod_project_relationship/`](./new_pod_project_relationship/) for the
 > updated data model, schema migration (`runner/migrations/0007_*`), runner
 > registration body shape (`project` / `pod` fields), and CLI surface
-> (`pidash configure --project`, `pidash token add-runner --project`,
-> `pidash token list-projects`).
+> (`karma-team configure --project`, `karma-team token add-runner --project`,
+> `karma-team token list-projects`).
 
-A single `pidash` daemon process per dev machine hosts **N independently-registered runner instances** that share a single multiplexed WebSocket session to Pi Dash cloud. From the cloud's perspective every runner instance is fully independent: its own `runner_id`, its own assignments, its own status, its own history. The shared transport is a transport-layer optimisation that the cloud's business logic never observes.
+A single `karma-team` daemon process per dev machine hosts **N independently-registered runner instances** that share a single multiplexed WebSocket session to karma-team cloud. From the cloud's perspective every runner instance is fully independent: its own `runner_id`, its own assignments, its own status, its own history. The shared transport is a transport-layer optimisation that the cloud's business logic never observes.
 
 This document supersedes the single-runner-per-process assumption baked into `runner-design.md`.
 
@@ -30,7 +30,7 @@ This document supersedes the single-runner-per-process assumption baked into `ru
 - Side-by-side daemon processes on the same machine (explicitly out of scope — see `runner_install_ux/`).
 - Concurrent runs within one runner instance (separate problem; would require workspace isolation work).
 - N WebSocket sessions from one process (considered and rejected; ADR §15).
-- A daemon that hosts runners across multiple Pi Dash workspaces. All runners on one daemon belong to a single Pi Dash workspace (the one the token was created in). Cross-workspace machine identity is deferred — see Q7 in `decisions.md`.
+- A daemon that hosts runners across multiple karma-team workspaces. All runners on one daemon belong to a single karma-team workspace (the one the token was created in). Cross-workspace machine identity is deferred — see Q7 in `decisions.md`.
 
 ## 3. Vocabulary
 
@@ -104,7 +104,7 @@ Token {
     token_id: Uuid,
     title: String,                // user-supplied label, shown in the UI
     secret: <hashed>,             // shown to the user once, at creation
-    workspace_id: Uuid,           // tokens are scoped to one Pi Dash workspace
+    workspace_id: Uuid,           // tokens are scoped to one karma-team workspace
     owns: Vec<Uuid>,              // runner_ids this token may act as
     created_at, last_seen_at, revoked_at: Option<DateTime>,
 }
@@ -114,14 +114,14 @@ Mental model: **one dev machine == one daemon == one token == one WS connection 
 
 ### 5.2 Lifecycle
 
-- **Token creation**: user creates a token in the Pi Dash web UI; cloud returns `token_id` + `secret` (shown once). User pastes them into `pidash configure token` on the dev machine.
-- **Runner registration**: `pidash configure runner --name <name>` calls the cloud, which mints a `runner_id`, attaches it to the active token's `owns` set, and persists locally in `credentials.toml`.
+- **Token creation**: user creates a token in the karma-team web UI; cloud returns `token_id` + `secret` (shown once). User pastes them into `karma-team configure token` on the dev machine.
+- **Runner registration**: `karma-team configure runner --name <name>` calls the cloud, which mints a `runner_id`, attaches it to the active token's `owns` set, and persists locally in `credentials.toml`.
 - **Connection auth**: WS upgrade headers carry `X-Token-Id` + `Bearer <token_secret>`. Cloud loads the token, verifies the secret, populates the connection's authorised set with `Token.owns`.
 - **Hello exchange**: after WS upgrade, daemon sends `Hello { runner_id }` for each instance it wants to bring online. Cloud verifies each `runner_id ∈ Token.owns` and emits `Welcome { runner_id }`. A `Hello` for an unowned runner gets a `RemoveRunner` reply (see §4.2 / §11).
 - **Token revocation**: cloud-initiated, only path for retiring a token. Cloud sends connection-scoped `Revoke`; current connection auth fails on next reconnect. Daemon shuts down. All runners owned by the token go offline together. **In-flight runs are hard-cancelled** (no graceful "commit WIP" attempt); the agent subprocess gets the standard 5s grace then SIGKILL.
-- **Runner removal**: cloud-initiated `RemoveRunner { runner_id }` (or local `pidash remove --runner <name>`). Removes the runner from `Token.owns` cloud-side and from `instances` daemon-side. **Daemon also deletes the runner's local data** (`data_dir/runners/<runner_id>/` — history, logs, identity). Once a runner is removed, its data is gone. Token and other runners unaffected.
+- **Runner removal**: cloud-initiated `RemoveRunner { runner_id }` (or local `karma-team remove --runner <name>`). Removes the runner from `Token.owns` cloud-side and from `instances` daemon-side. **Daemon also deletes the runner's local data** (`data_dir/runners/<runner_id>/` — history, logs, identity). Once a runner is removed, its data is gone. Token and other runners unaffected.
 
-**Tokens are not rotatable.** The supported lifecycle is create + revoke. To "rotate" a token, the user creates a new one in the UI, runs `pidash configure token` to install it, then revokes the old one in the UI. There is no in-place rotation API; the design is deliberately simpler at the cost of a brief overlap window when both tokens exist.
+**Tokens are not rotatable.** The supported lifecycle is create + revoke. To "rotate" a token, the user creates a new one in the UI, runs `karma-team configure token` to install it, then revokes the old one in the UI. There is no in-place rotation API; the design is deliberately simpler at the cost of a brief overlap window when both tokens exist.
 
 ### 5.2.1 Credential scope: two surfaces, two credentials
 
@@ -138,13 +138,13 @@ The runner has two distinct auth surfaces with separate credentials:
 - `api_token` — for REST auth (orthogonal to the WS auth model; already token-based).
 - `runner_id` per runner — identifier only, not a credential.
 
-**Why not unify WS and REST onto one token**: it's a separate auth-system redesign that would touch every `/api/v1/` endpoint, the `PIDASH_TOKEN` env path (`runner/src/api_client.rs:8`), the cloud's API key middleware, and every contract test on the v1 surface. Out of scope here; a follow-up can unify both surfaces if it's wanted.
+**Why not unify WS and REST onto one token**: it's a separate auth-system redesign that would touch every `/api/v1/` endpoint, the `KARMA_TEAM_TOKEN` env path (`runner/src/api_client.rs:8`), the cloud's API key middleware, and every contract test on the v1 surface. Out of scope here; a follow-up can unify both surfaces if it's wanted.
 
-When a CLI verb addresses a specific runner (e.g. `pidash issue --runner main`), the runner_id is a request parameter on the REST surface; the `api_token` authenticates the call.
+When a CLI verb addresses a specific runner (e.g. `karma-team issue --runner main`), the runner_id is a request parameter on the REST surface; the `api_token` authenticates the call.
 
 ### 5.3 UI surface
 
-The Pi Dash cloud UI separates "tokens" and "runners":
+The karma-team cloud UI separates "tokens" and "runners":
 
 - **Tokens section**: lists active tokens, each with its title. Each token entry expands to show the runners associated with it. Token has a **Revoke** action (kills the token, all its runners go offline).
 - **Runners section**: lists runners (under their owning tokens). Each runner has a **Remove** action (decommissions that one runner). **No Revoke action on runners** — revocation is a token-level concept only.
@@ -214,7 +214,7 @@ The supervisor's `run()` spawns:
 4. The heartbeat task that iterates `instances` and emits one heartbeat envelope per instance.
 5. One `RunnerLoop` per instance, each with its own mailbox.
 
-When `pidash configure --instance` adds a new instance at runtime, the supervisor inserts into `instances`, sends `Hello { runner_id }` over the existing WS, and spawns a new `RunnerLoop`. No reconnect.
+When `karma-team configure --instance` adds a new instance at runtime, the supervisor inserts into `instances`, sends `Hello { runner_id }` over the existing WS, and spawns a new `RunnerLoop`. No reconnect.
 
 ### 6.2 RunnerInstance
 
@@ -319,12 +319,12 @@ Stays daemon-singleton: IPC socket, PID file, the WS connection, logging, signal
 ```
 data_dir/
   runtime/
-    pidash.sock
+    karma-team.sock
     pid
   token/
     token_id                 (or kept in credentials.toml)
     token_secret             (or kept in credentials.toml; mode 0600)
-    title                    (cached locally for display in `pidash status`)
+    title                    (cached locally for display in `karma-team status`)
   runners/
     <runner_id_1>/
       identity.toml          (runner_id, name, registered_at, workspace_slug)
@@ -346,13 +346,13 @@ Per-runner directories never need to be merged. Logs segregated by runner make i
 # config.toml
 
 [daemon]
-cloud_url = "https://cloud.pidash.so"
+cloud_url = "https://cloud.karma-team.so"
 heartbeat_interval_secs = 25
 log_level = "info"
 
 [[runner]]
 name = "main"
-runner_id = "..."              # set by `pidash configure --instance main`
+runner_id = "..."              # set by `karma-team configure --instance main`
 [runner.workspace]
 working_dir = "/home/rich/work/main"
 [runner.agent]
@@ -400,7 +400,7 @@ No per-runner secret. The token authenticates the connection; `runner_id`s are r
 - **Duplicate `name`** — refused. Names are user-facing; collisions break `--runner <name>` selection.
 - **Instance count > cap (50)** — refused. See §16.
 - **`credentials.toml` exists but has no `[token]` block** — refused. See §13.3 for the message and recovery path.
-- Zero instances configured — _not_ an error. Daemon comes up idle and IPC-only, useful for `pidash configure runner` to add the first instance.
+- Zero instances configured — _not_ an error. Daemon comes up idle and IPC-only, useful for `karma-team configure runner` to add the first instance.
 
 ### 9.2 Config scopes and ConfigPush
 
@@ -436,7 +436,7 @@ Cloud UI                         Add Runner modal
                                  ─────────────────────────
                                  Connection title:  [_________]   (required)
                                  Runner name:       [_________]   (default: hostname)
-                                 Working dir:       [_________]   (default: $TMPDIR/.pidash/)
+                                 Working dir:       [_________]   (default: $TMPDIR/.karma-team/)
                                  Agent:             [codex ▾]
                                  ▸ Approval policy (advanced)
                                  ─────────────────────────
@@ -449,18 +449,18 @@ User fills the form, clicks **Generate setup script**. Cloud:
 2. Returns a setup script with all the values baked in:
 
    ```bash
-   curl -fsSL https://get.pidash.so/install.sh | sh -s -- \
+   curl -fsSL https://get.karma-team.so/install.sh | sh -s -- \
      --token-id    <token_id> \
      --token-secret <token_secret> \
      --connection-title "work laptop" \
      --runner-name "rich-laptop" \
-     --working-dir "/tmp/.pidash" \
+     --working-dir "/tmp/.karma-team" \
      --agent codex
    ```
 
 User pastes the script on the dev machine. The script (non-interactive):
 
-1. Installs `pidash` if not present.
+1. Installs `karma-team` if not present.
 2. Writes `[token]` block to `credentials.toml` (mode 0600).
 3. Calls `POST /api/v1/runner/register/` (auth `X-Token-Id` + `Bearer token_secret`) to mint the first runner with the user's chosen name + working_dir + agent + approval_policy.
 4. Writes the `[[runner]]` block to `config.toml`.
@@ -488,7 +488,7 @@ User opens the same Add Runner modal, picks **Existing connection**, selects a c
 Cloud generates a CLI invocation (no token credentials needed — the target machine already has them):
 
 ```bash
-pidash configure runner \
+karma-team configure runner \
   --name "rich-laptop-2" \
   --working-dir "/home/rich/work/side" \
   --agent claude_code
@@ -505,10 +505,10 @@ End state: existing connection, +1 runner, daemon kept running throughout.
 
 #### 10.1.3 Additional runner via direct CLI (no UI)
 
-The user can skip the cloud UI entirely and run `pidash configure runner` on the dev machine directly:
+The user can skip the cloud UI entirely and run `karma-team configure runner` on the dev machine directly:
 
 ```bash
-$ pidash configure runner --name side --working-dir ~/work/side --agent claude_code
+$ karma-team configure runner --name side --working-dir ~/work/side --agent claude_code
 ```
 
 Cloud-side and daemon-side effect is identical to §10.1.2 — the only difference is the user typed the command themselves instead of copying it from the UI. Useful for users who live in a terminal or are scripting setup.
@@ -522,7 +522,7 @@ Three valid paths, all converging on the same daemon-side reload:
 - **CLI flag (partial-edit):**
 
   ```bash
-  $ pidash configure runner --name main --approval-auto-readonly true
+  $ karma-team configure runner --name main --approval-auto-readonly true
   > Updated approval_policy.auto_approve_readonly_shell = true for "main".
   ```
 
@@ -531,7 +531,7 @@ Three valid paths, all converging on the same daemon-side reload:
 - **TUI:**
 
   ```bash
-  $ pidash tui
+  $ karma-team tui
   # Pick "main" from the runner picker → Config tab → edit → save.
   ```
 
@@ -539,8 +539,8 @@ Three valid paths, all converging on the same daemon-side reload:
 
 - **Direct edit + reload:**
   ```bash
-  $ $EDITOR ~/.config/pidash/config.toml
-  $ pidash configure --reload      # tells daemon to re-read config.toml
+  $ $EDITOR ~/.config/karma-team/config.toml
+  $ karma-team configure --reload      # tells daemon to re-read config.toml
   ```
   Escape hatch for power users.
 
@@ -551,18 +551,18 @@ Daemon-level fields (`cloud_url`, `heartbeat_interval_secs`, `log_level`) are no
 Per-runner removal:
 
 ```bash
-$ pidash remove --runner side
+$ karma-team remove --runner side
 > Cancelling in-flight run for "side"... (none)
 > Deregistering "side" cloud-side... OK.
 > Removed [[runner]] block from config.toml.
-> Deleted /home/rich/.local/share/pidash/runners/9c1b7e.../
+> Deleted /home/rich/.local/share/karma-team/runners/9c1b7e.../
 > Daemon dropped the instance.
 ```
 
-Full teardown (today's `pidash remove` behavior):
+Full teardown (today's `karma-team remove` behavior):
 
 ```bash
-$ pidash remove
+$ karma-team remove
 > Stopping daemon... OK.
 > Uninstalling service unit... OK.
 > Revoking token cloud-side (cascades to all runners under it)... OK.
@@ -575,13 +575,13 @@ The two are disambiguated by the `--runner` flag.
 
 Every IPC verb that today implicitly addresses the runner gains a `--runner <name|id>` selector, with the rule **"if exactly one instance is configured, the flag is optional"**.
 
-- `pidash status` → lists all instances; `pidash status --runner main` for one.
-- `pidash configure` → splits into `pidash configure token` (one-shot per host; pastes in the token + secret created via the cloud UI) and `pidash configure runner --name <name>` (per instance, registers the runner under the active token).
-- `pidash remove` → **two distinct verbs, disambiguated by flag**:
-  - `pidash remove` (no flag): full machine teardown, today's behavior (`runner/src/cli/remove.rs`). Stops the service, uninstalls the unit, deregisters the _token_ from the cloud (which cascades to all owned runners), deletes `config.toml` + `credentials.toml` + `data_dir/runners/*`. This is the inverse of `install` + `configure` for the whole host.
-  - `pidash remove --runner <name>`: per-instance removal. Cancels that runner's in-flight run, removes it from `[[runner]]` in `config.toml`, deletes `data_dir/runners/<runner_id>/`, and calls a REST endpoint (`POST /api/v1/runner/<runner_id>/deregister/` authenticated with the token) to tell cloud the runner is gone. **No WS frame is emitted** — `Bye` is reserved for connection teardown (§4.2). Future cloud frames for the deregistered `runner_id` (in unlikely race) get dropped by the demux as "unknown runner." Connection and other runners stay up.
-- `pidash tui` → instance picker / multi-pane view.
-- `pidash issue …` / `pidash comment …` etc. that talk to cloud need to know which runner identity to use; default to single instance, require `--runner` otherwise.
+- `karma-team status` → lists all instances; `karma-team status --runner main` for one.
+- `karma-team configure` → splits into `karma-team configure token` (one-shot per host; pastes in the token + secret created via the cloud UI) and `karma-team configure runner --name <name>` (per instance, registers the runner under the active token).
+- `karma-team remove` → **two distinct verbs, disambiguated by flag**:
+  - `karma-team remove` (no flag): full machine teardown, today's behavior (`runner/src/cli/remove.rs`). Stops the service, uninstalls the unit, deregisters the _token_ from the cloud (which cascades to all owned runners), deletes `config.toml` + `credentials.toml` + `data_dir/runners/*`. This is the inverse of `install` + `configure` for the whole host.
+  - `karma-team remove --runner <name>`: per-instance removal. Cancels that runner's in-flight run, removes it from `[[runner]]` in `config.toml`, deletes `data_dir/runners/<runner_id>/`, and calls a REST endpoint (`POST /api/v1/runner/<runner_id>/deregister/` authenticated with the token) to tell cloud the runner is gone. **No WS frame is emitted** — `Bye` is reserved for connection teardown (§4.2). Future cloud frames for the deregistered `runner_id` (in unlikely race) get dropped by the demux as "unknown runner." Connection and other runners stay up.
+- `karma-team tui` → instance picker / multi-pane view.
+- `karma-team issue …` / `karma-team comment …` etc. that talk to cloud need to know which runner identity to use; default to single instance, require `--runner` otherwise.
 - Approvals over IPC carry `runner_id` (or `runner_name`).
 
 ### 10.3 IPC `StatusSnapshot`
@@ -627,7 +627,7 @@ Today the runner sends `RunResumed` after reconnect when it has an in-flight run
 Two entry points, same effect:
 
 - **Cloud-initiated**: cloud sends `Envelope { runner_id: Some(id), body: RemoveRunner { reason } }` (e.g. user clicked "Remove" in the runners section of the UI).
-- **Locally**: `pidash remove --runner foo` over IPC.
+- **Locally**: `karma-team remove --runner foo` over IPC.
 
 Either way, the supervisor:
 
@@ -637,7 +637,7 @@ Either way, the supervisor:
 4. Frees its working directory binding (the directory itself is left on disk; user can reclaim manually).
 5. **Deletes the runner's local data directory** (`data_dir/runners/<runner_id>/`) — history, logs, identity file. Once removed, the runner's data is gone.
 
-If the trigger was local (`pidash remove --runner`), the CLI additionally calls `POST /api/v1/runner/<runner_id>/deregister/` over REST (authenticated with the token) before it asks the daemon to remove the instance, so cloud-side `Token.owns` and any in-flight assignments are cleaned up authoritatively. **No `Bye` frame is sent over the WS** — `Bye` is reserved for connection teardown (§4.2). If the trigger was cloud-initiated `RemoveRunner`, no REST call is needed (cloud already initiated the removal).
+If the trigger was local (`karma-team remove --runner`), the CLI additionally calls `POST /api/v1/runner/<runner_id>/deregister/` over REST (authenticated with the token) before it asks the daemon to remove the instance, so cloud-side `Token.owns` and any in-flight assignments are cleaned up authoritatively. **No `Bye` frame is sent over the WS** — `Bye` is reserved for connection teardown (§4.2). If the trigger was cloud-initiated `RemoveRunner`, no REST call is needed (cloud already initiated the removal).
 
 The connection stays up; other instances and the token are unaffected.
 
@@ -648,17 +648,17 @@ Cloud-initiated, surfaced via the **Revoke** action in the tokens section of the
 **One contract, regardless of connection state**: revocation always terminates the daemon. Specifically:
 
 - **If the connection is up**: cloud sends connection-scoped `Revoke { reason }` (no `runner_id`). Daemon hard-cancels every in-flight run (5s grace, then SIGKILL via the standard `bridge.shutdown` path), sends `Bye { reason: "token revoked" }`, and exits with a non-zero status.
-- **If the connection is down at revoke time**: daemon discovers it on the next reconnect attempt, when the WS upgrade returns 401. Daemon hard-cancels every in-flight run, logs an explicit error (`"token revoked or invalid; daemon exiting. Run 'pidash configure token' to install a new token."`), and exits with a non-zero status.
+- **If the connection is down at revoke time**: daemon discovers it on the next reconnect attempt, when the WS upgrade returns 401. Daemon hard-cancels every in-flight run, logs an explicit error (`"token revoked or invalid; daemon exiting. Run 'karma-team configure token' to install a new token."`), and exits with a non-zero status.
 
 In both cases the process exits. There is no `AwaitingReauth` state at the connection/token level — `AwaitingReauth` is a per-runner status used by the agent's own reauth flow (e.g. Codex needing the user to log in again), not by token-level auth failures. The systemd/launchd unit is configured with `Restart=on-failure`, so a transient 5xx during reconnect (not a 401) will see the daemon retry; only an authoritative auth failure causes the exit.
 
-Once the daemon exits, recovery is: user runs `pidash configure token` to install a fresh token, then `pidash start` (or the service manager auto-restarts on the next boot).
+Once the daemon exits, recovery is: user runs `karma-team configure token` to install a fresh token, then `karma-team start` (or the service manager auto-restarts on the next boot).
 
 There is no per-runner Revoke. Revocation is a security action against a credential; if a single runner needs to go away, that's a Remove.
 
 ### 11.6 Adding a runner at runtime
 
-`pidash configure runner --name foo` → CLI registers via REST under the active token → IPC tells daemon "load instance foo" → supervisor inserts into `instances`, sends `Hello { runner_id: foo }` over the existing WS, awaits `Welcome`, spawns the instance's `RunnerLoop`. No reconnect.
+`karma-team configure runner --name foo` → CLI registers via REST under the active token → IPC tells daemon "load instance foo" → supervisor inserts into `instances`, sends `Hello { runner_id: foo }` over the existing WS, awaits `Welcome`, spawns the instance's `RunnerLoop`. No reconnect.
 
 ### 11.7 AwaitingReauth
 
@@ -683,7 +683,7 @@ The one explicit cost of shared transport: a WS hiccup briefly stalls _all_ inst
 
 ## 13. Rollout
 
-Pi Dash has no production runner users yet, so there is no v1→v2 migration story to support. Cloud and runner ship v2 only. v1 auth (`X-Runner-Id` + `Bearer runner_secret`) is not implemented on the cloud side at all.
+karma-team has no production runner users yet, so there is no v1→v2 migration story to support. Cloud and runner ship v2 only. v1 auth (`X-Runner-Id` + `Bearer runner_secret`) is not implemented on the cloud side at all.
 
 ### 13.1 Cloud-side
 
@@ -694,7 +694,7 @@ Pi Dash has no production runner users yet, so there is no v1→v2 migration sto
 ### 13.2 Runner-side (only path)
 
 1. User creates a token via the cloud UI, which generates a setup script with `token_id` + `token_secret` baked in.
-2. User runs the script on the dev machine. Script installs `pidash` (if needed), writes `[token]` block to `credentials.toml`, creates the first runner with the values the user specified in the UI form, starts the daemon.
+2. User runs the script on the dev machine. Script installs `karma-team` (if needed), writes `[token]` block to `credentials.toml`, creates the first runner with the values the user specified in the UI form, starts the daemon.
 3. Daemon connects with `X-Token-Id` + `Bearer token_secret`, sends `Hello { runner_id }` per configured runner, comes up.
 
 See §10.x (user journeys) for the full end-to-end flow.
@@ -705,7 +705,7 @@ If the daemon starts against a `credentials.toml` that exists but has no `[token
 
 ```
 no token configured: credentials.toml has no [token] block.
-Run 'pidash configure --token-id <id> --token-secret <secret>' (or paste the
+Run 'karma-team configure --token-id <id> --token-secret <secret>' (or paste the
 setup script from the cloud UI) to install a token.
 ```
 
@@ -717,7 +717,7 @@ There is no automatic in-place upgrade path. Stale configs are decommissioned by
 | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `runner/src/cloud/protocol.rs`                               | `Envelope` adds `runner_id`; `WIRE_VERSION = 2`; per-runner-vs-connection-scoped routing rules documented in code.                                                |
 | `runner/src/cloud/ws.rs`                                     | Auth headers switch to `X-Token-Id` + `Bearer token_secret`. Connect→Hello loop iterates instances. Inbound stream feeds Demux instead of a single mpsc consumer. |
-| `runner/src/cloud/register.rs`                               | Adds token registration (`pidash configure token`); runner registration takes a token context (`token_id` becomes a parameter).                                   |
+| `runner/src/cloud/register.rs`                               | Adds token registration (`karma-team configure token`); runner registration takes a token context (`token_id` becomes a parameter).                               |
 | `runner/src/daemon/supervisor.rs`                            | `Supervisor` owns `instances` map. `RunnerLoop` becomes per-instance, spawned N times. Demux task added. Heartbeat task iterates instances.                       |
 | `runner/src/daemon/state.rs`                                 | `StateHandle` splits into `ConnectionStateHandle` (per-daemon) and `RunnerStateHandle` (per-instance).                                                            |
 | `runner/src/ipc/protocol.rs`                                 | `StatusSnapshot` carries `Vec<RunnerStatusSnapshot>`. IPC verbs gain `runner` selector. Bump IPC version.                                                         |

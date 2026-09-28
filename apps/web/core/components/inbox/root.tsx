@@ -7,12 +7,12 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { PanelLeft } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
-import { IntakeIcon } from "@pi-dash/propel/icons";
-import { EInboxIssueCurrentTab } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
+import { IntakeIcon } from "@karma-team/propel/icons";
+import { EInboxIssueCurrentTab } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // components
 import { InboxContentRoot } from "@/components/inbox/content";
 import { InboxSidebar } from "@/components/inbox/sidebar";
@@ -32,7 +32,7 @@ export const InboxIssueRoot = observer(function InboxIssueRoot(props: TInboxIssu
   const { workspaceSlug, projectId, inboxIssueId, inboxAccessible, navigationTab } = props;
   // states
   const [isMobileSidebar, setIsMobileSidebar] = useState(true);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // hooks
   const { loader, error, currentTab, currentInboxProjectId, handleCurrentTab, fetchInboxIssues } = useProjectInbox();

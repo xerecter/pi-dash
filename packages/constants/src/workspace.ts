@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { TStaticViewTypes, IWorkspaceSearchResults } from "@pi-dash/types";
-import { EUserWorkspaceRoles } from "@pi-dash/types";
+import type { TStaticViewTypes, IWorkspaceSearchResults } from "@karma-team/types";
+import { EUserWorkspaceRoles } from "@karma-team/types";
 
 export const ORGANIZATION_SIZE: string[] = ["Just myself", "2-10", "11-50", "51-200", "201-500", "500+"];
 
@@ -26,10 +26,10 @@ export const RESTRICTED_URLS: string[] = [
   "monitor",
   "monitoring",
   "ingest",
-  "pi-dash-pro",
-  "pi-dash-ultimate",
+  "karma-team-pro",
+  "karma-team-ultimate",
   "enterprise",
-  "pi-dash-enterprise",
+  "karma-team-enterprise",
   "disco",
   "silo",
   "chat",
@@ -239,7 +239,7 @@ export const WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS: Record<string, IWorkspac
   },
   assistant: {
     key: "assistant",
-    labelTranslationKey: "Pi Dash AI",
+    labelTranslationKey: "karma-team AI",
     href: `/assistant/`,
     // Guests are excluded (parity with the backend 403).
     access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
@@ -314,7 +314,7 @@ export const WORKSPACE_SIDEBAR_STATIC_NAVIGATION_ITEMS: Record<string, IWorkspac
     href: `/ai-dev-machines/`,
     access: [EUserWorkspaceRoles.ADMIN, EUserWorkspaceRoles.MEMBER],
     highlight: (pathname: string, url: string) => pathname.includes(url),
-    tooltipTranslationKey: "Install the pidash CLI and register dev machines as AI agent runners",
+    tooltipTranslationKey: "Install the karma-team CLI and register dev machines as AI agent runners",
   },
 };
 

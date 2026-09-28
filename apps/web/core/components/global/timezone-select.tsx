@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { CustomSearchSelect } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { CustomSearchSelect } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import useTimezone from "@/hooks/use-timezone";
 

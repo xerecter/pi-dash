@@ -7,8 +7,8 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // components
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
 
 const PROFILE_EMPTY_STATE_I18N = {
   assigned: {
@@ -25,13 +25,14 @@ const PROFILE_EMPTY_STATE_I18N = {
   },
   activity: {
     title: "No activities yet",
-    description: "Get started by creating a new work item! Add details and properties to it. Explore more in Pi Dash to see your activity.",
+    description:
+      "Get started by creating a new work item! Add details and properties to it. Explore more in karma-team to see your activity.",
   },
 } as const;
 
 // TODO: If projectViewId changes, everything breaks. Figure out a better way to handle this.
 export const ProfileViewEmptyState = observer(function ProfileViewEmptyState() {
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { profileViewId } = useParams();
@@ -41,10 +42,6 @@ export const ProfileViewEmptyState = observer(function ProfileViewEmptyState() {
   if (!emptyState) return null;
 
   return (
-    <EmptyStateDetailed
-      assetKey="work-item"
-      title={t(emptyState.title)}
-      description={t(emptyState.description)}
-    />
+    <EmptyStateDetailed assetKey="work-item" title={t(emptyState.title)} description={t(emptyState.description)} />
   );
 });

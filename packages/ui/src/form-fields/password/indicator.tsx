@@ -6,8 +6,8 @@
 
 import { CircleCheck } from "lucide-react";
 import React from "react";
-import { E_PASSWORD_STRENGTH } from "@pi-dash/constants";
-import { cn, getPasswordStrength, getPasswordCriteria } from "@pi-dash/utils";
+import { E_PASSWORD_STRENGTH } from "@karma-team/constants";
+import { cn, getPasswordStrength, getPasswordCriteria } from "@karma-team/utils";
 import { getStrengthInfo, getFragmentColor } from "./helper";
 
 export interface PasswordStrengthIndicatorProps {

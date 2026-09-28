@@ -5,7 +5,7 @@
  */
 
 //
-import type { IBlockUpdateDependencyData } from "@pi-dash/types";
+import type { IBlockUpdateDependencyData } from "@karma-team/types";
 import { GanttChartBlock } from "@/components/gantt-chart/blocks/block";
 
 export type GanttChartBlocksProps = {

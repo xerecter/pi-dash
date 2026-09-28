@@ -6,14 +6,14 @@
 
 import { observer } from "mobx-react";
 import { Link as Loader } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon, EditIcon, TrashIcon, CloseIcon, ChevronRightIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TIssue, TIssueServiceType, TSubIssueOperations } from "@pi-dash/types";
-import { EIssueServiceType, EIssuesStoreType } from "@pi-dash/types";
-import { ControlLink, CustomMenu } from "@pi-dash/ui";
-import { cn, generateWorkItemLink } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon, EditIcon, TrashIcon, CloseIcon, ChevronRightIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TIssue, TIssueServiceType, TSubIssueOperations } from "@karma-team/types";
+import { EIssueServiceType, EIssuesStoreType } from "@karma-team/types";
+import { ControlLink, CustomMenu } from "@karma-team/ui";
+import { cn, generateWorkItemLink } from "@karma-team/utils";
 // helpers
 import { useSubIssueOperations } from "@/components/issues/issue-detail-widgets/sub-issues/helper";
 import { WithDisplayPropertiesHOC } from "@/components/issues/issue-layouts/properties/with-display-properties-HOC";
@@ -22,8 +22,8 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 // local components
 import { SubIssuesListItemProperties } from "./properties";
 import { SubIssuesListRoot } from "./root";

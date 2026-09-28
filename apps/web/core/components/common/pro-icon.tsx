@@ -6,7 +6,7 @@
 
 import { Crown } from "lucide-react";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type TProIcon = {
   className?: string;

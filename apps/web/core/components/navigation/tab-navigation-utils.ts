@@ -11,7 +11,7 @@ export type TTabPreferences = {
 };
 
 // Constants
-export const TAB_PREFS_KEY = "pi_dash_tab_prefs";
+export const TAB_PREFS_KEY = "karma_team_tab_prefs";
 export const DEFAULT_TAB_KEY = "work_items";
 
 /**

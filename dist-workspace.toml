@@ -1,5 +1,5 @@
 # cargo-dist release config. Lives at the repo root so CI (which runs from
-# /home/runner/work/pi-dash/pi-dash) can locate it. Run
+# /home/runner/work/karma-team/karma-team) can locate it. Run
 # `cargo dist build --tag=v<version>` locally to exercise the matrix;
 # GitHub Actions takes over for real releases.
 [workspace]

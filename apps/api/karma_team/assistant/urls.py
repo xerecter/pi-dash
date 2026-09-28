@@ -1,0 +1,110 @@
+# Copyright (c) 2023-present Pi Dash Software, Inc. and contributors
+# SPDX-License-Identifier: AGPL-3.0-only
+# See the LICENSE file for details.
+
+from django.urls import path
+
+from karma_team.assistant.views.events import assistant_event_stream
+from karma_team.assistant.views.agent_profile import (
+    AgentModelProfileEndpoint,
+    AgentModelTokenEndpoint,
+)
+from karma_team.assistant.views.llm_config import (
+    AssistantGenerateTitleEndpoint,
+    UserLLMConfigEndpoint,
+    UserLLMConfigTestEndpoint,
+)
+from karma_team.assistant.views.mcp_servers import (
+    AssistantMCPServerDetailEndpoint,
+    AssistantMCPServerListCreateEndpoint,
+)
+from karma_team.assistant.views.messages import (
+    AssistantCancelEndpoint,
+    AssistantMessageListCreateEndpoint,
+)
+from karma_team.assistant.views.stt_config import (
+    UserSTTConfigEndpoint,
+    UserSTTConfigTestEndpoint,
+)
+from karma_team.assistant.views.transcribe import AssistantTranscribeEndpoint
+from karma_team.assistant.views.threads import (
+    AssistantThreadDetailEndpoint,
+    AssistantThreadListCreateEndpoint,
+)
+
+_ASSIST = "workspaces/<str:slug>/ai-assistant"
+
+urlpatterns = [
+    path(f"{_ASSIST}/threads/", AssistantThreadListCreateEndpoint.as_view(), name="assistant-threads"),
+    path(
+        f"{_ASSIST}/threads/<uuid:thread_id>/",
+        AssistantThreadDetailEndpoint.as_view(),
+        name="assistant-thread-detail",
+    ),
+    path(
+        f"{_ASSIST}/threads/<uuid:thread_id>/messages/",
+        AssistantMessageListCreateEndpoint.as_view(),
+        name="assistant-messages",
+    ),
+    path(
+        f"{_ASSIST}/threads/<uuid:thread_id>/events/",
+        assistant_event_stream,
+        name="assistant-events",
+    ),
+    path(
+        f"{_ASSIST}/threads/<uuid:thread_id>/cancel/",
+        AssistantCancelEndpoint.as_view(),
+        name="assistant-cancel",
+    ),
+    path(
+        f"{_ASSIST}/generate-title/",
+        AssistantGenerateTitleEndpoint.as_view(),
+        name="assistant-generate-title",
+    ),
+    path("users/me/ai-assistant/config/", UserLLMConfigEndpoint.as_view(), name="ai-assistant-config"),
+    path(
+        "users/me/ai-assistant/config/test/",
+        UserLLMConfigTestEndpoint.as_view(),
+        name="ai-assistant-config-test",
+    ),
+    # BYO speech-to-text (dictation) config — mirrors the LLM config above.
+    path(
+        "users/me/ai-assistant/stt-config/",
+        UserSTTConfigEndpoint.as_view(),
+        name="ai-assistant-stt-config",
+    ),
+    path(
+        "users/me/ai-assistant/stt-config/test/",
+        UserSTTConfigTestEndpoint.as_view(),
+        name="ai-assistant-stt-config-test",
+    ),
+    # Voice dictation: forward a recorded audio upload to the resolved STT
+    # provider and return {text}. Per-user (the STT config is per-user).
+    path(
+        "users/me/ai-assistant/transcribe/",
+        AssistantTranscribeEndpoint.as_view(),
+        name="ai-assistant-transcribe",
+    ),
+    # Desktop-only (IsDesktopSession): what the bundled agent engine should
+    # call, and the short-lived credential to call it with.
+    path(
+        "users/me/ai-assistant/agent-profile/",
+        AgentModelProfileEndpoint.as_view(),
+        name="ai-assistant-agent-profile",
+    ),
+    path(
+        "users/me/ai-assistant/agent-token/",
+        AgentModelTokenEndpoint.as_view(),
+        name="ai-assistant-agent-token",
+    ),
+    path(
+        "users/me/ai-assistant/mcp-servers/",
+        AssistantMCPServerListCreateEndpoint.as_view(),
+        name="ai-assistant-mcp-servers",
+    ),
+    path(
+        "users/me/ai-assistant/mcp-servers/<uuid:server_id>/",
+        AssistantMCPServerDetailEndpoint.as_view(),
+        name="ai-assistant-mcp-server-detail",
+    ),
+]

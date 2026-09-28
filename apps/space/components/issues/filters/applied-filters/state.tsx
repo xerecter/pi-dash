@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { EIconSize } from "@pi-dash/constants";
-import { CloseIcon, StateGroupIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { EIconSize } from "@karma-team/constants";
+import { CloseIcon, StateGroupIcon } from "@karma-team/propel/icons";
 // hooks
 import { useStates } from "@/hooks/store/use-state";
 

@@ -6,22 +6,22 @@
 
 import { useCallback, useRef } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { CopyIcon, ChevronLeftIcon, ChevronRightIcon } from "@pi-dash/propel/icons";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TDescriptionVersion } from "@pi-dash/types";
-import { Avatar, EModalPosition, EModalWidth, Loader, ModalCore } from "@pi-dash/ui";
-import { calculateTimeAgo, cn, getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { CopyIcon, ChevronLeftIcon, ChevronRightIcon } from "@karma-team/propel/icons";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TDescriptionVersion } from "@karma-team/types";
+import { Avatar, EModalPosition, EModalWidth, Loader, ModalCore } from "@karma-team/ui";
+import { calculateTimeAgo, cn, getFileURL } from "@karma-team/utils";
 // components
 import { RichTextEditor } from "@/components/editor/rich-text";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useWorkspace } from "@/hooks/store/use-workspace";
-import { IconButton } from "@pi-dash/propel/icon-button";
+import { IconButton } from "@karma-team/propel/icon-button";
 
 type Props = {
   activeVersionDescription: string | undefined;

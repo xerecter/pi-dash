@@ -4,8 +4,8 @@ In this guide, we will walk you through the process of setting up a self-hosted 
 
 We will cover two main options for setting up your self-hosted environment: using a cloud server or using your desktop. For the cloud server, we will use an AWS EC2 instance. For the desktop, we will use Docker to create a local environment.
 
-> **Just want to try Pi Dash quickly?**
-> If you're evaluating Pi Dash or running it on a homelab / small VPS, the
+> **Just want to try karma-team quickly?**
+> If you're evaluating karma-team or running it on a homelab / small VPS, the
 > [All-in-One Docker image](../aio/community/README.md) is a one-container
 > shortcut — single `docker run` command instead of docker-compose.
 > External Postgres / Redis / RabbitMQ / S3-compatible storage are still
@@ -52,9 +52,9 @@ After installation, you can verify the installation by opening a terminal (Comma
 
 ---
 
-## Installing Pi Dash
+## Installing karma-team
 
-Installing pi dash is a very easy and minimal step process.
+Installing karma-team is a very easy and minimal step process.
 
 ### Prerequisite
 
@@ -66,15 +66,15 @@ Installing pi dash is a very easy and minimal step process.
 ### Downloading Latest Release
 
 ```
-mkdir pi-dash-selfhost
+mkdir karma-team-selfhost
 
-cd pi-dash-selfhost
+cd karma-team-selfhost
 ```
 
 #### For _Docker Compose_ based setup
 
 ```
-curl -fsSL -o setup.sh https://github.com/The-AI-Republic/pi-dash/releases/latest/download/setup.sh
+curl -fsSL -o setup.sh https://github.com/xerecter/karma-team/releases/latest/download/setup.sh
 
 chmod +x setup.sh
 ```
@@ -82,7 +82,7 @@ chmod +x setup.sh
 #### For _Docker Swarm_ based setup
 
 ```
-curl -fsSL -o setup.sh https://github.com/The-AI-Republic/pi-dash/releases/latest/download/swarm.sh
+curl -fsSL -o setup.sh https://github.com/xerecter/karma-team/releases/latest/download/swarm.sh
 
 chmod +x setup.sh
 ```
@@ -91,7 +91,7 @@ chmod +x setup.sh
 
 ### Proceed with setup
 
-Above steps will set you ready to install and start pi dash services.
+Above steps will set you ready to install and start karma-team services.
 
 Lets get started by running the `./setup.sh` command.
 
@@ -115,10 +115,10 @@ Action [2]: 1
 
 For the 1st time setup, type "1" as action input.
 
-This will create a folder `pi-dash-app` and will download 2 files inside that
+This will create a folder `karma-team-app` and will download 2 files inside that
 
 - `docker-compose.yaml`
-- `pi_dash.env`
+- `karma_team.env`
 
 Again the `options [1-8]` will be popped up, and this time hit `8` to exit.
 
@@ -139,10 +139,10 @@ Action [3]: 1
 
 For the 1st time setup, type "1" as action input.
 
-This will create a create a folder `pi-dash-app` and will download 2 files inside that
+This will create a create a folder `karma-team-app` and will download 2 files inside that
 
 - `docker-compose.yaml`
-- `pi_dash.env`
+- `karma_team.env`
 
 Again the `options [1-7]` will be popped up, and this time hit `7` to exit.
 
@@ -154,17 +154,17 @@ Before proceeding, we suggest used to review `.env` file and set the values.
 Below are the most import keys you must refer to. _<span style="color: #fcba03">You can use any text editor to edit this file</span>_.
 
 > `SECRET_KEY` and `LIVE_SERVER_SECRET_KEY` - These are generated automatically
-> during `Install` with `openssl rand -hex 32` and written to `pi_dash.env`.
-> Each install gets a unique value. Back up `pi_dash.env` (or at least these
+> during `Install` with `openssl rand -hex 32` and written to `karma_team.env`.
+> Each install gets a unique value. Back up `karma_team.env` (or at least these
 > two values) — losing them will invalidate existing sessions, CSRF tokens, and
-> any signed URLs. To rotate, overwrite the value in `pi_dash.env` and restart
+> any signed URLs. To rotate, overwrite the value in `karma_team.env` and restart
 > the stack.
 
 > `LISTEN_HTTP_PORT` - This is default set to `80`. Make sure the port you choose to use is not preoccupied. (e.g `LISTEN_HTTP_PORT=8080`)
 
-> `WEB_URL` - This is default set to `http://localhost`. Change this to the FQDN you plan to use along with LISTEN_HTTP_PORT (eg. `https://pi-dash.example.com:8080` or `http://[IP-ADDRESS]:8080`)
+> `WEB_URL` - This is default set to `http://localhost`. Change this to the FQDN you plan to use along with LISTEN_HTTP_PORT (eg. `https://karma-team.example.com:8080` or `http://[IP-ADDRESS]:8080`)
 
-> `CORS_ALLOWED_ORIGINS` - This is default set to `http://localhost`. Change this to the FQDN you plan to use along with LISTEN_HTTP_PORT (eg. `https://pi-dash.example.com:8080` or `http://[IP-ADDRESS]:8080`)
+> `CORS_ALLOWED_ORIGINS` - This is default set to `http://localhost`. Change this to the FQDN you plan to use along with LISTEN_HTTP_PORT (eg. `https://karma-team.example.com:8080` or `http://[IP-ADDRESS]:8080`)
 
 There are many other settings you can play with, but we suggest you configure `EMAIL SETTINGS` as it will enable you to invite your teammates onto the platform.
 
@@ -197,13 +197,13 @@ Be patient as it might take sometime based on download speed and system configur
 
 This is the confirmation that all images were downloaded and the services are up & running.
 
-You have successfully self hosted `Pi Dash` instance. Access the application by going to IP or domain you have configured it (e.g `https://pi-dash.example.com:8080` or `http://[IP-ADDRESS]:8080`)
+You have successfully self hosted `karma-team` instance. Access the application by going to IP or domain you have configured it (e.g `https://karma-team.example.com:8080` or `http://[IP-ADDRESS]:8080`)
 
 ---
 
 ### Stopping the Server / Remove Stack
 
-In case you want to make changes to `pi_dash.env` variables, we suggest you to stop the services before doing that.
+In case you want to make changes to `karma_team.env` variables, we suggest you to stop the services before doing that.
 
 #### Docker Compose
 
@@ -250,7 +250,7 @@ If all goes well, you will see the confirmation from docker cli
 
 ### Restarting the Server / Redeploy Stack
 
-In case you want to make changes to `pi_dash.env` variables, without stopping the server or you noticed some abnormalies in services, you can restart the services with `RESTART` / `REDEPLOY` option.
+In case you want to make changes to `karma_team.env` variables, without stopping the server or you noticed some abnormalies in services, you can restart the services with `RESTART` / `REDEPLOY` option.
 
 Lets again run the `./setup.sh` command. You will again be prompted with the below options. This time select `4` to restart the services
 
@@ -292,9 +292,9 @@ If all goes well, you will see the confirmation from docker cli
 
 ---
 
-### Upgrading Pi Dash Version
+### Upgrading karma-team Version
 
-It is always advised to keep Pi Dash up to date with the latest release.
+It is always advised to keep karma-team up to date with the latest release.
 
 Lets again run the `./setup.sh` command. You will again be prompted with the below options. This time select `5` to upgrade the release.
 
@@ -314,7 +314,7 @@ Select a Action you want to perform:
 Action [2]: 5
 ```
 
-By choosing this, it will stop the services and then will download the latest `docker-compose.yaml` and `pi_dash.env`.
+By choosing this, it will stop the services and then will download the latest `docker-compose.yaml` and `karma_team.env`.
 
 You must expect the below message
 
@@ -322,9 +322,9 @@ You must expect the below message
 
 Once done, choose `8` to exit from prompt.
 
-> It is very important for you to validate the `pi_dash.env` for the new changes.
+> It is very important for you to validate the `karma_team.env` for the new changes.
 
-Once done with making changes in `pi_dash.env` file, jump on to `Start Server`
+Once done with making changes in `karma_team.env` file, jump on to `Start Server`
 
 #### Docker Swarm
 
@@ -342,13 +342,13 @@ Lets again run the `./setup.sh` command. You will again be prompted with the bel
 Action [3]: 5
 ```
 
-By choosing this, it will stop the services and then will download the latest `docker-compose.yaml` and `pi_dash.env`.
+By choosing this, it will stop the services and then will download the latest `docker-compose.yaml` and `karma_team.env`.
 
 Once done, choose `7` to exit from prompt.
 
-> It is very important for you to validate the `pi_dash.env` for the new changes.
+> It is very important for you to validate the `karma_team.env` for the new changes.
 
-Once done with making changes in `pi_dash.env` file, jump on to `Redeploy Stack`
+Once done with making changes in `karma_team.env` file, jump on to `Redeploy Stack`
 
 ---
 
@@ -487,11 +487,11 @@ Action [2]: 7
 In response, you can find the backup folder
 
 ```bash
-Backing Up pi-dash-app_pgdata
-Backing Up pi-dash-app_redisdata
-Backing Up pi-dash-app_uploads
+Backing Up karma-team-app_pgdata
+Backing Up karma-team-app_redisdata
+Backing Up karma-team-app_uploads
 
-Backup completed successfully. Backup files are stored in /....../pi-dash-app/backup/20240502-1120
+Backup completed successfully. Backup files are stored in /....../karma-team-app/backup/20240502-1120
 ```
 
 ---
@@ -500,12 +500,12 @@ Backup completed successfully. Backup files are stored in /....../pi-dash-app/ba
 
 When you want to restore the previously backed-up data, follow the instructions below.
 
-1. Make sure that Pi Dash-CE is installed, started, and then stopped. This ensures that the Docker volumes are created.
+1. Make sure that karma-team-CE is installed, started, and then stopped. This ensures that the Docker volumes are created.
 
 1. Download the restore script using the command below. We suggest downloading it in the same folder as `setup.sh`.
 
    ```bash
-   curl -fsSL -o restore.sh https://github.com/The-AI-Republic/pi-dash/releases/latest/download/restore.sh
+   curl -fsSL -o restore.sh https://github.com/xerecter/karma-team/releases/latest/download/restore.sh
    chmod +x restore.sh
    ```
 
@@ -515,7 +515,7 @@ When you want to restore the previously backed-up data, follow the instructions 
    ./restore.sh <path to backup folder containing *.tar.gz files>
    ```
 
-   As an example, for a backup folder `/opt/pi-dash-selfhost/pi-dash-app/backup/20240722-0914`, expect the response below:
+   As an example, for a backup folder `/opt/karma-team-selfhost/karma-team-app/backup/20240722-0914`, expect the response below:
 
    ```bash
    --------------------------------------------
@@ -528,40 +528,40 @@ When you want to restore the previously backed-up data, follow the instructions 
    --------------------------------------------
    Project management tool from the future
    --------------------------------------------
-   Found /opt/pi-dash-selfhost/pi-dash-app/backup/20240722-0914/pgdata.tar.gz
-   .....Restoring pi-dash-app_pgdata
-   .....Successfully restored volume pi-dash-app_pgdata from pgdata.tar.gz
+   Found /opt/karma-team-selfhost/karma-team-app/backup/20240722-0914/pgdata.tar.gz
+   .....Restoring karma-team-app_pgdata
+   .....Successfully restored volume karma-team-app_pgdata from pgdata.tar.gz
 
-   Found /opt/pi-dash-selfhost/pi-dash-app/backup/20240722-0914/redisdata.tar.gz
-   .....Restoring pi-dash-app_redisdata
-   .....Successfully restored volume pi-dash-app_redisdata from redisdata.tar.gz
+   Found /opt/karma-team-selfhost/karma-team-app/backup/20240722-0914/redisdata.tar.gz
+   .....Restoring karma-team-app_redisdata
+   .....Successfully restored volume karma-team-app_redisdata from redisdata.tar.gz
 
-   Found /opt/pi-dash-selfhost/pi-dash-app/backup/20240722-0914/uploads.tar.gz
-   .....Restoring pi-dash-app_uploads
-   .....Successfully restored volume pi-dash-app_uploads from uploads.tar.gz
+   Found /opt/karma-team-selfhost/karma-team-app/backup/20240722-0914/uploads.tar.gz
+   .....Restoring karma-team-app_uploads
+   .....Successfully restored volume karma-team-app_uploads from uploads.tar.gz
 
 
    Restore completed successfully.
    ```
 
-1. Start the Pi Dash instance using `./setup.sh start`.
+1. Start the karma-team instance using `./setup.sh start`.
 
 ---
 
 ### Restore for Commercial Air-Gapped (Docker Compose)
 
-When you want to restore the previously backed-up data on Pi Dash Commercial Air-Gapped version, follow the instructions below.
+When you want to restore the previously backed-up data on karma-team Commercial Air-Gapped version, follow the instructions below.
 
 1. Download the restore script using the command below
 
    ```bash
-   curl -fsSL -o restore-airgapped.sh https://github.com/The-AI-Republic/pi-dash/releases/latest/download/restore-airgapped.sh
+   curl -fsSL -o restore-airgapped.sh https://github.com/xerecter/karma-team/releases/latest/download/restore-airgapped.sh
    chmod +x restore-airgapped.sh
    ```
 
 1. Copy the backup folder and the `restore-airgapped.sh` to `Commercial Airgapped Edition` server
 
-1. Make sure that Pi Dash Commercial (Airgapped) is extracted and ready to get started. In case it is running, you would need to stop that.
+1. Make sure that karma-team Commercial (Airgapped) is extracted and ready to get started. In case it is running, you would need to stop that.
 
 1. Execute the command below to restore your data.
 
@@ -569,7 +569,7 @@ When you want to restore the previously backed-up data on Pi Dash Commercial Air
    ./restore-airgapped.sh <path to backup folder containing *.tar.gz files>
    ```
 
-1. After restoration, you are ready to start Pi Dash Commercial (Airgapped) will all your previously saved data.
+1. After restoration, you are ready to start karma-team Commercial (Airgapped) will all your previously saved data.
 
 ---
 
@@ -586,7 +586,7 @@ Begin with downloading the migration script using below command
 
 ```
 
-curl -fsSL -o migrate.sh https://raw.githubusercontent.com/The-AI-Republic/pi-dash/master/deploy/selfhost/migration-0.13-0.14.sh
+curl -fsSL -o migrate.sh https://raw.githubusercontent.com/xerecter/karma-team/master/deploy/selfhost/migration-0.13-0.14.sh
 
 chmod +x migrate.sh
 
@@ -618,7 +618,7 @@ docker volume ls -q | grep -i "_redisdata"
 
 Given below list of REDIS volumes, identify the prefix of source and destination volumes leaving "_redisdata"
 ---------------------
-pi-dash-app_redisdata
+karma-team-app_redisdata
 v0132_redisdata
 
 Provide the Source Volume Prefix :
@@ -628,7 +628,7 @@ Provide the Source Volume Prefix :
 
 For every command you must see 2 records something like shown in above example of `redisdata`
 
-To move forward, you would need PREFIX of old setup and new setup. As per above example, `v0132` is the prefix of v0.13.2 and `pi-dash-app` is the prefix of v0.14.0 setup
+To move forward, you would need PREFIX of old setup and new setup. As per above example, `v0132` is the prefix of v0.13.2 and `karma-team-app` is the prefix of v0.14.0 setup
 
 **Back to original terminal window**, _Provide the Source Volume Prefix_ and hit ENTER.
 
@@ -636,7 +636,7 @@ Now you will be prompted to _Provide Destination Volume Prefix_. Provide the val
 
 ```
 Provide the Source Volume Prefix : v0132
-Provide the Destination Volume Prefix : pi-dash-app
+Provide the Destination Volume Prefix : karma-team-app
 ```
 
 In case the suffixes are wrong or the mentioned volumes are not found, you will receive the error shown below. The image below displays an error for source volumes.

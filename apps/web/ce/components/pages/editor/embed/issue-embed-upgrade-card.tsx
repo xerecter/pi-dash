@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { getButtonStyling } from "@pi-dash/propel/button";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { getButtonStyling } from "@karma-team/propel/button";
+import { cn } from "@karma-team/utils";
 // components
 import { ProIcon } from "@/components/common/pro-icon";
 
@@ -23,7 +23,7 @@ export function IssueEmbedUpgradeCard(props: any) {
       <div className="flex items-center gap-4">
         <ProIcon className="size-4 flex-shrink-0" />
         <p className="!text-14 text-secondary">
-          Embed and access issues in pages seamlessly, upgrade to Pi Dash Pro now.
+          Embed and access issues in pages seamlessly, upgrade to karma-team Pro now.
         </p>
       </div>
       <a

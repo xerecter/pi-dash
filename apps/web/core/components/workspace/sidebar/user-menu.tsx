@@ -7,9 +7,9 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { DraftIcon, HomeIcon, PiChatLogo, YourWorkIcon, DashboardIcon } from "@pi-dash/propel/icons";
-import { EUserWorkspaceRoles } from "@pi-dash/types";
+// karma-team imports
+import { DraftIcon, HomeIcon, PiChatLogo, YourWorkIcon, DashboardIcon } from "@karma-team/propel/icons";
+import { EUserWorkspaceRoles } from "@karma-team/types";
 // hooks
 import { useUserPermissions, useUser } from "@/hooks/store/user";
 // local imports

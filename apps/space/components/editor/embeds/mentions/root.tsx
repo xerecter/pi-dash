@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TCallbackMentionComponentProps } from "@pi-dash/editor";
+import type { TCallbackMentionComponentProps } from "@karma-team/editor";
 // local components
 import { EditorUserMention } from "./user";
 

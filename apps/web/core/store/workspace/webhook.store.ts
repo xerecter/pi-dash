@@ -8,7 +8,7 @@
 import { action, observable, makeObservable, computed, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { IWebhook } from "@pi-dash/types";
+import type { IWebhook } from "@karma-team/types";
 // services
 import { WebhookService } from "@/services/webhook.service";
 // store

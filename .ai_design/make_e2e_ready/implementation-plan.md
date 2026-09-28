@@ -1,14 +1,14 @@
-# Pi Dash E2E Readiness — Implementation Plan
+# karma-team E2E Readiness — Implementation Plan
 
 Purpose:
 
 - make the delegated local-agent workflow work end to end with the smallest runtime surface
-- keep the runner lightweight (fire-and-forget) and let the agent drive all Pi Dash state changes itself
+- keep the runner lightweight (fire-and-forget) and let the agent drive all karma-team state changes itself
 - define the minimum shippable path before broader rollout
 
 Scope:
 
-- Pi Dash CLI (`pidash`) as the agent's only channel back to Pi Dash
+- karma-team CLI (`karma-team`) as the agent's only channel back to karma-team
 - runner injects the CLI + scoped credentials into the local Codex session
 - prompt system advertises the CLI and drops the fenced-block completion contract
 - minimal runner lifecycle reporting + server-side watchdog for crashed Codex processes
@@ -17,7 +17,7 @@ Scope:
 Non-goals:
 
 - redesign the runner protocol beyond the lifecycle simplification below
-- parse or validate a `pi-dash-done` fenced block in either runner or cloud
+- parse or validate a `karma-team-done` fenced block in either runner or cloud
 - build a cloud-side completion service that applies issue state transitions
 - broaden delegation rules beyond the current MVP trigger
 - expose per-run or per-issue scoped credentials (MVP uses the workspace-scoped `api_token`)
@@ -35,24 +35,24 @@ The branch already has most of the primitives:
 
 - issue-state transitions can create `AgentRun` rows
 - the runner can receive assignments and launch `codex app-server`
-- the Pi Dash `/api/v1/workspaces/<slug>/...` REST API already exposes work items, comments, states, links, activities, etc.
+- the karma-team `/api/v1/workspaces/<slug>/...` REST API already exposes work items, comments, states, links, activities, etc.
 - PR #10 plumbed `workspace_slug` into the runner config and made the runner mint an `api_token` at enrollment time, scoped to `/api/v1/`
 
-What is missing is the connective tissue between those primitives. The design has also shifted: the runner is no longer the arbiter of "done." The agent is. The runner's job shrinks to launching Codex, handing it a working CLI, and reporting when the subprocess exits. All issue writes — state transitions, comments, the workpad — go through `pidash` and hit the existing REST API.
+What is missing is the connective tissue between those primitives. The design has also shifted: the runner is no longer the arbiter of "done." The agent is. The runner's job shrinks to launching Codex, handing it a working CLI, and reporting when the subprocess exits. All issue writes — state transitions, comments, the workpad — go through `karma-team` and hit the existing REST API.
 
 Six concrete gaps block end-to-end delivery:
 
-1. The `pidash` CRUD subcommands do not exist.
+1. The `karma-team` CRUD subcommands do not exist.
    - `runner/src/cli/mod.rs` only defines daemon lifecycle subcommands (`configure`, `start`, `doctor`, etc.).
-   - Warnings in `runner/src/cli/configure.rs:64-70` and `runner/src/tui/onboarding.rs:240-244` reference future `pidash issue` subcommands, but none are implemented.
+   - Warnings in `runner/src/cli/configure.rs:64-70` and `runner/src/tui/onboarding.rs:240-244` reference future `karma-team issue` subcommands, but none are implemented.
 
-2. The local Codex session cannot reach Pi Dash.
+2. The local Codex session cannot reach karma-team.
    - `runner/src/codex/app_server.rs:20-24` launches Codex with no environment, no token, and no binary injection.
    - The `api_token` lives in `Credentials` (`runner/src/config/schema.rs:96-106`) but is never passed to any process.
 
 3. The prompt system still promises a runtime surface Codex does not have.
-   - Prompt templates instruct the agent to maintain a workpad comment and emit a `pi-dash-done` fenced block.
-   - The new runtime surface is `pidash …`; prompts must be updated accordingly and the fenced-block contract must be removed.
+   - Prompt templates instruct the agent to maintain a workpad comment and emit a `karma-team-done` fenced block.
+   - The new runtime surface is `karma-team …`; prompts must be updated accordingly and the fenced-block contract must be removed.
 
 4. Runner completion reporting is over-specified.
    - `runner/src/cloud/protocol.rs:75-79` defines `RunCompleted { run_id, done_payload, ended_at }`.
@@ -60,12 +60,12 @@ Six concrete gaps block end-to-end delivery:
    - Under fire-and-forget the runner cannot and should not claim a structured outcome. A minimal `RunTerminated { exit_code, ran_for_s }` event is enough.
 
 5. There is no stall watchdog for orphaned runs.
-   - `apps/api/pi_dash/runner/tasks.py:93-110` already reaps offline runners via a 90-second heartbeat grace.
+   - `apps/api/karma_team/runner/tasks.py:93-110` already reaps offline runners via a 90-second heartbeat grace.
    - Nothing reaps an `AgentRun` stuck in `RUNNING` when Codex crashes or the host is hard-killed. Under fire-and-forget this failure mode is more likely.
 
-6. `pi-dash-runner doctor` is not aligned with the new shape.
+6. `karma-team-runner doctor` is not aligned with the new shape.
    - `runner/src/cli/doctor.rs:157-175` runs `codex account status` and bails with no fallback.
-   - It does not verify that `pidash` itself can authenticate against the cloud — which is the only thing that actually matters for the agent to do work.
+   - It does not verify that `karma-team` itself can authenticate against the cloud — which is the only thing that actually matters for the agent to do work.
    - No operator guide documents a reproducible smoke test.
 
 This plan closes those six gaps with the smallest coherent set of changes.
@@ -75,22 +75,22 @@ This plan closes those six gaps with the smallest coherent set of changes.
 The system is e2e-ready when all of the following are true:
 
 - A delegated issue entering the trigger state creates an `AgentRun`, selects a runner, and starts a local Codex turn.
-- The local Codex session has `pidash` on PATH and valid credentials on environment.
-- The agent can, via `pidash …` alone, fetch the issue, list comments, post or update comments, list available states, and move the issue's state.
+- The local Codex session has `karma-team` on PATH and valid credentials on environment.
+- The agent can, via `karma-team …` alone, fetch the issue, list comments, post or update comments, list available states, and move the issue's state.
 - The runner reports process termination back to the cloud via a minimal `RunTerminated` event.
 - A Celery watchdog transitions `AgentRun` rows stuck in `RUNNING` beyond a configured window to `FAILED` with `reason=stalled`.
 - Authoritative issue state lives on the `Issue` row (moved by the agent); `AgentRun.status` mirrors subprocess lifecycle, not workflow outcome.
-- `pi-dash-runner doctor` verifies that both `codex` and `pidash` are installed, and that `pidash` can authenticate against the configured cloud.
+- `karma-team-runner doctor` verifies that both `codex` and `karma-team` are installed, and that `karma-team` can authenticate against the configured cloud.
 - A documented smoke test covers register → doctor → delegate → observe the agent moving the issue in the UI.
 - Automated tests cover CLI ↔ API contract, injection wiring, and stall-watchdog behavior.
 
 ## Committed decisions
 
-### 1. The agent owns all Pi Dash writes
+### 1. The agent owns all karma-team writes
 
 Decision:
 
-- All state transitions, comments, and workpad updates are performed by the agent via `pidash`. Nothing else is allowed to mutate Pi Dash on the agent's behalf during a run.
+- All state transitions, comments, and workpad updates are performed by the agent via `karma-team`. Nothing else is allowed to mutate karma-team on the agent's behalf during a run.
 
 Why:
 
@@ -100,7 +100,7 @@ Why:
 
 Implication:
 
-- The `pi-dash-done` fenced-block contract is removed from the prompt. The cloud-side `orchestration/done_signal.py` parser becomes dead code for this workflow.
+- The `karma-team-done` fenced-block contract is removed from the prompt. The cloud-side `orchestration/done_signal.py` parser becomes dead code for this workflow.
 - The `Issue` row (and its state, comments, links) is the authoritative record of what the agent did. `AgentRun` is subprocess bookkeeping.
 
 ### 2. Runner is fire-and-forget
@@ -123,11 +123,11 @@ Implication:
 - The existing `AgentRun.done_payload` column is left in place for backward compatibility but is no longer written by this workflow. New code paths must not read it either.
 - During the migration window, the cloud consumer accepts **both** `RunCompleted` and `RunTerminated` message types: `RunCompleted` is treated as `exit_code=0` (for back-compat with any in-flight older runners). New runners emit `RunTerminated` only. The dual-accept window is removed in a follow-up cleanup once all deployed runners are on the new protocol version.
 
-### 3. `pidash` CLI is the only agent-to-cloud surface
+### 3. `karma-team` CLI is the only agent-to-cloud surface
 
 Decision:
 
-- The agent talks to Pi Dash exclusively through `pidash` subcommands. No raw `curl`, no bespoke shell tooling, no direct token exposure in prompts.
+- The agent talks to karma-team exclusively through `karma-team` subcommands. No raw `curl`, no bespoke shell tooling, no direct token exposure in prompts.
 
 Why:
 
@@ -137,14 +137,14 @@ Why:
 
 Implication:
 
-- The runner injects `PIDASH_API_URL`, `PIDASH_WORKSPACE_SLUG`, and `PIDASH_TOKEN` into the Codex child environment and prepends the `pidash` binary's directory to `PATH`.
+- The runner injects `KARMA_TEAM_API_URL`, `KARMA_TEAM_WORKSPACE_SLUG`, and `KARMA_TEAM_TOKEN` into the Codex child environment and prepends the `karma-team` binary's directory to `PATH`.
 - The CLI reads those three env vars and never requires flags for them.
 
 ### 4. CLI output is JSON by default
 
 Decision:
 
-- Every `pidash` subcommand prints a single JSON document to stdout on success. Errors print a JSON object with an `error` field to stderr and exit non-zero.
+- Every `karma-team` subcommand prints a single JSON document to stdout on success. Errors print a JSON object with an `error` field to stderr and exit non-zero.
 
 Why:
 
@@ -161,7 +161,7 @@ Implication:
 Decision:
 
 - `AgentRun.status` reflects whether the Codex process ran to clean exit, not whether the issue was resolved.
-- The issue's own state (moved by the agent via `pidash issue patch`) is what the board, reporting, and humans see as the workflow outcome.
+- The issue's own state (moved by the agent via `karma-team issue patch`) is what the board, reporting, and humans see as the workflow outcome.
 
 Why:
 
@@ -183,7 +183,7 @@ Decision:
 
 Why:
 
-- Makes blocked issues visible on the board without requiring a new Pi Dash domain concept.
+- Makes blocked issues visible on the board without requiring a new karma-team domain concept.
 - Keeps the information in the tracker where humans already look.
 
 Implication:
@@ -195,10 +195,10 @@ Implication:
 
 Decision:
 
-- `pidash doctor` verifies, in order:
+- `karma-team doctor` verifies, in order:
   1. `codex` binary is on PATH and executes (`codex --version`).
-  2. `pidash` binary self-check (`pidash --version`).
-  3. `pidash workspace me` succeeds against the stored credentials. This single call validates token presence, token validity, cloud reachability, and the bot user's active membership in one shot.
+  2. `karma-team` binary self-check (`karma-team --version`).
+  3. `karma-team workspace me` succeeds against the stored credentials. This single call validates token presence, token validity, cloud reachability, and the bot user's active membership in one shot.
 
 Why:
 
@@ -208,28 +208,28 @@ Why:
 
 Implication:
 
-- `doctor` no longer requires a version-specific Codex auth subcommand; it only checks that the Codex binary exists and that `pidash`'s own cloud credentials work end-to-end against the REST API.
+- `doctor` no longer requires a version-specific Codex auth subcommand; it only checks that the Codex binary exists and that `karma-team`'s own cloud credentials work end-to-end against the REST API.
 
 ## Runtime surface specification
 
-### `pidash` subcommand inventory (MVP)
+### `karma-team` subcommand inventory (MVP)
 
-All subcommands accept no auth flags; they read `PIDASH_API_URL`, `PIDASH_WORKSPACE_SLUG`, `PIDASH_TOKEN` from the environment. All subcommands emit a single JSON document to stdout on success.
+All subcommands accept no auth flags; they read `KARMA_TEAM_API_URL`, `KARMA_TEAM_WORKSPACE_SLUG`, `KARMA_TEAM_TOKEN` from the environment. All subcommands emit a single JSON document to stdout on success.
 
-| Command                                                   | Backing endpoint                                | Purpose                                                                                                              |
-| --------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------- |
-| `pidash issue get <IDENT>`                                | `GET /work-items/<PROJ>-<num>/` (by-identifier) | Fetch full issue payload (title, description, state, comments, links)                                                |
-| `pidash issue patch <IDENT> --state <STATE_NAME_OR_UUID>` | `PATCH /work-items/<uuid>/ {state: <uuid>}`     | Move issue state. Accepts either a state UUID or a state name; names are resolved locally by calling `states` first. |
-| `pidash issue patch <IDENT> [--title                      | --description                                   | --priority ...]`                                                                                                     | `PATCH /work-items/<uuid>/` | Update other issue fields when the workflow requires it |
-| `pidash comment list <IDENT>`                             | `GET /work-items/<uuid>/comments/`              | Return the comment list for an issue                                                                                 |
-| `pidash comment add <IDENT> --body <MD>`                  | `POST /work-items/<uuid>/comments/`             | Post a new comment                                                                                                   |
-| `pidash comment update <COMMENT_ID> --body <MD>`          | `PATCH /work-items/<uuid>/comments/<cid>/`      | Edit a comment the agent owns (used for the workpad)                                                                 |
-| `pidash state list`                                       | `GET /projects/<pid>/states/`                   | List states available in the current project with `name`, `description`, `group`                                     |
-| `pidash workspace me`                                     | `GET /workspaces/<slug>/members/me/`            | Used by `doctor` to verify auth; returns the authenticated user                                                      |
+| Command                                                       | Backing endpoint                                | Purpose                                                                                                              |
+| ------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | --------------------------- | ------------------------------------------------------- |
+| `karma-team issue get <IDENT>`                                | `GET /work-items/<PROJ>-<num>/` (by-identifier) | Fetch full issue payload (title, description, state, comments, links)                                                |
+| `karma-team issue patch <IDENT> --state <STATE_NAME_OR_UUID>` | `PATCH /work-items/<uuid>/ {state: <uuid>}`     | Move issue state. Accepts either a state UUID or a state name; names are resolved locally by calling `states` first. |
+| `karma-team issue patch <IDENT> [--title                      | --description                                   | --priority ...]`                                                                                                     | `PATCH /work-items/<uuid>/` | Update other issue fields when the workflow requires it |
+| `karma-team comment list <IDENT>`                             | `GET /work-items/<uuid>/comments/`              | Return the comment list for an issue                                                                                 |
+| `karma-team comment add <IDENT> --body <MD>`                  | `POST /work-items/<uuid>/comments/`             | Post a new comment                                                                                                   |
+| `karma-team comment update <COMMENT_ID> --body <MD>`          | `PATCH /work-items/<uuid>/comments/<cid>/`      | Edit a comment the agent owns (used for the workpad)                                                                 |
+| `karma-team state list`                                       | `GET /projects/<pid>/states/`                   | List states available in the current project with `name`, `description`, `group`                                     |
+| `karma-team workspace me`                                     | `GET /workspaces/<slug>/members/me/`            | Used by `doctor` to verify auth; returns the authenticated user                                                      |
 
 Notes:
 
-- `pidash issue patch --state <NAME>` does the name-to-UUID lookup client-side on the CLI. This is a UX affordance for the agent; the agent is not expected to track UUIDs across turns.
+- `karma-team issue patch --state <NAME>` does the name-to-UUID lookup client-side on the CLI. This is a UX affordance for the agent; the agent is not expected to track UUIDs across turns.
 - All CLI errors exit non-zero with JSON on stderr: `{"error": "<short>", "detail": "<optional>"}`.
 
 ### URL resolution sequence
@@ -242,7 +242,7 @@ The REST API exposes the issue-by-identifier route as GET-only (`/workspaces/<sl
 
 Results from steps 1 and 2 are cached in-memory for the lifetime of a single CLI invocation. The CLI does not persist any cache across invocations; agents re-resolve on every command, which is fine because the cost is a few extra GETs per mutation.
 
-The GET-only `pidash issue get <IDENT>` and `pidash state list` subcommands use only step 1 (and, for `state list`, a follow-up step 2).
+The GET-only `karma-team issue get <IDENT>` and `karma-team state list` subcommands use only step 1 (and, for `state list`, a follow-up step 2).
 
 ### Prompt-time state guidance
 
@@ -251,7 +251,7 @@ The prompt composer must include, at minimum:
 - the issue's current state (`name`, `group`)
 - the full state list for the issue's project, each with `name`, `description`, `group`
 
-The existing `StateLiteSerializer` (`apps/api/pi_dash/api/serializers/state.py:44-55`) omits `description`. Either extend it with `description` or switch the prompt-side query to the full `StateSerializer`. The former is lighter-weight.
+The existing `StateLiteSerializer` (`apps/api/karma_team/api/serializers/state.py:44-55`) omits `description`. Either extend it with `description` or switch the prompt-side query to the full `StateSerializer`. The former is lighter-weight.
 
 ### Runner → Cloud protocol change
 
@@ -279,7 +279,7 @@ Cloud handling:
 
 ### Stall watchdog
 
-New Celery task in `apps/api/pi_dash/runner/tasks.py`, scheduled every 60s. The watchdog keys off **runner-level heartbeat**, not `AgentRun.updated_at`, because under fire-and-forget a long solo turn may not tick the run row at all:
+New Celery task in `apps/api/karma_team/runner/tasks.py`, scheduled every 60s. The watchdog keys off **runner-level heartbeat**, not `AgentRun.updated_at`, because under fire-and-forget a long solo turn may not tick the run row at all:
 
 ```
 runner.reap_orphaned_runs:
@@ -303,8 +303,8 @@ Watchdog task body mirrors the pattern in `expire_stale_approvals` (`tasks.py:35
 `runner/src/cli/doctor.rs` becomes a short sequence of three checks, each printing a line and returning non-zero on failure:
 
 1. `which codex` succeeds and `codex --version` runs.
-2. `pidash --version` runs (self-check).
-3. `pidash workspace me` succeeds against the stored credentials.
+2. `karma-team --version` runs (self-check).
+3. `karma-team workspace me` succeeds against the stored credentials.
 
 Check 3 subsumes what a separate heartbeat probe would validate: it proves token validity, cloud reachability, HTTPS/TLS correctness, and the bot user's workspace membership in one round-trip.
 
@@ -312,25 +312,25 @@ Each check outputs a single JSON line so the TUI / ops can consume the output ve
 
 ## Proposed rollout
 
-### PR 1 — `pidash` CRUD subcommands
+### PR 1 — `karma-team` CRUD subcommands
 
 Scope:
 
-- **Django prerequisite:** mark the runner-minted `api_token` as a service token so CLI traffic routes through the 300/min throttle instead of the default 60/min. Change `APIToken.objects.create(...)` at `apps/api/pi_dash/runner/views/register.py:106-111` to include `is_service=True`. This keys into `ServiceTokenRateThrottle` (`apps/api/pi_dash/api/rate_limit.py:53-55`).
+- **Django prerequisite:** mark the runner-minted `api_token` as a service token so CLI traffic routes through the 300/min throttle instead of the default 60/min. Change `APIToken.objects.create(...)` at `apps/api/karma_team/runner/views/register.py:106-111` to include `is_service=True`. This keys into `ServiceTokenRateThrottle` (`apps/api/karma_team/api/rate_limit.py:53-55`).
 - add Rust subcommand modules: `issue get`, `issue patch`, `comment list|add|update`, `state list`, `workspace me`
-- shared HTTP client reading `PIDASH_API_URL`, `PIDASH_WORKSPACE_SLUG`, `PIDASH_TOKEN`
+- shared HTTP client reading `KARMA_TEAM_API_URL`, `KARMA_TEAM_WORKSPACE_SLUG`, `KARMA_TEAM_TOKEN`
 - implement the three-step URL resolution described in "URL resolution sequence" with per-invocation in-memory cache
 - JSON output (success → stdout, errors → stderr + non-zero exit)
 
 Files likely touched:
 
-- `apps/api/pi_dash/runner/views/register.py:106-111` — set `is_service=True` on minted api_token
-- `apps/api/pi_dash/tests/contract/runner/test_registration.py` — assert the minted token is a service token
+- `apps/api/karma_team/runner/views/register.py:106-111` — set `is_service=True` on minted api_token
+- `apps/api/karma_team/tests/contract/runner/test_registration.py` — assert the minted token is a service token
 - `runner/src/cli/mod.rs` — new subcommand enum variants
 - `runner/src/cli/issue.rs`, `comment.rs`, `state.rs`, `workspace.rs` — new
 - `runner/src/api_client.rs` — new thin HTTP wrapper (do not reuse `cloud/` module which is WS-specific)
 - `runner/Cargo.toml` — add `reqwest` if not already present
-- `runner/tests/pidash_cli_contract.rs` — new
+- `runner/tests/karma_team_cli_contract.rs` — new
 
 Acceptance:
 
@@ -339,11 +339,11 @@ Acceptance:
 - rate-limit headers from the service-token throttle are observable in responses (300/min)
 - no new env vars required beyond the three documented above
 
-### PR 2 — Runner injection of `pidash` into Codex session
+### PR 2 — Runner injection of `karma-team` into Codex session
 
 Scope:
 
-- at run-assignment time, compute `PATH` additions and the three `PIDASH_*` env vars from the runner's persisted `Credentials` and `workspace_slug`
+- at run-assignment time, compute `PATH` additions and the three `KARMA_TEAM_*` env vars from the runner's persisted `Credentials` and `workspace_slug`
 - pass them into `AppServer::spawn`
 - remove any remaining fenced-block/done_payload inspection in the bridge (leave transport-level `turn/completed` handling for liveness only)
 
@@ -356,14 +356,14 @@ Files likely touched:
 Acceptance:
 
 - integration test (fake `codex app-server`) verifies the three env vars and PATH prefix are passed to the child
-- running a real Codex turn locally, `pidash workspace me` from inside the Codex shell returns the bot user
+- running a real Codex turn locally, `karma-team workspace me` from inside the Codex shell returns the bot user
 
 ### PR 3 — Prompt update + protocol simplification
 
 Scope:
 
-- prompt template: `apps/api/pi_dash/prompting/templates/default.j2` teaches the agent about `pidash` (already landed on this branch — verify against plan during review).
-- prompt context builder: populate `issue.project_states` so the template can render the "Available states" block. In `apps/api/pi_dash/prompting/context.py::build_context`, add to the returned `issue` dict:
+- prompt template: `apps/api/karma_team/prompting/templates/default.j2` teaches the agent about `karma-team` (already landed on this branch — verify against plan during review).
+- prompt context builder: populate `issue.project_states` so the template can render the "Available states" block. In `apps/api/karma_team/prompting/context.py::build_context`, add to the returned `issue` dict:
   ```python
   "project_states": [
       {"name": s.name, "description": s.description or "", "group": s.group}
@@ -377,11 +377,11 @@ Scope:
 
 Files likely touched:
 
-- `apps/api/pi_dash/prompting/context.py` — populate `project_states`
-- `apps/api/pi_dash/prompting/templates/default.j2` — already edited on this branch; review for coherence
+- `apps/api/karma_team/prompting/context.py` — populate `project_states`
+- `apps/api/karma_team/prompting/templates/default.j2` — already edited on this branch; review for coherence
 - `runner/src/cloud/protocol.rs:75-79` — replace message type
-- `apps/api/pi_dash/runner/consumers.py:221-441` — handle both `RunTerminated` (new) and `RunCompleted` (compat) during migration
-- `apps/api/pi_dash/orchestration/done_signal.py` — add deprecation note; do not delete in this PR to keep the diff small
+- `apps/api/karma_team/runner/consumers.py:221-441` — handle both `RunTerminated` (new) and `RunCompleted` (compat) during migration
+- `apps/api/karma_team/orchestration/done_signal.py` — add deprecation note; do not delete in this PR to keep the diff small
 - `.ai_design/prompt_system/prompt-system-design.md`, `.ai_design/prompt_system/workflow-handbook.md` — superseded banners
 
 Acceptance:
@@ -397,24 +397,24 @@ Acceptance:
 Scope:
 
 - Celery task `runner.reap_orphaned_runs` keyed off `Runner.status == OFFLINE`, scheduled in beat every 60s.
-- reshape `doctor` to run the three checks (codex, pidash, workspace me).
+- reshape `doctor` to run the three checks (codex, karma-team, workspace me).
 - operator guide at `runner/README.md` or `.ai_design/implement_runner/operator-guide.md` documenting register → doctor → delegate → observe happy-path smoke test. Call out explicitly: the user who mints the runner registration code must have issue-edit permission in every project that will delegate to this runner.
 - add a `make smoke` or equivalent script if useful.
 
 Files likely touched:
 
-- `apps/api/pi_dash/runner/tasks.py` — new `reap_orphaned_runs` task
-- `apps/api/pi_dash/celery.py` — beat schedule entry
-- `apps/api/pi_dash/settings/*.py` — `RUNNER_ORPHAN_GRACE_SECONDS` with default 0
+- `apps/api/karma_team/runner/tasks.py` — new `reap_orphaned_runs` task
+- `apps/api/karma_team/celery.py` — beat schedule entry
+- `apps/api/karma_team/settings/*.py` — `RUNNER_ORPHAN_GRACE_SECONDS` with default 0
 - `runner/src/cli/doctor.rs` — rewrite to three-check form
 - `runner/README.md` or the operator guide doc
-- `apps/api/pi_dash/tests/unit/runner/test_tasks.py` — reaper test
+- `apps/api/karma_team/tests/unit/runner/test_tasks.py` — reaper test
 
 Acceptance:
 
 - unit test: a runner flipped to OFFLINE causes its owned `RUNNING` runs to be marked `FAILED` with `runner offline` reason
 - unit test: a runner that is ONLINE does not have its `RUNNING` runs reaped, regardless of how long they've been running
-- `pidash doctor` on a freshly registered runner reports all three checks green
+- `karma-team doctor` on a freshly registered runner reports all three checks green
 - the smoke test recipe runs top-to-bottom on a local docker stack without edits
 
 ## Open design questions
@@ -424,7 +424,7 @@ These can be resolved inside the listed PRs but should be called out during impl
 1. Error mapping from REST to CLI exit codes.
    - Proposal: 400 → 2 (invalid), 401/403 → 3 (auth), 404 → 4 (not found), 5xx → 5 (server). Documented in CLI `--help`.
 
-2. Whether `pidash issue patch --state <NAME>` is case-sensitive.
+2. Whether `karma-team issue patch --state <NAME>` is case-sensitive.
    - Proposal: case-insensitive match; error if ambiguous.
 
 3. How much of the current `orchestration/done_signal.py` to delete vs. keep.
@@ -441,7 +441,7 @@ These can be resolved inside the listed PRs but should be called out during impl
 - Rate limiting is addressed in PR 1 by marking the runner-minted `api_token` as a service token (300/min). A misbehaving agent in a tight loop could still exhaust 300/min — watch for this during the first real runs and tighten if needed.
 - The `api_token` minted at registration is workspace-broad. A compromised runner host can mutate any issue in the workspace. Known trade-off for MVP; scoped tokens are a future enhancement, not a blocker.
 - The runner's effective permissions are inherited from the user who minted the registration code (`reg.created_by` at `runner/views/register.py:86-108`). If that user is not a project member with issue-edit permission, all PATCH and comment calls will 403 at runtime. **Operator guidance (PR 4):** registration codes should be minted by a workspace admin, or by a user who is a full member of every project that will delegate to this runner. A future improvement can introduce an explicit workspace-level bot user for runner auth.
-- Dropping the `pi-dash-done` fenced contract means we lose structured blocker metadata. If that turns out to be load-bearing for downstream tooling, restore it as a first-class field on the Comment model instead of as a fenced block.
+- Dropping the `karma-team-done` fenced contract means we lose structured blocker metadata. If that turns out to be load-bearing for downstream tooling, restore it as a first-class field on the Comment model instead of as a fenced block.
 - Without a tight `Issue.state` → `AgentRun.status` mirror, the UI can briefly show a run in `RUNNING` after the issue is already `Done`. Acceptable for MVP; tighten later via a Django signal.
 - Protocol migration: during the dual-accept window a new-runner vs old-cloud deployment could race. Sequence the rollout as cloud-first (accepts both) → runner-second (emits `RunTerminated`). If a runner starts emitting `RunTerminated` before the cloud understands it, the cloud will log an unknown-message warning and the run will be reaped by the orphan watchdog — not silently lost, but delayed.
 
@@ -456,12 +456,12 @@ This order keeps every PR independently useful: PR 1 gives operators a CLI to po
 
 ## Exit checklist
 
-- [ ] `pidash` has `issue get/patch`, `comment list/add/update`, `state list`, `workspace me` subcommands, JSON output, env-based auth
-- [ ] Runner injects `PIDASH_API_URL`, `PIDASH_WORKSPACE_SLUG`, `PIDASH_TOKEN`, and PATH entry into the Codex child process
-- [ ] Prompt advertises the CLI and no longer references the `pi-dash-done` fenced contract
+- [ ] `karma-team` has `issue get/patch`, `comment list/add/update`, `state list`, `workspace me` subcommands, JSON output, env-based auth
+- [ ] Runner injects `KARMA_TEAM_API_URL`, `KARMA_TEAM_WORKSPACE_SLUG`, `KARMA_TEAM_TOKEN`, and PATH entry into the Codex child process
+- [ ] Prompt advertises the CLI and no longer references the `karma-team-done` fenced contract
 - [ ] State list (with descriptions) is included in the rendered prompt
 - [ ] Runner sends `RunTerminated { exit_code, ran_for_s }` and the cloud maps it to `AgentRun.status`
 - [ ] Celery task reaps `RUNNING` runs older than the configured grace
-- [ ] `pidash doctor` validates codex, pidash, workspace auth, and heartbeat
+- [ ] `karma-team doctor` validates codex, karma-team, workspace auth, and heartbeat
 - [ ] Operator smoke-test recipe runs on a fresh local docker stack without edits
 - [ ] `orchestration/done_signal.py` is either removed or documented as dead for this workflow

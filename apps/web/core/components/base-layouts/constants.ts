@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { BoardLayoutIcon, ListLayoutIcon, TimelineLayoutIcon } from "@pi-dash/propel/icons";
-import type { IBaseLayoutConfig } from "@pi-dash/types";
+import { BoardLayoutIcon, ListLayoutIcon, TimelineLayoutIcon } from "@karma-team/propel/icons";
+import type { IBaseLayoutConfig } from "@karma-team/types";
 
 export const BASE_LAYOUTS: IBaseLayoutConfig[] = [
   {

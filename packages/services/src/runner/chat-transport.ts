@@ -13,10 +13,10 @@
  * hits the same `/api/runners/chat/...` endpoints as before. Nothing in
  * their behavior changes.
  *
- * The reason this seam exists: the Pi Dash desktop app bundles a
- * built-in agent engine (run by a same-machine `pidash` daemon) and we
+ * The reason this seam exists: the karma-team desktop app bundles a
+ * built-in agent engine (run by a same-machine `karma-team` daemon) and we
  * want a direct chat mode where the traffic goes desktop UI → Tauri host
- * → local engine and back, never relayed through the Pi Dash chat server
+ * → local engine and back, never relayed through the karma-team chat server
  * (PDASHOSS01-159). The desktop wrapper registers a local transport at
  * app startup via `setChatTransport`; the shared chat UI keeps calling
  * `getChatTransport()` and is agnostic about which path served the
@@ -49,7 +49,7 @@
  * mid-session swap with an explicit `mutate(...)` for the affected keys.
  */
 
-import type { IAgentChatEvent, IAgentChatMessage, IAgentChatSession } from "@pi-dash/types";
+import type { IAgentChatEvent, IAgentChatMessage, IAgentChatSession } from "@karma-team/types";
 
 import { createApiEventSource } from "../desktop-event-source";
 import { RunnerService } from "./runner.service";
@@ -119,7 +119,7 @@ export interface ChatTransport {
  * `applyAxiosSetups`, so every axios interceptor registered up through
  * this module's evaluation is captured. Interceptors registered LATER
  * are not picked up by this singleton — register them before
- * `@pi-dash/services` is first imported.
+ * `@karma-team/services` is first imported.
  */
 class CloudChatTransport implements ChatTransport {
   private readonly service = new RunnerService();

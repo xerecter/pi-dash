@@ -8,16 +8,16 @@ import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
-import { E_PASSWORD_STRENGTH } from "@pi-dash/constants";
+import { E_PASSWORD_STRENGTH } from "@karma-team/constants";
 // types
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IUser, TUserProfile, TOnboardingSteps } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IUser, TUserProfile, TOnboardingSteps } from "@karma-team/types";
 // ui
-import { Input, PasswordStrengthIndicator, Spinner } from "@pi-dash/ui";
+import { Input, PasswordStrengthIndicator, Spinner } from "@karma-team/ui";
 // components
-import { cn, getFileURL, getPasswordStrength, validatePersonName } from "@pi-dash/utils";
+import { cn, getFileURL, getPasswordStrength, validatePersonName } from "@karma-team/utils";
 import { UserImageUploadModal } from "@/components/core/modals/user-image-upload-modal";
 // hooks
 import { useUser, useUserProfile } from "@/hooks/store/user";
@@ -86,7 +86,7 @@ export const ProfileSetup = observer(function ProfileSetup(props: Props) {
     password: false,
     retypePassword: false,
   });
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { updateCurrentUser } = useUser();

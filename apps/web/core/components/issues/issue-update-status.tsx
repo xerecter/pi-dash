@@ -8,7 +8,7 @@ import React from "react";
 import { observer } from "mobx-react";
 import { RefreshCw } from "lucide-react";
 // types
-import type { TNameDescriptionLoader } from "@pi-dash/types";
+import type { TNameDescriptionLoader } from "@karma-team/types";
 
 type Props = {
   isSubmitting: TNameDescriptionLoader;

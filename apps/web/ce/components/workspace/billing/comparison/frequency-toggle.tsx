@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
+// karma-team imports
 import { observer } from "mobx-react";
-import type { EProductSubscriptionEnum, TBillingFrequency } from "@pi-dash/types";
-import { calculateYearlyDiscount, cn } from "@pi-dash/utils";
+import type { EProductSubscriptionEnum, TBillingFrequency } from "@karma-team/types";
+import { calculateYearlyDiscount, cn } from "@karma-team/utils";
 
 type TPlanFrequencyToggleProps = {
   subscriptionType: EProductSubscriptionEnum;

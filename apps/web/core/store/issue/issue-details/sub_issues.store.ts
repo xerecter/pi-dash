@@ -7,7 +7,7 @@
 import { pull, concat, uniq, set, update } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// Pi Dash Imports
+// karma-team Imports
 import type {
   TIssue,
   TIssueSubIssues,
@@ -16,7 +16,7 @@ import type {
   TSubIssuesStateDistribution,
   TIssueServiceType,
   TLoader,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // services
 import { IssueService } from "@/services/issue";
 // store

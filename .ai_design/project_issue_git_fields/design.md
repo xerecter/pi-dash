@@ -91,27 +91,27 @@ No changes to `Project`. The existing `repo_url` / `base_branch` fields already 
 
 ### 7.1 Django API
 
-**Models** — `apps/api/pi_dash/db/models/issue.py`
+**Models** — `apps/api/karma_team/db/models/issue.py`
 
 - Add `git_work_branch = models.CharField(max_length=128, blank=True, default="")`.
 
 **Serializers**
 
-- `apps/api/pi_dash/app/serializers/project.py` — `ProjectSerializer` already `fields="__all__"`, so `repo_url` / `base_branch` are writable. Verify no `read_only_fields` blocks them.
-- `apps/api/pi_dash/api/serializers/project.py` — same verification for the public API surface.
-- `apps/api/pi_dash/app/serializers/issue.py` — add `git_work_branch` to whichever field list is used for create/update. If `fields="__all__"`, just verify.
-- Same sweep on `apps/api/pi_dash/api/serializers/issue.py`.
+- `apps/api/karma_team/app/serializers/project.py` — `ProjectSerializer` already `fields="__all__"`, so `repo_url` / `base_branch` are writable. Verify no `read_only_fields` blocks them.
+- `apps/api/karma_team/api/serializers/project.py` — same verification for the public API surface.
+- `apps/api/karma_team/app/serializers/issue.py` — add `git_work_branch` to whichever field list is used for create/update. If `fields="__all__"`, just verify.
+- Same sweep on `apps/api/karma_team/api/serializers/issue.py`.
 
-**Orchestration** — `apps/api/pi_dash/orchestration/service.py`
+**Orchestration** — `apps/api/karma_team/orchestration/service.py`
 
 - Populate `run_config` with `git_work_branch: issue.git_work_branch or None`.
 - Propagate it onto the assign envelope alongside `repo_url` / `repo_ref`.
 
-**Prompt context** — `apps/api/pi_dash/prompting/context.py`
+**Prompt context** — `apps/api/karma_team/prompting/context.py`
 
 - Add `issue.git_work_branch` under the `issue` key (or a new `git` key — decide during implementation to avoid clutter).
 
-**Prompt template** — `apps/api/pi_dash/prompting/templates/default.j2`
+**Prompt template** — `apps/api/karma_team/prompting/templates/default.j2`
 
 - Replace `{{ repo.base_branch or "main" }}` with logic that renders "the repository's default branch" when empty, not the literal `"main"`. Same for the `git pull --rebase` instruction.
 - Add a work-branch section: if `git_work_branch` is set, instruct the agent to `git checkout <branch>` and commit on it directly; otherwise, branch off base.

@@ -33,6 +33,6 @@ function Item({ height = "auto", width = "auto", className = "" }: ItemProps) {
 
 Loader.Item = Item;
 
-Loader.displayName = "pi-dash-ui-loader";
+Loader.displayName = "karma-team-ui-loader";
 
 export { Loader };

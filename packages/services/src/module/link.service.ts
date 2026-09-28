@@ -5,7 +5,7 @@
  */
 
 // types
-import type { ILinkDetails, ModuleLink } from "@pi-dash/types";
+import type { ILinkDetails, ModuleLink } from "@karma-team/types";
 // services
 import { APIService } from "../api.service";
 

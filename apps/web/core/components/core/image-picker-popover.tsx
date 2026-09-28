@@ -12,14 +12,14 @@ import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
 import useSWR from "swr";
 import { Popover } from "@headlessui/react";
-// pi dash imports
-import { ACCEPTED_COVER_IMAGE_MIME_TYPES_FOR_REACT_DROPZONE, MAX_FILE_SIZE } from "@pi-dash/constants";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { Tabs } from "@pi-dash/propel/tabs";
-import { Button, getButtonStyling } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { EFileAssetType } from "@pi-dash/types";
-import { Input, Loader } from "@pi-dash/ui";
+// karma-team imports
+import { ACCEPTED_COVER_IMAGE_MIME_TYPES_FOR_REACT_DROPZONE, MAX_FILE_SIZE } from "@karma-team/constants";
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { Tabs } from "@karma-team/propel/tabs";
+import { Button, getButtonStyling } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { EFileAssetType } from "@karma-team/types";
+import { Input, Loader } from "@karma-team/ui";
 // helpers
 import { STATIC_COVER_IMAGES, getCoverImageDisplayURL } from "@/helpers/cover-image.helper";
 // hooks

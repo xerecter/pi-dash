@@ -115,7 +115,7 @@ design replaces all three with a single registry that maps state
 groups to phase metadata:
 
 ```python
-# pi_dash/orchestration/agent_phases.py  (new module — see §7.3)
+# karma_team/orchestration/agent_phases.py  (new module — see §7.3)
 
 @dataclass(frozen=True)
 class PhaseConfig:
@@ -420,12 +420,12 @@ Notes:
 "In Review" is polymorphic — what the agent should actually do
 depends on what the issue produced. v1 enumerates four kinds:
 
-| Kind               | Trigger signal                                                | Comment surface                | Apply fixes?                     |
-| ------------------ | ------------------------------------------------------------- | ------------------------------ | -------------------------------- |
-| `CODE`             | impl `done_payload` reports a `pr_url`                        | GitHub PR                      | Yes — commit/push to PR branch   |
-| `DESIGN`           | impl `done_payload` reports `design_doc_paths`                | Inline in doc, or pidash issue | Yes — edit doc                   |
-| `DESIGN_THEN_CODE` | both `pr_url` AND `design_doc_paths` present                  | Doc first, then PR             | Yes for both                     |
-| `GENERIC`          | neither — issue produced something else (research, ops, etc.) | pidash issue                   | Usually no — summary, human acts |
+| Kind               | Trigger signal                                                | Comment surface                    | Apply fixes?                     |
+| ------------------ | ------------------------------------------------------------- | ---------------------------------- | -------------------------------- |
+| `CODE`             | impl `done_payload` reports a `pr_url`                        | GitHub PR                          | Yes — commit/push to PR branch   |
+| `DESIGN`           | impl `done_payload` reports `design_doc_paths`                | Inline in doc, or karma-team issue | Yes — edit doc                   |
+| `DESIGN_THEN_CODE` | both `pr_url` AND `design_doc_paths` present                  | Doc first, then PR                 | Yes for both                     |
+| `GENERIC`          | neither — issue produced something else (research, ops, etc.) | karma-team issue                   | Usually no — summary, human acts |
 
 The agent picks the kind at runtime from `parent_done_payload` plus
 working-tree inspection (see §5 prompt body). **No new schema.** No
@@ -444,10 +444,10 @@ prompt, one ticker row, one `review` template name in the registry
 
 This subsection also subsumes what would otherwise need to be a
 "GitHub-PR integration" subsection: the agent reads the PR URL
-from `done_payload` (no issue↔PR linkage in pidash schema), uses
+from `done_payload` (no issue↔PR linkage in karma-team schema), uses
 the runner pod's existing `gh` / git credentials (no new auth
 plumbing), and posts the round-trip summary back via the existing
-pidash comment API authored by the same `pi_dash_agent` bot
+karma-team comment API authored by the same `karma_team_agent` bot
 (per Q7).
 
 ## 5. Prompt template: `review`
@@ -481,7 +481,7 @@ working tree. Choose ONE:
   (c) DESIGN_THEN_CODE — both a design doc AND a PR exist. Review
       the design first, then the code.
   (d) GENERIC — none of the above. Review the work product against
-      the issue description and leave a summary on the pidash issue.
+      the issue description and leave a summary on the karma-team issue.
 
 If you cannot decide, ask the human via `paused`.
 
@@ -490,15 +490,15 @@ Step 2 — Run the cycle for the chosen kind. All cycles share this shape:
   ii.  Validate your findings (no hallucinations) — re-read the
        artifact, confirm each issue is real, drop any that aren't.
   iii. Read existing reviewer comments (in the PR, in the doc, or
-       on the pidash issue depending on kind) and reconcile your
+       on the karma-team issue depending on kind) and reconcile your
        findings against them.
   iv.  Comment on the validated issues at the appropriate surface:
        - CODE: comments on the GitHub PR (use `gh` CLI).
        - DESIGN: inline comments on the doc, or a structured
-         comment on the pidash issue if the doc has no comment
+         comment on the karma-team issue if the doc has no comment
          surface.
        - DESIGN_THEN_CODE: design comments first, then PR comments.
-       - GENERIC: a structured comment on the pidash issue.
+       - GENERIC: a structured comment on the karma-team issue.
   v.   If you can fix a confirmed issue and the kind permits it,
        apply the fix and resolve the corresponding comment:
        - CODE: edit, commit, push to the PR branch, resolve the
@@ -507,7 +507,7 @@ Step 2 — Run the cycle for the chosen kind. All cycles share this shape:
          comment.
        - GENERIC: usually does NOT auto-apply — leave the summary
          and let the human act.
-  vi.  Post a summary back to the pidash issue as a comment:
+  vi.  Post a summary back to the karma-team issue as a comment:
        confirmed issues found, what you fixed automatically, what
        still needs human action.
 
@@ -977,9 +977,9 @@ Minimal v1 surface — defer comprehensive UI:
   column, **but this is not free**. The following existing hard-coded
   state-group enumerations must be updated in PR B:
   - `packages/constants/src/state.ts`
-  - `apps/api/pi_dash/space/utils/grouper.py`
-  - `apps/api/pi_dash/api/views/issue.py`
-  - `apps/api/pi_dash/utils/order_queryset.py`
+  - `apps/api/karma_team/space/utils/grouper.py`
+  - `apps/api/karma_team/api/views/issue.py`
+  - `apps/api/karma_team/utils/order_queryset.py`
   - any generated/shared `TStateGroups` type source consumed by the
     frontend packages
 - Issue detail page's "next agent check" status row already reads
@@ -998,7 +998,7 @@ Minimal v1 surface — defer comprehensive UI:
 | Q4  | Custom workspace state names within the Review group (e.g., "QA")?                                                                    | **Don't tick (v1)** — same restriction as In Progress today. Generalize to "any state in a ticking group" in a separate change.                                                                                                                                                                                                                                                                                                                        |
 | Q5  | Should the review agent be allowed to write code / edit artifacts, or strictly leave comments?                                        | **Allowed to apply confirmed fixes (v1).** §4.7 / §5. The cycle is _find → validate → comment → apply → resolve → summary_. For CODE kind the agent commits/pushes to the PR branch and resolves PR comment threads; for DESIGN kind it edits the doc; for GENERIC it usually only summarizes. The validation step (re-read each finding before acting) is the hallucination guard.                                                                    |
 | Q6  | What does Comment & Run on a Paused-from-Review issue resume to?                                                                      | **In Progress (v1)** — unconditional. A phase-aware re-open dialog is the proper fix; ships with the deferred `last_ticking_state` field.                                                                                                                                                                                                                                                                                                              |
-| Q7  | Same `pi_dash_agent` bot for review-mode runs, or a separate `pi_dash_reviewer` bot for activity feed UX?                             | **Same bot (v1).** Splitting is a one-line change later.                                                                                                                                                                                                                                                                                                                                                                                               |
+| Q7  | Same `karma_team_agent` bot for review-mode runs, or a separate `karma_team_reviewer` bot for activity feed UX?                       | **Same bot (v1).** Splitting is a one-line change later.                                                                                                                                                                                                                                                                                                                                                                                               |
 | Q8  | Does the new terminal-signal disarm hook also need to fire on In Progress runs (existing gap)?                                        | **Yes.** §4.4 / §7.6. The hook is phase-agnostic; it disarms on true `completed`/`blocked` regardless of which group the issue is in, but it explicitly skips `noop`.                                                                                                                                                                                                                                                                                  |
 | Q9  | After a terminal-signal disarm, should a subsequent human comment re-arm the ticker, or stay one-shot?                                | **Re-arm.** §4.6. "Comment is engagement; engagement restarts automatic ticking." Symmetric across In Progress and In Review. `user_disabled=True` is honored and is the only way for a human to stop automatic ticking permanently.                                                                                                                                                                                                                   |
 | Q10 | "In Review" can mean code review, design review, both, or generic review depending on the issue. How does the agent know which to do? | **Polymorphic prompt + runtime inference (v1).** §4.7. The agent picks `CODE` / `DESIGN` / `DESIGN_THEN_CODE` / `GENERIC` from the impl run's `done_payload` (`pr_url` and/or `design_doc_paths`) plus working-tree inspection. No new schema. An explicit `Issue.review_kind` override (default `auto`) is the v1.5 follow-up if inference proves unreliable.                                                                                         |

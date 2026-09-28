@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { TWorkItemFilterCondition } from "@pi-dash/shared-state";
-import type { TFilterConditionNodeForDisplay, TFilterValue, TWorkItemFilterProperty } from "@pi-dash/types";
+import type { TWorkItemFilterCondition } from "@karma-team/shared-state";
+import type { TFilterConditionNodeForDisplay, TFilterValue, TWorkItemFilterProperty } from "@karma-team/types";
 
 export const PROGRESS_STATS = [
   {

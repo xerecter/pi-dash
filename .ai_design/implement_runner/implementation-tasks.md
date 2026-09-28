@@ -1,6 +1,6 @@
-# Pi Dash Runner — Implementation Tasks
+# karma-team Runner — Implementation Tasks
 
-Purpose: track the implementation of the Pi Dash local runner, cloud integration, and built-in TUI.
+Purpose: track the implementation of the karma-team local runner, cloud integration, and built-in TUI.
 
 Companion docs in this directory:
 

@@ -8,9 +8,9 @@ import { set, update } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 // helpers
-import { getCurrentDateTimeInISO } from "@pi-dash/utils";
+import { getCurrentDateTimeInISO } from "@karma-team/utils";
 import { rootStore } from "@/lib/store-context";
 // services
 import { IssueService } from "@/services/issue";

@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash types
-import type { IWorkspace } from "@pi-dash/types";
-import { Spinner } from "@pi-dash/ui";
+// karma-team types
+import type { IWorkspace } from "@karma-team/types";
+import { Spinner } from "@karma-team/ui";
 // components
 import { PowerKWorkspacesMenu } from "@/components/power-k/menus/workspaces";
 // hooks

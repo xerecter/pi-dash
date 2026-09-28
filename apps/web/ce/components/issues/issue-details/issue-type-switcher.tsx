@@ -7,8 +7,8 @@
 import { observer } from "mobx-react";
 // store hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 
 export type TIssueTypeSwitcherProps = {
   issueId: string;

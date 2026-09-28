@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import { Loader } from "@pi-dash/ui";
+import { Loader } from "@karma-team/ui";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
 // hooks

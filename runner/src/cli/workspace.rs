@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // See the LICENSE file for details.
 
-//! `pidash workspace …` subcommands.
+//! `karma-team workspace …` subcommands.
 
 use clap::{Args, Subcommand};
 

@@ -6,8 +6,8 @@
 
 import { observer } from "mobx-react";
 import { Combobox } from "@headlessui/react";
-import { CheckIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+import { CheckIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 
 export type TStateOptionProps = {
   projectId: string | null | undefined;

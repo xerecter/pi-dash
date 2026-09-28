@@ -7,13 +7,13 @@
 import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash constants
-import { EIssueFilterType, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@pi-dash/constants";
+// karma-team constants
+import { EIssueFilterType, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@karma-team/constants";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // types
-import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@pi-dash/types";
-import { EIssuesStoreType, EIssueLayoutTypes } from "@pi-dash/types";
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties } from "@karma-team/types";
+import { EIssuesStoreType, EIssueLayoutTypes } from "@karma-team/types";
 // components
 import { DisplayFiltersSelection, FiltersDropdown, LayoutSelection } from "@/components/issues/issue-layouts/filters";
 import { WorkItemFiltersToggle } from "@/components/work-item-filters/filters-toggle";

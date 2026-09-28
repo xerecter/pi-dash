@@ -7,22 +7,22 @@
 import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash constants
-import { EIssueFilterType, ISSUE_LAYOUTS, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@pi-dash/constants";
-// pi dash i18n
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team constants
+import { EIssueFilterType, ISSUE_LAYOUTS, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@karma-team/constants";
+// karma-team i18n
+import { useTranslation } from "@karma-team/i18n";
 // icons
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
 // types
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
   TIssueLayouts,
   EIssueLayoutTypes,
-} from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
+} from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
 // ui
-import { CustomMenu } from "@pi-dash/ui";
+import { CustomMenu } from "@karma-team/ui";
 // components
 import { DisplayFiltersSelection, FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 import { IssueLayoutIcon } from "@/components/issues/issue-layouts/layout-icon";
@@ -30,7 +30,7 @@ import { IssueLayoutIcon } from "@/components/issues/issue-layouts/layout-icon";
 import { useIssues } from "@/hooks/store/use-issues";
 
 export const ProfileIssuesMobileHeader = observer(function ProfileIssuesMobileHeader() {
-  // pi dash i18n
+  // karma-team i18n
   const { t } = useTranslation();
   // router
   const { workspaceSlug, userId } = useParams();

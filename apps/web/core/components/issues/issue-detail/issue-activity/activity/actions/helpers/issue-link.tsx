@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { generateWorkItemLink } from "@pi-dash/utils";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { generateWorkItemLink } from "@karma-team/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { usePlatformOS } from "@/hooks/use-platform-os";

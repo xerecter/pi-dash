@@ -6,11 +6,11 @@
 
 import { Fragment } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { TCycleEstimateType } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
-import { getDate } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { TCycleEstimateType } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
+import { getDate } from "@karma-team/utils";
 // components
 import ProgressChart from "@/components/core/sidebar/progress-chart";
 import { validateCycleSnapshot } from "@/components/cycles/analytics-sidebar/issue-progress";

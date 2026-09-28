@@ -5,7 +5,7 @@
  */
 
 import { describe, expect, it } from "vitest";
-import type { IAssistantMessage } from "@pi-dash/types";
+import type { IAssistantMessage } from "@karma-team/types";
 
 import { bySeq, latestRealMessage, withNotice, type ById } from "@/components/assistant/notices";
 

@@ -6,9 +6,9 @@
 
 import { observer } from "mobx-react";
 // ui
-import { GANTT_TIMELINE_TYPE } from "@pi-dash/types";
-import type { IBlockUpdateData } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
+import { GANTT_TIMELINE_TYPE } from "@karma-team/types";
+import type { IBlockUpdateData } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
 // components
 // hooks
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";

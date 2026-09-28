@@ -6,7 +6,7 @@
 
 /**
  * Theme System Public API
- * Exports all theme-related utilities for use across Pi Dash apps
+ * Exports all theme-related utilities for use across karma-team apps
  */
 
 // Palette generation

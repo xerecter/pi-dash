@@ -5,17 +5,17 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { WORKSPACE_SETTINGS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Breadcrumbs } from "@pi-dash/ui";
+// karma-team imports
+import { WORKSPACE_SETTINGS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Breadcrumbs } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { SettingsPageHeader } from "@/components/settings/page-header";
 import { WORKSPACE_SETTINGS_ICONS } from "@/components/settings/workspace/sidebar/item-icon";
 
 export const MembersWorkspaceSettingsHeader = observer(function MembersWorkspaceSettingsHeader() {
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // derived values
   const settingsDetails = WORKSPACE_SETTINGS.members;

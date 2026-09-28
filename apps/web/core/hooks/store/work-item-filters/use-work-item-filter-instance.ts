@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { IWorkItemFilterInstance } from "@pi-dash/shared-state";
-import type { EIssuesStoreType } from "@pi-dash/types";
+// karma-team imports
+import type { IWorkItemFilterInstance } from "@karma-team/shared-state";
+import type { EIssuesStoreType } from "@karma-team/types";
 // local imports
 import { useWorkItemFilters } from "./use-work-item-filters";
 

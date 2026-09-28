@@ -8,10 +8,10 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import useSWR, { mutate } from "swr";
 import { CheckCircle } from "lucide-react";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Input, Loader } from "@pi-dash/ui";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Input, Loader } from "@karma-team/ui";
 // assets
 import GitlabLogo from "@/app/assets/logos/gitlab-logo.svg?url";
 // constants
@@ -102,7 +102,7 @@ export function GitlabPatCard() {
               ? "Loading..."
               : account
                 ? `Connected as ${account.external_account_login || account.display_name || "GitLab"} on ${account.host_url}.`
-                : "Paste a GitLab token with API access. Pi Dash can bind GitLab projects and mirror issues and notes."}
+                : "Paste a GitLab token with API access. karma-team can bind GitLab projects and mirror issues and notes."}
           </p>
         </div>
       </div>

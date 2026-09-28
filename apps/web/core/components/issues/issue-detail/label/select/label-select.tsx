@@ -9,15 +9,15 @@ import { observer } from "mobx-react";
 import { usePopper } from "react-popper";
 import { Loader } from "lucide-react";
 import { Combobox } from "@headlessui/react";
-// pi dash imports
-import { EUserPermissionsLevel, getRandomLabelColor } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { CheckIcon, SearchIcon, PlusIcon } from "@pi-dash/propel/icons";
-import type { IIssueLabel } from "@pi-dash/types";
-import { EUserProjectRoles } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissionsLevel, getRandomLabelColor } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { CheckIcon, SearchIcon, PlusIcon } from "@karma-team/propel/icons";
+import type { IIssueLabel } from "@karma-team/types";
+import { EUserProjectRoles } from "@karma-team/types";
 // helpers
-import { getTabIndex } from "@pi-dash/utils";
+import { getTabIndex } from "@karma-team/utils";
 // hooks
 import { useLabel } from "@/hooks/store/use-label";
 import { useUserPermissions } from "@/hooks/store/user";

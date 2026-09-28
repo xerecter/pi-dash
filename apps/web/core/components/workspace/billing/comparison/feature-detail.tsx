@@ -5,8 +5,8 @@
  */
 
 import { CheckCircle2, Minus, MinusCircle } from "lucide-react";
-import type { EProductSubscriptionEnum } from "@pi-dash/types";
-// pi dash imports
+import type { EProductSubscriptionEnum } from "@karma-team/types";
+// karma-team imports
 // constants
 import type { TPlanFeatureData } from "@/constants/plans";
 

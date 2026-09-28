@@ -5,10 +5,10 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { CalendarLayoutIcon } from "@pi-dash/propel/icons";
-import { cn, renderFormattedDate, getDate } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { CalendarLayoutIcon } from "@karma-team/propel/icons";
+import { cn, renderFormattedDate, getDate } from "@karma-team/utils";
 
 export type TReadonlyDateProps = {
   className?: string;

@@ -5,11 +5,11 @@
  */
 
 import { useEffect, useRef } from "react";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { cn } from "@pi-dash/propel/utils";
-import type { SingleOrArray, TFilterValue } from "@pi-dash/types";
-import { hasValidValue } from "@pi-dash/utils";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { cn } from "@karma-team/propel/utils";
+import type { SingleOrArray, TFilterValue } from "@karma-team/types";
+import { hasValidValue } from "@karma-team/utils";
 
 interface FilterItemContainerProps {
   children: React.ReactNode;

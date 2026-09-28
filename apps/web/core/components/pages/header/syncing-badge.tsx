@@ -6,8 +6,8 @@
 
 import { useState, useEffect } from "react";
 import { CloudOff, Dot } from "lucide-react";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { Badge } from "@pi-dash/propel/badge";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { Badge } from "@karma-team/propel/badge";
 
 type Props = {
   syncStatus: "syncing" | "synced" | "error";

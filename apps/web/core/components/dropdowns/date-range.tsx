@@ -11,14 +11,14 @@ import { createPortal } from "react-dom";
 import { usePopper } from "react-popper";
 import { ArrowRight, CalendarDays } from "lucide-react";
 import { Combobox } from "@headlessui/react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import type { DateRange, Matcher } from "@pi-dash/propel/calendar";
-import { Calendar } from "@pi-dash/propel/calendar";
-import { CloseIcon, DueDatePropertyIcon } from "@pi-dash/propel/icons";
-import { ComboDropDown } from "@pi-dash/ui";
-import { cn, renderFormattedDate } from "@pi-dash/utils";
+import type { DateRange, Matcher } from "@karma-team/propel/calendar";
+import { Calendar } from "@karma-team/propel/calendar";
+import { CloseIcon, DueDatePropertyIcon } from "@karma-team/propel/icons";
+import { ComboDropDown } from "@karma-team/ui";
+import { cn, renderFormattedDate } from "@karma-team/utils";
 // helpers
 // hooks
 import { useUserProfile } from "@/hooks/store/user";

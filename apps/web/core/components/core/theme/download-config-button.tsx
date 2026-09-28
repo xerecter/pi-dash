@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 import type { UseFormGetValues } from "react-hook-form";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import type { IUserTheme } from "@pi-dash/types";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import type { IUserTheme } from "@karma-team/types";
 
 type Props = {
   getValues: UseFormGetValues<IUserTheme>;
@@ -36,7 +36,7 @@ export const CustomThemeDownloadConfigButton = observer(function CustomThemeDown
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `pi-dash-theme-${Date.now()}.json`;
+      link.download = `karma-team-theme-${Date.now()}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

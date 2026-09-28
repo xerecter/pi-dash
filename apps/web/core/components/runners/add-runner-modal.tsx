@@ -9,13 +9,13 @@ import { observer } from "mobx-react";
 import type { SubmitHandler } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
-// pi dash imports
-import { API_BASE_URL } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { PodService, RunnerService } from "@pi-dash/services";
-import type { IDevMachine, IPod, TPartialProject } from "@pi-dash/types";
-import { CustomSelect, EModalPosition, EModalWidth, Input, ModalCore } from "@pi-dash/ui";
+// karma-team imports
+import { API_BASE_URL } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { PodService, RunnerService } from "@karma-team/services";
+import type { IDevMachine, IPod, TPartialProject } from "@karma-team/types";
+import { CustomSelect, EModalPosition, EModalWidth, Input, ModalCore } from "@karma-team/ui";
 // app
 import { RunnerCliCommand } from "@/components/runners/runner-cli-command";
 import {
@@ -389,7 +389,7 @@ export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
             <div className="text-18 font-medium text-primary">{t("Add runner")}</div>
             <p className="mt-1 text-13 text-secondary">
               {t(
-                "Create a runner on a connected dev machine, or generate a `pidash runner add` command to run manually."
+                "Create a runner on a connected dev machine, or generate a `karma-team runner add` command to run manually."
               )}
             </p>
           </div>
@@ -404,7 +404,9 @@ export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
               render={({ field }) => (
                 <CustomSelect
                   value={field.value}
-                  label={selectedMachine ? machineDisplayLabel(selectedMachine) : t("Run `pidash runner add` manually")}
+                  label={
+                    selectedMachine ? machineDisplayLabel(selectedMachine) : t("Run `karma-team runner add` manually")
+                  }
                   onChange={field.onChange}
                   buttonClassName="border border-subtle"
                   input
@@ -418,7 +420,7 @@ export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
                       </CustomSelect.Option>
                     ))}
                     <CustomSelect.Option value={MANUAL_MACHINE}>
-                      {t("Run `pidash runner add` manually")}
+                      {t("Run `karma-team runner add` manually")}
                     </CustomSelect.Option>
                   </>
                 </CustomSelect>
@@ -428,7 +430,7 @@ export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
               {connectedMachines.length
                 ? t("Connected dev machines can create the runner directly — no copy-paste needed.")
                 : t(
-                    "No connected dev machines. Install and start the pidash daemon on your machine, or generate the command to run manually."
+                    "No connected dev machines. Install and start the karma-team daemon on your machine, or generate the command to run manually."
                   )}
             </p>
             {devMachinesError && (
@@ -588,7 +590,9 @@ export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
               )}
             />
             <p className="text-12 text-secondary">
-              {t("Which AI agent CLI this runner will drive. Baked into the displayed ``pidash runner add`` command.")}
+              {t(
+                "Which AI agent CLI this runner will drive. Baked into the displayed ``karma-team runner add`` command."
+              )}
             </p>
           </div>
 
@@ -621,7 +625,7 @@ export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
             />
             <p className="text-12 text-secondary">
               {t(
-                "Default model this runner's agent uses. ``Default`` lets the agent pick its own; the choice is baked into the displayed ``pidash runner add`` command."
+                "Default model this runner's agent uses. ``Default`` lets the agent pick its own; the choice is baked into the displayed ``karma-team runner add`` command."
               )}
             </p>
           </div>

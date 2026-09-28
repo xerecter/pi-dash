@@ -9,18 +9,18 @@ import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ArchiveRestoreIcon, Settings, UserPlus } from "lucide-react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel, IS_FAVORITE_MENU_OPEN } from "@pi-dash/constants";
-import { useLocalStorage } from "@pi-dash/hooks";
-import { Button } from "@pi-dash/propel/button";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { LinkIcon, LockIcon, NewTabIcon, TrashIcon, CheckIcon } from "@pi-dash/propel/icons";
-import { setPromiseToast, setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IProject } from "@pi-dash/types";
-import type { TContextMenuItem } from "@pi-dash/ui";
-import { Avatar, AvatarGroup, ContextMenu, FavoriteStar } from "@pi-dash/ui";
-import { copyUrlToClipboard, cn, getFileURL, renderFormattedDate } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel, IS_FAVORITE_MENU_OPEN } from "@karma-team/constants";
+import { useLocalStorage } from "@karma-team/hooks";
+import { Button } from "@karma-team/propel/button";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { LinkIcon, LockIcon, NewTabIcon, TrashIcon, CheckIcon } from "@karma-team/propel/icons";
+import { setPromiseToast, setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IProject } from "@karma-team/types";
+import type { TContextMenuItem } from "@karma-team/ui";
+import { Avatar, AvatarGroup, ContextMenu, FavoriteStar } from "@karma-team/ui";
+import { copyUrlToClipboard, cn, getFileURL, renderFormattedDate } from "@karma-team/utils";
 // components
 // hooks
 import { useMember } from "@/hooks/store/use-member";

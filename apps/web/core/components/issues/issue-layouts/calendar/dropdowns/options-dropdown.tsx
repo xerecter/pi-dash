@@ -13,12 +13,12 @@ import { Popover, Transition } from "@headlessui/react";
 // hooks
 // ui
 // icons
-import type { TSupportedFilterTypeForUpdate } from "@pi-dash/constants";
-import { EIssueFilterType } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { CheckIcon, ChevronUpIcon } from "@pi-dash/propel/icons";
-import type { TCalendarLayouts, TSupportedFilterForUpdate } from "@pi-dash/types";
-import { ToggleSwitch } from "@pi-dash/ui";
+import type { TSupportedFilterTypeForUpdate } from "@karma-team/constants";
+import { EIssueFilterType } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { CheckIcon, ChevronUpIcon } from "@karma-team/propel/icons";
+import type { TCalendarLayouts, TSupportedFilterForUpdate } from "@karma-team/types";
+import { ToggleSwitch } from "@karma-team/ui";
 // types
 // constants
 import { CALENDAR_LAYOUTS } from "@/constants/calendar";

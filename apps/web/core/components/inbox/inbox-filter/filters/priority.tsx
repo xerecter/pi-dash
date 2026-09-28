@@ -6,11 +6,11 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-import { ISSUE_PRIORITIES } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { PriorityIcon } from "@pi-dash/propel/icons";
-import type { TIssuePriorities } from "@pi-dash/types";
-// pi dash constants
+import { ISSUE_PRIORITIES } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { PriorityIcon } from "@karma-team/propel/icons";
+import type { TIssuePriorities } from "@karma-team/types";
+// karma-team constants
 // components
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 // hooks

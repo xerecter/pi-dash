@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { Header } from "@pi-dash/ui";
+import { Header } from "@karma-team/ui";
 
 type Props = {
   leftItem?: React.ReactNode;

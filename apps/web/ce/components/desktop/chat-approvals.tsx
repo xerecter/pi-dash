@@ -18,8 +18,8 @@
  * state derived from the chat event stream.
  */
 
-import { Button } from "@pi-dash/ui";
-import type { TApprovalDecision, TApprovalKind, TApprovalMode } from "@pi-dash/types";
+import { Button } from "@karma-team/ui";
+import type { TApprovalDecision, TApprovalKind, TApprovalMode } from "@karma-team/types";
 
 /** The mode spectrum, in order from most to least cautious. */
 export const APPROVAL_MODES: readonly TApprovalMode[] = ["ask", "workspace", "full_access"];

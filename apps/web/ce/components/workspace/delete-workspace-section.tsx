@@ -6,11 +6,11 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { WORKSPACE_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { IWorkspace } from "@pi-dash/types";
+// karma-team imports
+import { WORKSPACE_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { IWorkspace } from "@karma-team/types";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 // local imports
@@ -36,7 +36,9 @@ export const DeleteWorkspaceSection = observer(function DeleteWorkspaceSection(p
       />
       <SettingsBoxedControlItem
         title={t("Delete this workspace")}
-        description={t("When deleting a workspace, all of the data and resources within that workspace will be permanently removed and cannot be recovered.")}
+        description={t(
+          "When deleting a workspace, all of the data and resources within that workspace will be permanently removed and cannot be recovered."
+        )}
         control={
           <Button
             variant="error-outline"

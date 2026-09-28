@@ -7,12 +7,12 @@
 import type { ReactNode } from "react";
 import { useRef, useState } from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import { CycleIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import { ComboDropDown } from "@pi-dash/ui";
+import { CycleIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import { ComboDropDown } from "@karma-team/ui";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useDropdown } from "@/hooks/use-dropdown";

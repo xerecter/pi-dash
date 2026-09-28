@@ -6,17 +6,17 @@
 
 import { isNil } from "lodash-es";
 // types
-import { EIconSize, ISSUE_PRIORITIES } from "@pi-dash/constants";
-import { CycleGroupIcon, CycleIcon, ModuleIcon, PriorityIcon, StateGroupIcon } from "@pi-dash/propel/icons";
+import { EIconSize, ISSUE_PRIORITIES } from "@karma-team/constants";
+import { CycleGroupIcon, CycleIcon, ModuleIcon, PriorityIcon, StateGroupIcon } from "@karma-team/propel/icons";
 import type {
   GroupByColumnTypes,
   IGroupByColumn,
   TCycleGroups,
   IIssueDisplayProperties,
   TGroupedIssues,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // ui
-import { Avatar } from "@pi-dash/ui";
+import { Avatar } from "@karma-team/ui";
 // components
 // constants
 // stores

@@ -6,20 +6,20 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
+// karma-team imports
 import { useParams, useRouter } from "next/navigation";
-import { EUserPermissionsLevel, EPageAccess } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TPage, TPageNavigationTabs } from "@pi-dash/types";
-import { EUserProjectRoles } from "@pi-dash/types";
+import { EUserPermissionsLevel, EPageAccess } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TPage, TPageNavigationTabs } from "@karma-team/types";
+import { EUserProjectRoles } from "@karma-team/types";
 // components
 import { PageLoader } from "@/components/pages/loaders/page-loader";
 import { useProject } from "@/hooks/store/use-project";
 import { useUserPermissions } from "@/hooks/store/user";
-// pi dash web hooks
-import { EPageStoreType, usePageStore } from "@/pi-dash-web/hooks/store";
+// karma-team web hooks
+import { EPageStoreType, usePageStore } from "@/karma-team-web/hooks/store";
 
 type Props = {
   children: React.ReactNode;
@@ -29,7 +29,7 @@ type Props = {
 
 export const PagesListMainContent = observer(function PagesListMainContent(props: Props) {
   const { children, pageType, storeType } = props;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { currentProjectDetails } = useProject();
@@ -81,7 +81,9 @@ export const PagesListMainContent = observer(function PagesListMainContent(props
         <EmptyStateDetailed
           assetKey="page"
           title={t("Document everything — from notes to PRDs")}
-          description={t("Pages let you capture and organize information in one place. Write meeting notes, project documentation, and PRDs, embed work items, and structure them with ready-to-use components.")}
+          description={t(
+            "Pages let you capture and organize information in one place. Write meeting notes, project documentation, and PRDs, embed work items, and structure them with ready-to-use components."
+          )}
           actions={[
             {
               label: t("Create your first Page"),
@@ -100,7 +102,9 @@ export const PagesListMainContent = observer(function PagesListMainContent(props
         <EmptyStateDetailed
           assetKey="page"
           title={t("Document everything — from notes to PRDs")}
-          description={t("Pages let you capture and organize information in one place. Write meeting notes, project documentation, and PRDs, embed work items, and structure them with ready-to-use components.")}
+          description={t(
+            "Pages let you capture and organize information in one place. Write meeting notes, project documentation, and PRDs, embed work items, and structure them with ready-to-use components."
+          )}
           actions={[
             {
               label: t("Create your first Page"),
@@ -118,7 +122,9 @@ export const PagesListMainContent = observer(function PagesListMainContent(props
         <EmptyStateDetailed
           assetKey="page"
           title={t("Document everything — from notes to PRDs")}
-          description={t("Pages let you capture and organize information in one place. Write meeting notes, project documentation, and PRDs, embed work items, and structure them with ready-to-use components.")}
+          description={t(
+            "Pages let you capture and organize information in one place. Write meeting notes, project documentation, and PRDs, embed work items, and structure them with ready-to-use components."
+          )}
           actions={[
             {
               label: t("Create your first Page"),

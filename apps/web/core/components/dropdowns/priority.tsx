@@ -9,16 +9,16 @@ import { useRef, useState } from "react";
 import { usePopper } from "react-popper";
 import { SignalHigh } from "lucide-react";
 import { Combobox } from "@headlessui/react";
-import { ISSUE_PRIORITIES } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+import { ISSUE_PRIORITIES } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // types
-import { CheckIcon, PriorityIcon, ChevronDownIcon, SearchIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TIssuePriorities } from "@pi-dash/types";
+import { CheckIcon, PriorityIcon, ChevronDownIcon, SearchIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TIssuePriorities } from "@karma-team/types";
 // ui
-import { ComboDropDown } from "@pi-dash/ui";
+import { ComboDropDown } from "@karma-team/ui";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useDropdown } from "@/hooks/use-dropdown";
 import { usePlatformOS } from "@/hooks/use-platform-os";

@@ -5,7 +5,7 @@
  */
 
 import { observer } from "mobx-react";
-import type { IState, TStateGroups, TStateOperationsCallbacks } from "@pi-dash/types";
+import type { IState, TStateGroups, TStateOperationsCallbacks } from "@karma-team/types";
 // components
 import { StateItem } from "@/components/project-states";
 

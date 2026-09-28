@@ -8,13 +8,13 @@ import { Fragment, useState } from "react";
 import { observer } from "mobx-react";
 import { useNavigate, useParams, useSearchParams } from "react-router";
 import useSWR from "swr";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { RunnerService } from "@pi-dash/services";
-import type { IAgentRun, IAgentRunPage, TAgentRunErrorSource, TAgentRunStatus } from "@pi-dash/types";
-import { AGENT_RUN_TERMINAL_STATUSES } from "@pi-dash/types";
-import type { TBadgeVariant } from "@pi-dash/ui";
-import { AlertModalCore, Badge, Button, Spinner } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { RunnerService } from "@karma-team/services";
+import type { IAgentRun, IAgentRunPage, TAgentRunErrorSource, TAgentRunStatus } from "@karma-team/types";
+import { AGENT_RUN_TERMINAL_STATUSES } from "@karma-team/types";
+import type { TBadgeVariant } from "@karma-team/ui";
+import { AlertModalCore, Badge, Button, Spinner } from "@karma-team/ui";
 import { PageHead } from "@/components/core/page-title";
 import { RunnersTabs } from "@/components/runners/runners-tabs";
 import { useWorkspace } from "@/hooks/store/use-workspace";
@@ -66,8 +66,8 @@ function statusLabel(status: TAgentRunStatus, t: TranslationFn): string {
 
 const ERROR_SOURCE_BADGE_VARIANT: Record<TAgentRunErrorSource, TBadgeVariant> = {
   agent: "accent-warning",
-  pidash_runner: "accent-primary",
-  pidash_cloud: "accent-primary",
+  karma_team_runner: "accent-primary",
+  karma_team_cloud: "accent-primary",
   unknown: "accent-neutral",
 };
 
@@ -276,7 +276,7 @@ export const RunnerRunsPage = observer(function RunnerRunsPage() {
                       variant={detail.executor_kind === "cloud_agent" ? "accent-primary" : "accent-neutral"}
                       size="sm"
                     >
-                      {detail.executor_kind === "cloud_agent" ? t("Pi Dash Cloud Agent") : t("Local Runner")}
+                      {detail.executor_kind === "cloud_agent" ? t("karma-team Cloud Agent") : t("Local Runner")}
                     </Badge>
                   </div>
                 </div>

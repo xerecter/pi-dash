@@ -6,8 +6,8 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import type { TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import type { TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // local imports
 import { IssueAttachmentItemList } from "../../attachment/attachment-item-list";
 import { useAttachmentOperations } from "./helper";

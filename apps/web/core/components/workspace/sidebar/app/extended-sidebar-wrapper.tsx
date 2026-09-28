@@ -6,10 +6,10 @@
 
 import React, { useEffect } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { EXTENDED_SIDEBAR_WIDTH, SIDEBAR_WIDTH } from "@pi-dash/constants";
-import { useLocalStorage } from "@pi-dash/hooks";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { EXTENDED_SIDEBAR_WIDTH, SIDEBAR_WIDTH } from "@karma-team/constants";
+import { useLocalStorage } from "@karma-team/hooks";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 // hooks

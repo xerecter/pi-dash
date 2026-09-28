@@ -6,15 +6,15 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi-dash-i18n
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team-i18n
+import { useTranslation } from "@karma-team/i18n";
 // types
-import type { TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import type { TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // ui
-import { AlertModalCore } from "@pi-dash/ui";
+import { AlertModalCore } from "@karma-team/ui";
 // helper
-import { getFileName } from "@pi-dash/utils";
+import { getFileName } from "@karma-team/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // types

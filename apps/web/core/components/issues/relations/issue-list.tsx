@@ -6,11 +6,11 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TIssue, TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
-// Pi Dash-web imports
-import type { TIssueRelationTypes } from "@/pi-dash-web/types";
+// karma-team imports
+import type { TIssue, TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
+// karma-team-web imports
+import type { TIssueRelationTypes } from "@/karma-team-web/types";
 // local imports
 import { RelationIssueListItem } from "./issue-list-item";
 

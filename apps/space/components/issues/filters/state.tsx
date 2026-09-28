@@ -7,9 +7,9 @@
 import React, { useState } from "react";
 import { observer } from "mobx-react";
 // ui
-import { EIconSize } from "@pi-dash/constants";
-import { StateGroupIcon } from "@pi-dash/propel/icons";
-import { Loader } from "@pi-dash/ui";
+import { EIconSize } from "@karma-team/constants";
+import { StateGroupIcon } from "@karma-team/propel/icons";
+import { Loader } from "@karma-team/ui";
 // hooks
 import { useStates } from "@/hooks/store/use-state";
 // local imports

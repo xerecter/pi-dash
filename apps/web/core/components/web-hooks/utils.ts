@@ -5,8 +5,8 @@
  */
 
 // helpers
-import type { IWebhook, IWorkspace } from "@pi-dash/types";
-import { renderFormattedPayloadDate } from "@pi-dash/utils";
+import type { IWebhook, IWorkspace } from "@karma-team/types";
+import { renderFormattedPayloadDate } from "@karma-team/utils";
 // types
 
 export const getCurrentHookAsCSV = (

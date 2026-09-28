@@ -5,8 +5,8 @@
  */
 
 import React from "react";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import { DropdownIcon } from "@pi-dash/propel/icons";
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import { DropdownIcon } from "@karma-team/propel/icons";
 import { cn } from "../utils";
 
 type Props = {

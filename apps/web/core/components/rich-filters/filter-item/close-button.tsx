@@ -6,10 +6,10 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { CloseIcon } from "@pi-dash/propel/icons";
-import type { IFilterInstance } from "@pi-dash/shared-state";
-import type { TExternalFilter, TFilterProperty } from "@pi-dash/types";
+// karma-team imports
+import { CloseIcon } from "@karma-team/propel/icons";
+import type { IFilterInstance } from "@karma-team/shared-state";
+import type { TExternalFilter, TFilterProperty } from "@karma-team/types";
 
 interface FilterItemCloseButtonProps<P extends TFilterProperty, E extends TExternalFilter> {
   conditionId: string;

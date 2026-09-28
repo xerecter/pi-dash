@@ -522,7 +522,7 @@ function Page() {
 }
 ```
 
-### ❌ Mistake 2: Nested Surfaces (Same Pi Dash)
+### ❌ Mistake 2: Nested Surfaces (Same karma-team)
 
 ```tsx
 // ❌ Wrong: Nested surfaces in same plane

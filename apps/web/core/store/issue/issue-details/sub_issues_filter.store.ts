@@ -7,7 +7,7 @@
 import { set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-import type { EIssueFilterType } from "@pi-dash/constants";
+import type { EIssueFilterType } from "@karma-team/constants";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
@@ -15,7 +15,7 @@ import type {
   ISubWorkItemFilters,
   TGroupedIssues,
   TIssue,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 import { getFilteredWorkItems, getGroupedWorkItemIds, updateSubWorkItemFilters } from "../helpers/base-issues-utils";
 import type { IssueSubIssuesStore } from "./sub_issues.store";
 

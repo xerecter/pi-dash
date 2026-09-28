@@ -7,12 +7,12 @@
 import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { TModuleFilters } from "@pi-dash/types";
-import { EUserProjectRoles } from "@pi-dash/types";
-import { calculateTotalFilters } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { TModuleFilters } from "@karma-team/types";
+import { EUserProjectRoles } from "@karma-team/types";
+import { calculateTotalFilters } from "@karma-team/utils";
 // assets
 import darkModulesAsset from "@/app/assets/empty-state/disabled-feature/modules-dark.webp?url";
 import lightModulesAsset from "@/app/assets/empty-state/disabled-feature/modules-light.webp?url";
@@ -33,7 +33,7 @@ function ProjectModulesPage({ params }: Route.ComponentProps) {
   const { workspaceSlug, projectId } = params;
   // theme hook
   const { resolvedTheme } = useTheme();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store
   const { getProjectById, currentProjectDetails } = useProject();
@@ -69,7 +69,9 @@ function ProjectModulesPage({ params }: Route.ComponentProps) {
       <div className="flex h-full w-full items-center justify-center">
         <DetailedEmptyState
           title={t("Modules are not enabled for the project.")}
-          description={t("Modules are the building blocks of your project. Enable modules from project settings to start using them.")}
+          description={t(
+            "Modules are the building blocks of your project. Enable modules from project settings to start using them."
+          )}
           assetPath={resolvedPath}
           primaryButton={{
             text: t("Manage features"),

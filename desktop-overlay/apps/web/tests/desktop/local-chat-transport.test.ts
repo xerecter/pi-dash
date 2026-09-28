@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // agent-runtime.ts (imported transitively) constructs an APIService at module
 // load, which reads API_BASE_URL. Stub it so importing the transport is cheap.
-vi.mock("@pi-dash/constants", () => ({ API_BASE_URL: "http://localhost:18002" }));
+vi.mock("@karma-team/constants", () => ({ API_BASE_URL: "http://localhost:18002" }));
 
 import type { TauriBridge } from "@/services/local-chat-transport";
 import { ChatFrameTranslator, LocalChatTransport } from "@/services/local-chat-transport";
@@ -26,7 +26,7 @@ function makeBridge(overrides: Partial<Record<string, unknown>> = {}) {
         id: SESSION,
         title: "",
         workspace: "ws",
-        project: "pidash-builtin",
+        project: "karma-team-builtin",
         working_dir: "/tmp/chat/ws/proj",
         engine_version: "0.1.23",
         engine_thread_id: "thread-9",
@@ -162,7 +162,7 @@ describe("LocalChatTransport verbs", () => {
           id: "s1",
           title: "",
           workspace: "ws",
-          project: "pidash-builtin",
+          project: "karma-team-builtin",
           working_dir: "/w/1",
           engine_version: "",
           engine_thread_id: null,
@@ -173,7 +173,7 @@ describe("LocalChatTransport verbs", () => {
           id: "s2",
           title: "",
           workspace: "other",
-          project: "pidash-builtin",
+          project: "karma-team-builtin",
           working_dir: "/w/2",
           engine_version: "",
           engine_thread_id: null,
@@ -194,10 +194,10 @@ describe("LocalChatTransport verbs", () => {
       ],
     });
     transport = new LocalChatTransport(ctx.bridge);
-    const sessions = await transport.listChatSessions("ws", "pidash-builtin");
+    const sessions = await transport.listChatSessions("ws", "karma-team-builtin");
     expect(sessions.map((s) => s.id)).toEqual(["s1"]);
     expect(sessions[0].cwd).toBe("/w/1");
-    expect(sessions[0].runner).toBe("pidash-builtin");
+    expect(sessions[0].runner).toBe("karma-team-builtin");
     // updated_at > created_at ⇒ has activity ⇒ a last_message_at is surfaced.
     expect(sessions[0].last_message_at).not.toBeNull();
     expect(ctx.invoke).toHaveBeenCalledWith("chat_list_sessions", { account: "acct-1" });
@@ -209,7 +209,7 @@ describe("LocalChatTransport verbs", () => {
         id: "new",
         title: "",
         workspace: "ws",
-        project: "pidash-builtin",
+        project: "karma-team-builtin",
         working_dir: "/w/new",
         engine_version: "",
         engine_thread_id: null,
@@ -218,11 +218,11 @@ describe("LocalChatTransport verbs", () => {
       },
     });
     transport = new LocalChatTransport(ctx.bridge);
-    const session = await transport.createChatSession({ workspace: "ws", runner: "pidash-builtin" });
+    const session = await transport.createChatSession({ workspace: "ws", runner: "karma-team-builtin" });
     expect(session.id).toBe("new");
     expect(ctx.invoke).toHaveBeenCalledWith("chat_create_session", {
       account: "acct-1",
-      session: { title: "", workspace: "ws", project: "pidash-builtin", engine_version: "" },
+      session: { title: "", workspace: "ws", project: "karma-team-builtin", engine_version: "" },
     });
   });
 
@@ -383,7 +383,7 @@ describe("LocalChatTransport verbs", () => {
           id: SESSION,
           title: "",
           workspace: "ws",
-          project: "pidash-builtin",
+          project: "karma-team-builtin",
           working_dir: "/tmp/chat/ws/proj",
           engine_version: "0.1.23",
           engine_thread_id: "thread-9",
@@ -403,8 +403,8 @@ describe("LocalChatTransport verbs", () => {
 
   it("carries the workspace slug — the daemon's socket lives in that workspace's tree", async () => {
     // The daemon runs per workspace with its data dir re-rooted under
-    // `managed/pidash/<workspace>/data`, so its control socket is
-    // `<that>/runtime/pidash.sock`. Without the slug the host resolved the
+    // `managed/karma-team/<workspace>/data`, so its control socket is
+    // `<that>/runtime/karma-team.sock`. Without the slug the host resolved the
     // shared `managed/runtime/` instead and every send failed with
     // "connecting to managed daemon" while the daemon was up.
     await transport.warmChatSession(SESSION);
@@ -422,9 +422,9 @@ describe("LocalChatTransport verbs", () => {
   it("never sends a runner selector — the stored id is not a daemon runner name", async () => {
     // The daemon resolves `runner` by the *name* in its own config
     // (`resolve_runner`, runner/src/ipc/server.rs). The id this transport holds
-    // is the synthetic route id `pidash-builtin`, which no daemon is
+    // is the synthetic route id `karma-team-builtin`, which no daemon is
     // configured under, so sending it failed every request with
-    // `no runner named "pidash-builtin"`. Omitting it selects the daemon's
+    // `no runner named "karma-team-builtin"`. Omitting it selects the daemon's
     // single managed runner.
     ctx = makeBridge({
       chat_append_event: {

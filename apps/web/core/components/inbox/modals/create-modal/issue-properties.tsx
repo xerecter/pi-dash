@@ -6,11 +6,11 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-import { ETabIndices } from "@pi-dash/constants";
-import { ParentPropertyIcon } from "@pi-dash/propel/icons";
-import type { ISearchIssueResponse, TIssue } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
-import { renderFormattedPayloadDate, getDate, getTabIndex } from "@pi-dash/utils";
+import { ETabIndices } from "@karma-team/constants";
+import { ParentPropertyIcon } from "@karma-team/propel/icons";
+import type { ISearchIssueResponse, TIssue } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
+import { renderFormattedPayloadDate, getDate, getTabIndex } from "@karma-team/utils";
 // components
 import { CycleDropdown } from "@/components/dropdowns/cycle";
 import { DateDropdown } from "@/components/dropdowns/date";

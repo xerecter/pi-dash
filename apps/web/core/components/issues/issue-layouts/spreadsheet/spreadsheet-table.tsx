@@ -7,8 +7,8 @@
 import type { MutableRefObject } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, TIssue } from "@pi-dash/types";
+// karma-team imports
+import type { IIssueDisplayFilterOptions, IIssueDisplayProperties, TIssue } from "@karma-team/types";
 // components
 import { SpreadsheetIssueRowLoader } from "@/components/ui/loader/layouts/spreadsheet-layout-loader";
 // hooks

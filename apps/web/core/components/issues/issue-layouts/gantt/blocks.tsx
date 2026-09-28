@@ -6,11 +6,11 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { Popover } from "@pi-dash/propel/popover";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { ControlLink } from "@pi-dash/ui";
-import { findTotalDaysInRange, generateWorkItemLink } from "@pi-dash/utils";
+// karma-team imports
+import { Popover } from "@karma-team/propel/popover";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { ControlLink } from "@karma-team/ui";
+import { findTotalDaysInRange, generateWorkItemLink } from "@karma-team/utils";
 // components
 import { SIDEBAR_WIDTH } from "@/components/gantt-chart/constants";
 // hooks
@@ -21,9 +21,9 @@ import { useProjectState } from "@/hooks/store/use-project-state";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web imports
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
-import { IssueStats } from "@/pi-dash-web/components/issues/issue-layouts/issue-stats";
+// karma-team web imports
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
+import { IssueStats } from "@/karma-team-web/components/issues/issue-layouts/issue-stats";
 // local imports
 import { WorkItemPreviewCard } from "../../preview-card";
 import { getBlockViewDetails } from "../utils";

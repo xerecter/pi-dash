@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
-import type { CompactAssetType } from "@pi-dash/propel/empty-state";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
+import type { CompactAssetType } from "@karma-team/propel/empty-state";
 
 const getDisplayContent = (type: string): { assetKey: CompactAssetType; text: string } => {
   switch (type) {

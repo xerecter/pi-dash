@@ -6,12 +6,12 @@
 
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-// pi dash types
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { ILinkDetails, ModuleLink } from "@pi-dash/types";
-// pi dash ui
-import { Input, ModalCore } from "@pi-dash/ui";
+// karma-team types
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { ILinkDetails, ModuleLink } from "@karma-team/types";
+// karma-team ui
+import { Input, ModalCore } from "@karma-team/ui";
 
 type Props = {
   createLink: (formData: ModuleLink) => Promise<void>;

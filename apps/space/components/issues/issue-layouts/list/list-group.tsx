@@ -7,17 +7,17 @@
 import type { MutableRefObject } from "react";
 import { Fragment, forwardRef, useRef, useState } from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-// pi dash types
+import { useTranslation } from "@karma-team/i18n";
+// karma-team types
 import type {
   IGroupByColumn,
   TIssueGroupByOptions,
   IIssueDisplayProperties,
   TPaginationData,
   TLoader,
-} from "@pi-dash/types";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+} from "@karma-team/types";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // hooks
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 //

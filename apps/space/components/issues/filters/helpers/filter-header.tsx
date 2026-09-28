@@ -6,7 +6,7 @@
 
 import React from "react";
 // icons
-import { ChevronDownIcon, ChevronUpIcon } from "@pi-dash/propel/icons";
+import { ChevronDownIcon, ChevronUpIcon } from "@karma-team/propel/icons";
 
 interface IFilterHeader {
   title: string;

@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TFilterProperty } from "@pi-dash/types";
+// karma-team imports
+import type { TFilterProperty } from "@karma-team/types";
 // local imports
 import type { TCreateDateFilterParams, TCreateFilterConfig } from "../shared";
 import { createFilterConfig } from "../shared";

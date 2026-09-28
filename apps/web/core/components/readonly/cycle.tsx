@@ -6,10 +6,10 @@
 
 import { useEffect } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { CycleIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { CycleIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 

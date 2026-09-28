@@ -59,7 +59,7 @@ export const ProjectIconsMap = [
 
 export const SubBrandIconsMap = [
   { icon: <Icon name="sub-brand.pi-chat" />, title: "PiChatLogo" },
-  { icon: <Icon name="sub-brand.pi_dash" />, title: "PiDashIcon" },
+  { icon: <Icon name="sub-brand.karma_team" />, title: "KarmaTeamIcon" },
   { icon: <Icon name="sub-brand.wiki" />, title: "WikiIcon" },
 ];
 

@@ -7,11 +7,11 @@
 import { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
-// pi dash imports
-import type { I_THEME_OPTION } from "@pi-dash/constants";
-import { THEME_OPTIONS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { setPromiseToast } from "@pi-dash/propel/toast";
+// karma-team imports
+import type { I_THEME_OPTION } from "@karma-team/constants";
+import { THEME_OPTIONS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { setPromiseToast } from "@karma-team/propel/toast";
 // components
 import { CustomThemeSelector } from "@/components/core/theme/custom-theme-selector";
 import { ThemeSwitch } from "@/components/core/theme/theme-switch";

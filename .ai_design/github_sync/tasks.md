@@ -64,7 +64,7 @@ Scope:
 - implement comment upsert flow
 - implement upstream-gone reconciliation
 - implement completion comment signal and task
-- add helper for absolute Pi Dash issue URL
+- add helper for absolute karma-team issue URL
 
 Why third:
 
@@ -128,7 +128,7 @@ Why last:
 - [ ] Add migration for `GithubIssueSync.metadata`.
 - [ ] Add migration for `GithubIssueSync.gh_issue_created_at`.
 - [ ] Add migration for `GithubIssueSync.gh_issue_updated_at`.
-- [ ] Update `apps/api/pi_dash/db/models/issue.py` so `Issue` extends `ChangeTrackerMixin`.
+- [ ] Update `apps/api/karma_team/db/models/issue.py` so `Issue` extends `ChangeTrackerMixin`.
 - [ ] Set `Issue.TRACKED_FIELDS = ["state_id"]`.
 - [ ] Add model tests for the new per-project uniqueness constraint.
 
@@ -186,7 +186,7 @@ Why last:
 
 ## 5. Sync worker
 
-- [ ] Add `apps/api/pi_dash/bgtasks/github_sync_task.py`.
+- [ ] Add `apps/api/karma_team/bgtasks/github_sync_task.py`.
 - [ ] Register `sync_all_repos` in Celery beat on a 4-hour cadence.
 - [ ] Implement repo fan-out from `sync_all_repos()` to `sync_one_repo(sync_id)`.
 - [ ] Load and decrypt the workspace PAT inside `sync_one_repo`.
@@ -219,7 +219,7 @@ Why last:
   - linked `GithubIssueSync` exists
   - `completion_comment_id` not already set
 - [ ] Add `post_completion_comment(issue_sync_id)` task.
-- [ ] Build absolute Pi Dash issue URLs using configured web base URL.
+- [ ] Build absolute karma-team issue URLs using configured web base URL.
 - [ ] Post completion comments back to GitHub issues.
 - [ ] Persist returned comment id to `GithubIssueSync.metadata["completion_comment_id"]`.
 - [ ] Persist permanent failures to `GithubIssueSync.metadata["completion_comment_error"]`.

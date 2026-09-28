@@ -5,12 +5,12 @@
  */
 
 import { useContext } from "react";
-import type { TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import type { TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // mobx store
 import { StoreContext } from "@/lib/store-context";
 // types
-import type { IIssueDetail } from "@/pi-dash-web/store/issue/issue-details/root.store";
+import type { IIssueDetail } from "@/karma-team-web/store/issue/issue-details/root.store";
 
 export const useIssueDetail = (serviceType: TIssueServiceType = EIssueServiceType.ISSUES): IIssueDetail => {
   const context = useContext(StoreContext);

@@ -6,10 +6,10 @@
 
 import React, { useMemo } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { TIssueServiceType } from "@pi-dash/types";
-import { CollapsibleButton } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { TIssueServiceType } from "@karma-team/types";
+import { CollapsibleButton } from "@karma-team/ui";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports

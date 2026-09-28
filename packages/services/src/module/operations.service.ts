@@ -5,7 +5,7 @@
  */
 
 // types
-// import type { IModule, ILinkDetails, ModuleLink, TIssuesResponse } from "@pi-dash/types";
+// import type { IModule, ILinkDetails, ModuleLink, TIssuesResponse } from "@karma-team/types";
 // services
 import { APIService } from "../api.service";
 

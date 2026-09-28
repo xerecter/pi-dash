@@ -29,7 +29,7 @@ export function isChunkLoadError(error: unknown): boolean {
 
 // Only reload once per short window so a genuinely-missing asset (build/CDN
 // gap, not just stale) falls through instead of looping.
-const RELOAD_GUARD_KEY = "pi-dash:chunk-reload-at";
+const RELOAD_GUARD_KEY = "karma-team:chunk-reload-at";
 const RELOAD_GUARD_MS = 10_000;
 
 /**

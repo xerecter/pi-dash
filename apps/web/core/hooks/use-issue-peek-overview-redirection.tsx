@@ -6,10 +6,10 @@
 
 import { useRouter } from "next/navigation";
 // types
-import type { TIssue } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // helpers
-import { generateWorkItemLink } from "@pi-dash/utils";
+import { generateWorkItemLink } from "@karma-team/utils";
 // hooks
 import { useIssueDetail } from "./store/use-issue-detail";
 import { useProject } from "./store/use-project";

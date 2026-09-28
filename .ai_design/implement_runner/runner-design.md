@@ -1,6 +1,6 @@
-# Pi Dash Runner — MVP Design
+# karma-team Runner — MVP Design
 
-This document specifies the MVP runner for Pi Dash: a **thin local connector** that accepts tasks assigned by the Pi Dash cloud and invokes Codex locally to execute them. The runner performs **no orchestration** — scheduling, retries, matching, prompt composition, and "done" interpretation all live in the cloud.
+This document specifies the MVP runner for karma-team: a **thin local connector** that accepts tasks assigned by the karma-team cloud and invokes Codex locally to execute them. The runner performs **no orchestration** — scheduling, retries, matching, prompt composition, and "done" interpretation all live in the cloud.
 
 Companion docs in this directory:
 
@@ -13,7 +13,7 @@ Companion docs in this directory:
 
 ### In scope
 
-- Register with Pi Dash cloud using a one-time token → obtain long-lived runner credentials.
+- Register with karma-team cloud using a one-time token → obtain long-lived runner credentials.
 - Maintain a persistent outbound WebSocket to the cloud; send heartbeats; reconnect with backoff.
 - Accept one task at a time; bridge the cloud's task message to `codex app-server`.
 - Relay approval requests from Codex up to the cloud (and to the local TUI); accept decisions from either surface.
@@ -41,7 +41,7 @@ Companion docs in this directory:
 
 | #   | Topic                        | Decision                                                                                                                                                                                                                                                                       |
 | --- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 1   | Working directory            | Runner config specifies working dir. Default `$TMPDIR/.pidash/`. If dir has a git repo → use it. If not → request repo URL from cloud, `git clone` into dir. Clone-auth failure is reported. Every task runs Codex against this dir.                                           |
+| 1   | Working directory            | Runner config specifies working dir. Default `$TMPDIR/.karma-team/`. If dir has a git repo → use it. If not → request repo URL from cloud, `git clone` into dir. Clone-auth failure is reported. Every task runs Codex against this dir.                                       |
 | 2   | Concurrency                  | One task at a time per runner.                                                                                                                                                                                                                                                 |
 | 3   | Assignment                   | One runner instance per dev machine. Globally unique runner ID. Cloud assigns to an online idle runner owned by the user. No label matching.                                                                                                                                   |
 | 4   | Prompt construction          | Cloud renders; runner receives a ready-to-use prompt string. Runner never composes prompts.                                                                                                                                                                                    |
@@ -61,7 +61,7 @@ Companion docs in this directory:
 ```
 ┌─────────────────────── dev laptop ─────────────────────────────────┐
 │                                                                     │
-│   pidash  (daemon, long-lived)                        │
+│   karma-team  (daemon, long-lived)                        │
 │   ┌─────────────────────────────────────────────────────────────┐  │
 │   │  Cloud WS client  ◄─── outbound WSS on 443 ────►            │  │
 │   │                                                             │  │
@@ -76,13 +76,13 @@ Companion docs in this directory:
 │   └─────────────────────────────────────────────────────────────┘  │
 │            ▲                                                        │
 │            │ Unix socket                                            │
-│   pidash tui  (Ratatui, ad-hoc client)                │
+│   karma-team tui  (Ratatui, ad-hoc client)                │
 │                                                                     │
 └─────────────────────────────────────────────────────────────────────┘
                         │  WSS  │
                         ▼       ▼
                  ┌──────────────────────┐
-                 │  Pi Dash cloud  │
+                 │  karma-team cloud  │
                  │  (Django + Node WS)   │
                  └──────────────────────┘
 ```
@@ -102,17 +102,17 @@ Key properties:
 
 Distribution: one static binary per target triple. Users install via:
 
-- Homebrew tap: `brew install pi-dash/tap/runner`
+- Homebrew tap: `brew install karma-team/tap/runner`
 - Direct download: `curl -fsSL https://... | sh`
 - Linux: `.deb` / `.rpm`
 - Future: Windows MSI (v2)
 
-Install does not require root; binary lives in `$HOME/.local/bin/pidash` by default.
+Install does not require root; binary lives in `$HOME/.local/bin/karma-team` by default.
 
 ### 4.2. First-run configure
 
 ```
-pidash configure \
+karma-team configure \
   --url http://localhost \
   --token <ONE_TIME_CODE> \
   [--name my-laptop]
@@ -134,14 +134,14 @@ If TUI is used instead, the first-run wizard in `tui-design.md` performs steps 1
 ### 4.3. Service install
 
 ```
-pidash service install   # systemd user unit / launchd plist
-pidash service start
-pidash service status
-pidash service stop
+karma-team service install   # systemd user unit / launchd plist
+karma-team service start
+karma-team service status
+karma-team service stop
 ```
 
-- **Linux**: generate a `~/.config/systemd/user/pidash.service`, `systemctl --user daemon-reload`, enable with `linger` optional.
-- **macOS**: generate a `~/Library/LaunchAgents/so.pidash.daemon.plist`, load with `launchctl bootstrap gui/$UID`.
+- **Linux**: generate a `~/.config/systemd/user/karma-team.service`, `systemctl --user daemon-reload`, enable with `linger` optional.
+- **macOS**: generate a `~/Library/LaunchAgents/so.karma-team.daemon.plist`, load with `launchctl bootstrap gui/$UID`.
 
 ### 4.4. Run loop (simplified)
 
@@ -225,12 +225,12 @@ This is the one piece of business logic the runner owns. Detailed behavior:
 ### 5.1. Configuration
 
 ```toml
-# ~/.config/pidash/config.toml
+# ~/.config/karma-team/config.toml
 [workspace]
-working_dir = "/var/folders/.../T/.pidash"   # default: $TMPDIR/.pidash
+working_dir = "/var/folders/.../T/.karma-team"   # default: $TMPDIR/.karma-team
 ```
 
-Override via CLI: `pidash configure --working-dir /path/to/repo`.
+Override via CLI: `karma-team configure --working-dir /path/to/repo`.
 
 ### 5.2. On assignment
 
@@ -278,11 +278,11 @@ If `working_dir` is inside `$TMPDIR` on Linux (often `/tmp`, which may be `tmpfs
 ### 6.1. On-disk layout
 
 ```
-~/.config/pidash/
+~/.config/karma-team/
 ├── config.toml          # user-editable config
 └── credentials.toml     # runner_id + runner_secret (0600)
 
-~/.local/share/pidash/
+~/.local/share/karma-team/
 ├── history/
 │   ├── runs/
 │   │   └── <run_id>.jsonl      # one JSONL per run; all Codex events + lifecycle
@@ -303,7 +303,7 @@ cloud_url = "http://localhost"
 # runner_id + secret are in credentials.toml
 
 [workspace]
-working_dir = "/var/folders/.../T/.pidash"
+working_dir = "/var/folders/.../T/.karma-team"
 
 [codex]
 binary = "/usr/local/bin/codex"      # auto-detected; overridable
@@ -448,7 +448,7 @@ per-task:
 
 Phase ordering within one task:
 
-1. `initialize { clientInfo: { name: "pidash", version } }` → wait for `initialize` response.
+1. `initialize { clientInfo: { name: "karma-team", version } }` → wait for `initialize` response.
 2. Send `initialized` notification.
 3. `account/read` — confirm auth state. If unauthenticated → `run_awaiting_reauth`.
 4. `thread/start { cwd, model?, sandboxPolicy: "workspace-write", approvalPolicy: "on-request" }` → capture `thread_id`.
@@ -535,7 +535,7 @@ evaluate(req):
 Single binary, multiple modules. Organized by concern:
 
 ```
-pidash/
+karma-team/
 ├── Cargo.toml
 ├── src/
 │   ├── main.rs                     # CLI dispatch (clap)
@@ -743,4 +743,4 @@ For the reviewer's mental model, the runner **does not**:
 - Store global run state (only its own local history).
 - Open pull requests or run tests.
 
-All of that lives in Pi Dash cloud. The runner is a mouthpiece for Codex with a persistent outbound connection and good manners about approvals and cleanup.
+All of that lives in karma-team cloud. The runner is a mouthpiece for Codex with a persistent outbound connection and good manners about approvals and cleanup.

@@ -7,14 +7,14 @@
 import { useMemo } from "react";
 import uniq from "lodash-es/uniq";
 import { observer } from "mobx-react";
-// pi dash package imports
-import type { TActivityFilters } from "@pi-dash/constants";
-import { E_SORT_ORDER, defaultActivityFilters, EUserPermissions } from "@pi-dash/constants";
-import { useLocalStorage } from "@pi-dash/hooks";
+// karma-team package imports
+import type { TActivityFilters } from "@karma-team/constants";
+import { E_SORT_ORDER, defaultActivityFilters, EUserPermissions } from "@karma-team/constants";
+import { useLocalStorage } from "@karma-team/hooks";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 //types
-import type { TFileSignedURLResponse, TIssueComment, TIssueServiceType } from "@pi-dash/types";
+import type { TFileSignedURLResponse, TIssueComment, TIssueServiceType } from "@karma-team/types";
 // components
 import { CommentCreate } from "@/components/comments/comment-create";
 import { CommentAndRunActionButton } from "@/components/issues/issue-detail-widgets/run-ai";
@@ -22,9 +22,9 @@ import { CommentAndRunActionButton } from "@/components/issues/issue-detail-widg
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import { useUser, useUserPermissions } from "@/hooks/store/user";
-// pi dash web components
-import { ActivityFilterRoot } from "@/pi-dash-web/components/issues/worklog/activity/filter-root";
-import { IssueActivityWorklogCreateButton } from "@/pi-dash-web/components/issues/worklog/activity/worklog-create-button";
+// karma-team web components
+import { ActivityFilterRoot } from "@/karma-team-web/components/issues/worklog/activity/filter-root";
+import { IssueActivityWorklogCreateButton } from "@/karma-team-web/components/issues/worklog/activity/worklog-create-button";
 import { IssueActivityCommentRoot } from "./activity-comment-root";
 import { useWorkItemCommentOperations } from "./helper";
 import { ActivitySortRoot } from "./sort-root";

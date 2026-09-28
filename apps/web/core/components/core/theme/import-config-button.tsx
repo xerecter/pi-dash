@@ -7,11 +7,11 @@
 import { useRef } from "react";
 import { observer } from "mobx-react";
 import type { UseFormSetValue } from "react-hook-form";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import type { IUserTheme } from "@pi-dash/types";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import type { IUserTheme } from "@karma-team/types";
 
 type Props = {
   handleUpdateTheme: (formData: IUserTheme) => Promise<void>;

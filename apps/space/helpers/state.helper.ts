@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { STATE_GROUPS } from "@pi-dash/constants";
-import type { IState } from "@pi-dash/types";
+import { STATE_GROUPS } from "@karma-team/constants";
+import type { IState } from "@karma-team/types";
 
 export const sortStates = (states: IState[]) => {
   if (!states || states.length === 0) return;

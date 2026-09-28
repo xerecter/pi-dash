@@ -9,23 +9,23 @@ import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
 import { AlertCircle } from "lucide-react";
 import { Disclosure, Transition } from "@headlessui/react";
-import { EEstimateSystem } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronUpIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { TModulePlotType } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import { CustomSelect, Spinner } from "@pi-dash/ui";
+import { EEstimateSystem } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronUpIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import type { TModulePlotType } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import { CustomSelect, Spinner } from "@karma-team/ui";
 // components
 // constants
 // helpers
-import { getDate } from "@pi-dash/utils";
+import { getDate } from "@karma-team/utils";
 import ProgressChart from "@/components/core/sidebar/progress-chart";
 import { ModuleProgressStats } from "@/components/modules";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useModule } from "@/hooks/store/use-module";
 import { useWorkItemFilters } from "@/hooks/store/work-item-filters/use-work-item-filters";
-// pi dash web constants
+// karma-team web constants
 type TModuleAnalyticsProgress = {
   workspaceSlug: string;
   projectId: string;
@@ -43,7 +43,7 @@ export const ModuleAnalyticsProgress = observer(function ModuleAnalyticsProgress
   // router
   const searchParams = useSearchParams();
   const peekModule = searchParams.get("peekModule") || undefined;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // hooks
   const { areEstimateEnabledByProjectId, currentActiveEstimateId, estimateById } = useProjectEstimates();

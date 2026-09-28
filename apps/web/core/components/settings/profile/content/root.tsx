@@ -6,10 +6,10 @@
 
 import { Suspense } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { ScrollArea } from "@pi-dash/propel/scrollarea";
-import type { TProfileSettingsTabs } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { ScrollArea } from "@karma-team/propel/scrollarea";
+import type { TProfileSettingsTabs } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // local imports
 import { PROFILE_SETTINGS_PAGES_MAP } from "./pages";
 

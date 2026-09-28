@@ -6,10 +6,10 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-import { EIconSize } from "@pi-dash/constants";
-import { StateGroupIcon } from "@pi-dash/propel/icons";
-import type { IState } from "@pi-dash/types";
-import { Loader } from "@pi-dash/ui";
+import { EIconSize } from "@karma-team/constants";
+import { StateGroupIcon } from "@karma-team/propel/icons";
+import type { IState } from "@karma-team/types";
+import { Loader } from "@karma-team/ui";
 // components
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 // hooks

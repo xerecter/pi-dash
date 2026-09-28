@@ -15,8 +15,8 @@ import type {
   TIssueGroupByOptions,
   TPaginationData,
   TLoader,
-} from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 // local imports

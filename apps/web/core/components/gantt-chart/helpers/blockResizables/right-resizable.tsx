@@ -6,8 +6,8 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash utils
-import { cn, renderFormattedDate } from "@pi-dash/utils";
+// karma-team utils
+import { cn, renderFormattedDate } from "@karma-team/utils";
 //helpers
 //
 //hooks

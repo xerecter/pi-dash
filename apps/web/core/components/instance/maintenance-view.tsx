@@ -11,7 +11,7 @@ import maintenanceModeLightModeImage from "@/app/assets/instance/maintenance-mod
 // layouts
 import DefaultLayout from "@/layouts/default-layout";
 // components
-import { MaintenanceMessage } from "@/pi-dash-web/components/instance";
+import { MaintenanceMessage } from "@/karma-team-web/components/instance";
 
 export function MaintenanceView() {
   // hooks

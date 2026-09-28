@@ -430,7 +430,7 @@ Source of the §2.3 pollution/starvation hazards.
 
 ## 8. Affected Code
 
-**Runner (OSS `pi-dash/`):**
+**Runner (OSS `karma-team/`):**
 
 - `runner/src/daemon/supervisor.rs`
   - Remove cross-lane guards `:809`, `:820`, `:937`/`:1009` **when `pool.is_some()`**;

@@ -5,9 +5,9 @@
  */
 
 import type { ReactNode } from "react";
-// NB: `@pi-dash/types` exports a same-named but different interface; this must
-// be the `@pi-dash/constants` one, which is what `SidebarItem` accepts.
-import type { IWorkspaceSidebarNavigationItem } from "@pi-dash/constants";
+// NB: `@karma-team/types` exports a same-named but different interface; this must
+// be the `@karma-team/constants` one, which is what `SidebarItem` accepts.
+import type { IWorkspaceSidebarNavigationItem } from "@karma-team/constants";
 
 /**
  * A contributed sidebar item, optionally carrying its own icon.

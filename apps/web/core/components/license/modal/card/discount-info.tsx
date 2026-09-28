@@ -5,10 +5,10 @@
  */
 
 import { useTheme } from "next-themes";
-// pi dash imports
-import type { TBillingFrequency } from "@pi-dash/types";
-import { EProductSubscriptionEnum } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type { TBillingFrequency } from "@karma-team/types";
+import { EProductSubscriptionEnum } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 
 import ScribbleBlack from "@/app/assets/scribble/scribble-black.svg?url";
 import ScribbleWhite from "@/app/assets/scribble/scribble-white.svg?url";

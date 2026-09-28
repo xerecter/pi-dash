@@ -6,9 +6,9 @@
 
 // components
 // ui
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { IWebhook } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { IWebhook } from "@karma-team/types";
 // types
 import { WebhookSecretKey } from "./form";
 
@@ -26,7 +26,11 @@ export function GeneratedHookDetails(props: Props) {
       <div className="space-y-5 p-5">
         <div className="space-y-3">
           <h3 className="text-18 font-medium text-secondary">{t("Key created")}</h3>
-          <p className="text-13 text-placeholder">{t("Copy and save this secret key in Pi Dash Pages. You can't see this key after you hit Close. A CSV file containing the key has been downloaded.")}</p>
+          <p className="text-13 text-placeholder">
+            {t(
+              "Copy and save this secret key in karma-team Pages. You can't see this key after you hit Close. A CSV file containing the key has been downloaded."
+            )}
+          </p>
         </div>
         <WebhookSecretKey data={webhookDetails} />
       </div>

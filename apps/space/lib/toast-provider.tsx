@@ -5,9 +5,9 @@
  */
 
 import { useTheme } from "next-themes";
-// pi dash imports
-import { Toast } from "@pi-dash/propel/toast";
-import { resolveGeneralTheme } from "@pi-dash/utils";
+// karma-team imports
+import { Toast } from "@karma-team/propel/toast";
+import { resolveGeneralTheme } from "@karma-team/utils";
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   // themes

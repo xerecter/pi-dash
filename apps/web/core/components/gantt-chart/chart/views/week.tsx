@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // hooks
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //

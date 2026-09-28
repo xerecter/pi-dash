@@ -1,21 +1,21 @@
 # 12 — Deployment Topologies
 
-Pi Dash ships three deploy paths plus a planned Kubernetes one. Pick by how much you want to manage yourself.
+karma-team ships three deploy paths plus a planned Kubernetes one. Pick by how much you want to manage yourself.
 
-All paths require external **Postgres**, **Redis / Valkey**, **RabbitMQ**, and **S3-compatible** object storage — Pi Dash does not bundle data stores into the deploy artifacts.
+All paths require external **Postgres**, **Redis / Valkey**, **RabbitMQ**, and **S3-compatible** object storage — karma-team does not bundle data stores into the deploy artifacts.
 
-| Path                                    | Best for                                | Trade-off                                                                                   |
-| --------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------- |
-| All-in-One (AIO) container              | Demos, homelab, evaluation, small teams | One container, internal `supervisord` — can't scale services independently                  |
-| Docker Compose / Swarm                  | Anything beyond evaluation              | Real microservices stack: 6 service containers — more config, more flexibility              |
-| Kubernetes / Helm                       | Production at scale                     | Helm chart **planned, not yet shipped** — see `deployments/kubernetes/community/README.md`  |
-| Pi Dash Cloud (`pidash.airepublic.com`) | Don't want to run anything              | Hosted by the AI Republic team — see [pidash.airepublic.com](https://pidash.airepublic.com) |
+| Path                                        | Best for                                | Trade-off                                                                                     |
+| ------------------------------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------- |
+| All-in-One (AIO) container                  | Demos, homelab, evaluation, small teams | One container, internal `supervisord` — can't scale services independently                    |
+| Docker Compose / Swarm                      | Anything beyond evaluation              | Real microservices stack: 6 service containers — more config, more flexibility                |
+| Kubernetes / Helm                           | Production at scale                     | Helm chart **planned, not yet shipped** — see `deployments/kubernetes/community/README.md`    |
+| karma-team Cloud (`karma-team.example.com`) | Don't want to run anything              | Hosted by the AI Republic team — see [karma-team.example.com](https://karma-team.example.com) |
 
 ## All-in-One Docker image
 
 Folder: `deployments/aio/community/`.
 
-A single container that bundles every Pi Dash service (web, admin, space, api, live, proxy), supervised internally by `supervisord`. Simplest path: a single `docker run`.
+A single container that bundles every karma-team service (web, admin, space, api, live, proxy), supervised internally by `supervisord`. Simplest path: a single `docker run`.
 
 **You still need to provide:**
 
@@ -69,9 +69,9 @@ Caddy handles TLS termination automatically (Let's Encrypt). It is **not** part 
 | `docker-compose.yml`       | Production-flavored (you'll typically copy + edit this)                                                                                                       |
 | `docker-compose-local.yml` | **Local dev infra only** — Postgres + Redis + RabbitMQ + MinIO. `pnpm dev` attaches app processes to it. See [04 — Getting started](./04-getting-started.md). |
 
-## Cloud overlay (`private-pi-dash`)
+## Cloud overlay (`private-karma-team`)
 
-Pi Dash Cloud is the hosted SaaS. Its proprietary additions live in a separate repo (`private-pi-dash`) and are **not** part of this OSS repo. Cloud-only features are gated by the OIDC `plan` claim (see [11 — Authentication](./11-authentication.md)). Do not fork OSS files into the private repo — extend, don't duplicate.
+karma-team Cloud is the hosted SaaS. Its proprietary additions live in a separate repo (`private-karma-team`) and are **not** part of this OSS repo. Cloud-only features are gated by the OIDC `plan` claim (see [11 — Authentication](./11-authentication.md)). Do not fork OSS files into the private repo — extend, don't duplicate.
 
 ## Where to read next
 

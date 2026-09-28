@@ -6,12 +6,12 @@
 
 import { observer } from "mobx-react";
 import useSWR from "swr";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { AutoPMService } from "@pi-dash/services";
-import type { IAutoPMJob, IAutoPMSettings } from "@pi-dash/types";
-import { ToggleSwitch } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { AutoPMService } from "@karma-team/services";
+import type { IAutoPMJob, IAutoPMSettings } from "@karma-team/types";
+import { ToggleSwitch } from "@karma-team/ui";
 
 const service = new AutoPMService();
 
@@ -59,7 +59,7 @@ export const AutoProjectManagementSettings = observer(function AutoProjectManage
         <h3 className="text-16 font-semibold text-primary">{t("Auto Project Management")}</h3>
         <p className="mt-1 text-13 text-secondary">
           {t(
-            "Pi Dash AI can do routine project upkeep for you automatically. It acts with your permissions and only in workspaces you belong to."
+            "karma-team AI can do routine project upkeep for you automatically. It acts with your permissions and only in workspaces you belong to."
           )}
         </p>
       </div>

@@ -5,8 +5,8 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ISchedulerOccurrence } from "@pi-dash/services";
-import { cn } from "@pi-dash/utils";
+import type { ISchedulerOccurrence } from "@karma-team/services";
+import { cn } from "@karma-team/utils";
 import { formatDayHeader, formatTime, isToday, weekGridDays } from "./date-helpers";
 import { getOccurrenceStyle } from "./occurrence-style";
 

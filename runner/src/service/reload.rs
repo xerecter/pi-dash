@@ -12,7 +12,7 @@
 //!    to the cloud handshook. If this never flips, the config is syntactically
 //!    fine but semantically broken (wrong URL, invalid runner_secret, etc.).
 //!
-//! Callers (TUI Config save, CLI `pidash configure --<flag>`) turn the
+//! Callers (TUI Config save, CLI `karma-team configure --<flag>`) turn the
 //! `ReloadOutcome` into either success UI or a loud error so the user
 //! immediately knows their edit broke the daemon, instead of discovering
 //! it later via a silent background failure.
@@ -64,10 +64,10 @@ where
     let svc = crate::service::detect();
 
     // Self-heal: rewrite the service unit if it's gone (manual cleanup, a
-    // `pidash uninstall`/`remove`, or never written for the current install
-    // location). Without this, `pidash restart` on a unit-less machine
-    // hard-fails — `pidash update` only swaps the binary and doesn't touch
-    // the unit, and operators should not need to know that `pidash install`
+    // `karma-team uninstall`/`remove`, or never written for the current install
+    // location). Without this, `karma-team restart` on a unit-less machine
+    // hard-fails — `karma-team update` only swaps the binary and doesn't touch
+    // the unit, and operators should not need to know that `karma-team install`
     // is the magic recovery command.
     //
     // All backends, not just launchd. This started as a launchd fix because
@@ -75,10 +75,10 @@ where
     // cryptic EIO), on the theory that systemd's clearer "Unit file does not
     // exist" left the operator able to recover unaided. It doesn't: a
     // legible error is still a hard failure, it names what's missing but not
-    // the fix, and the fix isn't guessable — `pidash install` writes the unit
+    // the fix, and the fix isn't guessable — `karma-team install` writes the unit
     // but then declines to start it when no runner is enrolled. `launchd::start`
     // keeps its precondition check as a last line of defense for direct
-    // `pidash start` callers that don't pass through this self-heal.
+    // `karma-team start` callers that don't pass through this self-heal.
     match svc.rewrite_unit_if_missing(paths).await {
         Ok(true) => progress("rewrote missing service unit".into()),
         Ok(false) => {}
@@ -181,7 +181,7 @@ where
                 detail: Some(format!(
                     "Runner started but did not reach the cloud within {}s.\n\
                      Common causes: wrong cloud_url, invalid runner_secret \
-                     (try re-registering with `pidash configure --url ... --token ...`), \
+                     (try re-registering with `karma-team configure --url ... --token ...`), \
                      or a network reachability problem.\n\
                      Service state: {state}",
                     CLOUD_TIMEOUT.as_secs()
@@ -272,7 +272,7 @@ async fn capture_service_detail(svc: &crate::service::Service) -> String {
     }
 }
 
-/// Render a one-liner of configured-runner names for `pidash install` /
+/// Render a one-liner of configured-runner names for `karma-team install` /
 /// reload outcomes. Single-runner returns the bare name; multi-runner
 /// joins with `, ` and reports the count.
 fn summarize_runners(snap: &crate::ipc::protocol::StatusSnapshot) -> String {

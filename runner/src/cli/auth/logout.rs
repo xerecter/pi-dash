@@ -1,6 +1,6 @@
-//! `pidash auth logout` — revoke the shared dev-machine token server-side
+//! `karma-team auth logout` — revoke the shared dev-machine token server-side
 //! and clear it locally. Leaves `[[runner]]` blocks untouched, but a daemon
-//! restart needs `pidash auth login` before runners can reconnect.
+//! restart needs `karma-team auth login` before runners can reconnect.
 
 use anyhow::{Context, Result};
 use clap::Args as ClapArgs;
@@ -72,7 +72,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
             c.runners.len()
         );
         println!(
-            "Run `pidash auth login` before reconnecting them, or `pidash runner remove <name>` to remove one."
+            "Run `karma-team auth login` before reconnecting them, or `karma-team runner remove <name>` to remove one."
         );
     }
     Ok(())

@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { TEstimateSystemKeys } from "@pi-dash/types";
-import { EEstimateSystem } from "@pi-dash/types";
+import type { TEstimateSystemKeys } from "@karma-team/types";
+import { EEstimateSystem } from "@karma-team/types";
 
 export const isEstimateSystemEnabled = (key: TEstimateSystemKeys) => {
   switch (key) {

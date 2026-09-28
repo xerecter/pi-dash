@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { TChartColorScheme } from "@pi-dash/types";
-import { ChartXAxisProperty } from "@pi-dash/types";
+import type { TChartColorScheme } from "@karma-team/types";
+import { ChartXAxisProperty } from "@karma-team/types";
 
 export const LABEL_CLASSNAME = "uppercase text-tertiary/60 text-13 tracking-wide";
 export const AXIS_LABEL_CLASSNAME = "uppercase text-tertiary/60 text-13 tracking-wide";

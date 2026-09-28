@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { useTranslation } from "@pi-dash/i18n";
-import type { IScheduler } from "@pi-dash/services";
+import { useTranslation } from "@karma-team/i18n";
+import type { IScheduler } from "@karma-team/services";
 import { DEFAULT_SCHEDULER_COLOR } from "../constants";
 
 type Props = {

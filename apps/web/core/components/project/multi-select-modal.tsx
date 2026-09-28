@@ -9,13 +9,13 @@ import { xor } from "lodash-es";
 import { observer } from "mobx-react";
 import { useTheme } from "next-themes";
 import { Combobox } from "@headlessui/react";
-// pi dash ui
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-import { Checkbox, EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team ui
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+import { Checkbox, EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // assets
 import darkProjectAsset from "@/app/assets/empty-state/search/project-dark.webp?url";
 import lightProjectAsset from "@/app/assets/empty-state/search/project-light.webp?url";
@@ -42,7 +42,7 @@ export const ProjectMultiSelectModal = observer(function ProjectMultiSelectModal
   const moveButtonRef = useRef<HTMLButtonElement>(null);
   // theme hook
   const { resolvedTheme } = useTheme();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { getProjectById } = useProject();

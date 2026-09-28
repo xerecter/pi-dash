@@ -7,8 +7,8 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { Layers } from "lucide-react";
-// pi dash imports
-import type { IProjectView } from "@pi-dash/types";
+// karma-team imports
+import type { IProjectView } from "@karma-team/types";
 // local imports
 import { PowerKMenuBuilder } from "./builder";
 

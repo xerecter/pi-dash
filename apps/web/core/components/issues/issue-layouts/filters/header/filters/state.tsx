@@ -7,11 +7,11 @@
 import React, { useMemo, useState } from "react";
 import { sortBy } from "lodash-es";
 import { observer } from "mobx-react";
-import { EIconSize } from "@pi-dash/constants";
-import { StateGroupIcon } from "@pi-dash/propel/icons";
-import type { IState } from "@pi-dash/types";
+import { EIconSize } from "@karma-team/constants";
+import { StateGroupIcon } from "@karma-team/propel/icons";
+import type { IState } from "@karma-team/types";
 // components
-import { Loader } from "@pi-dash/ui";
+import { Loader } from "@karma-team/ui";
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 // ui
 // types

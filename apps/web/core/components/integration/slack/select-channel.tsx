@@ -9,9 +9,9 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR, { mutate } from "swr";
 // types
-import type { IWorkspaceIntegration, ISlackIntegration } from "@pi-dash/types";
+import type { IWorkspaceIntegration, ISlackIntegration } from "@karma-team/types";
 // ui
-import { Loader } from "@pi-dash/ui";
+import { Loader } from "@karma-team/ui";
 // fetch-keys
 import { SLACK_CHANNEL_INFO } from "@/constants/fetch-keys";
 // hooks

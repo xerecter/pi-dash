@@ -6,11 +6,11 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IScheduler } from "@pi-dash/services";
-import { AlertModalCore } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IScheduler } from "@karma-team/services";
+import { AlertModalCore } from "@karma-team/ui";
 // hooks
 import { useScheduler } from "@/hooks/store/use-scheduler";
 
@@ -61,7 +61,11 @@ export const DeleteSchedulerModal = observer(function DeleteSchedulerModal(props
       title={t("Delete scheduler?")}
       content={
         <>
-          <p>{t("This soft-deletes the scheduler. Any active project bindings will stop firing. The slug becomes available for re-creation.")}</p>
+          <p>
+            {t(
+              "This soft-deletes the scheduler. Any active project bindings will stop firing. The slug becomes available for re-creation."
+            )}
+          </p>
           {scheduler && <p className="mt-2 font-medium text-primary">{scheduler.name}</p>}
         </>
       }

@@ -8,13 +8,13 @@ import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { ImageIcon } from "lucide-react";
-// pi dash imports
-import { E_PASSWORD_STRENGTH } from "@pi-dash/constants";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IUser } from "@pi-dash/types";
-import { EOnboardingSteps } from "@pi-dash/types";
-import { cn, getFileURL, getPasswordStrength, validatePersonName } from "@pi-dash/utils";
+// karma-team imports
+import { E_PASSWORD_STRENGTH } from "@karma-team/constants";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IUser } from "@karma-team/types";
+import { EOnboardingSteps } from "@karma-team/types";
+import { cn, getFileURL, getPasswordStrength, validatePersonName } from "@karma-team/utils";
 // components
 import { UserImageUploadModal } from "@/components/core/modals/user-image-upload-modal";
 // hooks
@@ -147,7 +147,7 @@ export const ProfileSetupStep = observer(function ProfileSetupStep({ handleStepC
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-10">
       {/* Header */}
-      <CommonOnboardingHeader title="Create your profile." description="This is how you will appear in Pi Dash." />
+      <CommonOnboardingHeader title="Create your profile." description="This is how you will appear in karma-team." />
 
       {/* Profile Picture Section */}
       <Controller

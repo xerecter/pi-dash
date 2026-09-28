@@ -7,7 +7,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { AxiosInstance, AxiosRequestConfig } from "axios";
 import axios from "axios";
-import { getDesktopApiAdapter } from "@pi-dash/services";
+import { getDesktopApiAdapter } from "@karma-team/services";
 
 export abstract class APIService {
   protected baseURL: string;

@@ -24,11 +24,11 @@ impl Drop for AutoSwapGuard {
 }
 
 // `ObservabilitySnapshot` and `ExecCommandSnapshot` moved to the shared
-// `pidash-ipc` crate (PDASHOSS01-158) because `ObservabilitySnapshot` is a
+// `karma-team-ipc` crate (PDASHOSS01-158) because `ObservabilitySnapshot` is a
 // wire type the IPC `Response` reaches into. They are re-exported here so
 // every `daemon::state::{ObservabilitySnapshot, ExecCommandSnapshot}` call
 // site is unchanged.
-pub use pidash_ipc::dto::{ExecCommandSnapshot, ObservabilitySnapshot};
+pub use karma_team_ipc::dto::{ExecCommandSnapshot, ObservabilitySnapshot};
 
 #[derive(Clone)]
 pub struct StateHandle {
@@ -63,7 +63,7 @@ struct Inner {
     last_heartbeat: Mutex<Option<DateTime<Utc>>>,
     /// When this runner last opened a cloud session. `None` until the very
     /// first successful bootstrap — a runner that has never connected shows
-    /// `None`, which is exactly the signal `pidash status` needs to flag it.
+    /// `None`, which is exactly the signal `karma-team status` needs to flag it.
     last_session_open: Mutex<Option<DateTime<Utc>>>,
     /// Consecutive bootstrap (session-open) failures since the last success.
     /// Incremented on every retry in `HttpLoop::bootstrap_with_retry`, reset
@@ -97,7 +97,7 @@ struct Inner {
     /// done deliberately — operators looking at a recently-
     /// disconnected daemon still want to see the last advisory.
     update_advisory: Mutex<(Option<String>, Option<String>)>,
-    /// Version of `~/.local/bin/pidash` after the most recent successful
+    /// Version of `~/.local/bin/karma-team` after the most recent successful
     /// auto-swap. `None` until a swap has actually happened; once `Some`,
     /// the IPC advisory shows "restart to apply" instead of "update
     /// available" because the new bytes are already on disk.
@@ -540,7 +540,7 @@ impl StateHandle {
     }
 
     /// Current on-disk version, if a swap has landed. `None` until the
-    /// auto-update path or `pidash update` has successfully swapped at
+    /// auto-update path or `karma-team update` has successfully swapped at
     /// least once during this daemon's lifetime.
     pub async fn on_disk_version(&self) -> Option<String> {
         self.inner.on_disk_version.lock().await.clone()
@@ -783,7 +783,7 @@ mod tests {
             .await;
         state
             .note_exec_command(ExecCommandSnapshot {
-                command: "cat .pidash-workpad.md".into(),
+                command: "cat .karma-team-workpad.md".into(),
                 cwd: None,
                 tool_call_id: None,
                 started_at: Utc::now(),

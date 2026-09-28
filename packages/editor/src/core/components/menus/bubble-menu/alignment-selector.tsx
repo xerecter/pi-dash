@@ -7,8 +7,8 @@
 import type { Editor } from "@tiptap/core";
 import type { LucideIcon } from "lucide-react";
 import { AlignCenter, AlignLeft, AlignRight } from "lucide-react";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // components
 import { TextAlignItem } from "@/components/menus";
 // types

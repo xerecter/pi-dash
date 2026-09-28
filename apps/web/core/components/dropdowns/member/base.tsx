@@ -7,13 +7,13 @@
 import { useRef, useState } from "react";
 import { observer } from "mobx-react";
 import type { LucideIcon } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import type { IUserLite } from "@pi-dash/types";
-import { ComboDropDown } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import type { IUserLite } from "@karma-team/types";
+import { ComboDropDown } from "@karma-team/ui";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useDropdown } from "@/hooks/use-dropdown";
 // local imports

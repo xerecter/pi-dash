@@ -6,9 +6,9 @@
 
 import { set } from "lodash-es";
 import { observable, action, makeObservable, runInAction } from "mobx";
-// pi dash imports
-import { InstanceService } from "@pi-dash/services";
-import type { IInstance, IInstanceConfig } from "@pi-dash/types";
+// karma-team imports
+import { InstanceService } from "@karma-team/services";
+import type { IInstance, IInstanceConfig } from "@karma-team/types";
 // store
 import type { RootStore } from "@/store/root.store";
 

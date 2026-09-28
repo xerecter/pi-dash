@@ -5,12 +5,12 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash web components
-import { PageLockControl } from "@/pi-dash-web/components/pages/header/lock-control";
-import { PageMoveControl } from "@/pi-dash-web/components/pages/header/move-control";
-import { PageShareControl } from "@/pi-dash-web/components/pages/header/share-control";
-// pi dash web hooks
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
+// karma-team web components
+import { PageLockControl } from "@/karma-team-web/components/pages/header/lock-control";
+import { PageMoveControl } from "@/karma-team-web/components/pages/header/move-control";
+import { PageShareControl } from "@/karma-team-web/components/pages/header/share-control";
+// karma-team web hooks
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports

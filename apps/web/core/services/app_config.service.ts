@@ -5,12 +5,12 @@
  */
 
 // services
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 import { APIService } from "@/services/api.service";
 // helper
 // types
 // FIXME:
-// import { TAppConfig } from "@pi-dash/types";
+// import { TAppConfig } from "@karma-team/types";
 
 export class AppConfigService extends APIService {
   constructor() {

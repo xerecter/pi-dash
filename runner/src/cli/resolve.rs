@@ -26,7 +26,7 @@ pub struct ResolvedIssue {
     pub id: String,
     pub project_id: String,
     /// Full JSON payload from the by-identifier GET. Callers reuse it for
-    /// `pidash issue get` output without re-fetching.
+    /// `karma-team issue get` output without re-fetching.
     pub raw: Value,
 }
 

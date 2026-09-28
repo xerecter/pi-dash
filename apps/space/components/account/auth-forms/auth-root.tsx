@@ -7,10 +7,10 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
-// pi dash imports
-import { SitesAuthService } from "@pi-dash/services";
-import type { IEmailCheckData } from "@pi-dash/types";
-import { OAuthOptions } from "@pi-dash/ui";
+// karma-team imports
+import { SitesAuthService } from "@karma-team/services";
+import type { IEmailCheckData } from "@karma-team/types";
+import { OAuthOptions } from "@karma-team/ui";
 // helpers
 import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
 import { EErrorAlertType, authErrorHandler, EAuthenticationErrorCodes } from "@/helpers/authentication.helper";

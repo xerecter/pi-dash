@@ -6,18 +6,18 @@
 
 import { observer } from "mobx-react";
 import { Shapes } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { HomeIcon } from "@pi-dash/propel/icons";
-import { Breadcrumbs, Header } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { HomeIcon } from "@karma-team/propel/icons";
+import { Breadcrumbs, Header } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 // hooks
 import { useHome } from "@/hooks/store/use-home";
 
 export const WorkspaceDashboardHeader = observer(function WorkspaceDashboardHeader() {
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // hooks
   const { toggleWidgetSettings } = useHome();
@@ -29,9 +29,7 @@ export const WorkspaceDashboardHeader = observer(function WorkspaceDashboardHead
           <div className="flex items-center gap-2">
             <Breadcrumbs>
               <Breadcrumbs.Item
-                component={
-                  <BreadcrumbLink label={t("Home")} icon={<HomeIcon className="h-4 w-4 text-tertiary" />} />
-                }
+                component={<BreadcrumbLink label={t("Home")} icon={<HomeIcon className="h-4 w-4 text-tertiary" />} />}
               />
             </Breadcrumbs>
           </div>

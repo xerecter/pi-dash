@@ -1,8 +1,8 @@
-# 04 — Private Pi-Dash Cloud Integration
+# 04 — Private karma-team Cloud Integration
 
-Principle (matches existing architecture): **all assistant functionality lives in OSS pi-dash**;
-`private-pi-dash` only layers plan gating, quotas, and (future) platform-provided LLM keys via its
-existing seams — settings overrides in `pi_dash_cloud/settings/cloud.py` and, where file-level
+Principle (matches existing architecture): **all assistant functionality lives in OSS karma-team**;
+`private-karma-team` only layers plan gating, quotas, and (future) platform-provided LLM keys via its
+existing seams — settings overrides in `karma_team_cloud/settings/cloud.py` and, where file-level
 override is needed, `ee-overlay/`.
 
 ## 1. Day-1 cloud behavior (free users, BYOK)
@@ -10,7 +10,7 @@ override is needed, `ee-overlay/`.
 - Assistant available to **all plans including FREE**, requiring user BYOK config — this is pure
   OSS behavior; cloud needs no override to enable it.
 - `ASSISTANT_ENCRYPTION_KEY` (comma-separated MultiFernet key list, 02-backend.md §7) added to
-  SSM (`/pidash/<env>/assistant-encryption-key`) → env-file → settings, following the existing
+  SSM (`/karma-team/<env>/assistant-encryption-key`) → env-file → settings, following the existing
   secret pipeline (ssm-bootstrap).
 - `ASSISTANT_BLOCK_PRIVATE_URLS=True` in cloud settings (single SSRF policy defined in
   02-backend.md §7: loopback + link-local incl. 169.254.169.254 + RFC1918, checked at save, at
@@ -30,7 +30,7 @@ Settled design kept for the post-MVP implementation (do not re-litigate then): p
 time); enforcement = atomic Redis `INCR` on `assistant:quota:<workspace_id>:<YYYYMM>` (EXPIRE
 ~40 days) in the message-create endpoint, post-INCR compare → `402 quota_exceeded`; no refunds
 for failed turns; 409-rejected posts uncounted; nightly Postgres rollup; endpoint-level (the
-`_check_hard_limits` middleware stub at `pi_dash_cloud/quotas/middleware.py:47-51` stays
+`_check_hard_limits` middleware stub at `karma_team_cloud/quotas/middleware.py:47-51` stays
 untouched); frontend keys off an `assistant` entitlement block from the billing endpoint with
 404-fallback defaults for OSS (03-frontend.md §6).
 
@@ -39,11 +39,11 @@ untouched); frontend keys off an `assistant` entitlement block from the billing 
 When the home-page paid integration lands:
 
 - New cloud-only model resolution hook via the ee/ce stub pattern (`ee-overlay/README.md`).
-  **Reality check (review-verified): no Python-side `pi_dash/ee/` exists in OSS today** — only
-  web packages have ee stubs. Therefore Phase 1 OSS work creates `pi_dash/ee/__init__.py` and
-  `pi_dash/ee/assistant/model_provider.py` (re-exporting the CE BYOK-only
+  **Reality check (review-verified): no Python-side `karma_team/ee/` exists in OSS today** — only
+  web packages have ee stubs. Therefore Phase 1 OSS work creates `karma_team/ee/__init__.py` and
+  `karma_team/ee/assistant/model_provider.py` (re-exporting the CE BYOK-only
   `runtime/llm.py::resolve_model`), and `runtime/llm.py` callers import through that path.
-  Cloud's `ee-overlay/apps/api/pi_dash/ee/assistant/model_provider.py` then replaces the stub at
+  Cloud's `ee-overlay/apps/api/karma_team/ee/assistant/model_provider.py` then replaces the stub at
   image build (`COPY ee-overlay/ /code/`, Dockerfile:50-51).
 - Cloud implementation: if `plan.allows_feature("assistant_platform_keys")` → return a
   platform-managed model (platform OpenRouter/Anthropic key from SSM, per-plan model allowlist,

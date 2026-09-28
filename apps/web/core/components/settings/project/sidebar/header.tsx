@@ -6,11 +6,11 @@
 
 import { ArrowLeft } from "lucide-react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { ROLE_DETAILS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { IconButton } from "@pi-dash/propel/icon-button";
+// karma-team imports
+import { ROLE_DETAILS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { IconButton } from "@karma-team/propel/icon-button";
 // hooks
 import { useUserPermissions } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";

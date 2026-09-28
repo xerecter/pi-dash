@@ -6,11 +6,11 @@
 
 import { useRef, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
-import type { TIssueComment, TCommentsOperations } from "@pi-dash/types";
-// pi dash web imports
-import { CommentBlock, CommentCardDisplay } from "@/pi-dash-web/components/comments";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
+import type { TIssueComment, TCommentsOperations } from "@karma-team/types";
+// karma-team web imports
+import { CommentBlock, CommentCardDisplay } from "@/karma-team-web/components/comments";
 // local imports
 import { CommentQuickActions } from "../quick-actions";
 

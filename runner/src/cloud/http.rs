@@ -153,7 +153,7 @@ impl SharedHttpTransport {
         let http = Client::builder()
             .pool_idle_timeout(Duration::from_secs(60))
             .timeout(timeout)
-            .user_agent(format!("pidash/{}", crate::RUNNER_VERSION))
+            .user_agent(format!("karma-team/{}", crate::RUNNER_VERSION))
             .build()
             .context("building shared reqwest::Client")?;
         Ok(Self {
@@ -1555,7 +1555,7 @@ impl HttpLoop {
                 }
                 Err(err) => {
                     // Record the failure on the runner's state so a wedged
-                    // runner surfaces in `pidash status` / `doctor` as
+                    // runner surfaces in `karma-team status` / `doctor` as
                     // DISCONNECTED-with-a-count instead of looking Idle.
                     let consecutive = match &self.state {
                         Some(state) => state.note_bootstrap_failure().await,
@@ -1882,8 +1882,8 @@ pub struct CreateRunnerRequest<'a> {
 
 /// Public helper to create a runner with the user-scoped CLI `APIToken`.
 ///
-/// `pidash auth login` populates `[cli].token`. Once that token exists,
-/// `pidash runner add` can mint a runner directly without the one-time
+/// `karma-team auth login` populates `[cli].token`. Once that token exists,
+/// `karma-team runner add` can mint a runner directly without the one-time
 /// enrollment-token paste. `workspace_slug` is optional: the cloud falls back
 /// to the caller's single workspace membership when omitted.
 pub async fn create_runner(

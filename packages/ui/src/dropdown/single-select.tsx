@@ -8,8 +8,8 @@ import { Combobox } from "@headlessui/react";
 import { sortBy } from "lodash-es";
 import React, { useMemo, useRef, useState } from "react";
 import { usePopper } from "react-popper";
-// pi dash imports
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+// karma-team imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // local imports
 import { useDropdownKeyPressed } from "../hooks/use-dropdown-key-pressed";
 import { cn } from "../utils";

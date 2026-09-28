@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { ArchiveIcon } from "@pi-dash/propel/icons";
-import { renderFormattedDate } from "@pi-dash/utils";
+// karma-team imports
+import { ArchiveIcon } from "@karma-team/propel/icons";
+import { renderFormattedDate } from "@karma-team/utils";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

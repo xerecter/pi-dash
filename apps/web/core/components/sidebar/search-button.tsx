@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { SearchIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+import { SearchIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   isActive?: boolean;

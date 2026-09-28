@@ -6,10 +6,10 @@
 
 import React from "react";
 import Link from "next/link";
-// pi dash imports
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { cn } from "@karma-team/utils";
 import type { LucideIcon } from "lucide-react";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
+import type { ISvgIcons } from "@karma-team/propel/icons";
 
 type Props = {
   isActive: boolean;

@@ -1,0 +1,1105 @@
+# Copyright (c) 2023-present Pi Dash Software, Inc. and contributors
+# SPDX-License-Identifier: AGPL-3.0-only
+# See the LICENSE file for details.
+
+"""Integration tests for the run-creation endpoint after Phase 3 wiring."""
+
+from __future__ import annotations
+
+from unittest.mock import patch
+from uuid import uuid4
+
+import pytest
+from rest_framework import status
+
+from karma_team.db.models import User, Workspace, WorkspaceMember
+from karma_team.runner.models import (
+    AgentRun,
+    AgentRunStatus,
+    Pod,
+)
+
+
+@pytest.fixture
+def second_workspace(db, create_user):
+    ws = Workspace.objects.create(name="OtherWS", owner=create_user, slug="other-ws-runs")
+    WorkspaceMember.objects.create(workspace=ws, member=create_user, role=20)
+    return ws
+
+
+@pytest.fixture(autouse=True)
+def _stub_send_to_runner():
+    with patch("karma_team.runner.services.pubsub.send_to_runner"):
+        yield
+
+
+@pytest.fixture(autouse=True)
+def _on_commit_immediate():
+    with patch("django.db.transaction.on_commit", side_effect=lambda fn, **kw: fn()):
+        yield
+
+
+@pytest.mark.unit
+def test_post_run_validates_workspace_membership(db, api_client, second_workspace):
+    outsider = User.objects.create(
+        email=f"out-{uuid4().hex[:8]}@example.com",
+        username=f"out_{uuid4().hex[:8]}",
+    )
+    outsider.set_password("pw")
+    outsider.save()
+    api_client.force_authenticate(user=outsider)
+    resp = api_client.post(
+        "/api/runners/runs/",
+        {"prompt": "x", "workspace": str(second_workspace.id)},
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_403_FORBIDDEN
+    assert resp.data["code"] == "not_workspace_member"
+
+
+@pytest.mark.unit
+def test_post_run_creates_with_workspace_default_pod(db, session_client, workspace, project):
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {"prompt": "do work", "workspace": str(workspace.id)},
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_201_CREATED
+    run_id = resp.data["id"]
+    run = AgentRun.objects.get(id=run_id)
+    assert run.pod_id == Pod.default_for_project(project).id
+    assert run.created_by_id == workspace.owner_id
+
+
+@pytest.mark.unit
+def test_post_run_rejects_pod_in_other_workspace(db, session_client, workspace, second_workspace, project):
+    from karma_team.db.models.project import Project
+
+    second_project = Project.objects.create(
+        name="Other",
+        identifier="OTHER",
+        workspace=second_workspace,
+        created_by=workspace.owner,
+    )
+    other_pod = Pod.default_for_project(second_project)
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "prompt": "x",
+            "workspace": str(workspace.id),
+            "pod": str(other_pod.id),
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+    assert resp.data["code"] == "pod_workspace_mismatch"
+
+
+@pytest.mark.unit
+def test_post_run_ignores_request_body_created_by(db, session_client, workspace, project):
+    """Caller can't impersonate someone else by passing created_by in the body."""
+    spoofed = User.objects.create(
+        email=f"spoof-{uuid4().hex[:8]}@example.com",
+        username=f"spoof_{uuid4().hex[:8]}",
+    )
+    spoofed.set_password("pw")
+    spoofed.save()
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "prompt": "x",
+            "workspace": str(workspace.id),
+            "created_by": spoofed.id,
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_201_CREATED
+    run = AgentRun.objects.get(id=resp.data["id"])
+    # created_by reflects the authenticated user, not the body field.
+    assert run.created_by_id == workspace.owner_id
+
+
+@pytest.mark.unit
+def test_get_runs_workspace_admin_sees_free_form_workspace_runs(db, session_client, workspace, project):
+    """Workspace administrators are involved with every workspace run."""
+    AgentRun.objects.create(
+        workspace=workspace,
+        created_by=workspace.owner,
+        pod=Pod.default_for_project(project),
+        prompt="mine",
+    )
+    other = User.objects.create(
+        email=f"o-{uuid4().hex[:8]}@example.com",
+        username=f"o_{uuid4().hex[:8]}",
+    )
+    other.set_password("pw")
+    other.save()
+    AgentRun.objects.create(
+        workspace=workspace,
+        created_by=other,
+        pod=Pod.default_for_project(project),
+        prompt="not mine",
+    )
+    resp = session_client.get("/api/runners/runs/")
+    assert resp.status_code == status.HTTP_200_OK
+    prompts = [r["prompt"] for r in resp.data["results"]]
+    assert "mine" in prompts
+    assert "not mine" in prompts
+
+
+@pytest.mark.unit
+def test_get_run_detail_exposes_error_diagnostic(db, session_client, workspace, project):
+    error = "Failed to authenticate. API Error: 401 Invalid authentication credentials"
+    run = AgentRun.objects.create(
+        workspace=workspace,
+        created_by=workspace.owner,
+        pod=Pod.default_for_project(project),
+        prompt="broken auth",
+        status=AgentRunStatus.FAILED,
+        error=error,
+    )
+
+    resp = session_client.get(f"/api/runners/runs/{run.id}/")
+
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp.data["error"] == error
+    assert resp.data["error_diagnostic"]["source"] == "agent"
+    assert resp.data["error_diagnostic"]["kind"] == "agent_authentication"
+    assert resp.data["error_diagnostic"]["summary"] == error
+
+
+# ---------------------------------------------------------------------------
+# GET /api/runners/runs/ — broadened "involved with" scope.
+#
+# Runs created by the system bot for periodic ticks (``triggered_by=tick``)
+# carry ``created_by = agent system user`` per
+# ``orchestration/scheduling._resolve_creator_for_trigger``. Filtering only
+# by ``created_by = request.user`` would hide every tick-driven run from
+# the human who actually owns the issue. The list endpoint therefore
+# surfaces any run whose ``work_item`` was created by, or is assigned to,
+# the caller — in addition to runs the caller created directly.
+# ---------------------------------------------------------------------------
+
+
+def _make_other_user():
+    user = User.objects.create(
+        email=f"o-{uuid4().hex[:8]}@example.com",
+        username=f"o_{uuid4().hex[:8]}",
+    )
+    user.set_password("pw")
+    user.save()
+    return user
+
+
+def _make_issue(workspace, *, created_by, assignees=()):
+    """Create a minimal Issue inside the workspace's default-ish project.
+
+    ``IssueAssignee`` (the M2M through model) extends ``ProjectBaseModel``
+    which has a non-null ``created_by`` — so we must create rows
+    explicitly rather than via ``issue.assignees.set(...)``.
+    """
+    from crum import impersonate
+
+    from karma_team.db.models import Issue, Project, State
+    from karma_team.db.models.issue import IssueAssignee
+
+    with impersonate(created_by):
+        project = Project.objects.create(
+            name=f"P-{uuid4().hex[:6]}",
+            identifier=f"P{uuid4().hex[:4].upper()}",
+            workspace=workspace,
+            created_by=created_by,
+        )
+        started = State.objects.create(name="In Progress", project=project, group="started")
+        issue = Issue.objects.create(
+            name="task",
+            workspace=workspace,
+            project=project,
+            state=started,
+            created_by=created_by,
+        )
+        for assignee in assignees:
+            IssueAssignee.objects.create(
+                issue=issue,
+                assignee=assignee,
+                workspace=workspace,
+                project=project,
+                created_by=created_by,
+            )
+    # The state-transition signal may auto-create an initial dispatch run;
+    # delete it so each test controls exactly which runs exist.
+    AgentRun.objects.filter(work_item=issue).delete()
+    return issue
+
+
+def _add_online_runner(workspace, project, *, owner=None, name="rnr"):
+    """Register an ONLINE runner owned by ``owner`` (default: workspace
+    owner) in ``project``'s default pod, so the eligibility preflight lets
+    a run on that owner's issue dispatch instead of bouncing to Backlog."""
+    from django.utils import timezone
+
+    from karma_team.runner.models import Runner, RunnerStatus
+
+    return Runner.objects.create(
+        owner=owner or workspace.owner,
+        workspace=workspace,
+        pod=Pod.default_for_project(project),
+        name=name,
+        status=RunnerStatus.ONLINE,
+        last_heartbeat_at=timezone.now(),
+    )
+
+
+@pytest.mark.unit
+def test_get_runs_includes_tick_runs_on_issue_user_created(db, session_client, workspace, project):
+    """An issue I created has a tick-driven run authored by the bot.
+    The run must appear in my list even though I didn't create it.
+    """
+    other = _make_other_user()  # stand-in for the bot
+    issue = _make_issue(workspace, created_by=workspace.owner)
+    AgentRun.objects.create(
+        workspace=workspace,
+        created_by=other,
+        pod=Pod.default_for_project(project),
+        work_item=issue,
+        prompt="tick run on my issue",
+    )
+    resp = session_client.get("/api/runners/runs/")
+    assert resp.status_code == status.HTTP_200_OK
+    assert "tick run on my issue" in [r["prompt"] for r in resp.data["results"]]
+
+
+@pytest.mark.unit
+def test_get_runs_includes_tick_runs_on_issue_user_assigned(db, session_client, workspace, project):
+    """An issue I'm assigned to (but didn't create) has a tick-driven run
+    authored by the bot. The run must still appear in my list.
+    """
+    other = _make_other_user()
+    issue = _make_issue(workspace, created_by=other, assignees=[workspace.owner])
+    AgentRun.objects.create(
+        workspace=workspace,
+        created_by=other,
+        pod=Pod.default_for_project(project),
+        work_item=issue,
+        prompt="tick run on assigned issue",
+    )
+    resp = session_client.get("/api/runners/runs/")
+    assert resp.status_code == status.HTTP_200_OK
+    assert "tick run on assigned issue" in [r["prompt"] for r in resp.data["results"]]
+
+
+@pytest.mark.unit
+def test_get_runs_workspace_admin_sees_runs_on_unrelated_issues(db, session_client, workspace, project):
+    """Workspace administrators can audit runs on otherwise unrelated issues."""
+    other = _make_other_user()
+    issue = _make_issue(workspace, created_by=other)
+    AgentRun.objects.create(
+        workspace=workspace,
+        created_by=other,
+        pod=Pod.default_for_project(project),
+        work_item=issue,
+        prompt="run on unrelated issue",
+    )
+    resp = session_client.get("/api/runners/runs/")
+    assert resp.status_code == status.HTTP_200_OK
+    assert "run on unrelated issue" in [r["prompt"] for r in resp.data["results"]]
+
+
+@pytest.mark.unit
+def test_get_runs_does_not_duplicate_when_user_satisfies_multiple_clauses(db, session_client, workspace, project):
+    """Caller created the issue AND is assigned to it AND created the run.
+    The run still appears exactly once.
+    """
+    issue = _make_issue(workspace, created_by=workspace.owner, assignees=[workspace.owner])
+    AgentRun.objects.create(
+        workspace=workspace,
+        created_by=workspace.owner,
+        pod=Pod.default_for_project(project),
+        work_item=issue,
+        prompt="multi-match run",
+    )
+    resp = session_client.get("/api/runners/runs/")
+    assert resp.status_code == status.HTTP_200_OK
+    prompts = [r["prompt"] for r in resp.data["results"]]
+    assert prompts.count("multi-match run") == 1
+
+
+# ---------------------------------------------------------------------------
+# GET /api/runners/runs/ — page-number pagination.
+# ---------------------------------------------------------------------------
+
+
+def _bulk_create_runs(workspace, project, count, prefix="run"):
+    pod = Pod.default_for_project(project)
+    AgentRun.objects.bulk_create(
+        [
+            AgentRun(
+                workspace=workspace,
+                created_by=workspace.owner,
+                pod=pod,
+                prompt=f"{prefix}-{i:03d}",
+            )
+            for i in range(count)
+        ]
+    )
+
+
+@pytest.mark.unit
+def test_get_runs_defaults_to_first_page_of_thirty(db, session_client, workspace, project):
+    """With no page param, only the first 30 runs come back and the envelope
+    reports the true totals."""
+    _bulk_create_runs(workspace, project, 60)
+    resp = session_client.get("/api/runners/runs/")
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp.data["page"] == 1
+    assert resp.data["per_page"] == 30
+    assert resp.data["total_count"] == 60
+    assert resp.data["total_pages"] == 2
+    assert resp.data["count"] == 30
+    assert len(resp.data["results"]) == 30
+
+
+@pytest.mark.unit
+def test_get_runs_second_page_returns_remainder(db, session_client, workspace, project):
+    """Page 2 returns the remaining items and does not overlap page 1."""
+    _bulk_create_runs(workspace, project, 45)
+    page1 = session_client.get("/api/runners/runs/", {"page": 1})
+    page2 = session_client.get("/api/runners/runs/", {"page": 2})
+    assert page2.status_code == status.HTTP_200_OK
+    assert page2.data["page"] == 2
+    assert len(page2.data["results"]) == 15
+    ids1 = {r["id"] for r in page1.data["results"]}
+    ids2 = {r["id"] for r in page2.data["results"]}
+    assert ids1.isdisjoint(ids2)
+
+
+@pytest.mark.unit
+def test_get_runs_out_of_range_page_is_empty_with_real_totals(db, session_client, workspace, project):
+    """A page beyond the last returns an empty result set but keeps the real
+    total_pages so the UI can recover."""
+    _bulk_create_runs(workspace, project, 10)
+    resp = session_client.get("/api/runners/runs/", {"page": 99})
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp.data["results"] == []
+    assert resp.data["total_count"] == 10
+    assert resp.data["total_pages"] == 1
+
+
+@pytest.mark.unit
+def test_get_runs_per_page_is_capped(db, session_client, workspace, project):
+    """per_page above the cap is clamped rather than honored verbatim."""
+    resp = session_client.get("/api/runners/runs/", {"per_page": 100000})
+    assert resp.status_code == status.HTTP_200_OK
+    assert resp.data["per_page"] == 200
+
+
+@pytest.mark.unit
+def test_get_runs_invalid_page_falls_back_to_one(db, session_client, workspace, project):
+    """Garbage or non-positive page values fall back to page 1 instead of
+    erroring."""
+    for bad in ("abc", "0", "-3", ""):
+        resp = session_client.get("/api/runners/runs/", {"page": bad})
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["page"] == 1
+
+
+# ---------------------------------------------------------------------------
+# AgentRunReleasePinEndpoint
+#
+# Operator escape hatch for a stuck pin: the pinned runner is offline
+# indefinitely, and the human chooses to give up native session resume so
+# any other runner can pick the run up. See §5.7 of design doc.
+# ---------------------------------------------------------------------------
+
+
+def _make_pinned_run(workspace, *, parent_thread_id=None):
+    from django.utils import timezone
+
+    from karma_team.db.models.project import Project
+    from karma_team.runner.models import Runner, RunnerStatus
+
+    project = Project.objects.filter(workspace=workspace).first()
+    pod = Pod.default_for_project(project)
+    runner = Runner.objects.create(
+        owner=workspace.owner,
+        workspace=workspace,
+        pod=pod,
+        name="pinR",
+        status=RunnerStatus.ONLINE,
+        last_heartbeat_at=timezone.now(),
+    )
+    parent = None
+    if parent_thread_id is not None:
+        parent = AgentRun.objects.create(
+            workspace=workspace,
+            created_by=workspace.owner,
+            pod=pod,
+            runner=runner,
+            thread_id=parent_thread_id,
+            status=AgentRunStatus.PAUSED_AWAITING_INPUT,
+            prompt="prior",
+            started_at=timezone.now() - timezone.timedelta(minutes=5),
+        )
+    run = AgentRun.objects.create(
+        workspace=workspace,
+        created_by=workspace.owner,
+        pod=pod,
+        parent_run=parent,
+        pinned_runner=runner,
+        status=AgentRunStatus.QUEUED,
+        prompt="continuation",
+    )
+    return run, parent, runner
+
+
+@pytest.mark.unit
+def test_release_pin_clears_pin_and_parent_thread_id(db, session_client, workspace, project):
+    run, parent, runner = _make_pinned_run(workspace, parent_thread_id="sess_alive")
+    resp = session_client.post(
+        f"/api/runners/runs/{run.id}/release-pin/",
+        {},
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_200_OK
+    run.refresh_from_db()
+    parent.refresh_from_db()
+    assert run.pinned_runner_id is None
+    # Status may flip to ASSIGNED if a runner is online and idle (drain
+    # fires on commit). The endpoint contract is "drop the pin without
+    # cancelling," not "stay QUEUED." Asserting the pin is what matters.
+    assert run.status in (AgentRunStatus.QUEUED, AgentRunStatus.ASSIGNED)
+    # Parent's session id is wiped so the next runner doesn't get a stale
+    # resume hint.
+    assert parent.thread_id == ""
+
+
+@pytest.mark.unit
+def test_release_pin_returns_409_when_not_queued(db, session_client, workspace, project):
+    run, _, _ = _make_pinned_run(workspace)
+    AgentRun.objects.filter(pk=run.pk).update(status=AgentRunStatus.RUNNING)
+    resp = session_client.post(f"/api/runners/runs/{run.id}/release-pin/", {}, format="json")
+    assert resp.status_code == status.HTTP_409_CONFLICT
+    assert resp.data["error"] == "run not queued"
+
+
+@pytest.mark.unit
+def test_release_pin_returns_409_when_not_pinned(db, session_client, workspace, project):
+    run, _, _ = _make_pinned_run(workspace)
+    AgentRun.objects.filter(pk=run.pk).update(pinned_runner=None)
+    resp = session_client.post(f"/api/runners/runs/{run.id}/release-pin/", {}, format="json")
+    assert resp.status_code == status.HTTP_409_CONFLICT
+    assert resp.data["error"] == "run not pinned"
+
+
+@pytest.mark.unit
+def test_release_pin_404_for_run_in_other_workspace(db, api_client, workspace, second_workspace, project):
+    """A user who isn't authorized for the run must not see it exist."""
+    run, _, _ = _make_pinned_run(workspace)
+    outsider = User.objects.create(
+        email=f"o-{uuid4().hex[:8]}@example.com",
+        username=f"o_{uuid4().hex[:8]}",
+    )
+    outsider.set_password("pw")
+    outsider.save()
+    api_client.force_authenticate(user=outsider)
+    resp = api_client.post(f"/api/runners/runs/{run.id}/release-pin/", {}, format="json")
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+# ---------------------------------------------------------------------------
+# Comment & Run endpoint
+#
+# POST /api/runners/runs/ with ``triggered_by="comment_and_run"`` reuses the
+# continuation pipeline (parent resolution, runner pinning, drain) and
+# resets the issue's ``IssueAgentTicker``. See
+# ``.ai_design/issue_ticking_system/design.md`` §4.6.
+# ---------------------------------------------------------------------------
+
+
+def _make_in_progress_issue_with_paused_run(workspace):
+    """Build an issue in the literal ``In Progress`` state with a prior
+    ``PAUSED_AWAITING_INPUT`` run — the prerequisites for ``Comment & Run``."""
+    from datetime import timedelta
+
+    from crum import impersonate
+    from django.utils import timezone
+
+    from karma_team.db.models import Issue, Project, State
+    from karma_team.runner.models import Runner, RunnerStatus
+
+    with impersonate(workspace.owner):
+        project = Project.objects.create(
+            name="CARun",
+            identifier="CARN",
+            workspace=workspace,
+            created_by=workspace.owner,
+        )
+        in_progress = State.objects.create(name="In Progress", project=project, group="started")
+        State.objects.create(name="Todo", project=project, group="unstarted")
+        issue = Issue.objects.create(
+            name="Task",
+            workspace=workspace,
+            project=project,
+            state=in_progress,
+            created_by=workspace.owner,
+        )
+    # Runner must live in the *issue's* pod (the CARun project's default pod)
+    # so the eligibility preflight sees a runner whose owner is the issue
+    # creator — otherwise dispatch bounces the issue to Backlog.
+    pod = Pod.default_for_project(project)
+    runner = Runner.objects.create(
+        owner=workspace.owner,
+        workspace=workspace,
+        pod=pod,
+        name="carun",
+        status=RunnerStatus.ONLINE,
+        last_heartbeat_at=timezone.now(),
+    )
+    # The state-transition signal auto-creates an immediate-dispatch run
+    # (and the matcher may have flipped it to ASSIGNED). Delete it so the
+    # test's PAUSED parent is the only prior run, with no active-run noise.
+    AgentRun.objects.filter(work_item=issue).delete()
+    parent = AgentRun.objects.create(
+        workspace=workspace,
+        owner=workspace.owner,
+        pod=pod,
+        work_item=issue,
+        runner=runner,
+        thread_id="sess_xyz",
+        status=AgentRunStatus.PAUSED_AWAITING_INPUT,
+        prompt="prior",
+        started_at=timezone.now() - timedelta(minutes=5),
+    )
+    return issue, parent
+
+
+@pytest.mark.unit
+def test_comment_and_run_creates_continuation_with_parent_link(db, session_client, workspace, project):
+    """Happy path: prior PAUSED run exists, ``triggered_by`` routes to the
+    continuation pipeline, ``parent_run`` is wired correctly."""
+    issue, parent = _make_in_progress_issue_with_paused_run(workspace)
+
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "comment_and_run",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_201_CREATED, resp.data
+    run = AgentRun.objects.get(id=resp.data["id"])
+    assert run.parent_run_id == parent.id
+    # Status may be QUEUED or ASSIGNED — drain may have flipped it on commit
+    # (the runner_for_workspace fixture is online and idle). The contract
+    # is "continuation row created, linked to the prior run," not a
+    # specific terminal status of the post-commit drain.
+    assert run.status in (AgentRunStatus.QUEUED, AgentRunStatus.ASSIGNED)
+
+
+@pytest.mark.unit
+def test_comment_and_run_is_free_and_retimes_schedule(db, session_client, workspace, project):
+    """Comment & Run is a human-started run: it never touches the pool
+    counter, and it re-times ``next_run_at`` toward NOW + interval."""
+    from datetime import timedelta
+
+    from django.utils import timezone
+
+    from karma_team.db.models.issue_agent_ticker import IssueAgentTicker
+
+    issue, _ = _make_in_progress_issue_with_paused_run(workspace)
+    sched = IssueAgentTicker.objects.get(issue=issue)
+    sched.used = 7
+    stale = timezone.now() + timedelta(hours=2)
+    sched.next_run_at = stale
+    sched.save(update_fields=["used", "next_run_at"])
+
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "comment_and_run",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_201_CREATED
+    sched.refresh_from_db()
+    assert sched.used == 7
+    # next_run_at moved off the stale future timestamp toward NOW + interval.
+    assert sched.next_run_at != stale
+
+
+@pytest.mark.unit
+def test_comment_and_run_requires_work_item(db, session_client, workspace, project):
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {"workspace": str(workspace.id), "triggered_by": "comment_and_run"},
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+    assert "work_item" in resp.data["error"]
+
+
+@pytest.mark.unit
+def test_comment_and_run_returns_409_when_no_prior_run(db, session_client, workspace, project):
+    """Continuation pipeline can't run with no prior — a Comment & Run
+    on an issue that never had a run is a 409, not a silent no-op."""
+    from crum import impersonate
+
+    from karma_team.db.models import Issue, Project, State
+
+    with impersonate(workspace.owner):
+        project = Project.objects.create(
+            name="P2",
+            identifier="P2",
+            workspace=workspace,
+            created_by=workspace.owner,
+        )
+        in_progress = State.objects.create(name="In Progress", project=project, group="started")
+        issue = Issue.objects.create(
+            name="Task",
+            workspace=workspace,
+            project=project,
+            state=in_progress,
+            created_by=workspace.owner,
+        )
+    # Discard the single AgentRun the state-transition signal auto-created
+    # so the endpoint sees no prior.
+    AgentRun.objects.filter(work_item=issue).delete()
+
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "comment_and_run",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_409_CONFLICT
+
+
+@pytest.mark.unit
+def test_comment_and_run_404_for_issue_in_other_workspace(db, api_client, workspace, second_workspace, project):
+    issue, _ = _make_in_progress_issue_with_paused_run(workspace)
+    outsider = User.objects.create(
+        email=f"o-{uuid4().hex[:8]}@example.com",
+        username=f"o_{uuid4().hex[:8]}",
+    )
+    outsider.set_password("pw")
+    outsider.save()
+    api_client.force_authenticate(user=outsider)
+    resp = api_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(second_workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "comment_and_run",
+        },
+        format="json",
+    )
+    # Outsider isn't a member of the issue's workspace — 404 (not 403)
+    # so existence isn't confirmed across workspaces.
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+# ---------------------------------------------------------------------------
+# Run AI endpoint
+#
+# POST /api/runners/runs/ with ``triggered_by="run_ai"`` builds the prompt
+# server-side from the issue's phase template (the same path as a state
+# transition into the phase). The client never sends a prompt body.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_run_ai_renders_prompt_from_phase_template(db, session_client, workspace, project):
+    """The Run AI button must produce a prompt rendered from the
+    phase template — not the literal client-supplied default. We assert
+    on three signals: (1) the issue identifier (cheap signal of server
+    rendering), (2) absence of the legacy literal sentence (regression
+    guard), and (3) a unique fragment from the seeded default template's
+    intro (proves the templated composition path was taken — server
+    could otherwise return any non-empty string and pass the first two)."""
+    from karma_team.prompting.seed import seed_default_template
+
+    seed_default_template()
+    issue, _ = _make_in_progress_issue_with_paused_run(workspace)
+
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "run_ai",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_201_CREATED, resp.data
+    run = AgentRun.objects.get(id=resp.data["id"])
+    project_obj = issue.project
+    expected_id = f"{project_obj.identifier}-{issue.sequence_id}"
+    assert expected_id in run.prompt
+    assert "Please pick up this work item" not in run.prompt
+    # Stable phrase from ``prompting/fragments/01_intro.md`` — present
+    # iff the composer actually rendered the template.
+    assert "orchestrates AI agents" in run.prompt
+
+
+@pytest.mark.unit
+def test_run_ai_links_continuation_when_prior_run_exists(db, session_client, workspace, project):
+    """When a prior run exists, the Run AI dispatch goes through the
+    continuation path so the new run inherits ``parent_run`` (and thus
+    runner pinning), matching the Comment & Run / tick contract."""
+    from karma_team.prompting.seed import seed_default_template
+
+    seed_default_template()
+    issue, parent = _make_in_progress_issue_with_paused_run(workspace)
+
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "run_ai",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_201_CREATED, resp.data
+    run = AgentRun.objects.get(id=resp.data["id"])
+    assert run.parent_run_id == parent.id
+    assert run.status in (AgentRunStatus.QUEUED, AgentRunStatus.ASSIGNED)
+
+
+@pytest.mark.unit
+def test_run_ai_succeeds_when_no_prior_run(db, session_client, workspace):
+    """Unlike Comment & Run, Run AI must work on a brand-new issue with
+    no prior agent run — it falls through to the first-run dispatch
+    path (``_create_and_dispatch_run``), which still renders the
+    templated prompt."""
+    from crum import impersonate
+
+    from karma_team.db.models import Issue, Project, State
+    from karma_team.prompting.seed import seed_default_template
+
+    seed_default_template()
+    with impersonate(workspace.owner):
+        fresh_project = Project.objects.create(
+            name="RA1",
+            identifier="RA1",
+            workspace=workspace,
+            created_by=workspace.owner,
+        )
+        in_progress = State.objects.create(name="In Progress", project=fresh_project, group="started")
+        issue = Issue.objects.create(
+            name="Fresh task",
+            workspace=workspace,
+            project=fresh_project,
+            state=in_progress,
+            created_by=workspace.owner,
+        )
+    _add_online_runner(workspace, fresh_project)
+    # Discard the run the state-transition signal auto-created so the
+    # endpoint genuinely sees no prior.
+    AgentRun.objects.filter(work_item=issue).delete()
+
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "run_ai",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_201_CREATED, resp.data
+    run = AgentRun.objects.get(id=resp.data["id"])
+    assert run.parent_run_id is None
+    assert run.prompt  # rendered, not empty
+
+
+@pytest.mark.unit
+def test_run_ai_requires_work_item(db, session_client, workspace, project):
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {"workspace": str(workspace.id), "triggered_by": "run_ai"},
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_400_BAD_REQUEST
+    assert "work_item" in resp.data["error"]
+
+
+@pytest.mark.unit
+def test_run_ai_queues_when_active_run_exists(db, session_client, workspace, project):
+    """Single-active-run guardrail still holds — no duplicate dispatch — but a
+    Run AI click while a run is active is not refused any more: the clock
+    queues a free entry run that fires as soon as the issue is free
+    (design §4.5), and the endpoint says so with a 202."""
+    from karma_team.db.models.issue_agent_ticker import IssueAgentTicker
+    from karma_team.prompting.seed import seed_default_template
+
+    seed_default_template()
+    issue, parent = _make_in_progress_issue_with_paused_run(workspace)
+    # Promote the parent to an active status so the guardrail trips.
+    parent.status = AgentRunStatus.RUNNING
+    parent.save(update_fields=["status"])
+
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "run_ai",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_202_ACCEPTED
+    assert resp.data["queued"] is True
+    assert AgentRun.objects.filter(work_item=issue).count() == 1
+    ticker = IssueAgentTicker.objects.get(issue=issue)
+    assert ticker.pending_entry is True
+    assert ticker.pending_entry_free is True
+
+
+@pytest.mark.unit
+def test_run_ai_returns_409_when_no_pod_available(db, session_client, workspace):
+    """When the issue's project has no default Pod, ``dispatch_run_ai_run``
+    returns ``None`` (no-pod) and the endpoint must surface that as 409 —
+    not 201 with a never-runnable AgentRun."""
+    from crum import impersonate
+
+    from karma_team.db.models import Issue, Project, State
+    from karma_team.prompting.seed import seed_default_template
+
+    seed_default_template()
+    with impersonate(workspace.owner):
+        podless_project = Project.objects.create(
+            name="NoPod",
+            identifier="NOPOD",
+            workspace=workspace,
+            created_by=workspace.owner,
+        )
+        in_progress = State.objects.create(name="In Progress", project=podless_project, group="started")
+        issue = Issue.objects.create(
+            name="Stranded",
+            workspace=workspace,
+            project=podless_project,
+            state=in_progress,
+            created_by=workspace.owner,
+        )
+    # Discard the AgentRun the post_save(Issue) state-transition signal
+    # auto-created (otherwise the active-run guardrail trips first and
+    # masks the no-pod path we're trying to exercise). ``AgentRun.pod``
+    # and ``Issue.assigned_pod`` are both on_delete=PROTECT, so we must
+    # detach those references before dropping the auto-created Pod.
+    AgentRun.objects.filter(work_item=issue).delete()
+    type(issue).all_objects.filter(pk=issue.pk).update(assigned_pod=None)
+    Pod.objects.filter(project=podless_project).delete()
+
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "run_ai",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_409_CONFLICT, resp.data
+    assert AgentRun.objects.filter(work_item=issue).count() == 0
+
+
+@pytest.mark.unit
+def test_run_ai_404_for_issue_in_other_workspace(db, api_client, workspace, second_workspace, project):
+    issue, _ = _make_in_progress_issue_with_paused_run(workspace)
+    outsider = User.objects.create(
+        email=f"o-{uuid4().hex[:8]}@example.com",
+        username=f"o_{uuid4().hex[:8]}",
+    )
+    outsider.set_password("pw")
+    outsider.save()
+    api_client.force_authenticate(user=outsider)
+    resp = api_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(second_workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "run_ai",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_404_NOT_FOUND
+
+
+# ---------------------------------------------------------------------------
+# X-karma-team-Skip-Immediate-Dispatch header path
+#
+# Used by the Comment & Run flow on a Paused issue: the client wants to
+# transition the issue back to In Progress without firing the state-
+# transition signal's own immediate dispatch (Comment & Run owns the
+# dispatch and would race the signal otherwise). See
+# ``.ai_design/issue_ticking_system/design.md`` §4.5–§4.6.
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_skip_immediate_dispatch_header_suppresses_run_creation_on_state_change(db, session_client, workspace, project):
+    from crum import impersonate
+
+    from karma_team.db.models import Issue, Project, State
+    from karma_team.db.models.issue_agent_ticker import IssueAgentTicker
+    from karma_team.prompting.seed import seed_default_template
+
+    seed_default_template()
+    with impersonate(workspace.owner):
+        project = Project.objects.create(
+            name="SkipDisp",
+            identifier="SD",
+            workspace=workspace,
+            created_by=workspace.owner,
+        )
+        todo = State.objects.create(name="Todo", project=project, group="unstarted")
+        in_progress = State.objects.create(name="In Progress", project=project, group="started")
+        issue = Issue.objects.create(
+            name="Task",
+            workspace=workspace,
+            project=project,
+            state=todo,
+            created_by=workspace.owner,
+        )
+    _add_online_runner(workspace, project)
+
+    # PATCH state=In Progress with the skip header — signal must not
+    # create an AgentRun, but must still arm the schedule.
+    resp = session_client.patch(
+        f"/api/workspaces/{workspace.slug}/projects/{project.id}/issues/{issue.id}/",
+        {"state_id": str(in_progress.id)},
+        format="json",
+        HTTP_X_KARMA_TEAM_SKIP_IMMEDIATE_DISPATCH="1",
+    )
+    assert resp.status_code == status.HTTP_204_NO_CONTENT
+    assert AgentRun.objects.filter(work_item=issue).count() == 0
+    # Schedule armed: the steady-state tick source is in place even
+    # though dispatch was deferred to the caller.
+    sched = IssueAgentTicker.objects.get(issue=issue)
+    assert sched.enabled is True
+
+
+@pytest.mark.unit
+def test_no_skip_header_creates_run_on_state_change(db, session_client, workspace, project):
+    """Sanity: without the header, the existing immediate-dispatch path
+    fires. This guards against accidentally inverting the default."""
+    from crum import impersonate
+
+    from karma_team.db.models import Issue, Project, State
+    from karma_team.prompting.seed import seed_default_template
+
+    seed_default_template()
+    with impersonate(workspace.owner):
+        project = Project.objects.create(
+            name="DispDef",
+            identifier="DD",
+            workspace=workspace,
+            created_by=workspace.owner,
+        )
+        todo = State.objects.create(name="Todo", project=project, group="unstarted")
+        in_progress = State.objects.create(name="In Progress", project=project, group="started")
+        issue = Issue.objects.create(
+            name="Task",
+            workspace=workspace,
+            project=project,
+            state=todo,
+            created_by=workspace.owner,
+        )
+    _add_online_runner(workspace, project)
+
+    resp = session_client.patch(
+        f"/api/workspaces/{workspace.slug}/projects/{project.id}/issues/{issue.id}/",
+        {"state_id": str(in_progress.id)},
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_204_NO_CONTENT
+    assert AgentRun.objects.filter(work_item=issue).count() == 1
+
+
+@pytest.mark.unit
+def test_comment_and_run_prompt_renders_the_pool(db, session_client, workspace, project):
+    """The prompt shows the pool as it is — a human-started run neither
+    spends nor refunds it."""
+    from karma_team.db.models.issue_agent_ticker import IssueAgentTicker
+    from karma_team.prompting.seed import seed_default_template
+
+    seed_default_template()
+    issue, _ = _make_in_progress_issue_with_paused_run(workspace)
+    sched = IssueAgentTicker.objects.get(issue=issue)
+    sched.used = 7
+    sched.save(update_fields=["used"])
+
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "comment_and_run",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_201_CREATED
+    run = AgentRun.objects.get(pk=resp.data["id"])
+    assert "used 7 of" in run.prompt
+    assert run.trigger == "comment_and_run"
+    assert run.phase_kind == "coding-task"
+
+
+@pytest.mark.unit
+def test_comment_and_run_409_leaves_ticker_untouched(db, session_client, workspace, project):
+    """When the dispatch bails (no prior run → 409) the ticker must be
+    untouched — neither the pool nor the clock: a click that produced no run
+    must not re-arm a parked issue."""
+    from datetime import timedelta
+
+    from crum import impersonate
+    from django.utils import timezone
+
+    from karma_team.db.models import Issue, Project, State
+    from karma_team.db.models.issue_agent_ticker import IssueAgentTicker
+
+    with impersonate(workspace.owner):
+        project2 = Project.objects.create(
+            name="P3",
+            identifier="P3",
+            workspace=workspace,
+            created_by=workspace.owner,
+        )
+        in_progress = State.objects.create(name="In Progress", project=project2, group="started")
+        issue = Issue.objects.create(
+            name="Task",
+            workspace=workspace,
+            project=project2,
+            state=in_progress,
+            created_by=workspace.owner,
+        )
+    AgentRun.objects.filter(work_item=issue).delete()
+    sched = IssueAgentTicker.objects.get(issue=issue)
+    stale = timezone.now() + timedelta(hours=2)
+    sched.used = 7
+    sched.next_run_at = stale
+    sched.save(update_fields=["used", "next_run_at"])
+
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "comment_and_run",
+        },
+        format="json",
+    )
+    assert resp.status_code == status.HTTP_409_CONFLICT
+    sched.refresh_from_db()
+    assert sched.used == 7
+    # The clock re-time and the dispatch share one transaction: a click
+    # that produced no run leaves the ticker exactly as it was.
+    assert sched.next_run_at == stale

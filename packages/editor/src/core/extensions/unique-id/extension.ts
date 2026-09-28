@@ -11,10 +11,10 @@ import type { Transaction } from "@tiptap/pm/state";
 import { v4 as uuidv4 } from "uuid";
 // constants
 import { CORE_EXTENSIONS, BLOCK_NODE_TYPES } from "@/constants/extension";
-import { ADDITIONAL_BLOCK_NODE_TYPES } from "@/pi-dash-editor/constants/extensions";
+import { ADDITIONAL_BLOCK_NODE_TYPES } from "@/karma-team-editor/constants/extensions";
 import { createUniqueIDPlugin } from "./plugin";
 import { createIdsForView } from "./utils";
-// pi dash imports
+// karma-team imports
 
 const COMBINED_BLOCK_NODE_TYPES = [...BLOCK_NODE_TYPES, ...ADDITIONAL_BLOCK_NODE_TYPES];
 export type UniqueIDGenerationContext = {

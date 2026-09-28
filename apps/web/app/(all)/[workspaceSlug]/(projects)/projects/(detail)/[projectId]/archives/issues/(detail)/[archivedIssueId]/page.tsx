@@ -8,10 +8,10 @@ import { observer } from "mobx-react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 // ui
-import { Banner } from "@pi-dash/propel/banner";
-import { Button } from "@pi-dash/propel/button";
-import { ArchiveIcon } from "@pi-dash/propel/icons";
-import { Loader } from "@pi-dash/ui";
+import { Banner } from "@karma-team/propel/banner";
+import { Button } from "@karma-team/propel/button";
+import { ArchiveIcon } from "@karma-team/propel/icons";
+import { Loader } from "@karma-team/ui";
 // components
 import { PageHead } from "@/components/core/page-title";
 import { IssueDetailRoot } from "@/components/issues/issue-detail";

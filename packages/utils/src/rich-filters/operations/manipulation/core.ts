@@ -4,14 +4,14 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
+// karma-team imports
 import type {
   TFilterConditionPayload,
   TFilterExpression,
   TFilterGroupNode,
   TFilterProperty,
   TFilterValue,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // local imports
 import { createAndGroupNode } from "../../factories/nodes/core";
 import { getGroupChildren } from "../../types";

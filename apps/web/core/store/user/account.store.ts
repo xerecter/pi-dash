@@ -7,7 +7,7 @@
 import { set } from "lodash-es";
 import { makeObservable, observable } from "mobx";
 // types
-import type { IUserAccount } from "@pi-dash/types";
+import type { IUserAccount } from "@karma-team/types";
 // services
 import { UserService } from "@/services/user.service";
 // store

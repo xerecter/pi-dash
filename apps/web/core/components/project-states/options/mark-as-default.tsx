@@ -6,9 +6,9 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TStateOperationsCallbacks } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type { TStateOperationsCallbacks } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 
 type TStateMarksAsDefault = {
   stateId: string;

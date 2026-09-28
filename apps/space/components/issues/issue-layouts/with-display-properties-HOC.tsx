@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import type { IIssueDisplayProperties } from "@pi-dash/types";
+// karma-team imports
+import type { IIssueDisplayProperties } from "@karma-team/types";
 
 interface IWithDisplayPropertiesHOC {
   displayProperties: IIssueDisplayProperties;

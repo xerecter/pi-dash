@@ -17,7 +17,7 @@ export interface IPodMini {
 }
 
 /** Identity of the dev machine a runner is bound to, surfaced on the
- * runner detail page. ``null`` on legacy ``pidash connect`` runners with
+ * runner detail page. ``null`` on legacy ``karma-team connect`` runners with
  * no dev_machine FK. */
 export interface IDevMachineMini {
   id: string;
@@ -134,7 +134,7 @@ export interface IRunner {
   enrolled_at: string | null;
   /** Set when the runner is hard-revoked (manual, replay, membership
    * change). The row stays visible for history; attach a new runner
-   * from the target machine with `pidash runner add`. */
+   * from the target machine with `karma-team runner add`. */
   revoked_at: string | null;
   revoked_reason: string;
   created_at: string;
@@ -187,7 +187,7 @@ export interface IAgentRunEvent {
   created_at: string;
 }
 
-export type TAgentRunErrorSource = "agent" | "pidash_runner" | "pidash_cloud" | "unknown";
+export type TAgentRunErrorSource = "agent" | "karma_team_runner" | "karma_team_cloud" | "unknown";
 
 export interface IAgentRunErrorDiagnostic {
   source: TAgentRunErrorSource;
@@ -256,7 +256,7 @@ export type TApprovalStatus = "pending" | "accepted" | "declined" | "expired";
 /**
  * The approval *mode* a local (built-in engine) chat runs under — the spectrum
  * the engine supports, chosen by the user per chat. Wire values match the
- * runner's `ApprovalMode` serde (`pidash-ipc`). `full_access` is the default so
+ * runner's `ApprovalMode` serde (`karma-team-ipc`). `full_access` is the default so
  * an absent value preserves the engine's historical no-prompt posture.
  */
 export type TApprovalMode = "ask" | "workspace" | "full_access";

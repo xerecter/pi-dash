@@ -4,17 +4,17 @@
 
 **Phase 1 — Backend foundation (OSS)**
 
-- `pi_dash.assistant` app with **app-local migrations**: `AssistantThread`, `AssistantTurn`,
+- `karma_team.assistant` app with **app-local migrations**: `AssistantThread`, `AssistantTurn`,
   `AssistantMessage`, `AssistantEvent`, `UserLLMConfig`; plus a `db`-app migration for
   `Issue.created_via`. Crypto (MultiFernet + `assistant_reencrypt_llm_keys` command), BYOK
   endpoints incl. test-connection.
-- Create the Python ee/ce seam: `pi_dash/ee/assistant/model_provider.py` OSS stub
+- Create the Python ee/ce seam: `karma_team/ee/assistant/model_provider.py` OSS stub
   (04-cloud.md §3 — does not exist today).
-- Create the `pi_dash/core/` package per the extract-vs-copy decision table (02 §5): extract
+- Create the `karma_team/core/` package per the extract-vs-copy decision table (02 §5): extract
   `check_project_role` from the `@allow_permission` decorator into `core/permissions.py`, move
   workspace role helpers there from `runner/services/permissions.py` (re-export shim in place),
   add `core/querysets.py::user_issues_queryset`. Search needs nothing — tools import the
-  already-extracted `pi_dash/search/issue.py::issue_search_queryset`.
+  already-extracted `karma_team/search/issue.py::issue_search_queryset`.
 - Runtime: agent definition, deps, instructions template, model resolution, history load
   (from `AssistantTurn.model_messages`).
 - Read-only tools (`list_projects`, `list_states/labels/members`, `search_issues`, `get_issue`,
@@ -100,7 +100,7 @@ Resolved by product owner, 2026-06-11:
    deferred until an audit-log plan needs it.
 
 Resolved by code/registry inspection, 2026-06-11: 5. **pydantic-ai pin** → `pydantic-ai-slim[openai,anthropic]==1.107.0` (2.0 betas excluded;
-upgrades gated by the `model_messages` round-trip smoke test) — 02 §0. 6. **Parity layer extract-vs-copy** → per-site decision table in 02 §5 (`pi_dash/core/` package;
+upgrades gated by the `model_messages` round-trip smoke test) — 02 §0. 6. **Parity layer extract-vs-copy** → per-site decision table in 02 §5 (`karma_team/core/` package;
 search already extracted; issue/comment querysets COPY + equivalence tests). 7. **Base instructions** → full v1 text in 02 §2.1; structural elements are fixed contract,
 wording tunable under runtime tests.
 

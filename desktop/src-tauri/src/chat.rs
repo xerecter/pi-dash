@@ -6,8 +6,8 @@
 //!
 //! This is the desktop-host half of the direct local-chat feature: the webview
 //! talks to the bundled engine through the Tauri host and the daemon's IPC
-//! socket, and never through the Pi Dash cloud chat relay. It builds directly on
-//! the slice-1a wire protocol (`pidash_ipc::protocol::Chat*`) and the slice-1b
+//! socket, and never through the karma-team cloud chat relay. It builds directly on
+//! the slice-1a wire protocol (`karma_team_ipc::protocol::Chat*`) and the slice-1b
 //! daemon handler (`runner/src/ipc/chat.rs`), which drives the built-in engine
 //! and streams `Response::Chat*` frames back on the same connection.
 //!
@@ -33,8 +33,8 @@ use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
-use pidash_ipc::protocol::{Request, Response};
-use pidash_ipc::{ApprovalDecision, ApprovalMode, Client};
+use karma_team_ipc::protocol::{Request, Response};
+use karma_team_ipc::{ApprovalDecision, ApprovalMode, Client};
 use serde::Serialize;
 use tauri::async_runtime::JoinHandle;
 use tauri::{AppHandle, Emitter, Manager, Runtime};
@@ -142,9 +142,7 @@ async fn drive_stream<S: ChatSink>(
         match client.read_next().await.map_err(|e| e.to_string())? {
             Some(next) => frame = next,
             None => {
-                return Err(
-                    "managed daemon closed the chat stream before it completed".to_string(),
-                );
+                return Err("managed daemon closed the chat stream before it completed".to_string());
             }
         }
     }
@@ -197,8 +195,8 @@ async fn call_once(socket: &Path, req: Request) -> Result<(), String> {
 /// The managed daemon's control socket **for this workspace**.
 ///
 /// The daemon is started per workspace (`managed_start_daemon`) with its data
-/// dir re-rooted under `managed/pidash/<workspace>/data`, and the runner binds
-/// its socket at `<data_dir>/runtime/pidash.sock`. Resolving from the shared
+/// dir re-rooted under `managed/karma-team/<workspace>/data`, and the runner binds
+/// its socket at `<data_dir>/runtime/karma-team.sock`. Resolving from the shared
 /// `managed/runtime/` instead — which only holds the model token — is a socket
 /// nothing listens on, and every chat send failed with "connecting to managed
 /// daemon" even though the daemon was up.
@@ -379,7 +377,7 @@ pub async fn chat_decide<R: Runtime>(
 #[cfg(all(test, unix))]
 mod tests {
     use super::*;
-    use pidash_ipc::protocol::RpcError;
+    use karma_team_ipc::protocol::RpcError;
     use std::sync::Mutex as StdMutex;
     use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
     use tokio::net::UnixListener;

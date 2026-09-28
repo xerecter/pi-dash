@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TDraggableData } from "@pi-dash/constants";
-import { STATE_GROUPS } from "@pi-dash/constants";
-import type { IState, IStateResponse } from "@pi-dash/types";
+// karma-team imports
+import type { TDraggableData } from "@karma-team/constants";
+import { STATE_GROUPS } from "@karma-team/constants";
+import type { IState, IStateResponse } from "@karma-team/types";
 
 export const orderStateGroups = (unorderedStateGroups: IStateResponse | undefined): IStateResponse | undefined => {
   if (!unorderedStateGroups) return undefined;

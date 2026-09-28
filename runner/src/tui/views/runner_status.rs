@@ -463,7 +463,7 @@ impl RunnerStatusTab {
                 )),
                 Line::raw(""),
                 Line::from(Span::styled(
-                    "Run `pidash runner add --project <PROJECT>` to register a runner.",
+                    "Run `karma-team runner add --project <PROJECT>` to register a runner.",
                     Style::default().add_modifier(Modifier::DIM),
                 )),
             ])
@@ -685,7 +685,7 @@ mod tests {
             project_slug: Some("TEST".into()),
             pod_id: None,
             workspace: WorkspaceSection {
-                working_dir: PathBuf::from("/tmp/pidash-test"),
+                working_dir: PathBuf::from("/tmp/karma-team-test"),
             },
             agent: Default::default(),
             codex: Default::default(),
@@ -702,7 +702,7 @@ mod tests {
         Config {
             version: 2,
             daemon: DaemonConfig {
-                cloud_url: "https://pidash.example".into(),
+                cloud_url: "https://karma-team.example".into(),
                 dev_machine_id: None,
                 log_level: "info".into(),
                 log_retention_days: 14,
@@ -734,7 +734,7 @@ mod tests {
     fn status(names: &[&str]) -> StatusSnapshot {
         StatusSnapshot {
             daemon: DaemonInfo {
-                cloud_url: "https://pidash.example".into(),
+                cloud_url: "https://karma-team.example".into(),
                 connected: true,
                 uptime_secs: 0,
                 update: None,

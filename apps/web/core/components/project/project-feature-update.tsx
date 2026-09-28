@@ -6,16 +6,16 @@
 
 import { observer } from "mobx-react";
 import Link from "next/link";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // ui
-import { Button, getButtonStyling } from "@pi-dash/propel/button";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { Row } from "@pi-dash/ui";
+import { Button, getButtonStyling } from "@karma-team/propel/button";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { Row } from "@karma-team/ui";
 // components
 // hooks
 import { useProject } from "@/hooks/store/use-project";
-// pi dash web imports
-import { ProjectFeaturesList } from "@/pi-dash-web/components/projects/settings/features-list";
+// karma-team web imports
+import { ProjectFeaturesList } from "@/karma-team-web/components/projects/settings/features-list";
 
 type Props = {
   workspaceSlug: string;

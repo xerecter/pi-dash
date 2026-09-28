@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 // types
-import type { ICsrfTokenData, IEmailCheckData, IEmailCheckResponse } from "@pi-dash/types";
+import type { ICsrfTokenData, IEmailCheckData, IEmailCheckResponse } from "@karma-team/types";
 // services
 import { APIService } from "../api.service";
 

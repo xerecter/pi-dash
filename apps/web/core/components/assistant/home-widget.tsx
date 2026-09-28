@@ -9,10 +9,10 @@ import { observer } from "mobx-react";
 import { Sparkles } from "lucide-react";
 import { Link } from "react-router";
 import useSWR from "swr";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import { AssistantService } from "@pi-dash/services";
-import { EUserWorkspaceRoles, type IAssistantThread } from "@pi-dash/types";
-import { Button } from "@pi-dash/ui";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import { AssistantService } from "@karma-team/services";
+import { EUserWorkspaceRoles, type IAssistantThread } from "@karma-team/types";
+import { Button } from "@karma-team/ui";
 import { useLLMConfig } from "@/components/assistant/use-llm-config";
 import { useStartAssistantChat } from "@/components/assistant/use-start-chat";
 import { useWorkspace } from "@/hooks/store/use-workspace";
@@ -54,7 +54,7 @@ export const AssistantHomeWidget = observer(function AssistantHomeWidget() {
   return (
     <div className="rounded-lg border border-subtle bg-surface-1 p-4">
       <div className="mb-2 flex items-center gap-2 text-13 font-semibold text-primary">
-        <Sparkles className="size-4 text-accent-primary" /> Pi Dash AI
+        <Sparkles className="size-4 text-accent-primary" /> karma-team AI
       </div>
       <div className="flex items-end gap-2">
         <input
@@ -63,7 +63,7 @@ export const AssistantHomeWidget = observer(function AssistantHomeWidget() {
           onKeyDown={(e) => {
             if (e.key === "Enter") start(draft);
           }}
-          placeholder="Ask Pi Dash to do something…"
+          placeholder="Ask karma-team to do something…"
           className="flex-1 rounded-md border border-subtle bg-canvas px-3 py-2 text-13 outline-none focus:border-accent-strong"
         />
         <Button onClick={() => start(draft)} disabled={!draft.trim()} loading={starting}>

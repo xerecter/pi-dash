@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { Loader } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { Loader } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   className?: string;

@@ -5,12 +5,12 @@
  */
 
 import { useMemo } from "react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TIssueServiceType, TSubIssueOperations } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
-import { copyUrlToClipboard } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TIssueServiceType, TSubIssueOperations } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
+import { copyUrlToClipboard } from "@karma-team/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 

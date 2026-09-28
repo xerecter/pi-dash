@@ -7,9 +7,9 @@
 import { useMemo } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import type { E_SORT_ORDER } from "@pi-dash/constants";
-import type { TCommentsOperations, TIssueComment } from "@pi-dash/types";
+// karma-team imports
+import type { E_SORT_ORDER } from "@karma-team/constants";
+import type { TCommentsOperations, TIssueComment } from "@karma-team/types";
 // local components
 import { CommentCard } from "./card/root";
 import { CommentCreate } from "./comment-create";

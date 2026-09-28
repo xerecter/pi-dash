@@ -5,9 +5,9 @@
  */
 
 import { useRef, useState } from "react";
-// Pi Dash
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IBlockUpdateDependencyData, IGanttBlock } from "@pi-dash/types";
+// karma-team
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IBlockUpdateDependencyData, IGanttBlock } from "@karma-team/types";
 // hooks
 import { useTimeLineChartStore } from "@/hooks/use-timeline-chart";
 //

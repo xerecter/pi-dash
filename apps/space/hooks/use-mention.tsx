@@ -6,9 +6,9 @@
 
 import { useRef, useEffect } from "react";
 import useSWR from "swr";
-// pi dash imports
-import { UserService } from "@pi-dash/services";
-import type { IUser } from "@pi-dash/types";
+// karma-team imports
+import { UserService } from "@karma-team/services";
+import type { IUser } from "@karma-team/types";
 
 export const useMention = () => {
   const userService = new UserService();

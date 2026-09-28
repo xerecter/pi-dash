@@ -5,17 +5,17 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import type { E_SORT_ORDER, TActivityFilters, EActivityFilterType } from "@pi-dash/constants";
-import { BASE_ACTIVITY_FILTER_TYPES, filterActivityOnSelectedFilters } from "@pi-dash/constants";
-import type { TCommentsOperations } from "@pi-dash/types";
+// karma-team imports
+import type { E_SORT_ORDER, TActivityFilters, EActivityFilterType } from "@karma-team/constants";
+import { BASE_ACTIVITY_FILTER_TYPES, filterActivityOnSelectedFilters } from "@karma-team/constants";
+import type { TCommentsOperations } from "@karma-team/types";
 // components
 import { CommentCard } from "@/components/comments/card/root";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// pi dash web components
-import { IssueAdditionalPropertiesActivity } from "@/pi-dash-web/components/issues/issue-details/issue-properties-activity";
-import { IssueActivityWorklog } from "@/pi-dash-web/components/issues/worklog/activity/root";
+// karma-team web components
+import { IssueAdditionalPropertiesActivity } from "@/karma-team-web/components/issues/issue-details/issue-properties-activity";
+import { IssueActivityWorklog } from "@/karma-team-web/components/issues/worklog/activity/root";
 // local imports
 import { IssueActivityItem } from "./activity/activity-list";
 import { IssueActivityLoader } from "./loader";

@@ -7,8 +7,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import tippy from "tippy.js";
 import type { Instance } from "tippy.js";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // types
 import type { TAIHandler } from "@/types";
 

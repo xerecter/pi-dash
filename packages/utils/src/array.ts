@@ -5,7 +5,7 @@
  */
 
 import { isEmpty } from "lodash-es";
-import type { IIssueLabel, IIssueLabelTree } from "@pi-dash/types";
+import type { IIssueLabel, IIssueLabelTree } from "@karma-team/types";
 
 /**
  * @description Groups an array of objects by a specified key

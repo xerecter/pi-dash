@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TStateGroups } from "@pi-dash/types";
+import type { TStateGroups } from "@karma-team/types";
 
 export type TDraggableData = {
   groupKey: TStateGroups;

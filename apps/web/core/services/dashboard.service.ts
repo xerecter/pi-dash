@@ -4,8 +4,13 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { THomeDashboardResponse, TWidget, TWidgetStatsResponse, TWidgetStatsRequestParams } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+import type {
+  THomeDashboardResponse,
+  TWidget,
+  TWidgetStatsResponse,
+  TWidgetStatsRequestParams,
+} from "@karma-team/types";
 import { APIService } from "@/services/api.service";
 // helpers
 // types

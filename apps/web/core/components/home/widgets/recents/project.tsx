@@ -5,10 +5,10 @@
  */
 
 import { useRouter } from "next/navigation";
-// pi dash types
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import type { TActivityEntityData, TProjectEntityData } from "@pi-dash/types";
-import { calculateTimeAgo } from "@pi-dash/utils";
+// karma-team types
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import type { TActivityEntityData, TProjectEntityData } from "@karma-team/types";
+import { calculateTimeAgo } from "@karma-team/utils";
 // components
 import { ListItem } from "@/components/core/list";
 import { MemberDropdown } from "@/components/dropdowns/member/dropdown";

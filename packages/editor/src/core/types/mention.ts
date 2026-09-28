@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash types
-import type { TSearchEntities } from "@pi-dash/types";
+// karma-team types
+import type { TSearchEntities } from "@karma-team/types";
 
 export type TMentionSuggestion = {
   entity_identifier: string;

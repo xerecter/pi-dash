@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TLoader } from "@pi-dash/types";
+// karma-team imports
+import type { TLoader } from "@karma-team/types";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 

@@ -7,9 +7,9 @@
 import { AxiosError } from "axios";
 import { set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
-// pi dash imports
-import { UserService } from "@pi-dash/services";
-import type { ActorDetail, IUser } from "@pi-dash/types";
+// karma-team imports
+import { UserService } from "@karma-team/services";
+import type { ActorDetail, IUser } from "@karma-team/types";
 // store types
 import type { IProfileStore } from "@/store/profile.store";
 import { ProfileStore } from "@/store/profile.store";

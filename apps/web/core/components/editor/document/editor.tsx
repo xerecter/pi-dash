@@ -5,17 +5,17 @@
  */
 
 import { forwardRef } from "react";
-// pi dash imports
-import { DocumentEditorWithRef } from "@pi-dash/editor";
-import type { IEditorPropsExtended, EditorRefApi, IDocumentEditorProps, TFileHandler } from "@pi-dash/editor";
-import type { MakeOptional, TSearchEntityRequestPayload, TSearchResponse } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { DocumentEditorWithRef } from "@karma-team/editor";
+import type { IEditorPropsExtended, EditorRefApi, IDocumentEditorProps, TFileHandler } from "@karma-team/editor";
+import type { MakeOptional, TSearchEntityRequestPayload, TSearchResponse } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useEditorConfig, useEditorMention } from "@/hooks/editor";
 import { useMember } from "@/hooks/store/use-member";
 import { useParseEditorContent } from "@/hooks/use-parse-editor-content";
-// pi dash web hooks
-import { useEditorFlagging } from "@/pi-dash-web/hooks/use-editor-flagging";
+// karma-team web hooks
+import { useEditorFlagging } from "@/karma-team-web/hooks/use-editor-flagging";
 // local imports
 import { EditorMentionsRoot } from "../embeds/mentions";
 

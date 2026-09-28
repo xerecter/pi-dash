@@ -5,9 +5,9 @@
  */
 
 import { Ban } from "lucide-react";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // constants
 import { COLORS_LIST } from "@/constants/common";
 

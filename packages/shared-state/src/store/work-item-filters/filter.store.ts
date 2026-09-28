@@ -6,11 +6,11 @@
 
 import { action, makeObservable, observable } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import type { TExpressionOptions } from "@pi-dash/constants";
-import type { EIssuesStoreType, TWorkItemFilterExpression, TWorkItemFilterProperty } from "@pi-dash/types";
-import { LOGICAL_OPERATOR } from "@pi-dash/types";
-import { getOperatorForPayload } from "@pi-dash/utils";
+// karma-team imports
+import type { TExpressionOptions } from "@karma-team/constants";
+import type { EIssuesStoreType, TWorkItemFilterExpression, TWorkItemFilterProperty } from "@karma-team/types";
+import { LOGICAL_OPERATOR } from "@karma-team/types";
+import { getOperatorForPayload } from "@karma-team/utils";
 // local imports
 import type { TWorkItemFilterCondition } from "../../utils";
 import { buildWorkItemFilterExpressionFromConditions } from "../../utils";

@@ -9,8 +9,8 @@ import { sortBy } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // components
-import { ModuleIcon } from "@pi-dash/propel/icons";
-import { Loader } from "@pi-dash/ui";
+import { ModuleIcon } from "@karma-team/propel/icons";
+import { Loader } from "@karma-team/ui";
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 import { useModule } from "@/hooks/store/use-module";
 // ui

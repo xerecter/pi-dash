@@ -5,7 +5,7 @@
  */
 
 //
-import type { ChartDataType } from "@pi-dash/types";
+import type { ChartDataType } from "@karma-team/types";
 import { quarters } from "../data";
 import { getNumberOfDaysBetweenTwoDates } from "./helpers";
 import type { IMonthBlock } from "./month-view";

@@ -7,10 +7,10 @@
 import { useParams } from "next/navigation";
 // react-hook-form
 import { Controller, useForm } from "react-hook-form";
-import { Button } from "@pi-dash/propel/button";
-import type { IProject } from "@pi-dash/types";
+import { Button } from "@karma-team/propel/button";
+import type { IProject } from "@karma-team/types";
 // ui
-import { Input, EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { Input, EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 
 // types
 type Props = {

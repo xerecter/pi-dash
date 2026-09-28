@@ -5,7 +5,7 @@ Older runners could share a single repo checkout across several runners with a
 referenced it with `workdir = "<name>"`, and each run executed in a git
 worktree leased from that pool.
 
-Pi Dash removed the pool. A runner now resolves to **exactly one working
+karma-team removed the pool. A runner now resolves to **exactly one working
 directory** — the `working_dir` under its `[runner.workspace]` table — and both
 chat and issue runs execute there directly. The `[[workdir]]` tables and the
 per-runner `workdir = "..."` key no longer exist.
@@ -38,7 +38,7 @@ Only one runner can keep the shared directory now. The upgrade picks the
 (`[[workdir]].path`), exactly like Case 1. Every other runner that referenced
 the same pool is moved to its **own new working directory** —
 `<data_dir>/workspaces/<project-slug>_<runner-slug>_<id>`, the same location a
-fresh `pidash runner add` (with no `--working-dir`) would have chosen. The
+fresh `karma-team runner add` (with no `--working-dir`) would have chosen. The
 daemon starts, and each move is recorded in the log, for example:
 
 ```
@@ -91,11 +91,11 @@ locations so you can recover anything you need and clean up on your own schedule
 - chat worktrees: `<data_dir>/runners/<runner-id>/chat-worktree/`.
 
 `<data_dir>` is the runner's XDG data directory (e.g.
-`~/.local/share/pidash/` on Linux).
+`~/.local/share/karma-team/` on Linux).
 
 ## Cleaning up the old keys
 
 The removed `[[workdir]]` tables and `workdir = ...` lines are ignored once
 you're on the new build. You can delete them by hand; they are also rewritten
 out of `config.toml` automatically the next time the config is mutated
-(`pidash runner add` / `pidash runner remove`).
+(`karma-team runner add` / `karma-team runner remove`).

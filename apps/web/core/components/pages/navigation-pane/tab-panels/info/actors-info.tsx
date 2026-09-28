@@ -7,10 +7,10 @@
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Avatar } from "@pi-dash/ui";
-import { calculateTimeAgoShort, getFileURL, renderFormattedDate } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Avatar } from "@karma-team/ui";
+import { calculateTimeAgoShort, getFileURL, renderFormattedDate } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 // store
@@ -51,9 +51,7 @@ export const PageNavigationPaneInfoTabActorsInfo = observer(function PageNavigat
         </div>
       </div>
       <div>
-        <p className="text-11 font-medium text-tertiary">
-          {t("Created by")}
-        </p>
+        <p className="text-11 font-medium text-tertiary">{t("Created by")}</p>
         <div className="mt-2 flex items-center justify-between gap-2 text-13 font-medium">
           <Link href={`/${workspaceSlug?.toString()}/profile/${page.created_by}`} className="flex items-center gap-1">
             <Avatar

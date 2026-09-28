@@ -5,18 +5,18 @@
  */
 
 import { useCallback, useMemo } from "react";
-// pi dash imports
-import type { EventToPayloadMap } from "@pi-dash/editor";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
+// karma-team imports
+import type { EventToPayloadMap } from "@karma-team/editor";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
 // types
-import type { IUserLite } from "@pi-dash/types";
+import type { IUserLite } from "@karma-team/types";
 // components
 import type { TEditorBodyHandlers } from "@/components/pages/editor/editor-body";
 // hooks
 import { useUser } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
-import { usePageStore } from "@/pi-dash-web/hooks/store";
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
+import { usePageStore } from "@/karma-team-web/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

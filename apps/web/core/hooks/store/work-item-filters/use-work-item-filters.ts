@@ -5,8 +5,8 @@
  */
 
 import { useContext } from "react";
-// pi dash imports
-import type { IWorkItemFilterStore } from "@pi-dash/shared-state";
+// karma-team imports
+import type { IWorkItemFilterStore } from "@karma-team/shared-state";
 // context
 import { StoreContext } from "@/lib/store-context";
 

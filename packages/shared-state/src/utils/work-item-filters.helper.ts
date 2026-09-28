@@ -4,14 +4,14 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
+// karma-team imports
 import type {
   TBuildFilterExpressionParams,
   TFilterConditionForBuild,
   TFilterValue,
   TWorkItemFilterExpression,
   TWorkItemFilterProperty,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // local imports
 import { workItemFiltersAdapter } from "../store/work-item-filters/adapter";
 import { buildTempFilterExpressionFromConditions } from "./rich-filter.helper";

@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
-import { EIssueServiceType } from "@pi-dash/types";
-import type { TIssueCommentReaction, TIssueReaction, TIssueServiceType } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+import { EIssueServiceType } from "@karma-team/types";
+import type { TIssueCommentReaction, TIssueReaction, TIssueServiceType } from "@karma-team/types";
 // services
 import { APIService } from "@/services/api.service";
 // types

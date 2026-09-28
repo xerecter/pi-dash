@@ -25,7 +25,7 @@ vi.mock("mobx-react", () => ({
   observer: (c: any) => c,
 }));
 
-vi.mock("@pi-dash/types", () => ({
+vi.mock("@karma-team/types", () => ({
   EIssueServiceType: { ISSUES: "ISSUES", EPICS: "EPICS" },
   EIssuesStoreType: { ARCHIVED: "ARCHIVED", EPIC: "EPIC", PROJECT: "PROJECT", GLOBAL: "GLOBAL" },
 }));

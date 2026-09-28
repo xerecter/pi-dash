@@ -6,10 +6,10 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-import { MODULE_STATUS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { ModuleStatusIcon } from "@pi-dash/propel/icons";
-import type { TModuleStatus } from "@pi-dash/types";
+import { MODULE_STATUS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { ModuleStatusIcon } from "@karma-team/propel/icons";
+import type { TModuleStatus } from "@karma-team/types";
 // components
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 

@@ -1,5 +1,5 @@
 {
-  "extends": "@pi-dash/typescript-config/base.json",
+  "extends": "@karma-team/typescript-config/base.json",
   "compilerOptions": {
     "exactOptionalPropertyTypes": false,
     "noUnusedParameters": false,
@@ -10,7 +10,7 @@
 
     "paths": {
       "@/*": ["./src/*"],
-      "@/pi-dash-live/*": ["./src/ce/*"]
+      "@/karma-team-live/*": ["./src/ce/*"]
     },
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true

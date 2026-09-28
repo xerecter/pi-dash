@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { I_THEME_OPTION } from "@pi-dash/constants";
-import { THEME_OPTIONS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import type { I_THEME_OPTION } from "@karma-team/constants";
+import { THEME_OPTIONS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // constants
-import { CustomSelect } from "@pi-dash/ui";
+import { CustomSelect } from "@karma-team/ui";
 // ui
 
 type Props = {

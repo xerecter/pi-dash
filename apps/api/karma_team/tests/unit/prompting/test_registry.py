@@ -1,0 +1,141 @@
+# Copyright (c) 2023-present Pi Dash Software, Inc. and contributors
+# SPDX-License-Identifier: AGPL-3.0-only
+# See the LICENSE file for details.
+
+"""Section registry: front-matter parsing, integrity, and validation."""
+
+from __future__ import annotations
+
+import pytest
+
+from karma_team.prompting import recipes, registry
+from karma_team.prompting.renderer import validate_syntax
+
+
+@pytest.mark.unit
+def test_registry_loaded_with_expected_sections():
+    # 24 local sections (13 ported + relationships + 2 review + 2 test
+    # + 3 scheduler + task-lifecycle + repo-context + workpad-context)
+    # plus 14 locked Cloud Agent sections.
+    assert len(registry.REGISTRY) == 38
+    for key in (
+        "intro",
+        "relationships",
+        "karma-team-cli",
+        "review-cycle",
+        "test-intro",
+        "test-cycle",
+        "scheduler-task",
+        "task-lifecycle",
+        "repo-context",
+        "workpad-context",
+    ):
+        assert key in registry.REGISTRY
+
+
+@pytest.mark.unit
+def test_every_section_has_valid_customizable_flag():
+    for section in registry.all_sections():
+        assert section.customizable in {
+            registry.CUSTOMIZABLE_LOCKED,
+            registry.CUSTOMIZABLE_WORKSPACE,
+            registry.CUSTOMIZABLE_OVERRIDABLE,
+        }
+
+
+@pytest.mark.unit
+def test_locked_and_overridable_classification():
+    assert registry.get_section("karma-team-cli").is_locked
+    assert registry.get_section("ending-run").is_locked
+    assert registry.get_section("implementation").is_overridable
+    assert registry.get_section("review-cycle").is_overridable
+
+
+@pytest.mark.unit
+def test_karma_team_cli_documents_folded_comments():
+    body = registry.get_section("karma-team-cli").default_body
+    assert "--fold" in body
+    assert "omitted from future agent-run task prompts" in body
+    assert "never folds comments automatically" in body
+
+
+@pytest.mark.unit
+def test_customizable_tier_capabilities():
+    """The three tiers map to (workspace-override, personal-override) capability."""
+    locked = registry.PromptSection("k", "T", registry.CUSTOMIZABLE_LOCKED, "b\n")
+    assert locked.is_locked
+    assert not locked.allows_workspace_override
+    assert not locked.allows_personal_override
+
+    ws_only = registry.PromptSection("k", "T", registry.CUSTOMIZABLE_WORKSPACE, "b\n")
+    assert not ws_only.is_locked
+    assert not ws_only.is_overridable
+    assert ws_only.allows_workspace_override
+    assert not ws_only.allows_personal_override
+
+    open_ = registry.PromptSection("k", "T", registry.CUSTOMIZABLE_OVERRIDABLE, "b\n")
+    assert open_.is_overridable
+    assert open_.allows_workspace_override
+    assert open_.allows_personal_override
+
+
+@pytest.mark.unit
+def test_every_section_body_is_valid_jinja():
+    for section in registry.all_sections():
+        # Raises PromptSyntaxError on bad syntax — must not raise.
+        validate_syntax(section.default_body)
+
+
+@pytest.mark.unit
+def test_every_recipe_key_exists_in_registry():
+    for kind, section_keys in recipes.RECIPES.items():
+        for key in section_keys:
+            assert key in registry.REGISTRY, f"{kind} references missing {key}"
+
+
+@pytest.mark.unit
+def test_section_key_matches_filename_stem():
+    for section in registry.all_sections():
+        path = registry.SECTIONS_DIR / f"{section.key}.md"
+        assert path.exists()
+
+
+@pytest.mark.unit
+def test_get_section_unknown_raises():
+    with pytest.raises(registry.PromptRegistryError):
+        registry.get_section("does-not-exist")
+
+
+@pytest.mark.unit
+def test_parse_front_matter_rejects_missing_block(tmp_path):
+    bad = tmp_path / "bad.md"
+    bad.write_text("no front matter here\n", encoding="utf-8")
+    with pytest.raises(registry.PromptRegistryError):
+        registry._parse_front_matter(bad)
+
+
+@pytest.mark.unit
+def test_parse_front_matter_rejects_unknown_customizable(tmp_path):
+    bad = tmp_path / "x.md"
+    bad.write_text("---\nkey: x\ntitle: X\ncustomizable: sometimes\n---\nbody\n", encoding="utf-8")
+    with pytest.raises(registry.PromptRegistryError):
+        registry._parse_front_matter(bad)
+
+
+@pytest.mark.unit
+def test_parse_front_matter_rejects_key_filename_mismatch(tmp_path):
+    bad = tmp_path / "wrongname.md"
+    bad.write_text(
+        "---\nkey: rightname\ntitle: X\ncustomizable: locked\n---\nbody\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(registry.PromptRegistryError):
+        registry._parse_front_matter(bad)
+
+
+@pytest.mark.unit
+def test_parse_front_matter_requires_all_fields(tmp_path):
+    bad = tmp_path / "y.md"
+    bad.write_text("---\nkey: y\n---\nbody\n", encoding="utf-8")
+    with pytest.raises(registry.PromptRegistryError):
+        registry._parse_front_matter(bad)

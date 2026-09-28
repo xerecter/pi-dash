@@ -8,9 +8,9 @@ import { useMemo, useState } from "react";
 import { sortBy } from "lodash-es";
 import { observer } from "mobx-react";
 // ui
-import { Avatar, Loader } from "@pi-dash/ui";
+import { Avatar, Loader } from "@karma-team/ui";
 // components
-import { getFileURL } from "@pi-dash/utils";
+import { getFileURL } from "@karma-team/utils";
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 // helpers
 // hooks

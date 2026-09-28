@@ -5,13 +5,13 @@
  */
 
 import { Database as HocuspocusDatabase } from "@hocuspocus/extension-database";
-// pi dash imports
+// karma-team imports
 import {
   getAllDocumentFormatsFromDocumentEditorBinaryData,
   getBinaryDataFromDocumentEditorHTMLString,
-} from "@pi-dash/editor";
-import type { TDocumentPayload } from "@pi-dash/types";
-import { logger } from "@pi-dash/logger";
+} from "@karma-team/editor";
+import type { TDocumentPayload } from "@karma-team/types";
+import { logger } from "@karma-team/logger";
 // lib
 import { AppError } from "@/lib/errors";
 // services

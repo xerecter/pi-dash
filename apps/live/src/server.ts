@@ -12,9 +12,9 @@ import type { Express, Request, Response, Router } from "express";
 import express from "express";
 import expressWs from "express-ws";
 import helmet from "helmet";
-// pi dash imports
-import { registerController } from "@pi-dash/decorators";
-import { logger, loggerMiddleware } from "@pi-dash/logger";
+// karma-team imports
+import { registerController } from "@karma-team/decorators";
+import { logger, loggerMiddleware } from "@karma-team/logger";
 // controllers
 import { CONTROLLERS } from "@/controllers";
 // env

@@ -33,7 +33,7 @@ Goal:
 
 Scope:
 
-- create `apps/api/pi_dash/orchestration/agent_phases.py` with:
+- create `apps/api/karma_team/orchestration/agent_phases.py` with:
   - `@dataclass(frozen=True) class PhaseConfig` — `state_name`,
     `template_name`, `fresh_session_on_entry`,
     `disarm_on_completed` (no per-phase cadence in v1; both phases
@@ -82,7 +82,7 @@ Scope:
   coalesce / active-run / no-pod early returns so re-arm fires for
   every human comment on an eligible issue. `arm_ticker` honors
   `user_disabled` and is idempotent on an already-armed ticker.
-- add `apps/api/pi_dash/tests/unit/orchestration/test_agent_phases.py`
+- add `apps/api/karma_team/tests/unit/orchestration/test_agent_phases.py`
   exhaustively over every `StateGroup` value
 - extend `test_scheduling.py` with:
   - `maybe_disarm_on_terminal_signal` disarms on done-payload
@@ -135,16 +135,16 @@ Goal:
 
 Scope:
 
-- `apps/api/pi_dash/db/models/state.py`:
+- `apps/api/karma_team/db/models/state.py`:
   - add `REVIEW = "review", "Review"` to `StateGroup`
   - add `In Review` entry to `DEFAULT_STATES` (sequence 40000,
     color: indigo `#5B5BD6` — final color picked during impl)
-- `apps/api/pi_dash/seeds/data/states.json`: add the `In Review`
+- `apps/api/karma_team/seeds/data/states.json`: add the `In Review`
   entry alongside the in-Python default
-- `apps/api/pi_dash/db/models/project.py`:
+- `apps/api/karma_team/db/models/project.py`:
   - add `agent_review_default_interval_seconds` (default 10800)
   - add `agent_review_default_max_ticks` (default 8)
-- `apps/api/pi_dash/db/models/issue_agent_ticker.py`:
+- `apps/api/karma_team/db/models/issue_agent_ticker.py`:
   - add `review_interval_seconds` (`null=True`, `blank=True`)
   - add `review_max_ticks` (`null=True`, `blank=True`)
   - rewrite `effective_interval_seconds()` and
@@ -163,7 +163,7 @@ Scope:
     `review_max_ticks`
   - `RunPython` data migration: for every project lacking an
     `In Review` state in the `review` group, create one (idempotent)
-- `apps/api/pi_dash/prompting/seed.py`: add
+- `apps/api/karma_team/prompting/seed.py`: add
   `REVIEW_TEMPLATE_BODY` constant (verify location vs. the
   existing default during impl); also update
   `CODING_TASK_TEMPLATE_BODY` (or wherever the impl default lives)
@@ -178,7 +178,7 @@ is_active=True, body=REVIEW_TEMPLATE_BODY)` if not present
   - `RunPython`: update the existing `coding-task` template body to
     include the new artifact-reporting fields. Idempotent — only
     update if existing body lacks the new fields
-- `apps/api/pi_dash/prompting/management/commands/reseed_review_template.py`:
+- `apps/api/karma_team/prompting/management/commands/reseed_review_template.py`:
   reseed command analogous to `reseed_default_template.py`
 - `orchestration/agent_phases.py`: add the Review entry to `PHASES`:
   `state_name="In Review"`, `template_name="review"`,
@@ -299,9 +299,9 @@ Defer unless impl pressure allows:
 - Project state-management view confirms the new Review column
   renders correctly after updating hard-coded group lists in:
   `packages/constants/src/state.ts`,
-  `apps/api/pi_dash/space/utils/grouper.py`,
-  `apps/api/pi_dash/api/views/issue.py`, and
-  `apps/api/pi_dash/utils/order_queryset.py`
+  `apps/api/karma_team/space/utils/grouper.py`,
+  `apps/api/karma_team/api/views/issue.py`, and
+  `apps/api/karma_team/utils/order_queryset.py`
 
 ## Cross-PR checklist
 
@@ -309,8 +309,8 @@ Defer unless impl pressure allows:
       but the JS surface is **not** actually untouched: the project
       state constants/types and ordering helpers must learn about the
       new `review` group
-- [ ] `cd apps/api && python -m pytest pi_dash/tests/unit/` passes
-- [ ] `cd apps/api && python -m pytest pi_dash/tests/contract/` passes —
+- [ ] `cd apps/api && python -m pytest karma_team/tests/unit/` passes
+- [ ] `cd apps/api && python -m pytest karma_team/tests/contract/` passes —
       contract tests for the Issue State endpoints may need to allow the
       new `review` group value
 - [ ] Manual smoke (after PR A): create a project, move an issue
@@ -334,27 +334,27 @@ Defer unless impl pressure allows:
       ticker stops automatically after
       `agent_review_default_max_ticks` (8) ticks unless a
       `review*_`per-issue override is set,
-    (d) commenting on the In Review issue triggers a continuation
-        run within a few seconds,
-    (e) emitting`completed` from the review run disarms the
-        ticker and leaves the issue in In Review for the human
-        to transition forward; a follow-up human comment re-arms
-        the ticker (re-arm-on-comment),
-    (f) moving the issue back to In Progress resumes the stored
-        pre-review implementation thread rather than parenting off
-        the latest review run, and the In Progress cadence
-        fields (`agent*default*_`/ `interval_seconds`/
-       `max_ticks`) take effect again,
-    (g) any pre-existing impl-phase override
-        (`interval_seconds`/`max_ticks`) survives the phase
-        round-trip unchanged; review-phase overrides
-        (`review_interval_seconds`/`review_max_ticks`) are
+(d) commenting on the In Review issue triggers a continuation
+    run within a few seconds,
+(e) emitting`completed` from the review run disarms the
+    ticker and leaves the issue in In Review for the human
+    to transition forward; a follow-up human comment re-arms
+    the ticker (re-arm-on-comment),
+(f) moving the issue back to In Progress resumes the stored
+    pre-review implementation thread rather than parenting off
+    the latest review run, and the In Progress cadence
+    fields (`agent*default*_`/ `interval_seconds`/
+   `max_ticks`) take effect again,
+(g) any pre-existing impl-phase override
+    (`interval_seconds`/`max_ticks`) survives the phase
+    round-trip unchanged; review-phase overrides
+    (`review_interval_seconds`/`review_max_ticks`) are
       independent and only apply while the issue is In Review,
       (h) for a CODE-kind review run (issue with a PR), the smoke
       confirms the agent commented on the GitHub PR, applied
       a confirmed fix as a commit on the PR branch, resolved
       the corresponding PR comment thread, and posted a
-      summary back as a pidash issue comment
+      summary back as a karma-team issue comment
 - [ ] Open questions in design §11 are pinned before PR B ships
       (especially Q5 — review agent's write boundary — and Q10 —
       mode inference reliability)

@@ -77,6 +77,6 @@ function RightItem(props: HeaderProps) {
 
 Header.LeftItem = LeftItem;
 Header.RightItem = RightItem;
-Header.displayName = "pi-dash-ui-header";
+Header.displayName = "karma-team-ui-header";
 
 export { Header, EHeaderVariant };

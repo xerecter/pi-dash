@@ -8,11 +8,11 @@ import { useMemo, useState } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { ArchiveRestore } from "lucide-react";
-// pi dash imports
-import { PROJECT_AUTOMATION_MONTHS, EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import type { IProject } from "@pi-dash/types";
-import { CustomSelect, Loader, ToggleSwitch } from "@pi-dash/ui";
+// karma-team imports
+import { PROJECT_AUTOMATION_MONTHS, EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import type { IProject } from "@karma-team/types";
+import { CustomSelect, Loader, ToggleSwitch } from "@karma-team/ui";
 // component
 import { SelectMonthModal } from "@/components/automation";
 import { SettingsControlItem } from "@/components/settings/control-item";
@@ -74,7 +74,7 @@ export const AutoArchiveAutomation = observer(function AutoArchiveAutomation(pro
           </div>
           <SettingsControlItem
             title={t("Auto-archive closed work items")}
-            description={t("Pi Dash will auto archive work items that have been completed or canceled.")}
+            description={t("karma-team will auto archive work items that have been completed or canceled.")}
             control={
               <ToggleSwitch value={autoArchiveStatus} onChange={handleToggleArchive} size="sm" disabled={!isAdmin} />
             }
@@ -84,9 +84,7 @@ export const AutoArchiveAutomation = observer(function AutoArchiveAutomation(pro
           autoArchiveStatus && (
             <div className="ml-13">
               <div className="flex w-full items-center justify-between gap-2 rounded-sm border border-subtle bg-surface-2 px-5 py-4">
-                <div className="w-1/2 text-13 font-medium">
-                  {t("Auto-archive work items that are closed for")}
-                </div>
+                <div className="w-1/2 text-13 font-medium">{t("Auto-archive work items that are closed for")}</div>
                 <div className="w-1/2">
                   <CustomSelect
                     value={currentProjectDetails?.archive_in}

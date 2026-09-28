@@ -5,10 +5,10 @@
  */
 
 import { useState } from "react";
-// pi dash imports
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import type { IWorkspaceMember, TProjectMembership } from "@pi-dash/types";
-import { renderFormattedDate } from "@pi-dash/utils";
+// karma-team imports
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import type { IWorkspaceMember, TProjectMembership } from "@karma-team/types";
+import { renderFormattedDate } from "@karma-team/utils";
 // components
 import { MemberHeaderColumn } from "@/components/project/member-header-column";
 import { AccountTypeColumn, NameColumn } from "@/components/project/settings/member-columns";

@@ -6,10 +6,10 @@
 
 import { set } from "lodash-es";
 import { observable, action, computed, makeObservable, runInAction } from "mobx";
-// pi dash internal packages
-import type { TInstanceStatus } from "@pi-dash/constants";
-import { EInstanceStatus } from "@pi-dash/constants";
-import { InstanceService } from "@pi-dash/services";
+// karma-team internal packages
+import type { TInstanceStatus } from "@karma-team/constants";
+import { EInstanceStatus } from "@karma-team/constants";
+import { InstanceService } from "@karma-team/services";
 import type {
   IInstance,
   IInstanceAdmin,
@@ -17,7 +17,7 @@ import type {
   IFormattedInstanceConfiguration,
   IInstanceInfo,
   IInstanceConfig,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // root store
 import type { RootStore } from "@/store/root.store";
 

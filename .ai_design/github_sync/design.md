@@ -8,32 +8,32 @@
 
 ## 1. Problem
 
-Pi Dash already has the data shape for GitHub mirroring (`GithubRepository`, `GithubRepositorySync`, `GithubIssueSync`, `GithubCommentSync`, plus `Issue.external_source` / `external_id`), but no fetch loop, no working UI to connect a repo, and no per-project toggle. Users currently have no way to mirror GitHub issues into a Pi Dash project.
+karma-team already has the data shape for GitHub mirroring (`GithubRepository`, `GithubRepositorySync`, `GithubIssueSync`, `GithubCommentSync`, plus `Issue.external_source` / `external_id`), but no fetch loop, no working UI to connect a repo, and no per-project toggle. Users currently have no way to mirror GitHub issues into a karma-team project.
 
 There is leftover Plane-era client code (see §6.0) that _looks_ like a working integration but points at backend routes that were never ported into `apps/api`. The MVP supersedes those stubs and ships the missing backend, a working UI, and the sync loop.
 
-We want a minimum-viable, one-directional sync: GitHub issues become Pi Dash issues on a fixed cadence; when a Pi Dash issue is completed, a single comment is posted back to GitHub to notify the original reporter. No state changes on the GitHub side.
+We want a minimum-viable, one-directional sync: GitHub issues become karma-team issues on a fixed cadence; when a karma-team issue is completed, a single comment is posted back to GitHub to notify the original reporter. No state changes on the GitHub side.
 
 ## 2. Goals
 
 - **Connect once per workspace.** A user pastes a GitHub credential (PAT) once on the workspace level. Every project in the workspace can then bind a repo without re-authenticating.
 - **Per-project enable/disable.** From project settings, a user picks a repo (from those visible to the credential) and toggles sync on/off.
 - **Fixed 4-hour cadence.** A single Celery Beat entry runs every 4 hours; no per-project schedule, no UI knob.
-- **One-way content sync.** GitHub issues + comments → Pi Dash issues + comments. No reverse content sync, no state mirroring.
-- **Title prefix `[github_<number>]`.** Mirrored issues are unambiguously identifiable in the Pi Dash UI.
-- **Completion comment-back.** When a synced Pi Dash issue moves to a state of group `completed`, post one comment on the GitHub issue: "This issue has been completed in Pi Dash." The GitHub issue is not closed.
+- **One-way content sync.** GitHub issues + comments → karma-team issues + comments. No reverse content sync, no state mirroring.
+- **Title prefix `[github_<number>]`.** Mirrored issues are unambiguously identifiable in the karma-team UI.
+- **Completion comment-back.** When a synced karma-team issue moves to a state of group `completed`, post one comment on the GitHub issue: "This issue has been completed in karma-team." The GitHub issue is not closed.
 
 ## 3. Non-Goals (MVP)
 
 - No GitHub App, no manifest flow, no OAuth-for-API. **PAT only**, pasted by the workspace admin.
 - No webhooks. Polling only.
-- No two-way sync. GitHub side stays open even when Pi Dash side is completed.
+- No two-way sync. GitHub side stays open even when karma-team side is completed.
 - No label, assignee, or milestone mapping. Title + body + comments + author identifier only.
 - No backfill UI. Every run is a full scan (see §6.3); the first run is just the steady-state shape with an empty local mirror.
-- No conflict resolution. Synced fields (issue title/description, comment bodies) are **read-only in Pi Dash** — the serializer rejects edits and the UI hides the affordances; see §6.8. GitHub is authoritative; the sync task always rewrites those fields from upstream. Workflow fields (state, priority, assignees, labels, cycle, module) remain user-editable.
+- No conflict resolution. Synced fields (issue title/description, comment bodies) are **read-only in karma-team** — the serializer rejects edits and the UI hides the affordances; see §6.8. GitHub is authoritative; the sync task always rewrites those fields from upstream. Workflow fields (state, priority, assignees, labels, cycle, module) remain user-editable.
 - No multi-repo per project. One `GithubRepositorySync` per project (already enforced by `unique_together = [project, repository]`).
-- **Upstream deletion is _detected_ but not propagated as a Pi Dash delete.** Mirrors of upstream-deleted (or upstream-closed) issues are flagged via `GithubIssueSync.metadata["upstream_gone_at"]` and stop syncing; the Pi Dash row is preserved so users don't lose work or comments. UI can render a "no longer on GitHub" badge.
-- No upstream→Pi Dash propagation of _state_ changes (open/closed). A GitHub closure surfaces in the same diff that detects deletions, but we leave the Pi Dash issue's state alone — the user's workflow lane is theirs.
+- **Upstream deletion is _detected_ but not propagated as a karma-team delete.** Mirrors of upstream-deleted (or upstream-closed) issues are flagged via `GithubIssueSync.metadata["upstream_gone_at"]` and stop syncing; the karma-team row is preserved so users don't lose work or comments. UI can render a "no longer on GitHub" badge.
+- No upstream→karma-team propagation of _state_ changes (open/closed). A GitHub closure surfaces in the same diff that detects deletions, but we leave the karma-team issue's state alone — the user's workflow lane is theirs.
 - No rate-limit handling beyond exponential backoff on 403 secondary limits.
 
 ## 4. Key Concepts
@@ -100,7 +100,7 @@ migrations.AddField(
 )
 
 # Preserve original GitHub timestamps without fighting auto_now_add/auto_now
-# on Pi Dash's TimeAuditModel (which would clobber values passed at create time).
+# on karma-team's TimeAuditModel (which would clobber values passed at create time).
 migrations.AddField(
     model_name="githubissuesync",
     name="gh_issue_created_at",
@@ -114,10 +114,10 @@ migrations.AddField(
 )
 ```
 
-**Issue model change** — `apps/api/pi_dash/db/models/issue.py`:
+**Issue model change** — `apps/api/karma_team/db/models/issue.py`:
 
 ```python
-from pi_dash.db.mixins import ChangeTrackerMixin
+from karma_team.db.mixins import ChangeTrackerMixin
 
 class Issue(ChangeTrackerMixin, ProjectBaseModel):
     TRACKED_FIELDS = ["state_id"]
@@ -143,7 +143,7 @@ Stored in `WorkspaceIntegration.config` for `integration.provider == "github"`:
 }
 ```
 
-The token field is encrypted at rest using `pi_dash.license.utils.encryption` (`encrypt_data(plaintext)` / `decrypt_data(ciphertext)`). This is the only encryption helper currently in the codebase; we deliberately reuse it rather than introduce a second mechanism. The `verified_at` and `github_user_login` fields are stored in plaintext — they are not secrets.
+The token field is encrypted at rest using `karma_team.license.utils.encryption` (`encrypt_data(plaintext)` / `decrypt_data(ciphertext)`). This is the only encryption helper currently in the codebase; we deliberately reuse it rather than introduce a second mechanism. The `verified_at` and `github_user_login` fields are stored in plaintext — they are not secrets.
 
 ## 6. Layer-by-Layer Changes
 
@@ -213,13 +213,13 @@ These files exist and look like a GitHub integration, but call backend routes th
 
 ### 6.3 Django — sync task (Celery Beat)
 
-**File** — `apps/api/pi_dash/bgtasks/github_sync_task.py` (new).
+**File** — `apps/api/karma_team/bgtasks/github_sync_task.py` (new).
 
-**Beat schedule** — added to `apps/api/pi_dash/celery.py`:
+**Beat schedule** — added to `apps/api/karma_team/celery.py`:
 
 ```python
 "github_issue_sync": {
-    "task": "pi_dash.bgtasks.github_sync_task.sync_all_repos",
+    "task": "karma_team.bgtasks.github_sync_task.sync_all_repos",
     "schedule": crontab(minute=0, hour="*/4"),
 },
 ```
@@ -297,16 +297,16 @@ def reconcile_upstream_gone(sync, remote_issue_numbers):
             ghi.save(update_fields=["metadata"])
 ```
 
-| Aspect                           | Behavior                                                                                                                                                                                                                                |
-| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Why a set diff is sufficient** | Deletions don't appear in any list endpoint (the issue's row is gone — no `updated_at` to filter on). Closures don't appear in `state=open`. Both surface as "absent from this run's listing." We don't try to distinguish them.        |
-| **What "gone" means in Pi Dash** | The `Issue` row stays. Future sync runs skip mirroring updates onto it (the upsert path is keyed on the GitHub-side issue still being in the listing). The issue becomes effectively a Pi Dash-native record with frozen synced fields. |
-| **UI**                           | Render a "no longer on GitHub" badge / muted styling on issues with `metadata["upstream_gone_at"]` set, sourced via the `GithubIssueSync` join. Optional in MVP — at minimum the field is queryable for admins.                         |
-| **Reopen / transfer-back**       | If an upstream-gone issue reappears in a later run (e.g. an admin restored it, or a transfer was reverted), the flag is cleared and normal sync resumes.                                                                                |
-| **Hard delete on Pi Dash side**  | Out of scope. Users who want the mirror gone can soft-delete the `Issue` manually.                                                                                                                                                      |
-| **PR filtering**                 | GitHub returns PRs alongside issues from the `/issues` endpoint; we filter via the `pull_request` field. `remote_issue_numbers` therefore only contains real issues — a PR's number won't accidentally cause a flag clear.              |
-| **Closed-on-GitHub items**       | Treated identically to deleted items (both absent from the `state=open` listing). MVP intentionally does not mirror state changes back to Pi Dash (see §3) — the user keeps their workflow lane.                                        |
-| **Failure resume**               | On exception, no flags are written; the next run computes the diff from scratch. Idempotent.                                                                                                                                            |
+| Aspect                              | Behavior                                                                                                                                                                                                                                   |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Why a set diff is sufficient**    | Deletions don't appear in any list endpoint (the issue's row is gone — no `updated_at` to filter on). Closures don't appear in `state=open`. Both surface as "absent from this run's listing." We don't try to distinguish them.           |
+| **What "gone" means in karma-team** | The `Issue` row stays. Future sync runs skip mirroring updates onto it (the upsert path is keyed on the GitHub-side issue still being in the listing). The issue becomes effectively a karma-team-native record with frozen synced fields. |
+| **UI**                              | Render a "no longer on GitHub" badge / muted styling on issues with `metadata["upstream_gone_at"]` set, sourced via the `GithubIssueSync` join. Optional in MVP — at minimum the field is queryable for admins.                            |
+| **Reopen / transfer-back**          | If an upstream-gone issue reappears in a later run (e.g. an admin restored it, or a transfer was reverted), the flag is cleared and normal sync resumes.                                                                                   |
+| **Hard delete on karma-team side**  | Out of scope. Users who want the mirror gone can soft-delete the `Issue` manually.                                                                                                                                                         |
+| **PR filtering**                    | GitHub returns PRs alongside issues from the `/issues` endpoint; we filter via the `pull_request` field. `remote_issue_numbers` therefore only contains real issues — a PR's number won't accidentally cause a flag clear.                 |
+| **Closed-on-GitHub items**          | Treated identically to deleted items (both absent from the `state=open` listing). MVP intentionally does not mirror state changes back to karma-team (see §3) — the user keeps their workflow lane.                                        |
+| **Failure resume**                  | On exception, no flags are written; the next run computes the diff from scratch. Idempotent.                                                                                                                                               |
 
 **Upsert keying**:
 
@@ -346,22 +346,22 @@ This mirrors only comments on open non-PR issues (the only ones with local paren
 
 **Field mapping** (issue):
 
-| GitHub                | Pi Dash                                                                                                                                                                                                                                                                                                                    |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `title`               | `name` (with `[github_<number>] ` prefix prepended — see §6.4)                                                                                                                                                                                                                                                             |
-| `body` (markdown)     | `description_html` (rendered), `description_stripped` (plain) — reuse existing markdown→HTML helper                                                                                                                                                                                                                        |
-| `user.login`          | record in `GithubIssueSync.metadata["github_user_login"]`; **created_by** is set to the workspace integration's `actor` (the bot user), not a real Pi Dash user                                                                                                                                                            |
-| `state` (open/closed) | We list `state=open` only, so closed issues never enter the local set. On first import, state = project default. Subsequent updates do not change Pi Dash state — see §3 non-goal on state propagation. If an issue closes upstream, it disappears from the listing and is treated identically to a deletion (see §6.3.1). |
-| `labels` (MVP)        | not synced                                                                                                                                                                                                                                                                                                                 |
-| `assignees` (MVP)     | not synced                                                                                                                                                                                                                                                                                                                 |
-| `created_at`          | `GithubIssueSync.gh_issue_created_at` (NOT `Issue.created_at`)                                                                                                                                                                                                                                                             |
-| `updated_at`          | `GithubIssueSync.gh_issue_updated_at` (NOT `Issue.updated_at`)                                                                                                                                                                                                                                                             |
+| GitHub                | karma-team                                                                                                                                                                                                                                                                                                                    |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `title`               | `name` (with `[github_<number>] ` prefix prepended — see §6.4)                                                                                                                                                                                                                                                                |
+| `body` (markdown)     | `description_html` (rendered), `description_stripped` (plain) — reuse existing markdown→HTML helper                                                                                                                                                                                                                           |
+| `user.login`          | record in `GithubIssueSync.metadata["github_user_login"]`; **created_by** is set to the workspace integration's `actor` (the bot user), not a real karma-team user                                                                                                                                                            |
+| `state` (open/closed) | We list `state=open` only, so closed issues never enter the local set. On first import, state = project default. Subsequent updates do not change karma-team state — see §3 non-goal on state propagation. If an issue closes upstream, it disappears from the listing and is treated identically to a deletion (see §6.3.1). |
+| `labels` (MVP)        | not synced                                                                                                                                                                                                                                                                                                                    |
+| `assignees` (MVP)     | not synced                                                                                                                                                                                                                                                                                                                    |
+| `created_at`          | `GithubIssueSync.gh_issue_created_at` (NOT `Issue.created_at`)                                                                                                                                                                                                                                                                |
+| `updated_at`          | `GithubIssueSync.gh_issue_updated_at` (NOT `Issue.updated_at`)                                                                                                                                                                                                                                                                |
 
-**Why GitHub timestamps don't go on `Issue`:** `Issue` inherits `TimeAuditModel`, where `created_at` uses `auto_now_add=True` and `updated_at` uses `auto_now=True` (`db/mixins.py:19-20`). Both fields are _forced_ by Django on every INSERT / UPDATE — passing values is silently ignored. Working around that with a follow-up `Issue.objects.filter(pk=...).update(created_at=...)` is possible but pollutes the audit semantics: `Issue.created_at` should mean "when this Pi Dash record was created," not "when the upstream GitHub issue was filed." Storing the GitHub timestamps on the dedicated `GithubIssueSync.gh_issue_created_at` / `gh_issue_updated_at` fields keeps both meanings clean. The UI can render whichever is appropriate per surface.
+**Why GitHub timestamps don't go on `Issue`:** `Issue` inherits `TimeAuditModel`, where `created_at` uses `auto_now_add=True` and `updated_at` uses `auto_now=True` (`db/mixins.py:19-20`). Both fields are _forced_ by Django on every INSERT / UPDATE — passing values is silently ignored. Working around that with a follow-up `Issue.objects.filter(pk=...).update(created_at=...)` is possible but pollutes the audit semantics: `Issue.created_at` should mean "when this karma-team record was created," not "when the upstream GitHub issue was filed." Storing the GitHub timestamps on the dedicated `GithubIssueSync.gh_issue_created_at` / `gh_issue_updated_at` fields keeps both meanings clean. The UI can render whichever is appropriate per surface.
 
 **State on first import**: assign the project's default state (the same one new manual issues get). This avoids importing 5000 closed issues into a "Backlog" lane.
 
-**Closed issues**: skip on import (`state=open` only via `state=open` query param). If an open issue later becomes closed upstream, we leave the Pi Dash mirror untouched in MVP.
+**Closed issues**: skip on import (`state=open` only via `state=open` query param). If an open issue later becomes closed upstream, we leave the karma-team mirror untouched in MVP.
 
 ### 6.4 Title and comment prefixes
 
@@ -369,7 +369,7 @@ Both mirrored issues and mirrored comments carry a stored prefix so the GitHub o
 
 **Issue title** — `[github_<number>]`:
 
-- On insert and on every subsequent sync: `name = f"[github_{gh_issue['number']}] {gh_issue['title']}"`. No dirty-check, no `last_synced_title` bookkeeping — synced titles are read-only in Pi Dash (see §6.8), so there is never a local edit to preserve. The sync task always rewrites the field from upstream.
+- On insert and on every subsequent sync: `name = f"[github_{gh_issue['number']}] {gh_issue['title']}"`. No dirty-check, no `last_synced_title` bookkeeping — synced titles are read-only in karma-team (see §6.8), so there is never a local edit to preserve. The sync task always rewrites the field from upstream.
 - The prefix uses the **GitHub issue number** (e.g. `#123` → `[github_123]`), not the global GraphQL `id`. Rationale: numbers are visible to users and match the GitHub UI; IDs are opaque.
 
 **Comment body** — `[Github]`:
@@ -377,9 +377,9 @@ Both mirrored issues and mirrored comments carry a stored prefix so the GitHub o
 - On insert and every subsequent sync: prepend a literal `[Github] ` marker as a leading paragraph to `comment_html`, and as a leading token to `comment_stripped`:
   - `comment_html = f"<p>[Github] </p>{rendered_html}"` — separate leading paragraph so multi-paragraph upstream bodies aren't broken (an inline `"<p>[Github] " + inner_html + "</p>"` would close `</p>` too early when `inner_html` already contains block elements).
   - `comment_stripped = f"[Github] {stripped}"`.
-- No dirty-check on comments — synced comment bodies are read-only in Pi Dash (see §6.8). The sync task always rewrites synced rows in full from upstream; the prefix is regenerated each run.
+- No dirty-check on comments — synced comment bodies are read-only in karma-team (see §6.8). The sync task always rewrites synced rows in full from upstream; the prefix is regenerated each run.
 - No comment ID in the marker (unlike the issue title). Comment IDs are opaque numeric values; rendering them adds noise without giving users an actionable handle. The plain `[Github]` marker is the visible signal; `IssueComment.external_id` keeps the precise mapping in the database.
-- Native (Pi Dash-authored) comments are **not** prefixed — `external_source IS NULL` → no marker → easy at-a-glance distinction in the comment thread.
+- Native (karma-team-authored) comments are **not** prefixed — `external_source IS NULL` → no marker → easy at-a-glance distinction in the comment thread.
 
 **Casing note:** the title prefix is lowercase (`[github_123]`) while the comment marker is title-case (`[Github]`). This is intentional — the title prefix functions as a quasi-identifier (mirrors GitHub's lowercase `gh issue` notation), while the comment marker is a natural-language label. If a future cleanup wants to normalize to one style, the migration is trivial (one regex sweep over `Issue.name` and `IssueComment.comment_html` / `comment_stripped`); both choices are easy to revisit.
 
@@ -389,7 +389,7 @@ Both mirrored issues and mirrored comments carry a stored prefix so the GitHub o
 
 **Mechanism:** use the `ChangeTrackerMixin` already on `Issue` (added in §5). The mixin captures field values at `__init__` time, exposes `instance.has_changed("state_id")`, and stashes the change set on `instance._changes_on_save` after `save()` so a `post_save` receiver can read it.
 
-**Receiver** (registered in `pi_dash/db/signals/issue_signals.py`, wired through `apps.py`):
+**Receiver** (registered in `karma_team/db/signals/issue_signals.py`, wired through `apps.py`):
 
 ```python
 @receiver(post_save, sender=Issue)
@@ -420,7 +420,7 @@ def post_completion_comment(issue_sync_id):
         return  # second-line idempotency in case of task duplication
     token = decrypt_data(sync.repository_sync.workspace_integration.config["token"])
     client = GithubClient(token=token)
-    body = f"This issue has been completed in Pi Dash: {pi_dash_issue_url(sync.issue)}"
+    body = f"This issue has been completed in karma-team: {karma_team_issue_url(sync.issue)}"
     comment = client.post_comment(
         sync.repository_sync.repository.owner,
         sync.repository_sync.repository.name,
@@ -435,19 +435,19 @@ def post_completion_comment(issue_sync_id):
 
 **Re-arm policy**: out of scope for MVP. If a user wants the comment to fire again after a reopen, they manually clear `metadata["completion_comment_id"]` via Django admin. Documented as a follow-up.
 
-**Helper — `pi_dash_issue_url(issue)`**: returns the absolute URL of the issue in the Pi Dash UI:
+**Helper — `karma_team_issue_url(issue)`**: returns the absolute URL of the issue in the karma-team UI:
 
 ```python
-def pi_dash_issue_url(issue: "Issue") -> str:
+def karma_team_issue_url(issue: "Issue") -> str:
     base = settings.WEB_URL or settings.APP_BASE_URL
     if not base:
         raise ImproperlyConfigured("WEB_URL or APP_BASE_URL must be set for GitHub completion comments")
     return f"{base.rstrip('/')}/{issue.workspace.slug}/projects/{issue.project_id}/issues/{issue.id}"
 ```
 
-Add this in `apps/api/pi_dash/bgtasks/github_sync_task.py` (or a small helpers module if reused). The existing `prompting.context._absolute_issue_url` returns only a relative path — fine for templates rendered inside Pi Dash, not enough for a comment that lives on github.com.
+Add this in `apps/api/karma_team/bgtasks/github_sync_task.py` (or a small helpers module if reused). The existing `prompting.context._absolute_issue_url` returns only a relative path — fine for templates rendered inside karma-team, not enough for a comment that lives on github.com.
 
-**Failure mode**: best-effort. Celery default retry (3 attempts with exponential backoff) for transient errors. The Pi Dash state change is not rolled back. Permanent failure (403/404) writes the error to `sync.metadata["completion_comment_error"]` so it surfaces in admin. A 404 specifically means the upstream issue was deleted between the `reconcile_upstream_gone` flag-write and the comment task running; the task does not retry into oblivion (Celery's `MaxRetriesExceededError` after 3 attempts is the natural backstop, plus the 4xx classification skips retries entirely).
+**Failure mode**: best-effort. Celery default retry (3 attempts with exponential backoff) for transient errors. The karma-team state change is not rolled back. Permanent failure (403/404) writes the error to `sync.metadata["completion_comment_error"]` so it surfaces in admin. A 404 specifically means the upstream issue was deleted between the `reconcile_upstream_gone` flag-write and the comment task running; the task does not retry into oblivion (Celery's `MaxRetriesExceededError` after 3 attempts is the natural backstop, plus the 4xx classification skips retries entirely).
 
 ### 6.6 Web UI
 
@@ -496,17 +496,17 @@ A row is "actively synced" iff a corresponding sync-tracking row exists:
 | Object                                                                      | Field / action                                                                                                                                | Editable when...        | Why                                                                                                                                                                                                 |
 | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Synced `Issue`                                                              | `name`, `description_html`, `description_json`, `description_stripped`                                                                        | **Locked while synced** | Mirrored from GitHub each sync; let upstream win.                                                                                                                                                   |
-| Synced `Issue`                                                              | `state`, `priority`, `assignees`, `labels`, `cycle`, `module`, `start_date`, `target_date`, `point`, `estimate_point`, `parent`, `sort_order` | Editable                | Pi Dash workflow fields, never mirrored from GitHub. State change is the trigger for §6.5 completion comment-back.                                                                                  |
+| Synced `Issue`                                                              | `state`, `priority`, `assignees`, `labels`, `cycle`, `module`, `start_date`, `target_date`, `point`, `estimate_point`, `parent`, `sort_order` | Editable                | karma-team workflow fields, never mirrored from GitHub. State change is the trigger for §6.5 completion comment-back.                                                                               |
 | Synced `Issue`                                                              | delete (soft or hard)                                                                                                                         | **Locked while synced** | Prevents the resurrect-on-next-sync race. To delete a mirrored issue, the user first unbinds the project via §6.2 `DELETE /github/`, which cascade-deletes `GithubIssueSync` and releases the lock. |
 | Unsynced `Issue` (post-unbind, still has `external_source="github"`)        | all fields, delete                                                                                                                            | Editable                | Lock predicate no longer matches; row behaves like a native issue with a `[github_<n>]` prefix as a provenance marker.                                                                              |
 | Synced `IssueComment`                                                       | `comment_html`, `comment_json`, `comment_stripped`                                                                                            | **Locked while synced** | Mirrored from GitHub.                                                                                                                                                                               |
 | Synced `IssueComment`                                                       | delete                                                                                                                                        | **Locked while synced** | Same reason.                                                                                                                                                                                        |
-| `IssueComment` with `external_source IS NULL` on any issue                  | body, delete                                                                                                                                  | Editable                | Native Pi Dash discussion, never mirrored, never pushed back to GitHub.                                                                                                                             |
+| `IssueComment` with `external_source IS NULL` on any issue                  | body, delete                                                                                                                                  | Editable                | Native karma-team discussion, never mirrored, never pushed back to GitHub.                                                                                                                          |
 | Unsynced `IssueComment` (post-unbind, still has `external_source="github"`) | body, delete                                                                                                                                  | Editable                | Same release-on-unbind logic.                                                                                                                                                                       |
 
 **Implementation — defense in depth:**
 
-1. **Serializer** — `apps/api/pi_dash/app/serializers/issue.py` `IssueSerializer.validate()`:
+1. **Serializer** — `apps/api/karma_team/app/serializers/issue.py` `IssueSerializer.validate()`:
 
    ```python
    def validate(self, attrs):
@@ -528,7 +528,7 @@ A row is "actively synced" iff a corresponding sync-tracking row exists:
    Same shape for `IssueCommentSerializer.validate()`, keyed on `GithubCommentSync.objects.filter(comment=instance).exists()`.
 
 2. **ViewSet** — both `IssueViewSet` and `IssueCommentViewSet` override `destroy()` to reject when the instance is actively synced, returning HTTP 409 with a body explaining the unbind step.
-3. **Public API** — same guards on `apps/api/pi_dash/api/serializers/issue.py` and the corresponding viewsets, since the public REST API hits a different serializer set.
+3. **Public API** — same guards on `apps/api/karma_team/api/serializers/issue.py` and the corresponding viewsets, since the public REST API hits a different serializer set.
 4. **UI** — `apps/web/core/components/issues/issue-modal/form.tsx` and the comment list component check whether the row is actively synced (the API serializer surfaces this as `is_synced: bool` on the issue / comment payload):
    - Hide the title and description edit affordances on synced issues (render plain `<h1>` / `<div>` instead of editable inputs).
    - Hide the edit/delete menu on synced comments; render a small "GitHub" badge in their place.
@@ -564,7 +564,7 @@ Full scan: list all open issues + all repo comments (paginated):
       metadata.upstream_gone_at (deletion or closure detection)
       │
       ▼
-[User] completes issue in Pi Dash (state.group transitions to completed)
+[User] completes issue in karma-team (state.group transitions to completed)
       │
       ▼
 ChangeTrackerMixin marks state_id as changed → post_save signal
@@ -604,26 +604,26 @@ No protocol changes → no runner test impact.
 
 **Risk: rate limits.** A workspace with many synced repos all firing on the 4-hour mark will burst-call GitHub. PAT limit is 5000/hr. With per-page=100, 50 repos × 50 pages worst case = 2500 requests; comfortably under. Mitigation if hit: `Retry-After` honored, exponential backoff via Celery retry.
 
-**Risk: user confusion about read-only synced fields.** Some users will expect to be able to edit a synced issue's title or description in Pi Dash. The lock in §6.8 will reject the change at the API layer and hide the affordance in the UI, but the workflow fields (state, priority, etc.) _are_ editable, and the inconsistency may surprise users. Mitigation: a small "synced from GitHub" badge with a tooltip explaining which fields are upstream-managed; the bind flow shows the same explanation before the user enables sync.
+**Risk: user confusion about read-only synced fields.** Some users will expect to be able to edit a synced issue's title or description in karma-team. The lock in §6.8 will reject the change at the API layer and hide the affordance in the UI, but the workflow fields (state, priority, etc.) _are_ editable, and the inconsistency may surprise users. Mitigation: a small "synced from GitHub" badge with a tooltip explaining which fields are upstream-managed; the bind flow shows the same explanation before the user enables sync.
 
 **Risk: signal storm on bulk state changes.** A user bulk-completing 100 issues at once would enqueue 100 GitHub POST tasks. Acceptable: GitHub's per-issue comment endpoint is well-behaved; tasks are async and rate-limited by Celery worker count. Watch in production.
 
 **Risk: cascade on disconnect.** Disconnecting the workspace integration silently breaks every project's sync. Mitigation: the disconnect endpoint in §6.1 marks all dependent `GithubRepositorySync` rows with `is_sync_enabled=False` and writes an explanatory `last_sync_error`, so project settings UI can display the cause.
 
-**Rollout**: feature-flag the entire integration behind a Django setting `GITHUB_SYNC_ENABLED` (default `True` in CE, read once at process start). Self-hosters who don't want the integration set the env var to `False` and the integration disappears: the workspace integrations card hides the GitHub option, the project-settings GitHub section short-circuits to an empty state, the Celery beat entry no-ops, and the connect/bind endpoints return HTTP 404. No per-workspace migration is needed; an instance-level toggle matches how other features in `pi_dash/settings/common.py` are gated.
+**Rollout**: feature-flag the entire integration behind a Django setting `GITHUB_SYNC_ENABLED` (default `True` in CE, read once at process start). Self-hosters who don't want the integration set the env var to `False` and the integration disappears: the workspace integrations card hides the GitHub option, the project-settings GitHub section short-circuits to an empty state, the Celery beat entry no-ops, and the connect/bind endpoints return HTTP 404. No per-workspace migration is needed; an instance-level toggle matches how other features in `karma_team/settings/common.py` are gated.
 
 ## 10. Out-of-Scope / Follow-ups
 
 - **GitHub App + manifest flow** for self-hosted instances (replaces PAT, gives per-install rate limits, enables webhooks).
 - **Webhook receiver** for near-real-time sync; falls back to the 4-hour poll.
-- **Two-way state sync**: closing a GitHub issue when the Pi Dash issue is completed (today: comment only).
+- **Two-way state sync**: closing a GitHub issue when the karma-team issue is completed (today: comment only).
 - **Label / assignee / milestone mapping.**
 - **Per-project sync cadence** (UI knob).
 - **"Sync now" button** that triggers `sync_one_repo.delay()` immediately.
 - **Backfill of closed issues** with a per-bind option (today MVP only mirrors `state=open`; closed issues never enter the local set).
 - **`since=` incremental fallback** for very large repos (>5k open issues × multiple repos in one workspace), where full-scan starts to eat noticeable rate-limit budget. Would coexist with the existing diff-based deletion detection by running incremental on most ticks and a full scan periodically (e.g. once per day).
-- **Hard delete propagation** — convert `metadata["upstream_gone_at"]` flags into actual Pi Dash soft/hard deletes after a configurable grace period. Today the mirrored row is preserved indefinitely.
-- **Closed-state mirroring** — optional reverse of the §3 non-goal: when an upstream issue is closed (visible in the same diff that detects deletions), move the Pi Dash mirror to the project's "closed/done" state.
+- **Hard delete propagation** — convert `metadata["upstream_gone_at"]` flags into actual karma-team soft/hard deletes after a configurable grace period. Today the mirrored row is preserved indefinitely.
+- **Closed-state mirroring** — optional reverse of the §3 non-goal: when an upstream issue is closed (visible in the same diff that detects deletions), move the karma-team mirror to the project's "closed/done" state.
 - **Lift the read-only lock on synced fields** with a conflict-merge UI (today: serializer rejects edits to title/description on synced issues and bodies on synced comments; see §6.8).
 - **Multiple repos per project.**
 - **Hard disconnect** (full delete of `WorkspaceIntegration` + cascading sync rows). Requires either an explicit pre-delete cleanup pass over `GithubRepositorySync` or changing the FK to `on_delete=SET_NULL`.

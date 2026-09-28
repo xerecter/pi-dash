@@ -6,9 +6,9 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { DATE_BEFORE_FILTER_OPTIONS } from "@pi-dash/constants";
-import { isInDateFormat } from "@pi-dash/utils";
+// karma-team imports
+import { DATE_BEFORE_FILTER_OPTIONS } from "@karma-team/constants";
+import { isInDateFormat } from "@karma-team/utils";
 // components
 import { DateFilterModal } from "@/components/core/filters/date-filter-modal";
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";

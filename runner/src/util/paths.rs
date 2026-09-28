@@ -4,8 +4,8 @@ use std::path::{Path, PathBuf};
 use uuid::Uuid;
 
 const QUALIFIER: &str = "so";
-const ORG: &str = "pidash";
-const APP: &str = "pidash";
+const ORG: &str = "karma-team";
+const APP: &str = "karma-team";
 
 #[derive(Debug, Clone)]
 pub struct Paths {
@@ -71,14 +71,14 @@ impl Paths {
     }
 
     pub fn ipc_socket_path(&self) -> PathBuf {
-        self.runtime_dir.join("pidash.sock")
+        self.runtime_dir.join("karma-team.sock")
     }
 
     pub fn default_working_dir(&self) -> PathBuf {
         let base = std::env::var("TMPDIR")
             .map(PathBuf::from)
             .unwrap_or_else(|_| std::env::temp_dir());
-        base.join(".pidash")
+        base.join(".karma-team")
     }
 
     /// Per-runner data directory: `data_dir/runners/<runner_id>/`.

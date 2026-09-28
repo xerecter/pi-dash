@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TBaseLayoutType } from "@pi-dash/types";
+import type { TBaseLayoutType } from "@karma-team/types";
 import { KanbanLayoutLoader } from "@/components/ui/loader/layouts/kanban-layout-loader";
 import { ListLayoutLoader } from "@/components/ui/loader/layouts/list-layout-loader";
 

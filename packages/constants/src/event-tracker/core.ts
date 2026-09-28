@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { EProductSubscriptionEnum } from "@pi-dash/types";
+import type { EProductSubscriptionEnum } from "@karma-team/types";
 
 /**
  * ===========================================================================

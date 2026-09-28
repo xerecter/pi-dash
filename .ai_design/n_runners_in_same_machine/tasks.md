@@ -75,7 +75,7 @@ How to use this file:
 - [ ] `POST /api/v1/runner/register/`
       Notes: requires `token_id`; auth `Bearer token_secret`; request body `{ name, working_dir, agent, approval_policy }`; response `{ runner_id }`.
 - [ ] `POST /api/v1/runner/<runner_id>/deregister/`
-      Notes: auth `Bearer token_secret`; called by `pidash remove --runner <name>`.
+      Notes: auth `Bearer token_secret`; called by `karma-team remove --runner <name>`.
 - [ ] Setup-script generation endpoint (UI-facing)
       Notes: generates the curl-pipe-sh installer for the new-connection path with values inlined.
 
@@ -84,9 +84,7 @@ How to use this file:
 - [ ] Tokens section: list tokens by title with associated runners; per-token Revoke action
       Notes: `design.md` §5.3.
 - [ ] Runners section: list runners under tokens; per-runner Remove action; no per-runner Revoke
-- [ ] Add Runner modal with two paths:
-      - [ ] New connection: connection title + runner name + working dir + agent + approval policy form
-      - [ ] Existing connection: dropdown of tokens + same fields minus title
+- [ ] Add Runner modal with two paths: - [ ] New connection: connection title + runner name + working dir + agent + approval policy form - [ ] Existing connection: dropdown of tokens + same fields minus title
 - [ ] Generated setup script copy/download UI for both paths
 
 ## 3. Phase 3 — Runner: persistence + config layout
@@ -194,19 +192,17 @@ How to use this file:
 
 ### 6.2. CLI selectors
 
-- [ ] `pidash status` lists all instances; `pidash status --runner <name>` for one
-- [ ] `pidash configure` splits into:
-      - [ ] `pidash configure token` (one-shot per host)
-      - [ ] `pidash configure runner --name <name>` (per instance, registers under active token)
-- [ ] `pidash issue`, `pidash comment`, `pidash state`, `pidash workspace` gain `--runner` selector
+- [ ] `karma-team status` lists all instances; `karma-team status --runner <name>` for one
+- [ ] `karma-team configure` splits into: - [ ] `karma-team configure token` (one-shot per host) - [ ] `karma-team configure runner --name <name>` (per instance, registers under active token)
+- [ ] `karma-team issue`, `karma-team comment`, `karma-team state`, `karma-team workspace` gain `--runner` selector
       Notes: required when N > 1; optional when N = 1.
-- [ ] `pidash doctor --runner <name>` checks one instance; bare `pidash doctor` walks all
+- [ ] `karma-team doctor --runner <name>` checks one instance; bare `karma-team doctor` walks all
 
-### 6.3. `pidash remove` disambiguation
+### 6.3. `karma-team remove` disambiguation
 
-- [ ] Bare `pidash remove`: full machine teardown (today's behavior — preserved)
+- [ ] Bare `karma-team remove`: full machine teardown (today's behavior — preserved)
       Notes: stops service, uninstalls unit, deregisters token, deletes config + creds + data.
-- [ ] `pidash remove --runner <name>`: per-instance removal via REST deregister + IPC eviction
+- [ ] `karma-team remove --runner <name>`: per-instance removal via REST deregister + IPC eviction
       Notes: `design.md` §10.1.5; no WS frame emitted.
 
 ### 6.4. TUI
@@ -218,7 +214,7 @@ How to use this file:
 
 ### 7.1. Runtime add
 
-- [ ] `pidash configure runner --name foo` over IPC tells daemon to load instance
+- [ ] `karma-team configure runner --name foo` over IPC tells daemon to load instance
 - [ ] Supervisor inserts into `instances`, sends `Hello`, spawns `RunnerLoop`, awaits `Welcome`
 - [ ] No reconnect
 
@@ -242,15 +238,15 @@ How to use this file:
 
 - [ ] Per-instance `tracing::Span` scoped to `RunnerLoop`; every log line carries `runner_id`
 - [ ] Metrics gain `runner_id` label
-- [ ] New gauge `pidash_instances_count` on the daemon
+- [ ] New gauge `karma_team_instances_count` on the daemon
 
 ### 8.2. Doctor
 
-- [ ] `pidash doctor` walks each instance: check working_dir, agent install, credentials independently
+- [ ] `karma-team doctor` walks each instance: check working_dir, agent install, credentials independently
 
 ### 8.3. Stale-config error message
 
-- [ ] "no token configured: credentials.toml has no [token] block. Run 'pidash configure --token-id <id> --token-secret <secret>' …"
+- [ ] "no token configured: credentials.toml has no [token] block. Run 'karma-team configure --token-id <id> --token-secret <secret>' …"
 
 ### 8.4. Tests
 
@@ -262,9 +258,9 @@ How to use this file:
 ## 9. Open questions / deferred
 
 - [ ] Token title uniqueness within a workspace — required or not?
-- [ ] Direct-edit reload behavior for `config.toml` — SIGHUP, file watcher, or explicit `pidash configure --reload`?
+- [ ] Direct-edit reload behavior for `config.toml` — SIGHUP, file watcher, or explicit `karma-team configure --reload`?
       Notes: `design.md` §10.1.4 mentions explicit reload.
-- [ ] `--purge-workspace` flag on `pidash remove --runner` to nuke the working_dir on disk
+- [ ] `--purge-workspace` flag on `karma-team remove --runner` to nuke the working_dir on disk
 - [ ] Per-runner log level override — deferred (today logging is daemon-level)
 - [ ] Multi-runner TUI layout — separate design doc, gates phase 6 polish
 - [ ] WS+REST auth unification — separate scoping conversation; out of scope here (decisions Q9)

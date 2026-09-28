@@ -7,13 +7,13 @@
 import { uniq, get, set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import type { TIssueRelationIdMap, TIssueRelationMap, TIssueRelation, TIssue } from "@pi-dash/types";
+// karma-team imports
+import type { TIssueRelationIdMap, TIssueRelationMap, TIssueRelation, TIssue } from "@karma-team/types";
 // components
 import type { TRelationObject } from "@/components/issues/issue-detail-widgets/relations";
-// Pi Dash-web
+// karma-team-web
 import { REVERSE_RELATIONS } from "@/constants/gantt-chart";
-import type { TIssueRelationTypes } from "@/pi-dash-web/types";
+import type { TIssueRelationTypes } from "@/karma-team-web/types";
 // services
 import { IssueRelationService } from "@/services/issue";
 // types

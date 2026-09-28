@@ -6,7 +6,7 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
 // types
 import type { IIssueFilterOptions, TIssueFilterKeys } from "@/types/issue";
 // local imports

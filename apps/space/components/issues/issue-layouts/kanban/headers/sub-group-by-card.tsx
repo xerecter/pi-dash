@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 import { Circle } from "lucide-react";
-import { ChevronDownIcon, ChevronUpIcon } from "@pi-dash/propel/icons";
+import { ChevronDownIcon, ChevronUpIcon } from "@karma-team/propel/icons";
 // mobx
 
 interface IHeaderSubGroupByCard {

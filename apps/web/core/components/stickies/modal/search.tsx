@@ -8,14 +8,14 @@ import { useCallback, useRef, useState } from "react";
 import { debounce } from "lodash-es";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash hooks
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+// karma-team hooks
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // helpers
-import { useTranslation } from "@pi-dash/i18n";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 import { useSticky } from "@/hooks/use-stickies";
-import { IconButton } from "@pi-dash/propel/icon-button";
+import { IconButton } from "@karma-team/propel/icon-button";
 
 export const StickySearch = observer(function StickySearch() {
   // router

@@ -6,12 +6,12 @@
 
 import React from "react";
 // types
-import { CycleGroupIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { TCycleGroups } from "@pi-dash/types";
+import { CycleGroupIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import type { TCycleGroups } from "@karma-team/types";
 // icons
-import { Row } from "@pi-dash/ui";
+import { Row } from "@karma-team/ui";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   type: TCycleGroups;

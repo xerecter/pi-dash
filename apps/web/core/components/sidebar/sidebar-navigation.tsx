@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type TSidebarNavItem = {
   className?: string;

@@ -8,12 +8,12 @@ import { useState, useRef, forwardRef } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { MoreHorizontal } from "lucide-react";
-// pi dash imports
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { Popover } from "@pi-dash/propel/popover";
-import type { TIssue } from "@pi-dash/types";
-import { ControlLink } from "@pi-dash/ui";
-import { cn, generateWorkItemLink } from "@pi-dash/utils";
+// karma-team imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { Popover } from "@karma-team/propel/popover";
+import type { TIssue } from "@karma-team/types";
+import { ControlLink } from "@karma-team/ui";
+import { cn, generateWorkItemLink } from "@karma-team/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssues } from "@/hooks/store/use-issues";
@@ -22,8 +22,8 @@ import { useProjectState } from "@/hooks/store/use-project-state";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import useIssuePeekOverviewRedirection from "@/hooks/use-issue-peek-overview-redirection";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 // local components
 import { WorkItemPreviewCard } from "../../preview-card";
 import type { TRenderQuickActions } from "../list/list-view-types";

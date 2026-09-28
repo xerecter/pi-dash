@@ -5,7 +5,7 @@
  */
 
 import type { Request, Response, NextFunction } from "express";
-import { logger } from "@pi-dash/logger";
+import { logger } from "@karma-team/logger";
 import { env } from "@/env";
 
 /**
@@ -21,7 +21,7 @@ import { env } from "@/env";
  *
  * @example
  * ```typescript
- * import { Middleware } from "@pi-dash/decorators";
+ * import { Middleware } from "@karma-team/decorators";
  * import { requireSecretKey } from "@/lib/auth-middleware";
  *
  * @Get("/protected")

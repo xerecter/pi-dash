@@ -161,7 +161,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ChevronUpIcon,
-} from "@pi-dash/propel/icons";
+} from "@karma-team/propel/icons";
 
 export const MATERIAL_ICONS_LIST = [
   {

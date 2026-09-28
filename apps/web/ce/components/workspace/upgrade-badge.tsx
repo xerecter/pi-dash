@@ -5,8 +5,8 @@
  */
 
 // helpers
-import { useTranslation } from "@pi-dash/i18n";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { cn } from "@karma-team/utils";
 
 type TUpgradeBadge = {
   className?: string;

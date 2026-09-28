@@ -33,7 +33,7 @@ Goal:
 
 Scope:
 
-- **`apps/api/pi_dash/orchestration/agent_phases.py`** — add the
+- **`apps/api/karma_team/orchestration/agent_phases.py`** — add the
   third `PHASES` entry:
 
   ```python
@@ -52,7 +52,7 @@ Scope:
   leaving-a-ticking-group disarm, and re-arm-on-comment — all for
   free. No edits needed at those sites.
 
-- **`apps/api/pi_dash/db/models/issue_agent_ticker.py`** — replace the
+- **`apps/api/karma_team/db/models/issue_agent_ticker.py`** — replace the
   binary review-vs-impl resolvers with a phase-keyed lookup:
   - Drop `_is_review_phase()` (`:131`) for `_cadence_fields()`, which
     returns `agent_phases.cadence_fields_for(self.issue.state)`.
@@ -62,7 +62,7 @@ Scope:
   - Add the `test_interval_seconds` / `test_max_ticks` override
     columns (In Test owns its pair — it does **not** alias review's).
 
-- **`apps/api/pi_dash/orchestration/scheduling.py`**:
+- **`apps/api/karma_team/orchestration/scheduling.py`**:
   - `_project_default_interval` (`:64`) / `_project_default_max_ticks`
     (`:85`): route through the same `cadence_fields_for` lookup.
   - `re_tick_ticker` (`:416`): `setattr(sched, fields.ticker_max_ticks,
@@ -83,7 +83,7 @@ new_cap)` and pass that field name to `update_fields`. A cap grant
     is the create_review_state design-review's Refinement 1,
     re-confirmed at `@main`.)
 
-- **`apps/api/pi_dash/bgtasks/agent_ticker.py`** —
+- **`apps/api/karma_team/bgtasks/agent_ticker.py`** —
   `scan_due_tickers` `effective_cap` annotation (`:58`) is
   `Case(When(group==REVIEW …))`. Generate one `When` per registry entry
   from `cadence_fields_by_group()` so this SQL mirror of
@@ -92,7 +92,7 @@ new_cap)` and pass that field name to `update_fields`. A cap grant
   is also what makes the group-only SQL branch safe (it can only
   over-admit).
 
-- **`apps/api/pi_dash/orchestration/service.py`** —
+- **`apps/api/karma_team/orchestration/service.py`** —
   `handle_issue_state_transition` (`:154-224`) cross-phase resume.
   There is **no** `resume_parent_run` _function_ — the logic is inline
   here (this citation was corrected in the create_review_state design
@@ -110,31 +110,31 @@ new_cap)` and pass that field name to `update_fields`. A cap grant
   `_is_delegation_trigger` need **no** change — they grow from the
   registry.
 
-- **`apps/api/pi_dash/prompting/recipes.py`** — add
+- **`apps/api/karma_team/prompting/recipes.py`** — add
   `KIND_TEST = "test"` and its `RECIPES` entry mirroring
   `KIND_REVIEW`:
 
   ```python
   KIND_TEST: (
-      "test-intro", "session-framing", "pidash-cli",
+      "test-intro", "session-framing", "karma-team-cli",
       "test-cycle", "guardrails", "ending-run",
   ),
   ```
 
   Confirm `kind_for` maps the `test` template name → `KIND_TEST`.
 
-- **`apps/api/pi_dash/prompting/sections/`** — add `test-intro.md`
+- **`apps/api/karma_team/prompting/sections/`** — add `test-intro.md`
   and `test-cycle.md` (analogous to `review-intro.md` /
   `review-cycle.md`). The cycle body: decide kind → uniform test
   cycle (plan → setup → execute → collect evidence → validate
   findings → structured results comment → optional trivial fix /
   follow-up issue) → done-signal. See design §5 for the body sketch.
 
-- **`apps/api/pi_dash/prompting/seed.py`** — add
+- **`apps/api/karma_team/prompting/seed.py`** — add
   `TEST_TEMPLATE_BODY` constant + `seed_test_template()`, analogous to
   `REVIEW_TEMPLATE_BODY` / `seed_review_template`.
 
-- **`apps/api/pi_dash/prompting/sections/state-routing.md`** —
+- **`apps/api/karma_team/prompting/sections/state-routing.md`** —
   rewrite the `test` branch (`:14`); it currently says "Automatic
   ticking is **not** wired to this group." Describe the live test
   cycle instead.
@@ -157,7 +157,7 @@ body=TEST_TEMPLATE_BODY)` if absent. Idempotent, reversible.
   the impl summary already surfaces acceptance criteria clearly, drop
   M2.
 
-- **`apps/api/pi_dash/prompting/management/commands/reseed_test_template.py`**
+- **`apps/api/karma_team/prompting/management/commands/reseed_test_template.py`**
   — reseed command analogous to `reseed_review_template.py`.
 
 Tests (design §9):
@@ -211,12 +211,12 @@ Why one PR:
       confirm the `test` group is present in the state-group
       enumerations the review work touched
       (`packages/constants/src/state.ts`,
-      `apps/api/pi_dash/space/utils/grouper.py`,
-      `apps/api/pi_dash/api/views/issue.py`,
-      `apps/api/pi_dash/utils/order_queryset.py`) — In Test was
+      `apps/api/karma_team/space/utils/grouper.py`,
+      `apps/api/karma_team/api/views/issue.py`,
+      `apps/api/karma_team/utils/order_queryset.py`) — In Test was
       seeded, so it likely already renders; add any missing arm.
-- [ ] `cd apps/api && python -m pytest pi_dash/tests/unit/` passes
-- [ ] `cd apps/api && python -m pytest pi_dash/tests/contract/` passes
+- [ ] `cd apps/api && python -m pytest karma_team/tests/unit/` passes
+- [ ] `cd apps/api && python -m pytest karma_team/tests/contract/` passes
       — contract tests for the Issue State endpoints may already allow
       the `test` group (seeded); confirm.
 - [ ] Reseed the `test` template on a scratch DB and confirm the row

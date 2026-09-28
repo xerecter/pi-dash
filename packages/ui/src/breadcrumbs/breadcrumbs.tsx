@@ -5,8 +5,8 @@
  */
 
 import * as React from "react";
-import { ChevronRightIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import { ChevronRightIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
 import { cn } from "../utils";
 
 type BreadcrumbsProps = {

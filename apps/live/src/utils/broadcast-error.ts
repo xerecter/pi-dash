@@ -5,8 +5,8 @@
  */
 
 import type { Hocuspocus } from "@hocuspocus/server";
-import { createRealtimeEvent } from "@pi-dash/editor";
-import { logger } from "@pi-dash/logger";
+import { createRealtimeEvent } from "@karma-team/editor";
+import { logger } from "@karma-team/logger";
 import type { HocusPocusServerContext } from "@/types";
 import { broadcastMessageToPage } from "./broadcast-message";
 

@@ -5,7 +5,7 @@
  */
 
 import { NavLink, useParams } from "react-router";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 
 export function RunnersTabs() {
   const { workspaceSlug, projectId } = useParams<{ workspaceSlug: string; projectId?: string }>();

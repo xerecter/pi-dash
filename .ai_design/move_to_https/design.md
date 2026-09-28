@@ -3,7 +3,7 @@
 > Directory: `.ai_design/move_to_https/`
 >
 > Successor to the always-on WebSocket control plane currently in
-> `runner/src/cloud/ws.rs` and `apps/api/pi_dash/runner/consumers.py`.
+> `runner/src/cloud/ws.rs` and `apps/api/karma_team/runner/consumers.py`.
 >
 > This design replaces the old machine-level `Connection` model with a
 > per-runner trust model:
@@ -136,7 +136,7 @@ kind of traffic that can later use a per-run WS upgrade.
 | `Runner`        | First-class trust and worker entity. Owns user/workspace binding, pod binding, refresh state, revocation state, and operational state.                                                            |
 | Refresh token   | Long-lived per-runner credential stored on disk at 0600. Rotated on every successful refresh.                                                                                                     |
 | Access token    | Short-lived per-runner bearer token, verified statelessly plus one indexed `rtg` check on `Runner`.                                                                                               |
-| `MachineToken`  | Separate machine-scoped CLI credential for `pidash`, independent of runner transport.                                                                                                             |
+| `MachineToken`  | Separate machine-scoped CLI credential for `karma-team`, independent of runner transport.                                                                                                         |
 | `RunnerSession` | Server-side row that owns delivery for one runner.                                                                                                                                                |
 | Long-poll       | One open request per runner session, up to 25s, returning 0..N pending control messages for that runner.                                                                                          |
 | Outbox          | Redis Streams: `runner_stream:{rid}`, `runner-group:{rid}`, `consumer-{sid}`.                                                                                                                     |
@@ -163,7 +163,7 @@ Request shape:
 - `host_label` — required. Used as part of the `MachineToken`
   bootstrap dedupe key `(user, workspace, host_label)`. Carries
   forward today's enrollment-request shape
-  (`apps/api/pi_dash/runner/serializers.py:150`).
+  (`apps/api/karma_team/runner/serializers.py:150`).
 - `name` — optional; the daemon supplies a default.
 
 Behavior:
@@ -239,7 +239,7 @@ Example payload:
 ```json
 {
   "kid": "2026-04-1",
-  "iss": "pi-dash-cloud",
+  "iss": "karma-team-cloud",
   "sub": "<runner_id>",
   "uid": "<user_id>",
   "wid": "<workspace_id>",
@@ -307,7 +307,7 @@ Behavior:
   `Runner.revoke()` does not bump `rtg`, so without this per-request
   check, an access token issued before revocation would survive up
   to its TTL. Mirrors the existing `revoked_at__isnull=True`
-  predicate in `apps/api/pi_dash/runner/authentication.py:50-55`.
+  predicate in `apps/api/karma_team/runner/authentication.py:50-55`.
 - enforce `rtg` lower bound (`rtg >= runner.refresh_token_generation - 1`)
 - enforce any `RunnerForceRefresh.min_rtg`
 - for runner-scoped endpoints, require URL `<runner_id>` to match
@@ -323,7 +323,7 @@ refresh; revocation takes effect on the next request.
 ### 5.5 What lives where on disk
 
 ```text
-~/.config/apple-pi-dash-runner/
+~/.config/apple-karma-team-runner/
   daemon.toml
   machine_token.toml
   runners/
@@ -364,7 +364,7 @@ Rules:
 ### 5.6 MachineToken
 
 `MachineToken` is the machine-scoped credential for the interactive
-`pidash` CLI.
+`karma-team` CLI.
 
 Properties:
 
@@ -384,7 +384,7 @@ Important distinction from runner enrollment:
   create additional CLI credentials; each of those enrollments only
   creates the new runner's transport credentials.
 - If the CLI credential needs to be rotated independently, that is a
-  separate operation (`pidash auth login` / revoke + reissue), not a
+  separate operation (`karma-team auth login` / revoke + reissue), not a
   side effect of adding another runner.
 
 ## 6. Data Model
@@ -395,9 +395,9 @@ Important distinction from runner enrollment:
 
 - `owner` (FK → User) — the trust principal. Assignment copies
   `runner.owner` onto `AgentRun.owner`
-  (`apps/api/pi_dash/runner/services/matcher.py:209`); runner
+  (`apps/api/karma_team/runner/services/matcher.py:209`); runner
   management permissions check it
-  (`apps/api/pi_dash/runner/views/runners.py:21`,
+  (`apps/api/karma_team/runner/views/runners.py:21`,
   `views/runs.py:31`). The new auth model **uses this existing
   field**; no rename. §5.3 step 4 live-checks
   `is_workspace_member(runner.owner, runner.workspace)`.

@@ -8,9 +8,9 @@ import { useEffect } from "react";
 import { useController } from "react-hook-form";
 import type { Control, FieldValues, Path } from "react-hook-form";
 import useSWR from "swr";
-import { useTranslation } from "@pi-dash/i18n";
-import { PodService } from "@pi-dash/services";
-import type { IPod } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { PodService } from "@karma-team/services";
+import type { IPod } from "@karma-team/types";
 
 const podService = new PodService();
 

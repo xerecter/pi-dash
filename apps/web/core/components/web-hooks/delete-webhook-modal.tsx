@@ -7,8 +7,8 @@
 import { useState } from "react";
 import { useParams } from "next/navigation";
 // ui
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { AlertModalCore } from "@pi-dash/ui";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { AlertModalCore } from "@karma-team/ui";
 // hooks
 import { useWebhook } from "@/hooks/store/use-webhook";
 import { useAppRouter } from "@/hooks/use-app-router";

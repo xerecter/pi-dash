@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { STATE_GROUPS } from "@pi-dash/constants";
-import type { IState, TFilterProperty, TStateGroups, TSupportedOperators } from "@pi-dash/types";
-import { COLLECTION_OPERATOR, EQUALITY_OPERATOR } from "@pi-dash/types";
+// karma-team imports
+import { STATE_GROUPS } from "@karma-team/constants";
+import type { IState, TFilterProperty, TStateGroups, TSupportedOperators } from "@karma-team/types";
+import { COLLECTION_OPERATOR, EQUALITY_OPERATOR } from "@karma-team/types";
 // local imports
 import type { IFilterIconConfig, TCreateFilterConfig, TCreateFilterConfigParams } from "../../../rich-filters";
 import { createFilterConfig, getMultiSelectConfig, createOperatorConfigEntry } from "../../../rich-filters";

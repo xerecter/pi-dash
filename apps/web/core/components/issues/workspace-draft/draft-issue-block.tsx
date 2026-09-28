@@ -8,20 +8,20 @@ import React, { useRef, useState } from "react";
 import { omit } from "lodash-es";
 import { observer } from "mobx-react";
 import { SquareStackIcon } from "lucide-react";
-import { CopyIcon, EditIcon, TrashIcon } from "@pi-dash/propel/icons";
-// pi dash utils
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TWorkspaceDraftIssue } from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-import type { TContextMenuItem } from "@pi-dash/ui";
-import { Row } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { CopyIcon, EditIcon, TrashIcon } from "@karma-team/propel/icons";
+// karma-team utils
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TWorkspaceDraftIssue } from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+import type { TContextMenuItem } from "@karma-team/ui";
+import { Row } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useProject } from "@/hooks/store/use-project";
 import { useWorkspaceDraftIssues } from "@/hooks/store/workspace-draft";
-// pi-dash-web imports
-import { IssueTypeIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team-web imports
+import { IssueTypeIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 // local imports
 import { IdentifierText } from "../issue-detail/identifier-text";
 import { CreateUpdateIssueModal } from "../issue-modal/modal";

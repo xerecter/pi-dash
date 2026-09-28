@@ -5,7 +5,7 @@
  */
 
 import React, { useState } from "react";
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import { AuthInput } from "./auth-input";
 
 export type TAuthConfirmPasswordInputProps = React.InputHTMLAttributes<HTMLInputElement> & {

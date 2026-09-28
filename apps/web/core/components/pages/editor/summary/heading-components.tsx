@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { IMarking } from "@pi-dash/editor";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import type { IMarking } from "@karma-team/editor";
+import { cn } from "@karma-team/utils";
 
 export type THeadingComponentProps = {
   marking: IMarking;

@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-// pi dash imports
+// karma-team imports
 
 export type TWorkItemAdditionalSidebarProperties = {
   workItemId: string;

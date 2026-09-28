@@ -9,12 +9,12 @@ import React from "react";
 // react hook form
 import type { FieldError, Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import { MODULE_STATUS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { StatePropertyIcon, ModuleStatusIcon } from "@pi-dash/propel/icons";
-import type { IModule } from "@pi-dash/types";
+import { MODULE_STATUS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { StatePropertyIcon, ModuleStatusIcon } from "@karma-team/propel/icons";
+import type { IModule } from "@karma-team/types";
 // ui
-import { CustomSelect } from "@pi-dash/ui";
+import { CustomSelect } from "@karma-team/ui";
 // types
 // constants
 

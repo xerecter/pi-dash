@@ -17,10 +17,10 @@
 //! operator sees in their terminal.
 //!
 //! The script we pass to `-c` is:
-//!   `[ -n "${PIDASH_AGENT_CWD-}" ] && cd -- "$PIDASH_AGENT_CWD"; exec "$@"`
+//!   `[ -n "${KARMA_TEAM_AGENT_CWD-}" ] && cd -- "$KARMA_TEAM_AGENT_CWD"; exec "$@"`
 //!
 //! Two things earn their keep there:
-//!   * `cd -- "$PIDASH_AGENT_CWD"` re-asserts the caller's requested cwd
+//!   * `cd -- "$KARMA_TEAM_AGENT_CWD"` re-asserts the caller's requested cwd
 //!     *after* rc files have run. Without it, any `cd` statement in the
 //!     operator's `.bashrc` (surprisingly common — `cd ~/projects` at the
 //!     end of an rc file, or a tmux "open in default dir" hook) silently
@@ -56,8 +56,8 @@ tokio::task_local! {
     /// drives one `AgentRun` (see `Supervisor::handle_assign`). Every bridge
     /// builds its agent `Command` through [`login_shell_command`] from
     /// inside that task, so reading it here is the one place that reaches
-    /// all of them — the value lands on the child as `PIDASH_RUN_ID`, which
-    /// the agent's `pidash` invocations forward on every write. Chat
+    /// all of them — the value lands on the child as `KARMA_TEAM_RUN_ID`, which
+    /// the agent's `karma-team` invocations forward on every write. Chat
     /// sessions never set it. Design: `.ai_design/ticking_relevance` §5.6.
     pub static RUN_ENV: RunEnv;
 }
@@ -73,11 +73,11 @@ pub struct RunEnv {
 }
 
 /// Environment variable name the agent reads for its run id.
-pub const RUN_ID_ENV: &str = "PIDASH_RUN_ID";
+pub const RUN_ID_ENV: &str = "KARMA_TEAM_RUN_ID";
 
-/// Environment variable the agent's `pidash state list` / `pidash workpad`
+/// Environment variable the agent's `karma-team state list` / `karma-team workpad`
 /// calls fall back to when no issue identifier is passed explicitly.
-pub const ISSUE_IDENTIFIER_ENV: &str = "PIDASH_ISSUE_IDENTIFIER";
+pub const ISSUE_IDENTIFIER_ENV: &str = "KARMA_TEAM_ISSUE_IDENTIFIER";
 
 /// Apply the task-scoped per-run environment, when there is one.
 fn apply_run_env(cmd: &mut Command) {
@@ -89,31 +89,31 @@ fn apply_run_env(cmd: &mut Command) {
     }
 }
 
-/// Re-assert Pi Dash's environment *after* the login shell's rc files have run.
+/// Re-assert karma-team's environment *after* the login shell's rc files have run.
 ///
 /// `bash -ilc` sources `~/.bash_profile` / `~/.bashrc`, which happens after the
 /// values we set with `Command::env` are applied — so a user with
 /// `export CODEX_HOME=...` or a `PATH` rewrite in their profile would silently
-/// win over the daemon. Passing our values under `PIDASH_*` names and
+/// win over the daemon. Passing our values under `KARMA_TEAM_*` names and
 /// re-exporting them here is the same trick the working directory has always
 /// used, extended to the managed runner's environment.
 ///
-/// Every clause is a no-op when its `PIDASH_*` variable is unset, so a
+/// Every clause is a no-op when its `KARMA_TEAM_*` variable is unset, so a
 /// user-enrolled runner produces exactly the command line it always did.
 #[cfg(not(target_os = "windows"))]
-const SHELL_SCRIPT: &str = r#"[ -n "${PIDASH_AGENT_CWD-}" ] && cd -- "$PIDASH_AGENT_CWD"
-[ -n "${PIDASH_CODEX_HOME-}" ] && export CODEX_HOME="$PIDASH_CODEX_HOME"
-[ -n "${PIDASH_AGENT_PATH_PREPEND-}" ] && export PATH="$PIDASH_AGENT_PATH_PREPEND:$PATH"
-[ -n "${PIDASH_AGENT_CONFIG_DIR-}" ] && export PIDASH_CONFIG_DIR="$PIDASH_AGENT_CONFIG_DIR"
-[ -n "${PIDASH_AGENT_DATA_DIR-}" ] && export PIDASH_DATA_DIR="$PIDASH_AGENT_DATA_DIR"
-[ -n "${PIDASH_MODEL_TOKEN_FILE-}" ] && [ -r "$PIDASH_MODEL_TOKEN_FILE" ] &&   export PIDASH_GATEWAY_TOKEN="$(cat "$PIDASH_MODEL_TOKEN_FILE")"
+const SHELL_SCRIPT: &str = r#"[ -n "${KARMA_TEAM_AGENT_CWD-}" ] && cd -- "$KARMA_TEAM_AGENT_CWD"
+[ -n "${KARMA_TEAM_CODEX_HOME-}" ] && export CODEX_HOME="$KARMA_TEAM_CODEX_HOME"
+[ -n "${KARMA_TEAM_AGENT_PATH_PREPEND-}" ] && export PATH="$KARMA_TEAM_AGENT_PATH_PREPEND:$PATH"
+[ -n "${KARMA_TEAM_AGENT_CONFIG_DIR-}" ] && export KARMA_TEAM_CONFIG_DIR="$KARMA_TEAM_AGENT_CONFIG_DIR"
+[ -n "${KARMA_TEAM_AGENT_DATA_DIR-}" ] && export KARMA_TEAM_DATA_DIR="$KARMA_TEAM_AGENT_DATA_DIR"
+[ -n "${KARMA_TEAM_MODEL_TOKEN_FILE-}" ] && [ -r "$KARMA_TEAM_MODEL_TOKEN_FILE" ] &&   export KARMA_TEAM_GATEWAY_TOKEN="$(cat "$KARMA_TEAM_MODEL_TOKEN_FILE")"
 exec "$@""#;
 
-/// Pi Dash-controlled environment for a spawned agent process.
+/// karma-team-controlled environment for a spawned agent process.
 ///
 /// All fields are `None` for a user-enrolled runner, which is what keeps that
 /// path byte-identical. The managed runner fills them from its `CodexSection`
-/// so the bundled engine reads Pi Dash's own config, finds the bundled CLI,
+/// so the bundled engine reads karma-team's own config, finds the bundled CLI,
 /// and receives a credential that never touches `config.toml` or a command
 /// line.
 #[derive(Debug, Clone, Default)]
@@ -122,9 +122,9 @@ pub struct AgentEnv {
     pub codex_home: Option<PathBuf>,
     /// Directory prepended to the agent's `PATH` (holds the bundled CLI).
     pub path_prepend: Option<PathBuf>,
-    /// `PIDASH_CONFIG_DIR` for the agent's own `pidash` invocations.
+    /// `KARMA_TEAM_CONFIG_DIR` for the agent's own `karma-team` invocations.
     pub config_dir: Option<PathBuf>,
-    /// `PIDASH_DATA_DIR` for the agent's own `pidash` invocations.
+    /// `KARMA_TEAM_DATA_DIR` for the agent's own `karma-team` invocations.
     pub data_dir: Option<PathBuf>,
     /// File the model credential is read from, once per spawn.
     pub model_token_file: Option<PathBuf>,
@@ -139,25 +139,25 @@ impl AgentEnv {
             && self.model_token_file.is_none()
     }
 
-    /// Apply to a [`Command`] under `PIDASH_*` names.
+    /// Apply to a [`Command`] under `KARMA_TEAM_*` names.
     ///
     /// On Unix the wrapper script re-exports them after rc files run; on
     /// Windows there is no shell, so the direct names are set as well.
     fn apply(&self, cmd: &mut Command) {
         if let Some(v) = &self.codex_home {
-            cmd.env("PIDASH_CODEX_HOME", v.as_os_str());
+            cmd.env("KARMA_TEAM_CODEX_HOME", v.as_os_str());
         }
         if let Some(v) = &self.path_prepend {
-            cmd.env("PIDASH_AGENT_PATH_PREPEND", v.as_os_str());
+            cmd.env("KARMA_TEAM_AGENT_PATH_PREPEND", v.as_os_str());
         }
         if let Some(v) = &self.config_dir {
-            cmd.env("PIDASH_AGENT_CONFIG_DIR", v.as_os_str());
+            cmd.env("KARMA_TEAM_AGENT_CONFIG_DIR", v.as_os_str());
         }
         if let Some(v) = &self.data_dir {
-            cmd.env("PIDASH_AGENT_DATA_DIR", v.as_os_str());
+            cmd.env("KARMA_TEAM_AGENT_DATA_DIR", v.as_os_str());
         }
         if let Some(v) = &self.model_token_file {
-            cmd.env("PIDASH_MODEL_TOKEN_FILE", v.as_os_str());
+            cmd.env("KARMA_TEAM_MODEL_TOKEN_FILE", v.as_os_str());
         }
     }
 }
@@ -178,7 +178,7 @@ pub fn login_shell_command(program: &str, args: &[&str], cwd: Option<&Path>) -> 
 /// Windows variant of [`login_shell_command_with_env`].
 ///
 /// There is no shell here, so nothing can clobber what we set — the values are
-/// exported under both the `PIDASH_*` names (for parity with Unix) and their
+/// exported under both the `KARMA_TEAM_*` names (for parity with Unix) and their
 /// real names, and the credential is read from disk by the daemon rather than
 /// by a shell.
 #[cfg(target_os = "windows")]
@@ -198,10 +198,10 @@ pub fn login_shell_command_with_env(
         cmd.env("CODEX_HOME", v.as_os_str());
     }
     if let Some(v) = &env.config_dir {
-        cmd.env("PIDASH_CONFIG_DIR", v.as_os_str());
+        cmd.env("KARMA_TEAM_CONFIG_DIR", v.as_os_str());
     }
     if let Some(v) = &env.data_dir {
-        cmd.env("PIDASH_DATA_DIR", v.as_os_str());
+        cmd.env("KARMA_TEAM_DATA_DIR", v.as_os_str());
     }
     if let Some(dir) = &env.path_prepend {
         let existing = std::env::var_os("PATH").unwrap_or_default();
@@ -218,7 +218,7 @@ pub fn login_shell_command_with_env(
         if let Ok(token) = std::fs::read_to_string(path) {
             let token = token.trim();
             if !token.is_empty() {
-                cmd.env("PIDASH_GATEWAY_TOKEN", token);
+                cmd.env("KARMA_TEAM_GATEWAY_TOKEN", token);
             }
         }
     }
@@ -242,9 +242,9 @@ pub fn login_shell_command(program: &str, args: &[&str], cwd: Option<&Path>) -> 
     login_shell_command_with_env(program, args, cwd, &AgentEnv::default())
 }
 
-/// [`login_shell_command`] plus a Pi Dash-controlled environment for the agent.
+/// [`login_shell_command`] plus a karma-team-controlled environment for the agent.
 ///
-/// The values are passed under `PIDASH_*` names and re-exported by
+/// The values are passed under `KARMA_TEAM_*` names and re-exported by
 /// [`SHELL_SCRIPT`] *after* the login shell's rc files run, so a user profile
 /// cannot override them. With an empty [`AgentEnv`] this is exactly
 /// [`login_shell_command`].
@@ -265,11 +265,11 @@ pub fn login_shell_command_with_env(
     cmd.env("LC_MESSAGES", "C");
     if let Some(cwd) = cwd {
         cmd.current_dir(cwd);
-        cmd.env("PIDASH_AGENT_CWD", cwd.as_os_str());
+        cmd.env("KARMA_TEAM_AGENT_CWD", cwd.as_os_str());
     }
     env.apply(&mut cmd);
     // Plain `env`, not re-exported by the script: the login shell's rc
-    // files have no reason to touch `PIDASH_RUN_ID`, and `exec "$@"`
+    // files have no reason to touch `KARMA_TEAM_RUN_ID`, and `exec "$@"`
     // inherits it.
     apply_run_env(&mut cmd);
     cmd.arg("-ilc").arg(SHELL_SCRIPT).arg("bash").arg(program);
@@ -306,7 +306,7 @@ pub async fn binary_version(binary: &str, env: &AgentEnv) -> Option<String> {
 /// platform-specific wrapper the daemon uses to spawn agents. Returns `true`
 /// only when the handler launches and the binary exits `0`.
 ///
-/// `pidash runner add` uses this to decide whether to remind the operator
+/// `karma-team runner add` uses this to decide whether to remind the operator
 /// to install the chosen agent CLI. Probing through [`login_shell_command`] is
 /// what makes the answer match reality: the probe uses the same Unix login
 /// shell or native Windows direct spawn that a real run will use.
@@ -384,9 +384,13 @@ mod tests {
     async fn run_env_scope_puts_run_id_on_the_child() {
         let run_id = uuid::Uuid::new_v4();
         let cmd = RUN_ENV
-            .scope(RunEnv { run_id, issue_identifier: None }, async {
-                login_shell_command("claude", &[], None)
-            })
+            .scope(
+                RunEnv {
+                    run_id,
+                    issue_identifier: None,
+                },
+                async { login_shell_command("claude", &[], None) },
+            )
             .await;
         assert_eq!(
             env_value(&cmd, RUN_ID_ENV),
@@ -425,19 +429,19 @@ mod tests {
 
     #[cfg(not(target_os = "windows"))]
     #[test]
-    fn cwd_none_does_not_set_pidash_agent_cwd() {
+    fn cwd_none_does_not_set_karma_team_agent_cwd() {
         let cmd = login_shell_command("claude", &["--version"], None);
-        assert_eq!(env_value(&cmd, "PIDASH_AGENT_CWD"), None);
+        assert_eq!(env_value(&cmd, "KARMA_TEAM_AGENT_CWD"), None);
     }
 
     #[cfg(not(target_os = "windows"))]
     #[test]
-    fn cwd_some_sets_both_current_dir_and_pidash_agent_cwd() {
-        let cwd = PathBuf::from("/tmp/pidash-workspace");
+    fn cwd_some_sets_both_current_dir_and_karma_team_agent_cwd() {
+        let cwd = PathBuf::from("/tmp/karma-team-workspace");
         let cmd = login_shell_command("claude", &["--version"], Some(&cwd));
         assert_eq!(
-            env_value(&cmd, "PIDASH_AGENT_CWD"),
-            Some(OsString::from("/tmp/pidash-workspace"))
+            env_value(&cmd, "KARMA_TEAM_AGENT_CWD"),
+            Some(OsString::from("/tmp/karma-team-workspace"))
         );
         assert_eq!(cmd.as_std().get_current_dir(), Some(Path::new(&cwd)));
     }
@@ -455,18 +459,18 @@ mod tests {
                 OsString::from("sonnet-4"),
             ]
         );
-        assert_eq!(env_value(&cmd, "PIDASH_AGENT_CWD"), None);
+        assert_eq!(env_value(&cmd, "KARMA_TEAM_AGENT_CWD"), None);
     }
 
     #[test]
     #[cfg(target_os = "windows")]
     fn windows_applies_current_dir_without_shell_env() {
-        let cwd = PathBuf::from(r"C:\pidash-workspace");
+        let cwd = PathBuf::from(r"C:\karma-team-workspace");
         let cmd = login_shell_command("codex", &["app-server"], Some(&cwd));
         assert_eq!(cmd.as_std().get_program(), "codex");
         assert_eq!(argv(&cmd), vec![OsString::from("app-server")]);
         assert_eq!(cmd.as_std().get_current_dir(), Some(Path::new(&cwd)));
-        assert_eq!(env_value(&cmd, "PIDASH_AGENT_CWD"), None);
+        assert_eq!(env_value(&cmd, "KARMA_TEAM_AGENT_CWD"), None);
     }
 
     #[test]
@@ -502,9 +506,9 @@ mod tests {
 
     #[tokio::test]
     async fn binary_runs_version_false_for_missing_binary() {
-        // The case `pidash runner add` cares about: an agent CLI the user
+        // The case `karma-team runner add` cares about: an agent CLI the user
         // hasn't installed. bash's `exec` fails (127) → non-success.
-        assert!(!binary_runs_version("pidash-no-such-agent-binary-xyz").await);
+        assert!(!binary_runs_version("karma-team-no-such-agent-binary-xyz").await);
     }
 
     #[cfg(not(target_os = "windows"))]
@@ -604,26 +608,26 @@ mod tests {
         AgentEnv {
             codex_home: Some(PathBuf::from("/managed/codex-home")),
             path_prepend: Some(PathBuf::from("/managed/bin")),
-            config_dir: Some(PathBuf::from("/managed/pidash")),
-            data_dir: Some(PathBuf::from("/managed/pidash/data")),
+            config_dir: Some(PathBuf::from("/managed/karma-team")),
+            data_dir: Some(PathBuf::from("/managed/karma-team/data")),
             model_token_file: Some(PathBuf::from("/managed/runtime/model.token")),
         }
     }
 
     #[test]
     fn empty_agent_env_changes_nothing() {
-        // The user-enrolled path must stay byte-identical: no PIDASH_* env
+        // The user-enrolled path must stay byte-identical: no KARMA_TEAM_* env
         // beyond the cwd marker, and the same argv as before.
         let plain = login_shell_command("codex", &["app-server"], None);
         let with_empty =
             login_shell_command_with_env("codex", &["app-server"], None, &AgentEnv::default());
         assert_eq!(argv(&plain), argv(&with_empty));
         for key in [
-            "PIDASH_CODEX_HOME",
-            "PIDASH_AGENT_PATH_PREPEND",
-            "PIDASH_AGENT_CONFIG_DIR",
-            "PIDASH_AGENT_DATA_DIR",
-            "PIDASH_MODEL_TOKEN_FILE",
+            "KARMA_TEAM_CODEX_HOME",
+            "KARMA_TEAM_AGENT_PATH_PREPEND",
+            "KARMA_TEAM_AGENT_CONFIG_DIR",
+            "KARMA_TEAM_AGENT_DATA_DIR",
+            "KARMA_TEAM_MODEL_TOKEN_FILE",
         ] {
             assert_eq!(env_value(&with_empty, key), None, "{key} should be unset");
         }
@@ -632,25 +636,25 @@ mod tests {
     }
 
     #[test]
-    fn managed_env_is_passed_under_pidash_names() {
-        // The values must travel under PIDASH_* names, never as the real
+    fn managed_env_is_passed_under_karma_team_names() {
+        // The values must travel under KARMA_TEAM_* names, never as the real
         // names on the outer bash — otherwise rc files would clobber them
         // and the re-export in SHELL_SCRIPT would have nothing to restore.
         let cmd = login_shell_command_with_env("codex", &["app-server"], None, &managed_env());
         assert_eq!(
-            env_value(&cmd, "PIDASH_CODEX_HOME"),
+            env_value(&cmd, "KARMA_TEAM_CODEX_HOME"),
             Some(OsString::from("/managed/codex-home"))
         );
         assert_eq!(
-            env_value(&cmd, "PIDASH_AGENT_PATH_PREPEND"),
+            env_value(&cmd, "KARMA_TEAM_AGENT_PATH_PREPEND"),
             Some(OsString::from("/managed/bin"))
         );
         assert_eq!(
-            env_value(&cmd, "PIDASH_AGENT_CONFIG_DIR"),
-            Some(OsString::from("/managed/pidash"))
+            env_value(&cmd, "KARMA_TEAM_AGENT_CONFIG_DIR"),
+            Some(OsString::from("/managed/karma-team"))
         );
         assert_eq!(
-            env_value(&cmd, "PIDASH_MODEL_TOKEN_FILE"),
+            env_value(&cmd, "KARMA_TEAM_MODEL_TOKEN_FILE"),
             Some(OsString::from("/managed/runtime/model.token"))
         );
         // The credential must never appear on the command line.
@@ -659,8 +663,9 @@ mod tests {
             .map(|a| a.to_string_lossy().into_owned())
             .collect();
         assert!(
-            !joined.iter().any(|a| a.contains("model.token")
-                && !a.contains("PIDASH_MODEL_TOKEN_FILE")),
+            !joined
+                .iter()
+                .any(|a| a.contains("model.token") && !a.contains("KARMA_TEAM_MODEL_TOKEN_FILE")),
             "token path leaked into argv: {joined:?}"
         );
     }
@@ -735,7 +740,7 @@ mod tests {
         let read_back = |env: &AgentEnv| {
             let mut cmd = login_shell_command_with_env(
                 "sh",
-                &["-c", "printf '%s' \"$PIDASH_GATEWAY_TOKEN\""],
+                &["-c", "printf '%s' \"$KARMA_TEAM_GATEWAY_TOKEN\""],
                 None,
                 env,
             );
@@ -771,7 +776,7 @@ mod tests {
         };
         let mut cmd = login_shell_command_with_env(
             "sh",
-            &["-c", "printf '[%s]' \"${PIDASH_GATEWAY_TOKEN-unset}\""],
+            &["-c", "printf '[%s]' \"${KARMA_TEAM_GATEWAY_TOKEN-unset}\""],
             None,
             &env,
         );
@@ -797,7 +802,7 @@ mod tests {
     #[tokio::test]
     async fn binary_version_none_for_missing_binary() {
         assert_eq!(
-            binary_version("pidash-not-a-real-binary-xyz", &AgentEnv::default()).await,
+            binary_version("karma-team-not-a-real-binary-xyz", &AgentEnv::default()).await,
             None
         );
     }

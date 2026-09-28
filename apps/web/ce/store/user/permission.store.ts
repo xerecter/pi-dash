@@ -5,8 +5,8 @@
  */
 
 import { computedFn } from "mobx-utils";
-import type { EUserPermissions } from "@pi-dash/constants";
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import type { EUserPermissions } from "@karma-team/constants";
+import type { RootStore } from "@/karma-team-web/store/root.store";
 import { BaseUserPermissionStore } from "@/store/user/base-permissions.store";
 import type { IBaseUserPermissionStore } from "@/store/user/base-permissions.store";
 

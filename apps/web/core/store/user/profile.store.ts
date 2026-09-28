@@ -7,8 +7,8 @@
 import { cloneDeep, set } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 // types
-import type { IUserTheme, TUserProfile } from "@pi-dash/types";
-import { EStartOfTheWeek } from "@pi-dash/types";
+import type { IUserTheme, TUserProfile } from "@karma-team/types";
+import { EStartOfTheWeek } from "@karma-team/types";
 // services
 import { UserService } from "@/services/user.service";
 // store

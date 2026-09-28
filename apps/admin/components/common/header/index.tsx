@@ -8,7 +8,7 @@ import { observer } from "mobx-react";
 import { usePathname } from "next/navigation";
 import { Menu, Settings } from "lucide-react";
 // icons
-import { Breadcrumbs } from "@pi-dash/ui";
+import { Breadcrumbs } from "@karma-team/ui";
 // components
 import { BreadcrumbLink } from "../breadcrumb-link";
 // hooks

@@ -1,9 +1,9 @@
 # 03 — Repository Layout
 
-Pi Dash is a polyglot monorepo with three independent toolchains coexisting at the top level. Knowing which "stack" a directory belongs to is the fastest way to decide which commands to reach for.
+karma-team is a polyglot monorepo with three independent toolchains coexisting at the top level. Knowing which "stack" a directory belongs to is the fastest way to decide which commands to reach for.
 
 ```
-pi-dash/
+karma-team/
 ├── apps/                ← TS/React frontends + Django backend + Node live server
 │   ├── web/             ← main product UI            (React Router 7)         :3000
 │   ├── admin/           ← instance-admin UI (/god-mode/)                       :3001
@@ -22,7 +22,7 @@ pi-dash/
 │   ├── codemods/        ← jscodeshift transforms for repo-wide refactors
 │   ├── tailwind-config/   typescript-config/    ← shared base configs
 │
-├── runner/              ← Rust binary crate (the `pidash` CLI + daemon)
+├── runner/              ← Rust binary crate (the `karma-team` CLI + daemon)
 │   ├── src/{cli,daemon,cloud,codex,approval,workspace,ipc,history,service,tui,config,util}
 │   ├── install.sh / install.ps1   ← wrapper installers (auto-auth)
 │   └── wix/             ← Windows MSI metadata
@@ -64,7 +64,7 @@ The `runner/` crate is similarly outside Turborepo. `cargo build` is the only wa
 
 From `AGENTS.md`:
 
-- **Internal packages** use `"workspace:*"` — e.g. `"@pi-dash/ui": "workspace:*"`.
+- **Internal packages** use `"workspace:*"` — e.g. `"@karma-team/ui": "workspace:*"`.
 - **External deps** use `"catalog:"` — versions are pinned in the `catalog:` block of `pnpm-workspace.yaml`. Don't add a direct version for anything that's already in the catalog.
 
 When you upgrade a catalog dep, you upgrade it for every package in the workspace at once. That's the point.
@@ -79,6 +79,6 @@ New code starts in an app and graduates to a package the second time it's needed
 ## Where the wiki points
 
 - Want to change a UI route? → `apps/web/app/routes/` + [05](./05-frontend-architecture.md).
-- Want to add an API endpoint? → `apps/api/pi_dash/{app,api}/views/` + [06](./06-backend-architecture.md).
+- Want to add an API endpoint? → `apps/api/karma_team/{app,api}/views/` + [06](./06-backend-architecture.md).
 - Want to teach the runner a new agent? → `runner/src/agent/` + `runner/src/codex/` + [07](./07-runner-architecture.md).
 - Want to ship the runner? → [15 — Releasing](./15-releasing.md).

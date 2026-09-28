@@ -4,16 +4,16 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { API_BASE_URL } from "@pi-dash/constants";
+// karma-team imports
+import { API_BASE_URL } from "@karma-team/constants";
 // api service
-import type { TDuplicateAssetData, TDuplicateAssetResponse } from "@pi-dash/types";
+import type { TDuplicateAssetData, TDuplicateAssetResponse } from "@karma-team/types";
 import { APIService } from "../api.service";
 // helpers
 import { getAssetIdFromUrl } from "./helper";
 
 /**
- * Service class for managing file operations within pi dash applications.
+ * Service class for managing file operations within karma-team applications.
  * Extends APIService to handle HTTP requests to the file-related endpoints.
  * @extends {APIService}
  */

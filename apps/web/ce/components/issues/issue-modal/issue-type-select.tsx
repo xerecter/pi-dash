@@ -5,10 +5,10 @@
  */
 
 import type { Control } from "react-hook-form";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
 // types
-import type { TBulkIssueProperties, TIssue } from "@pi-dash/types";
+import type { TBulkIssueProperties, TIssue } from "@karma-team/types";
 
 export type TIssueFields = TIssue & TBulkIssueProperties;
 

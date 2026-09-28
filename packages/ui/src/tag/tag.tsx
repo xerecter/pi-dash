@@ -27,6 +27,6 @@ const Tag = React.forwardRef(function Tag(props: TagProps, ref: React.ForwardedR
   );
 });
 
-Tag.displayName = "pi-dash-ui-container";
+Tag.displayName = "karma-team-ui-container";
 
 export { Tag, ETagVariant, ETagSize };

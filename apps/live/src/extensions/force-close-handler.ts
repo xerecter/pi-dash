@@ -5,7 +5,7 @@
  */
 
 import type { Connection, Extension, Hocuspocus, onConfigurePayload } from "@hocuspocus/server";
-import { logger } from "@pi-dash/logger";
+import { logger } from "@karma-team/logger";
 import { Redis } from "@/extensions/redis";
 import { AdminCommand, CloseCode, getForceCloseMessage, isForceCloseCommand } from "@/types/admin-commands";
 import type { ForceCloseReason, ClientForceCloseMessage, ForceCloseCommandData } from "@/types/admin-commands";

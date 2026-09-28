@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TUnreadNotificationsCount } from "@pi-dash/types";
+import type { TUnreadNotificationsCount } from "@karma-team/types";
 
 export enum ENotificationTab {
   ALL = "all",

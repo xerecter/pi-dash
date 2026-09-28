@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import type { IWorkItemFilterInstance } from "@pi-dash/shared-state";
-import type { TWorkItemFilterExpression, TWorkItemFilterProperty } from "@pi-dash/types";
+// karma-team imports
+import type { IWorkItemFilterInstance } from "@karma-team/shared-state";
+import type { TWorkItemFilterExpression, TWorkItemFilterProperty } from "@karma-team/types";
 // components
 import type { TFiltersRowProps } from "@/components/rich-filters/filters-row";
 import { FiltersRow } from "@/components/rich-filters/filters-row";

@@ -7,7 +7,7 @@
 import React from "react";
 
 import { observer } from "mobx-react";
-// pi dash imports
+// karma-team imports
 import type {
   TFilterConditionNode,
   TFilterValue,
@@ -18,10 +18,10 @@ import type {
   TDateFilterFieldConfig,
   TDateRangeFilterFieldConfig,
   TFilterConditionNodeForDisplay,
-} from "@pi-dash/types";
-import { FILTER_FIELD_TYPE } from "@pi-dash/types";
+} from "@karma-team/types";
+import { FILTER_FIELD_TYPE } from "@karma-team/types";
 // local imports
-import { AdditionalFilterValueInput } from "@/pi-dash-web/components/rich-filters/filter-value-input/root";
+import { AdditionalFilterValueInput } from "@/karma-team-web/components/rich-filters/filter-value-input/root";
 import type { TFilterValueInputProps } from "../shared";
 import { DateRangeFilterValueInput } from "./date/range";
 import { SingleDateFilterValueInput } from "./date/single";

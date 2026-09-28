@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { IWorkspace } from "@pi-dash/types";
+import type { IWorkspace } from "@karma-team/types";
 
 type TProps = {
   workspace?: IWorkspace;

@@ -10,7 +10,7 @@ type TPageHeader = {
 };
 
 export function PageHeader(props: TPageHeader) {
-  const { title = "God Mode - Pi Dash", description = "Pi Dash god mode" } = props;
+  const { title = "God Mode - karma-team", description = "karma-team god mode" } = props;
 
   return (
     <>

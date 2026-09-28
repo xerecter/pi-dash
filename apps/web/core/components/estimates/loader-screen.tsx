@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { Loader } from "@pi-dash/ui";
+import { Loader } from "@karma-team/ui";
 
 export function EstimateLoaderScreen() {
   return (

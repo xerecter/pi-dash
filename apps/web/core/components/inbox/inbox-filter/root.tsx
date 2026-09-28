@@ -5,10 +5,10 @@
  */
 
 import { ListFilter } from "lucide-react";
-import { getButtonStyling } from "@pi-dash/propel/button";
-// pi dash imports
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+import { getButtonStyling } from "@karma-team/propel/button";
+// karma-team imports
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 // components
 import { FiltersDropdown } from "@/components/issues/issue-layouts/filters";
 // hooks

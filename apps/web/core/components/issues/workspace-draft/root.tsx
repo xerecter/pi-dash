@@ -7,13 +7,13 @@
 import { Fragment } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-// pi dash imports
-import { EUserPermissionsLevel, EDraftIssuePaginationType } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import { EUserWorkspaceRoles } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissionsLevel, EDraftIssuePaginationType } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import { EUserWorkspaceRoles } from "@karma-team/types";
 // components
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useProject } from "@/hooks/store/use-project";
@@ -31,7 +31,7 @@ type TWorkspaceDraftIssuesRoot = {
 
 export const WorkspaceDraftIssuesRoot = observer(function WorkspaceDraftIssuesRoot(props: TWorkspaceDraftIssuesRoot) {
   const { workspaceSlug } = props;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // hooks
   const { loader, paginationInfo, fetchIssues, issueIds } = useWorkspaceDraftIssues();

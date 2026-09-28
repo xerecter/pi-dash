@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { IApiToken } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+import type { IApiToken } from "@karma-team/types";
 import { APIService } from "../api.service";
 
 export class APITokenService extends APIService {

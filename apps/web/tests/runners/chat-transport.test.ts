@@ -5,8 +5,8 @@
  */
 
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { ChatTransport } from "@pi-dash/services";
-import { getChatTransport, setChatTransport } from "@pi-dash/services";
+import type { ChatTransport } from "@karma-team/services";
+import { getChatTransport, setChatTransport } from "@karma-team/services";
 
 const notCalled = () => {
   throw new Error("fake transport method should not be called");

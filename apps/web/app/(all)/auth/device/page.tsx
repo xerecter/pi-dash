@@ -6,7 +6,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 import { AuthenticationWrapper } from "@/lib/wrappers/authentication-wrapper";
 import { EPageTypes } from "@/helpers/authentication.helper";
 import { APIService } from "@/services/api.service";
@@ -83,7 +83,7 @@ function DeviceAuthPage() {
   return (
     <div className="flex min-h-[80vh] items-center justify-center bg-canvas p-8">
       <div className="w-full max-w-md rounded-lg border border-subtle bg-surface-1 p-8 shadow-raised-200">
-        <h1 className="text-xl mb-2 font-semibold text-primary">Authorize Pi Dash CLI</h1>
+        <h1 className="text-xl mb-2 font-semibold text-primary">Authorize karma-team CLI</h1>
         <p className="text-sm mb-6 text-tertiary">
           Enter the code shown on your terminal to grant this device access to your account.
         </p>
@@ -148,7 +148,7 @@ function DeviceAuthPage() {
         )}
 
         <p className="text-xs mt-6 text-placeholder">
-          Only approve a code that you started by running <code className="font-mono">pidash auth login</code> on a
+          Only approve a code that you started by running <code className="font-mono">karma-team auth login</code> on a
           device you control.
         </p>
       </div>

@@ -5,8 +5,8 @@
  */
 
 import type { onStatelessPayload } from "@hocuspocus/server";
-import { DocumentCollaborativeEvents } from "@pi-dash/editor/lib";
-import type { TDocumentEventsServer } from "@pi-dash/editor/lib";
+import { DocumentCollaborativeEvents } from "@karma-team/editor/lib";
+import type { TDocumentEventsServer } from "@karma-team/editor/lib";
 
 /**
  * Broadcast the client event to all the clients so that they can update their state

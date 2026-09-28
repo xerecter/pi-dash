@@ -8,9 +8,9 @@ import { update, concat, set, sortBy } from "lodash-es";
 import { action, computed, observable, makeObservable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { IModule, ILinkDetails, TModulePlotType } from "@pi-dash/types";
-import type { DistributionUpdates } from "@pi-dash/utils";
-import { updateDistribution, orderModules, shouldFilterModule } from "@pi-dash/utils";
+import type { IModule, ILinkDetails, TModulePlotType } from "@karma-team/types";
+import type { DistributionUpdates } from "@karma-team/utils";
+import { updateDistribution, orderModules, shouldFilterModule } from "@karma-team/utils";
 // helpers
 // services
 import { ModuleService } from "@/services/module.service";

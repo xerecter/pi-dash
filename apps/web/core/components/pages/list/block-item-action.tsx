@@ -6,16 +6,16 @@
 
 import { observer } from "mobx-react";
 import { Earth, Info, Minus } from "lucide-react";
-// pi dash imports
-import { LockIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { Avatar, FavoriteStar } from "@pi-dash/ui";
-import { renderFormattedDate, getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import { LockIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { Avatar, FavoriteStar } from "@karma-team/ui";
+import { renderFormattedDate, getFileURL } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { usePageOperations } from "@/hooks/use-page-operations";
-// pi dash web hooks
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
+// karma-team web hooks
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports

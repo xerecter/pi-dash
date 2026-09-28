@@ -7,8 +7,8 @@
 import React from "react";
 import { Command } from "cmdk";
 import { observer } from "mobx-react";
-// pi dash imports
-import { SUPPORTED_LANGUAGES } from "@pi-dash/i18n";
+// karma-team imports
+import { SUPPORTED_LANGUAGES } from "@karma-team/i18n";
 // local imports
 import { PowerKModalCommandItem } from "../../modal/command-item";
 

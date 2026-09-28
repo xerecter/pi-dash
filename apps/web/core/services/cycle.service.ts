@@ -5,7 +5,7 @@
  */
 
 // services
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 import type {
   CycleDateCheckData,
   ICycle,
@@ -14,7 +14,7 @@ import type {
   TCycleDistribution,
   TProgressSnapshot,
   TCycleEstimateDistribution,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 import { APIService } from "@/services/api.service";
 
 export class CycleService extends APIService {

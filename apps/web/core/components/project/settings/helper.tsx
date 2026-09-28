@@ -5,11 +5,11 @@
  */
 
 import Link from "next/link";
-import { PROJECT_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { ChevronRightIcon } from "@pi-dash/propel/icons";
-import { EPillVariant, Pill, EPillSize } from "@pi-dash/propel/pill";
-import { ToggleSwitch } from "@pi-dash/ui";
-import { joinUrlPath } from "@pi-dash/utils";
+import { PROJECT_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { ChevronRightIcon } from "@karma-team/propel/icons";
+import { EPillVariant, Pill, EPillSize } from "@karma-team/propel/pill";
+import { ToggleSwitch } from "@karma-team/ui";
+import { joinUrlPath } from "@karma-team/utils";
 
 type Props = {
   workspaceSlug: string;

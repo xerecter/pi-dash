@@ -5,12 +5,12 @@
  */
 
 import type { useRouter } from "next/navigation";
-// pi dash web imports
+// karma-team web imports
 import type {
   TPowerKContextTypeExtended,
   TPowerKPageTypeExtended,
   TPowerKSearchResultsKeysExtended,
-} from "@/pi-dash-web/components/command-palette/power-k/types";
+} from "@/karma-team-web/components/command-palette/power-k/types";
 
 export type TPowerKContextType = "work-item" | "page" | "cycle" | "module" | TPowerKContextTypeExtended;
 

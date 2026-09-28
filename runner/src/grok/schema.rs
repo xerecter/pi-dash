@@ -23,7 +23,7 @@ pub const ACP_PROTOCOL_VERSION: u64 = 1;
 /// Build the `initialize` request line. We advertise a minimal client: no
 /// filesystem or terminal capabilities, so the server does its own I/O and we
 /// stay a thin driver. The `clientInfo` mirrors what the Codex bridge sends so
-/// grok's logs attribute the session to pidash.
+/// grok's logs attribute the session to karma-team.
 pub fn initialize_request(id: u64) -> String {
     rpc_request(
         id,
@@ -31,7 +31,7 @@ pub fn initialize_request(id: u64) -> String {
         json!({
             "protocolVersion": ACP_PROTOCOL_VERSION,
             "clientCapabilities": { "fs": { "readTextFile": false, "writeTextFile": false } },
-            "clientInfo": { "name": "pidash", "version": crate::RUNNER_VERSION },
+            "clientInfo": { "name": "karma-team", "version": crate::RUNNER_VERSION },
         }),
     )
 }
@@ -122,7 +122,7 @@ mod tests {
         assert_eq!(v["method"], "initialize");
         assert_eq!(v["id"], 1);
         assert_eq!(v["params"]["protocolVersion"], ACP_PROTOCOL_VERSION);
-        assert_eq!(v["params"]["clientInfo"]["name"], "pidash");
+        assert_eq!(v["params"]["clientInfo"]["name"], "karma-team");
     }
 
     #[test]

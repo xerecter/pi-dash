@@ -5,10 +5,10 @@
  */
 
 import type { LucideIcon } from "lucide-react";
-// pi dash imports
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import { CycleIcon, FavoriteFolderIcon, ModuleIcon, PageIcon, ProjectIcon, ViewsIcon } from "@pi-dash/propel/icons";
-import type { IFavorite } from "@pi-dash/types";
+// karma-team imports
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import { CycleIcon, FavoriteFolderIcon, ModuleIcon, PageIcon, ProjectIcon, ViewsIcon } from "@karma-team/propel/icons";
+import type { IFavorite } from "@karma-team/types";
 
 export const FAVORITE_ITEM_ICONS: Record<string, React.FC<ISvgIcons> | LucideIcon> = {
   page: PageIcon,

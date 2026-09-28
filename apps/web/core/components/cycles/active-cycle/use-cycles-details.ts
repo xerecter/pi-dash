@@ -7,9 +7,9 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
-// pi dash imports
-import type { TWorkItemFilterCondition } from "@pi-dash/shared-state";
-import { EIssuesStoreType } from "@pi-dash/types";
+// karma-team imports
+import type { TWorkItemFilterCondition } from "@karma-team/shared-state";
+import { EIssuesStoreType } from "@karma-team/types";
 // constants
 import { CYCLE_ISSUES_WITH_PARAMS } from "@/constants/fetch-keys";
 // hooks

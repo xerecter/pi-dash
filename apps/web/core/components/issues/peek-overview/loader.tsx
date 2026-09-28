@@ -5,8 +5,8 @@
  */
 
 import { MoveRight } from "lucide-react";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { Loader } from "@pi-dash/ui";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { Loader } from "@karma-team/ui";
 // hooks
 import { usePlatformOS } from "@/hooks/use-platform-os";
 

@@ -6,14 +6,14 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { EEstimateSystem } from "@pi-dash/constants";
-import { ProjectIcon } from "@pi-dash/propel/icons";
-import type { ChartYAxisMetric } from "@pi-dash/types";
-// pi dash package imports
-import { CustomSelect } from "@pi-dash/ui";
+import { EEstimateSystem } from "@karma-team/constants";
+import { ProjectIcon } from "@karma-team/propel/icons";
+import type { ChartYAxisMetric } from "@karma-team/types";
+// karma-team package imports
+import { CustomSelect } from "@karma-team/ui";
 // hooks
 import { useProjectEstimates } from "@/hooks/store/estimates";
-// pi dash web constants
+// karma-team web constants
 type Props = {
   value: ChartYAxisMetric;
   onChange: (val: ChartYAxisMetric | null) => void;

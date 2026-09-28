@@ -6,12 +6,12 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
-import { ChevronDownIcon } from "@pi-dash/propel/icons";
-import { EUserProjectRoles, EUserWorkspaceRoles } from "@pi-dash/types";
-// pi dash ui
-import { CustomMenu } from "@pi-dash/ui";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
+import { ChevronDownIcon } from "@karma-team/propel/icons";
+import { EUserProjectRoles, EUserWorkspaceRoles } from "@karma-team/types";
+// karma-team ui
+import { CustomMenu } from "@karma-team/ui";
 // components
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 

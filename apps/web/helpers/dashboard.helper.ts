@@ -7,10 +7,10 @@
 import { endOfMonth, endOfWeek, endOfYear, startOfMonth, startOfWeek, startOfYear } from "date-fns";
 // helpers
 // types
-import { DURATION_FILTER_OPTIONS, EDurationFilters } from "@pi-dash/constants";
-import type { TIssuesListTypes } from "@pi-dash/types";
+import { DURATION_FILTER_OPTIONS, EDurationFilters } from "@karma-team/constants";
+import type { TIssuesListTypes } from "@karma-team/types";
 // constants
-import { renderFormattedDate, renderFormattedPayloadDate } from "@pi-dash/utils";
+import { renderFormattedDate, renderFormattedPayloadDate } from "@karma-team/utils";
 
 // -------------------- DEPRECATED --------------------
 

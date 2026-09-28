@@ -10,10 +10,10 @@ import Script from "next/script";
 // eslint-disable-next-line import/no-unassigned-import
 import "@/styles/globals.css";
 
-import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE } from "@pi-dash/constants";
+import { SITE_DESCRIPTION, SITE_KEYWORDS, SITE_NAME, SITE_TITLE } from "@karma-team/constants";
 
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 // assets
 import favicon16 from "@/app/assets/favicon/favicon-16x16.png?url";
@@ -46,13 +46,13 @@ export const meta = () => [
   { property: "og:image", content: "https://airepublic.com/og-image.png" },
   { property: "og:image:width", content: "1200" },
   { property: "og:image:height", content: "630" },
-  { property: "og:image:alt", content: "Pi Dash - AI agent orchestration platform" },
+  { property: "og:image:alt", content: "karma-team - AI agent orchestration platform" },
   { name: "twitter:site", content: "@ai_republic" },
   { name: "twitter:card", content: "summary_large_image" },
   { name: "twitter:image", content: "https://airepublic.com/og-image.png" },
   { name: "twitter:image:width", content: "1200" },
   { name: "twitter:image:height", content: "630" },
-  { name: "twitter:image:alt", content: "Pi Dash - AI agent orchestration platform" },
+  { name: "twitter:image:alt", content: "karma-team - AI agent orchestration platform" },
 ];
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -67,7 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="manifest" href="/site.webmanifest.json" />
         <link rel="shortcut icon" href={faviconIco} />
         {/* Meta info for PWA */}
-        <meta name="application-name" content="Pi Dash" />
+        <meta name="application-name" content="karma-team" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-title" content={SITE_NAME} />

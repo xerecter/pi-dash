@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 
 export interface EpicModalProps {
   data?: Partial<TIssue>;

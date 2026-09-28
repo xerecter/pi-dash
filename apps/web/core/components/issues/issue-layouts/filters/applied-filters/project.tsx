@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { CloseIcon } from "@pi-dash/propel/icons";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { CloseIcon } from "@karma-team/propel/icons";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 

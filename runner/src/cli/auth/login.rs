@@ -1,4 +1,4 @@
-//! `pidash auth login` — RFC 8628 device-code flow client.
+//! `karma-team auth login` — RFC 8628 device-code flow client.
 //!
 //! Walks the user through the standard device-code dance:
 //!
@@ -12,7 +12,7 @@
 //!
 //! After a successful login we simply confirm the account/workspace and
 //! point the user at the cloud URL. Registering a runner is a separate,
-//! explicit step (`pidash runner add`).
+//! explicit step (`karma-team runner add`).
 
 use anyhow::{Context, Result};
 use clap::Args as ClapArgs;
@@ -26,7 +26,7 @@ use crate::util::paths::Paths;
 
 #[derive(Debug, ClapArgs)]
 pub struct Args {
-    /// Pi Dash cloud base URL (e.g. `https://pidash.example.com` or
+    /// karma-team cloud base URL (e.g. `https://karma-team.example.com` or
     /// `http://localhost:8000` for a local instance).
     /// Optional if this host already has a `config.toml`; we reuse the
     /// existing `[daemon].cloud_url` in that case.
@@ -44,7 +44,7 @@ pub struct Args {
     /// Internal: finish a device-code grant that has *already* been approved,
     /// rather than starting one and asking the user to type a code.
     ///
-    /// The Pi Dash desktop app uses this. It is signed in already, so it can
+    /// The karma-team desktop app uses this. It is signed in already, so it can
     /// start the grant and approve it with its own session
     /// (`POST /api/v1/auth/device/approve/`), then hand the device code here.
     /// Everything after the exchange — the machine token, the workspace
@@ -90,7 +90,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     let outcome = login_and_bind_workspace(&args, paths).await?;
 
     println!();
-    println!("Start using Pi Dash at {}", outcome.cloud_url);
+    println!("Start using karma-team at {}", outcome.cloud_url);
     Ok(())
 }
 
@@ -204,9 +204,8 @@ fn resolve_cloud_url(args: &Args, paths: &Paths) -> Result<String> {
 fn prompt_for_cloud_url() -> Result<String> {
     use std::io::BufRead;
     println!();
-    println!("Enter your Pi Dash cloud URL.");
-    println!("(For AI Republic-hosted Pi Dash this is https://pidash.airepublic.com;");
-    println!(" for a self-hosted instance use your own URL.)");
+    println!("Enter your karma-team cloud URL.");
+    println!("Use the URL of your deployment, for example https://karma-team.example.com.");
     println!();
     print!("Cloud URL: ");
     std::io::stdout().flush().ok();
@@ -217,7 +216,7 @@ fn prompt_for_cloud_url() -> Result<String> {
         .context("reading cloud URL from stdin")?;
     let url = line.trim();
     if url.is_empty() {
-        anyhow::bail!("no cloud URL entered — re-run `pidash auth login --url <URL>`");
+        anyhow::bail!("no cloud URL entered — re-run `karma-team auth login --url <URL>`");
     }
     Ok(url.trim_end_matches('/').to_string())
 }
@@ -270,7 +269,9 @@ async fn poll_for_token(
     loop {
         if std::time::Instant::now() >= deadline {
             println!();
-            anyhow::bail!("device code expired before approval — run `pidash auth login` again");
+            anyhow::bail!(
+                "device code expired before approval — run `karma-team auth login` again"
+            );
         }
 
         tokio::time::sleep(Duration::from_secs(interval_secs)).await;
@@ -303,7 +304,7 @@ async fn poll_for_token(
             }
             "expired_token" => {
                 println!();
-                anyhow::bail!("device code expired — run `pidash auth login` again");
+                anyhow::bail!("device code expired — run `karma-team auth login` again");
             }
             "access_denied" => {
                 println!();
@@ -342,7 +343,7 @@ async fn resolve_workspace_binding(
 
     if workspaces.is_empty() {
         anyhow::bail!(
-            "your account isn't a member of any workspace — ask an admin to invite you, then re-run `pidash auth login`"
+            "your account isn't a member of any workspace — ask an admin to invite you, then re-run `karma-team auth login`"
         );
     }
 

@@ -10,11 +10,11 @@ import Link from "next/link";
 import useSWR from "swr";
 import { Loader as LoaderIcon } from "lucide-react";
 // types
-import { Button, getButtonStyling } from "@pi-dash/propel/button";
-import { setPromiseToast } from "@pi-dash/propel/toast";
-import type { TInstanceConfigurationKeys } from "@pi-dash/types";
-import { Loader, ToggleSwitch } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { Button, getButtonStyling } from "@karma-team/propel/button";
+import { setPromiseToast } from "@karma-team/propel/toast";
+import type { TInstanceConfigurationKeys } from "@karma-team/types";
+import { Loader, ToggleSwitch } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
 import { WorkspaceListItem } from "@/components/workspace/list-item";

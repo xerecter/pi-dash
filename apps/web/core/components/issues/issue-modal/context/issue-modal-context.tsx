@@ -7,12 +7,12 @@
 import { createContext } from "react";
 // ce imports
 import type { UseFormReset, UseFormWatch } from "react-hook-form";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
-import type { ISearchIssueResponse, TIssue } from "@pi-dash/types";
-// pi dash web imports
-import type { TIssuePropertyValues, TIssuePropertyValueErrors } from "@/pi-dash-web/types/issue-types";
-import type { TIssueFields } from "@/pi-dash-web/components/issues/issue-modal";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
+import type { ISearchIssueResponse, TIssue } from "@karma-team/types";
+// karma-team web imports
+import type { TIssuePropertyValues, TIssuePropertyValueErrors } from "@/karma-team-web/types/issue-types";
+import type { TIssueFields } from "@/karma-team-web/components/issues/issue-modal";
 
 export type TPropertyValuesValidationProps = {
   projectId: string | null;

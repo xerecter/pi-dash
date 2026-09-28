@@ -7,17 +7,17 @@
 import type { MutableRefObject } from "react";
 import { useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
-// pi dash helpers
-import { PROJECT_SETTINGS_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import { CloseIcon } from "@pi-dash/propel/icons";
+// karma-team helpers
+import { PROJECT_SETTINGS_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import { CloseIcon } from "@karma-team/propel/icons";
 // types
-import type { IIssueLabel } from "@pi-dash/types";
+import type { IIssueLabel } from "@karma-team/types";
 // ui
-import { CustomMenu, DragHandle } from "@pi-dash/ui";
+import { CustomMenu, DragHandle } from "@karma-team/ui";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // components
 import { LabelName } from "./label-name";
 

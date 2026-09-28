@@ -9,10 +9,10 @@ import { useEffect, useRef, useState } from "react";
 import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { dropTargetForElements } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { observer } from "mobx-react";
-// pi dash imports
-import { DRAG_ALLOWED_GROUPS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
+// karma-team imports
+import { DRAG_ALLOWED_GROUPS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 import type {
   IGroupByColumn,
   TIssueMap,
@@ -21,10 +21,10 @@ import type {
   TIssue,
   IIssueDisplayProperties,
   TIssueKanbanFilters,
-} from "@pi-dash/types";
-import { EIssueLayoutTypes } from "@pi-dash/types";
-import { Row } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { EIssueLayoutTypes } from "@karma-team/types";
+import { Row } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { ListLoaderItemRow } from "@/components/ui/loader/layouts/list-layout-loader";
 // hooks
@@ -32,8 +32,8 @@ import { useProjectState } from "@/hooks/store/use-project-state";
 import { useIntersectionObserver } from "@/hooks/use-intersection-observer";
 import { useIssuesStore } from "@/hooks/use-issue-layout-store";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
-// Pi Dash-web
-import { useWorkFlowFDragNDrop } from "@/pi-dash-web/components/workflow";
+// karma-team-web
+import { useWorkFlowFDragNDrop } from "@/karma-team-web/components/workflow";
 //
 import { GroupDragOverlay } from "../group-drag-overlay";
 import { ListQuickAddIssueButton, QuickAddIssueRoot } from "../quick-add";

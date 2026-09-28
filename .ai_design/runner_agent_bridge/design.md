@@ -16,7 +16,7 @@
 ## 1. Problem Statement
 
 The runner exists for one reason: to be the bridge between the
-pi-dash cloud and a locally-running AI agent CLI (codex or claude).
+karma-team cloud and a locally-running AI agent CLI (codex or claude).
 Operators care about the agent's health — _"is my codex run still
 making progress?"_ — not the runner's. Today the heartbeat the cloud
 sees only carries runner-level state:
@@ -173,7 +173,7 @@ status_color =
 ```
 
 The operator at a glance sees: PID, session, age + turn, total
-tokens, last event class. Pi-dash's web UI can render the same.
+tokens, last event class. karma-team's web UI can render the same.
 
 ## 3. Goals and Non-Goals
 
@@ -237,7 +237,7 @@ What this design **does not** add:
 - Symphony's tracker orchestration model: polling Linear, selecting
   candidate issues, state/priority scheduling, blocker-aware
   dispatch, SSH worker-host routing, or multi-project coordination.
-  Pi-dash already has its own run assignment and control-plane model;
+  karma-team already has its own run assignment and control-plane model;
   this design only borrows how Symphony supervises and observes an
   active agent process.
 
@@ -548,7 +548,7 @@ authoritative run record, when it is in fact volatile and may be
 overwritten / set NULL on every poll).
 
 ```python
-# apps/api/pi_dash/runner/models.py
+# apps/api/karma_team/runner/models.py
 class RunnerLiveState(models.Model):
     runner = models.OneToOneField(
         Runner,
@@ -598,11 +598,11 @@ Properties this shape gives us:
 
 Per §4.2, the snapshot rides only on `PollStatus`. So the only
 ingestion site is `RunnerSessionPollEndpoint` at
-`apps/api/pi_dash/runner/views/sessions.py:240-260`. `apply_hello`
+`apps/api/karma_team/runner/views/sessions.py:240-260`. `apply_hello`
 does **not** change.
 
 ```python
-# apps/api/pi_dash/runner/services/session_service.py (new helper)
+# apps/api/karma_team/runner/services/session_service.py (new helper)
 SNAPSHOT_FIELDS = (
     "last_event_at", "last_event_kind",
     "last_event_summary", "agent_pid", "agent_subprocess_alive",
@@ -695,7 +695,7 @@ reason a separate `RunnerLiveState` row earns its keep — it makes
 condition, not as an inference.
 
 ```python
-# apps/api/pi_dash/runner/tasks.py
+# apps/api/karma_team/runner/tasks.py
 @app.task
 def reconcile_stalled_runs():
     threshold = settings.RUNNER_AGENT_STALL_THRESHOLD_SECS  # default 360
@@ -897,7 +897,7 @@ Field stability:
 
 4. **PID stability under SSH-driven workers.** Symphony runs codex
    on remote workers via SSH; the PID it reports is the SSH parent
-   PID, not the codex PID directly. Pi-dash today runs the agent
+   PID, not the codex PID directly. karma-team today runs the agent
    locally, so this isn't an issue. If we add SSH-driven workers
    later, the PID field needs a host-qualifier.
 
@@ -920,7 +920,7 @@ Field stability:
 
 8. **Symphony-style multi-turn continuation.** V1 does not adopt this.
    Symphony retries the same issue across multiple codex turns up to a
-   `max_turns` cap; pi-dash today treats each assignment as one run.
+   `max_turns` cap; karma-team today treats each assignment as one run.
    Changing that belongs in a separate orchestration design.
 
 ## 8. Open Items for Future Designs
@@ -934,7 +934,7 @@ Field stability:
   `.ai_design/move_to_https/design.md`.
 - **Multi-turn continuation** like Symphony's
   `do_run_codex_turns` (issue stays active → continuation prompt →
-  next turn). Today pi-dash treats every assignment as one-shot.
+  next turn). Today karma-team treats every assignment as one-shot.
 
 ## 9. Summary
 
@@ -944,10 +944,10 @@ reconcile commitment but not for the operator to reason about the
 agent. Symphony's reference implementation shows a richer
 agent-process-management pattern that costs ~250 bytes per heartbeat:
 per-event activity timestamp, agent PID, turn count, token usage, and
-operator-facing status projection. Pi-dash adopts that
+operator-facing status projection. karma-team adopts that
 observability/watchdog pattern without adopting Symphony's tracker
 scheduler or lifecycle vocabulary. Bringing the narrowed pattern into
-pi-dash gives:
+karma-team gives:
 
 1. The cloud a way to detect stalled agents without depending on the
    runner's own internal watchdog.
@@ -973,17 +973,17 @@ clean fallbacks for mixed fleets.
 | JSON observability shape     | `elixir/lib/symphony_elixir_web/presenter.ex:98-117`                                  |
 | Terminal dashboard rendering | `elixir/lib/symphony_elixir/status_dashboard.ex:590-633`                              |
 
-## Appendix B — Pi-dash insertion-point index
+## Appendix B — karma-team insertion-point index
 
-| Component              | File                                                                   | Change                                                                                                                              |
-| ---------------------- | ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| State store            | `runner/src/daemon/state.rs`                                           | add scalar fields (no lifecycle enum); `note_agent_event(ts, kind, summary)`; `reset_run_snapshot` invoked only when run id changes |
-| Bridge process handle  | `runner/src/agent/mod.rs::AgentBridge`                                 | expose `process_handle() -> AgentProcessHandle` with PID + exit notification                                                        |
-| Process-exit watcher   | `runner/src/codex/app_server.rs`, `runner/src/claude_code/process.rs`  | bridge-owned wait task updates exit notification; supervisor subscribes and drives `set_agent_alive(false)`                         |
-| Event ingestion        | `runner/src/daemon/supervisor.rs::pump_events`                         | call `note_agent_event` on every `BridgeEvent`; opportunistic `Raw.method` matching for tokens / turn (opt-in)                      |
-| PollStatus (poll only) | `runner/src/cloud/http.rs::PollStatus` (line 757)                      | add the optional snapshot fields. **`AttachBody` is unchanged**                                                                     |
-| Poll handler ingestion | `apps/api/pi_dash/runner/views/sessions.py::RunnerSessionPollEndpoint` | call new `upsert_runner_live_state(runner, body.get("status") or {})`                                                               |
-| Live-state model       | `apps/api/pi_dash/runner/models.py::RunnerLiveState` (new)             | one row per runner, all nullable; keyed to `observed_run_id`; `(observed_run_id, updated_at, last_event_at)` index                  |
-| Stall reconcile        | `apps/api/pi_dash/runner/tasks.py::reconcile_stalled_runs` (new)       | Celery beat; explicit `live_state.observed_run_id == agent_run.id` join + fresh `updated_at` + stale `last_event_at`                |
-| DB migration           | `apps/api/pi_dash/runner/migrations/00XX_runner_live_state.py`         | additive — new table only, no changes to `AgentRun` / `Runner`                                                                      |
-| UI panel               | `apps/web/core/components/runners/RunnerAgentStatusPanel.tsx` (new)    | observability-only; activity badge derived client-side from raw scalars; NULLs render as "—"                                        |
+| Component              | File                                                                      | Change                                                                                                                              |
+| ---------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| State store            | `runner/src/daemon/state.rs`                                              | add scalar fields (no lifecycle enum); `note_agent_event(ts, kind, summary)`; `reset_run_snapshot` invoked only when run id changes |
+| Bridge process handle  | `runner/src/agent/mod.rs::AgentBridge`                                    | expose `process_handle() -> AgentProcessHandle` with PID + exit notification                                                        |
+| Process-exit watcher   | `runner/src/codex/app_server.rs`, `runner/src/claude_code/process.rs`     | bridge-owned wait task updates exit notification; supervisor subscribes and drives `set_agent_alive(false)`                         |
+| Event ingestion        | `runner/src/daemon/supervisor.rs::pump_events`                            | call `note_agent_event` on every `BridgeEvent`; opportunistic `Raw.method` matching for tokens / turn (opt-in)                      |
+| PollStatus (poll only) | `runner/src/cloud/http.rs::PollStatus` (line 757)                         | add the optional snapshot fields. **`AttachBody` is unchanged**                                                                     |
+| Poll handler ingestion | `apps/api/karma_team/runner/views/sessions.py::RunnerSessionPollEndpoint` | call new `upsert_runner_live_state(runner, body.get("status") or {})`                                                               |
+| Live-state model       | `apps/api/karma_team/runner/models.py::RunnerLiveState` (new)             | one row per runner, all nullable; keyed to `observed_run_id`; `(observed_run_id, updated_at, last_event_at)` index                  |
+| Stall reconcile        | `apps/api/karma_team/runner/tasks.py::reconcile_stalled_runs` (new)       | Celery beat; explicit `live_state.observed_run_id == agent_run.id` join + fresh `updated_at` + stale `last_event_at`                |
+| DB migration           | `apps/api/karma_team/runner/migrations/00XX_runner_live_state.py`         | additive — new table only, no changes to `AgentRun` / `Runner`                                                                      |
+| UI panel               | `apps/web/core/components/runners/RunnerAgentStatusPanel.tsx` (new)       | observability-only; activity badge derived client-side from raw scalars; NULLs render as "—"                                        |

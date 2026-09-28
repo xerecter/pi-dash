@@ -5,12 +5,12 @@
  */
 
 import { ArrowDownWideNarrow, ArrowUpWideNarrow } from "lucide-react";
-// pi dash imports
-import { getButtonStyling } from "@pi-dash/propel/button";
+// karma-team imports
+import { getButtonStyling } from "@karma-team/propel/button";
 // types
-import { CheckIcon } from "@pi-dash/propel/icons";
-import type { TPageFiltersSortBy, TPageFiltersSortKey } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
+import { CheckIcon } from "@karma-team/propel/icons";
+import type { TPageFiltersSortBy, TPageFiltersSortKey } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
 
 type Props = {
   onChange: (value: { key?: TPageFiltersSortKey; order?: TPageFiltersSortBy }) => void;

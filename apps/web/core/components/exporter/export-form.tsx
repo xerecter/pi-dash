@@ -14,14 +14,14 @@ import {
   EUserPermissionsLevel,
   EXPORTERS_LIST,
   // ISSUE_DISPLAY_FILTERS_BY_PAGE,
-} from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-// import { Tooltip } from "@pi-dash/propel/tooltip";
-// import { EIssuesStoreType } from "@pi-dash/types";
-import type { TWorkItemFilterExpression } from "@pi-dash/types";
-import { CustomSearchSelect, CustomSelect } from "@pi-dash/ui";
+} from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+// import { Tooltip } from "@karma-team/propel/tooltip";
+// import { EIssuesStoreType } from "@karma-team/types";
+import type { TWorkItemFilterExpression } from "@karma-team/types";
+import { CustomSearchSelect, CustomSelect } from "@karma-team/ui";
 // import { WorkspaceLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/workspace-level";
 // import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";
 import { useProject } from "@/hooks/store/use-project";

@@ -8,8 +8,8 @@ mod chat;
 mod chat_history;
 mod desktop_http;
 mod ipc;
+mod karma_team_cli;
 mod managed_runner;
-mod pidash_cli;
 
 use std::sync::Mutex;
 
@@ -122,11 +122,11 @@ async fn open_in_browser(app: tauri::AppHandle, url: String) -> Result<(), Strin
         .map_err(|e| e.to_string())
 }
 
-/// Process an incoming `pidash://auth/callback?code=<>&state=<>` deep link.
+/// Process an incoming `karma-team://auth/callback?code=<>&state=<>` deep link.
 ///
 /// The identity provider redirected the system browser directly to this
 /// custom scheme — RFC 8252 native-app flow. The desktop is registered with
-/// it as a separate client with `redirect_uri=pidash://auth/callback`, so we
+/// it as a separate client with `redirect_uri=karma-team://auth/callback`, so we
 /// receive the standard authorization `code` + `state`. We forward both to
 /// the server's `/api/auth/desktop-exchange/` by navigating the webview
 /// there; the server looks up the PKCE verifier by `state`, completes the
@@ -138,7 +138,7 @@ fn handle_deep_link(app: &tauri::AppHandle, url: &str) {
         eprintln!("deep-link: invalid URL: {url}");
         return;
     };
-    if parsed.scheme() != "pidash"
+    if parsed.scheme() != "karma-team"
         || parsed.host_str() != Some("auth")
         || parsed.path() != "/callback"
     {
@@ -235,7 +235,7 @@ async fn check_for_updates(handle: tauri::AppHandle) {
     let install = handle
         .dialog()
         .message(format!(
-            "Pi Dash {new} is available (you have {current}).\n\n\
+            "karma-team {new} is available (you have {current}).\n\n\
              Install now? The app will restart automatically.",
             new = update.version,
             current = current,
@@ -264,7 +264,7 @@ async fn check_for_updates(handle: tauri::AppHandle) {
             .message(format!(
                 "The update couldn't be installed.\n\n{e}\n\nYou can try again next launch."
             ))
-            .title("Pi Dash update failed")
+            .title("karma-team update failed")
             .kind(MessageDialogKind::Error)
             .show(|_| {});
         return;
@@ -303,47 +303,47 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // *not* always the URL the main webview opens at startup — see HOT_RELOAD
     // below.
     //
-    // In debug builds, PIDASH_DESKTOP_HOT_RELOAD=1 (build-time) selects the
-    // URL-pointing dev mode: the main webview opens at PI_DASH_URL directly,
+    // In debug builds, KARMA_TEAM_DESKTOP_HOT_RELOAD=1 (build-time) selects the
+    // URL-pointing dev mode: the main webview opens at KARMA_TEAM_URL directly,
     // so a running apps/web dev server with HMR is reflected without
     // rebuilding dist/.
     // Default (unset) uses the bundled SPA from dist/ via WebviewUrl::App —
     // the same code path as release. This gives dev/prod parity by default
     // and reserves the URL-pointing mode for explicit opt-in.
     //
-    // Release builds ignore PIDASH_DESKTOP_HOT_RELOAD and still require
-    // PI_DASH_URL via env! — silently baking a localhost default into a
+    // Release builds ignore KARMA_TEAM_DESKTOP_HOT_RELOAD and still require
+    // KARMA_TEAM_URL via env! — silently baking a localhost default into a
     // shipping binary would route the /api/auth/desktop-exchange call to a
     // developer's machine.
     let hot_reload: bool =
-        cfg!(debug_assertions) && matches!(option_env!("PIDASH_DESKTOP_HOT_RELOAD"), Some("1"));
+        cfg!(debug_assertions) && matches!(option_env!("KARMA_TEAM_DESKTOP_HOT_RELOAD"), Some("1"));
 
     #[cfg(debug_assertions)]
-    let target_url_str: &str = if let Some(v) = option_env!("PI_DASH_URL") {
+    let target_url_str: &str = if let Some(v) = option_env!("KARMA_TEAM_URL") {
         v
     } else if hot_reload {
         "http://localhost:3000"
     } else {
         // Bundled-dev default: a local API server (apps/api on :8000), so
         // the bundled SPA has a backend without forcing every dev to export
-        // PI_DASH_URL. Override via PI_DASH_URL at build time for any other
+        // KARMA_TEAM_URL. Override via KARMA_TEAM_URL at build time for any other
         // server.
         "http://localhost:8000"
     };
     #[cfg(not(debug_assertions))]
     let target_url_str: &str = env!(
-        "PI_DASH_URL",
-        "PI_DASH_URL must be set when building in release mode \
+        "KARMA_TEAM_URL",
+        "KARMA_TEAM_URL must be set when building in release mode \
          (the workflow sets it; for local release builds, export it manually)"
     );
 
-    // OSS_SHA is the OSS pi-dash commit the bundled frontend was built
+    // OSS_SHA is the OSS karma-team commit the bundled frontend was built
     // against, embedded for audit-trail mapping (workflow run logs fall
     // out of retention). Not load-bearing for runtime behavior; surfaced
     // in the startup eprintln below for support-debugging.
-    let oss_sha = option_env!("PI_DASH_OSS_SHA").unwrap_or("<unset>");
+    let oss_sha = option_env!("KARMA_TEAM_OSS_SHA").unwrap_or("<unset>");
     let mode = if hot_reload { "hot-reload" } else { "bundled" };
-    eprintln!("Pi Dash: mode={mode} server target {target_url_str} (oss-sha {oss_sha})");
+    eprintln!("karma-team: mode={mode} server target {target_url_str} (oss-sha {oss_sha})");
     let target_url = Url::parse(target_url_str)?;
     let api_url = Url::parse(option_env!("VITE_API_BASE_URL").unwrap_or(target_url_str))?;
     let desktop_http = desktop_http::DesktopHttp::new(api_url)?;
@@ -363,14 +363,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // clone bypasses tauri.conf's beforeDevCommand entirely; build.rs only
     // panics in release profile (rust-analyzer would crash otherwise);
     // without this warning, the window would just hang on the 118-byte
-    // placeholder with no signal. PIDASH_DIST_VALID is emitted by build.rs
+    // placeholder with no signal. KARMA_TEAM_DIST_VALID is emitted by build.rs
     // from the same size/assets check dev-prep.sh and the release guard use.
-    if !hot_reload && option_env!("PIDASH_DIST_VALID") == Some("0") {
+    if !hot_reload && option_env!("KARMA_TEAM_DIST_VALID") == Some("0") {
         eprintln!(
-            "Pi Dash: WARNING dist/ looks like the 118-byte placeholder — the window will \
+            "karma-team: WARNING dist/ looks like the 118-byte placeholder — the window will \
              render blank/Loading forever. Run `cargo tauri dev` (which invokes \
              desktop/scripts/dev-prep.sh) instead of plain `cargo build`/`cargo run`, \
-             or set PIDASH_DESKTOP_HOT_RELOAD=1 to load from a dev server."
+             or set KARMA_TEAM_DESKTOP_HOT_RELOAD=1 to load from a dev server."
         );
     }
 
@@ -411,7 +411,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         })
         .manage(ZoomState(Mutex::new(1.0)))
         .manage(desktop_http)
-        .manage(AppConfig { target_url, bundle_root })
+        .manage(AppConfig {
+            target_url,
+            bundle_root,
+        })
         .manage(managed_runner::DaemonState::default())
         .manage(chat::ChatState::default())
         .invoke_handler(tauri::generate_handler![
@@ -419,13 +422,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             desktop_http::desktop_api_request,
             desktop_http::desktop_api_stream,
             desktop_http::desktop_api_cancel,
-            pidash_cli::detect_pidash_cli,
-            pidash_cli::install_pidash_cli,
-            pidash_cli::pidash_cli_login,
+            karma_team_cli::detect_karma_team_cli,
+            karma_team_cli::install_karma_team_cli,
+            karma_team_cli::karma_team_cli_login,
             // Direct local chat with the built-in engine (PDASHOSS01-159):
             // these reach the daemon over its IPC socket and stream Chat*
             // frames back to the webview as `chat://frame` events — never via
-            // the Pi Dash cloud chat relay.
+            // the karma-team cloud chat relay.
             chat::chat_warm,
             chat::chat_send,
             chat::chat_cancel,
@@ -445,7 +448,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             desktop_clear_web_data,
             managed_runner::managed_doctor,
             // Direct local chat history: stored on this machine only, per
-            // account, never relayed to or stored by the Pi Dash server.
+            // account, never relayed to or stored by the karma-team server.
             chat_history::chat_create_session,
             chat_history::chat_list_sessions,
             chat_history::chat_get_session,
@@ -465,23 +468,31 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 return;
             }
             let config = webview.state::<AppConfig>();
-            let Some(root) = &config.bundle_root else { return };
+            let Some(root) = &config.bundle_root else {
+                return;
+            };
             if let Some(target) = bundle_redirect_for(payload.url(), &config.target_url, root) {
-                eprintln!("nav: server host page loaded ({}), bouncing to bundle", payload.url());
+                eprintln!(
+                    "nav: server host page loaded ({}), bouncing to bundle",
+                    payload.url()
+                );
                 if let Err(e) = webview.navigate(target) {
                     eprintln!("nav: bounce failed: {e}");
                 }
             }
         })
         .setup(move |app| {
-            let api_origin = app.state::<desktop_http::DesktopHttp>()
-                .api_url.origin().ascii_serialization();
+            let api_origin = app
+                .state::<desktop_http::DesktopHttp>()
+                .api_url
+                .origin()
+                .ascii_serialization();
             let mut window = WebviewWindowBuilder::new(app, "main", initial_webview)
                 .initialization_script(format!(
-                    "Object.defineProperty(window, '__PIDASH_NATIVE_HTTP__', {{ value: {} }});",
+                    "Object.defineProperty(window, '__KARMA_TEAM_NATIVE_HTTP__', {{ value: {} }});",
                     serde_json::to_string(&api_origin)?
                 ))
-                .title("Pi Dash")
+                .title("karma-team")
                 .inner_size(1400.0, 900.0)
                 .min_inner_size(800.0, 600.0)
                 .resizable(true);
@@ -489,7 +500,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let bounce_app = app.handle().clone();
                 window = window.on_navigation(move |url| {
                     let config = bounce_app.state::<AppConfig>();
-                    let Some(root) = &config.bundle_root else { return true };
+                    let Some(root) = &config.bundle_root else {
+                        return true;
+                    };
                     let Some(target) = bundle_redirect_for(url, &config.target_url, root) else {
                         return true;
                     };
@@ -536,8 +549,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .build(app)?;
 
             let view = {
-                let b = SubmenuBuilder::new(app, "View")
-                    .items(&[&zoom_in, &zoom_out, &zoom_reset]);
+                let b = SubmenuBuilder::new(app, "View").items(&[&zoom_in, &zoom_out, &zoom_reset]);
                 #[cfg(not(target_os = "macos"))]
                 let b = b.items(&[&zoom_in_shift, &zoom_in_numpad]);
                 b.build()?
@@ -545,15 +557,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let menu = MenuBuilder::new(app).items(&[&view]).build()?;
             app.set_menu(menu)?;
 
-            let tray_show = MenuItemBuilder::with_id("tray_show", "Show Pi Dash").build(app)?;
-            let tray_quit = MenuItemBuilder::with_id("tray_quit", "Quit Pi Dash").build(app)?;
+            let tray_show = MenuItemBuilder::with_id("tray_show", "Show karma-team").build(app)?;
+            let tray_quit = MenuItemBuilder::with_id("tray_quit", "Quit karma-team").build(app)?;
             let tray_menu = MenuBuilder::new(app)
                 .items(&[&tray_show])
                 .separator()
                 .items(&[&tray_quit])
                 .build()?;
             let mut tray_builder = TrayIconBuilder::with_id("main")
-                .tooltip("Pi Dash")
+                .tooltip("karma-team")
                 .menu(&tray_menu)
                 .show_menu_on_left_click(false)
                 .on_menu_event(|app, event| match event.id().as_ref() {
@@ -594,7 +606,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             });
 
-            // On Linux/Windows the OS routes `pidash://` by launching a
+            // On Linux/Windows the OS routes `karma-team://` by launching a
             // new app instance; the bundler registers the scheme at install
             // time, but for dev builds and re-installs we also register at
             // runtime. macOS reads the scheme from `Info.plist` and routes
@@ -606,7 +618,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // stale on the next Store update and outlives an uninstall.
             #[cfg(any(target_os = "linux", target_os = "windows"))]
             if !std::env::current_exe().is_ok_and(|exe| is_msix_install(&exe))
-                && let Err(e) = app.deep_link().register("pidash")
+                && let Err(e) = app.deep_link().register("karma-team")
             {
                 eprintln!("deep-link: register failed: {e}");
             }
@@ -636,7 +648,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .run(|app, event| {
             // Stop the bundled daemon when the app exits. Without this it
             // outlives the window: the server would keep the runner ONLINE and
-            // dispatch work to a machine whose user has closed Pi Dash.
+            // dispatch work to a machine whose user has closed karma-team.
             if let tauri::RunEvent::Exit = event {
                 managed_runner::shutdown(app);
             }
@@ -655,21 +667,21 @@ mod tests {
         // Windows paths split on `\` only on Windows; `/` is a separator on
         // every platform, so these cases run in CI on any host.
         assert!(is_msix_install(Path::new(
-            "C:/Program Files/WindowsApps/AIRepublic.PiDash_0.3.1.0_x64__acjt9zndhe44g/pi-dash-desktop.exe"
+            "C:/Program Files/WindowsApps/AIRepublic.KarmaTeam_0.3.1.0_x64__acjt9zndhe44g/karma-team-desktop.exe"
         )));
         assert!(is_msix_install(Path::new(
-            "C:/Program Files/windowsapps/AIRepublic.PiDash_0.3.1.0_x64__acjt9zndhe44g/pi-dash-desktop.exe"
+            "C:/Program Files/windowsapps/AIRepublic.KarmaTeam_0.3.1.0_x64__acjt9zndhe44g/karma-team-desktop.exe"
         )));
         assert!(!is_msix_install(Path::new(
-            "C:/Users/me/AppData/Local/Pi Dash/pi-dash-desktop.exe"
+            "C:/Users/me/AppData/Local/karma-team/karma-team-desktop.exe"
         )));
         assert!(!is_msix_install(Path::new(
-            "/opt/WindowsAppsBackup/pi-dash-desktop"
+            "/opt/WindowsAppsBackup/karma-team-desktop"
         )));
     }
 
     fn server() -> Url {
-        Url::parse("https://pidash.example.com").unwrap()
+        Url::parse("https://karma-team.example.com").unwrap()
     }
     fn root() -> Url {
         Url::parse("tauri://localhost").unwrap()
@@ -677,13 +689,19 @@ mod tests {
 
     #[test]
     fn api_paths_on_server_host_pass_through() {
-        let url = Url::parse("https://pidash.example.com/api/auth/desktop-exchange/?code=x&state=y").unwrap();
+        let url =
+            Url::parse("https://karma-team.example.com/api/auth/desktop-exchange/?code=x&state=y")
+                .unwrap();
         assert_eq!(bundle_redirect_for(&url, &server(), &root()), None);
     }
 
     #[test]
     fn bundle_and_foreign_origins_pass_through() {
-        for u in ["tauri://localhost/", "https://login.example.com/x", "http://pidash.example.com/"] {
+        for u in [
+            "tauri://localhost/",
+            "https://login.example.com/x",
+            "http://karma-team.example.com/",
+        ] {
             let url = Url::parse(u).unwrap();
             assert_eq!(bundle_redirect_for(&url, &server(), &root()), None, "{u}");
         }
@@ -691,42 +709,52 @@ mod tests {
 
     #[test]
     fn server_root_bounces_to_bundle_root() {
-        let url = Url::parse("https://pidash.example.com/").unwrap();
+        let url = Url::parse("https://karma-team.example.com/").unwrap();
         let target = bundle_redirect_for(&url, &server(), &root()).unwrap();
         assert_eq!(target.as_str(), "tauri://localhost/");
     }
 
     #[test]
     fn server_app_route_keeps_path_and_query() {
-        let url = Url::parse("https://pidash.example.com/acme/projects/?x=1").unwrap();
+        let url = Url::parse("https://karma-team.example.com/acme/projects/?x=1").unwrap();
         let target = bundle_redirect_for(&url, &server(), &root()).unwrap();
         assert_eq!(target.as_str(), "tauri://localhost/acme/projects/?x=1");
     }
 
     #[test]
     fn exchange_failure_redirect_lands_on_bundle_sign_in() {
-        let url = Url::parse("https://pidash.example.com/sign-in?error=state_flow_mismatch").unwrap();
+        let url =
+            Url::parse("https://karma-team.example.com/sign-in?error=state_flow_mismatch").unwrap();
         let target = bundle_redirect_for(&url, &server(), &root()).unwrap();
-        assert_eq!(target.as_str(), "tauri://localhost/sign-in?error=state_flow_mismatch");
+        assert_eq!(
+            target.as_str(),
+            "tauri://localhost/sign-in?error=state_flow_mismatch"
+        );
     }
 
     #[test]
     fn next_path_from_session_expiry_passes_through_unchanged() {
-        let url = Url::parse("https://pidash.example.com/?next_path=%2Facme%2F").unwrap();
+        let url = Url::parse("https://karma-team.example.com/?next_path=%2Facme%2F").unwrap();
         let target = bundle_redirect_for(&url, &server(), &root()).unwrap();
         assert_eq!(target.as_str(), "tauri://localhost/?next_path=%2Facme%2F");
     }
 
     #[test]
     fn deep_link_error_url_is_bundle_sign_in() {
-        assert_eq!(bundle_url(&root(), "/sign-in").as_str(), "tauri://localhost/sign-in");
+        assert_eq!(
+            bundle_url(&root(), "/sign-in").as_str(),
+            "tauri://localhost/sign-in"
+        );
     }
 
     #[test]
     fn marketing_routes_bounce_too() {
         for p in ["/home", "/docs", "/pricing"] {
-            let url = Url::parse(&format!("https://pidash.example.com{p}")).unwrap();
-            assert!(bundle_redirect_for(&url, &server(), &root()).is_some(), "{p}");
+            let url = Url::parse(&format!("https://karma-team.example.com{p}")).unwrap();
+            assert!(
+                bundle_redirect_for(&url, &server(), &root()).is_some(),
+                "{p}"
+            );
         }
     }
 }

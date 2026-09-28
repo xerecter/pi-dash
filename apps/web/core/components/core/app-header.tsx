@@ -6,11 +6,11 @@
 
 import type { ReactNode } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { Row } from "@pi-dash/ui";
+// karma-team imports
+import { Row } from "@karma-team/ui";
 // components
-import { cn } from "@pi-dash/utils";
-import { ExtendedAppHeader } from "@/pi-dash-web/components/common/extended-app-header";
+import { cn } from "@karma-team/utils";
+import { ExtendedAppHeader } from "@/karma-team-web/components/common/extended-app-header";
 
 export interface AppHeaderProps {
   header: ReactNode;

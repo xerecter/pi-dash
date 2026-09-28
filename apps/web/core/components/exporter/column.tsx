@@ -5,8 +5,8 @@
  */
 
 import { Download } from "lucide-react";
-import type { IExportData } from "@pi-dash/types";
-import { getDate, getFileURL, renderFormattedDate } from "@pi-dash/utils";
+import type { IExportData } from "@karma-team/types";
+import { getDate, getFileURL, renderFormattedDate } from "@karma-team/utils";
 
 type RowData = IExportData;
 const checkExpiry = (inputDateString: string) => {

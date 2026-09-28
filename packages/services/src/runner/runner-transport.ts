@@ -13,7 +13,7 @@
  * behavior changes.
  *
  * The reason this seam exists: a Tauri desktop wrapper that bundles
- * the OSS web app and runs alongside a same-machine `pidash` daemon
+ * the OSS web app and runs alongside a same-machine `karma-team` daemon
  * can answer the same query from local IPC, skipping the cloud
  * round-trip. The wrapper registers an override at app startup via
  * `setRunnerDetailFetcher`; the UI code keeps calling
@@ -30,7 +30,7 @@
  * environment am I in".
  *
  * Scope: this module is intended for browser-side consumption.
- * `apps/live` (Node) does not import `@pi-dash/services`; if a
+ * `apps/live` (Node) does not import `@karma-team/services`; if a
  * server-side consumer is added later, that consumer must not rely
  * on `setRunnerDetailFetcher` for per-request behavior — module
  * state is process-global on Node.
@@ -43,7 +43,7 @@
  * handlers keyed by string.
  */
 
-import type { IRunner } from "@pi-dash/types";
+import type { IRunner } from "@karma-team/types";
 
 import { RunnerService } from "./runner.service";
 
@@ -57,7 +57,7 @@ export type RunnerDetailFetcher = (runnerId: string) => Promise<IRunner>;
  * module load means every axios interceptor that's registered up
  * through this module's evaluation is captured. Interceptors that
  * register LATER will not be picked up by this singleton — register
- * them before `@pi-dash/services` is first imported.
+ * them before `@karma-team/services` is first imported.
  *
  * Kept module-private to avoid a footgun where consumers import this
  * fetcher directly and bypass any registered override. Override
@@ -122,7 +122,7 @@ export function getRunnerDetailFetcher(): RunnerDetailFetcher {
  *   getRunnerDetail,
  *   getRunnerDetailFetcher,
  *   setRunnerDetailFetcher,
- * } from "@pi-dash/services";
+ * } from "@karma-team/services";
  *
  * const next = getRunnerDetailFetcher();
  * setRunnerDetailFetcher(async (id) => {

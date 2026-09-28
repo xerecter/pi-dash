@@ -9,11 +9,11 @@ import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
 import { MessageSquare, MoreVertical } from "lucide-react";
 import { Menu, Transition } from "@headlessui/react";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
-import { CheckIcon, CloseIcon } from "@pi-dash/propel/icons";
-import type { TIssuePublicComment } from "@pi-dash/types";
-import { getFileURL } from "@pi-dash/utils";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
+import { CheckIcon, CloseIcon } from "@karma-team/propel/icons";
+import type { TIssuePublicComment } from "@karma-team/types";
+import { getFileURL } from "@karma-team/utils";
 // components
 import { LiteTextEditor } from "@/components/editor/lite-text-editor";
 import { CommentReactions } from "@/components/issues/peek-overview/comment/comment-reactions";

@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import type { RootStore } from "@/karma-team-web/store/root.store";
 import { IssuesTimeLineStore } from "@/store/timeline/issues-timeline.store";
 import type { IIssuesTimeLineStore } from "@/store/timeline/issues-timeline.store";
 import { ModulesTimeLineStore } from "@/store/timeline/modules-timeline.store";

@@ -5,7 +5,7 @@
  */
 
 import { extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
-import type { InstructionType, IPragmaticPayloadLocation, TDropTarget, TWidgetEntityData } from "@pi-dash/types";
+import type { InstructionType, IPragmaticPayloadLocation, TDropTarget, TWidgetEntityData } from "@karma-team/types";
 
 export type TargetData = {
   id: string;

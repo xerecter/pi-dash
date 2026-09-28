@@ -9,8 +9,8 @@ pub mod connect;
 pub mod context;
 pub mod doctor;
 mod install;
-pub mod managed;
 mod issue;
+pub mod managed;
 mod project;
 mod remove;
 pub mod resolve;
@@ -41,29 +41,29 @@ pub async fn run_for_tests(args: RunArgs, paths: &crate::util::paths::Paths) -> 
 }
 
 #[derive(Debug, Parser)]
-#[command(name = "pidash", version, about, long_about = None)]
+#[command(name = "karma-team", version, about, long_about = None)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Command>,
 
     /// Override config directory (XDG config by default).
-    #[arg(long, global = true, env = "PIDASH_CONFIG_DIR")]
+    #[arg(long, global = true, env = "KARMA_TEAM_CONFIG_DIR")]
     pub config_dir: Option<std::path::PathBuf>,
 
     /// Override data directory (XDG data by default).
-    #[arg(long, global = true, env = "PIDASH_DATA_DIR")]
+    #[arg(long, global = true, env = "KARMA_TEAM_DATA_DIR")]
     pub data_dir: Option<std::path::PathBuf>,
 
     /// Log level filter (trace|debug|info|warn|error).
-    #[arg(long, global = true, env = "PIDASH_LOG", default_value = "info")]
+    #[arg(long, global = true, env = "KARMA_TEAM_LOG", default_value = "info")]
     pub log: String,
 }
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
     /// Authenticate this host as a user (`auth login` / `status` /
-    /// `logout`). Mints a CLI token used by `pidash` commands and by
-    /// `pidash runner add` to register runners.
+    /// `logout`). Mints a CLI token used by `karma-team` commands and by
+    /// `karma-team runner add` to register runners.
     Auth(auth::AuthArgs),
 
     /// Deprecated compatibility path for one-time enrollment tokens.
@@ -76,10 +76,10 @@ pub enum Command {
     /// Manage runners under the active connection (add / list / remove).
     Runner(runner::RunnerArgs),
 
-    /// Read Pi Dash projects in the active workspace.
+    /// Read karma-team projects in the active workspace.
     Project(project::ProjectArgs),
 
-    /// Initialize or inspect local Pi Dash workspace context.
+    /// Initialize or inspect local karma-team workspace context.
     Context(context::ContextArgs),
 
     /// Install the OS service (systemd user unit / launchd agent).
@@ -106,7 +106,7 @@ pub enum Command {
     /// Run preflight checks (Codex installed, logged in; git configured; cloud reachable).
     Doctor(doctor::Args),
 
-    /// Swap the on-disk `pidash` binary for the latest GitHub release.
+    /// Swap the on-disk `karma-team` binary for the latest GitHub release.
     /// The running daemon keeps its loaded copy; pass `--restart` to
     /// also restart so the new code takes effect immediately.
     Update(update::Args),
@@ -114,11 +114,11 @@ pub enum Command {
     /// Deregister with the cloud and delete local credentials.
     Remove(remove::Args),
 
-    /// Send a command to the connected Pi Dash cloud AI assistant and print
-    /// its reply. BYOK: requires an LLM provider + key configured in Pi Dash.
+    /// Send a command to the connected karma-team cloud AI assistant and print
+    /// its reply. BYOK: requires an LLM provider + key configured in karma-team.
     Ai(ai::AiArgs),
 
-    /// Read or update a Pi Dash work item (fetch, change state, edit fields).
+    /// Read or update a karma-team work item (fetch, change state, edit fields).
     Issue(issue::IssueArgs),
 
     /// List, post, or edit work-item comments.
@@ -130,11 +130,11 @@ pub enum Command {
     /// Read or overwrite the coding agent's per-issue workpad.
     Workpad(workpad::WorkpadArgs),
 
-    /// Verify the CLI's Pi Dash credentials end-to-end.
+    /// Verify the CLI's karma-team credentials end-to-end.
     Workspace(workspace::WorkspaceArgs),
 
-    /// Report this agent run's outcome to Pi Dash (`run yield`). Used by
-    /// the agent from inside a run; reads the run id from `PIDASH_RUN_ID`.
+    /// Report this agent run's outcome to karma-team (`run yield`). Used by
+    /// the agent from inside a run; reads the run id from `KARMA_TEAM_RUN_ID`.
     #[command(name = "run")]
     RunCmd(run_cmd::RunCmdArgs),
 
@@ -143,9 +143,9 @@ pub enum Command {
     #[command(name = "__run", hide = true)]
     Run(run::Args),
 
-    /// Internal: provisioning verbs driven by the Pi Dash desktop app, which
+    /// Internal: provisioning verbs driven by the karma-team desktop app, which
     /// owns the config directory these operate on. Not a user-facing verb —
-    /// configure a runner with `pidash runner add` instead.
+    /// configure a runner with `karma-team runner add` instead.
     #[command(name = "__managed", hide = true)]
     Managed(managed::ManagedArgs),
 }
@@ -189,7 +189,7 @@ pub async fn run(cli: Cli) -> Result<()> {
 }
 
 /// No-subcommand entrypoint. Acts as a first-run launcher: if this
-/// host has no config yet, drop straight into `pidash auth login` so
+/// host has no config yet, drop straight into `karma-team auth login` so
 /// the user lands in the device-code flow immediately after the
 /// install one-liner. If config already exists, fall through to
 /// clap's help so the bare command behaves like every other CLI.

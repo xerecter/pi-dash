@@ -8,13 +8,13 @@ import { useCallback, useEffect, useMemo } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import useSWR from "swr";
-// pi dash types
-import { getButtonStyling } from "@pi-dash/propel/button";
-import type { TSearchEntityRequestPayload, TWebhookConnectionQueryParams } from "@pi-dash/types";
-import { EFileAssetType } from "@pi-dash/types";
-// pi dash ui
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team types
+import { getButtonStyling } from "@karma-team/propel/button";
+import type { TSearchEntityRequestPayload, TWebhookConnectionQueryParams } from "@karma-team/types";
+import { EFileAssetType } from "@karma-team/types";
+// karma-team ui
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // components
 import { LogoSpinner } from "@/components/common/logo-spinner";
 import { PageHead } from "@/components/core/page-title";
@@ -26,9 +26,9 @@ import { useEditorConfig } from "@/hooks/editor";
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useAppRouter } from "@/hooks/use-app-router";
-// pi dash web hooks
-import { EPageStoreType, usePage, usePageStore } from "@/pi-dash-web/hooks/store";
-// pi dash web services
+// karma-team web hooks
+import { EPageStoreType, usePage, usePageStore } from "@/karma-team-web/hooks/store";
+// karma-team web services
 import { WorkspaceService } from "@/services/workspace.service";
 // services
 import { ProjectPageService, ProjectPageVersionService } from "@/services/page";

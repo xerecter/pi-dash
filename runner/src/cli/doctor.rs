@@ -20,11 +20,11 @@ pub struct Args {
     pub runner: Option<String>,
 }
 
-// The doctor `Report`/`Check` DTOs moved to the shared `pidash-ipc` crate
+// The doctor `Report`/`Check` DTOs moved to the shared `karma-team-ipc` crate
 // (PDASHOSS01-158) because the IPC `Response::Doctor` variant carries a
 // `Report`. Re-exported here so `cli::doctor::{Report, Check}` call sites are
 // unchanged.
-pub use pidash_ipc::dto::{Check, Report};
+pub use karma_team_ipc::dto::{Check, Report};
 
 pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     let report = execute(paths, args.runner.as_deref()).await?;
@@ -46,7 +46,7 @@ pub async fn execute(paths: &Paths, runner_filter: Option<&str>) -> Result<Repor
     // runner so multi-runner installs get every agent path verified. With
     // `--runner <name>`, only that runner is checked. Pre-`configure`
     // installs (no config on disk) fall through to a single Codex probe so
-    // `pidash doctor` keeps working immediately after install.
+    // `karma-team doctor` keeps working immediately after install.
     let cfg = file::load_config_opt(paths)?;
     let runners: Vec<&crate::config::schema::RunnerConfig> = match cfg.as_ref() {
         Some(c) => match runner_filter {
@@ -67,12 +67,12 @@ pub async fn execute(paths: &Paths, runner_filter: Option<&str>) -> Result<Repor
 
     // Tag check names with `@<runner>` whenever there's any ambiguity:
     // multiple runners walked, *or* an explicit filter narrowed the walk
-    // (so `pidash doctor --runner beta` clearly shows `codex@beta` rather
+    // (so `karma-team doctor --runner beta` clearly shows `codex@beta` rather
     // than a bare `codex` that hides which runner ran).
     let multi = runners.len() > 1 || runner_filter.is_some();
     if runners.is_empty() {
         // No config — historical default. Probe Codex unattended so
-        // operators get useful feedback before `pidash configure` runs.
+        // operators get useful feedback before `karma-team configure` runs.
         run_agent_checks(
             &mut checks,
             None,
@@ -436,7 +436,7 @@ mod tests {
             project_slug: Some("PRJ".into()),
             pod_id: None,
             workspace: WorkspaceSection {
-                working_dir: PathBuf::from("/tmp/pi-dash-doctor-test"),
+                working_dir: PathBuf::from("/tmp/karma-team-doctor-test"),
             },
             agent: Default::default(),
             codex: CodexSection {

@@ -7,8 +7,8 @@
 import { useState, useEffect, useRef } from "react";
 import { observer } from "mobx-react";
 import { LockKeyhole, LockKeyholeOpen } from "lucide-react";
-// pi dash imports
-import { Tooltip } from "@pi-dash/propel/tooltip";
+// karma-team imports
+import { Tooltip } from "@karma-team/propel/tooltip";
 // hooks
 import { usePageOperations } from "@/hooks/use-page-operations";
 // store

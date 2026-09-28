@@ -18,7 +18,7 @@ type TGlobalModalsProps = {
 };
 
 /**
- * GlobalModals component manages all workspace-level modals across Pi Dash applications.
+ * GlobalModals component manages all workspace-level modals across karma-team applications.
  *
  * This includes:
  * - Profile settings modal

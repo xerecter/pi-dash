@@ -5,10 +5,10 @@
  */
 
 import { Info } from "lucide-react";
-// pi dash constants
-import type { TAdminAuthErrorInfo } from "@pi-dash/constants";
+// karma-team constants
+import type { TAdminAuthErrorInfo } from "@karma-team/constants";
 // icons
-import { CloseIcon } from "@pi-dash/propel/icons";
+import { CloseIcon } from "@karma-team/propel/icons";
 
 type TAuthBanner = {
   bannerData: TAdminAuthErrorInfo | undefined;

@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { IssuesHeader } from "@/pi-dash-web/components/issues/header";
+import { IssuesHeader } from "@/karma-team-web/components/issues/header";
 
 export function ProjectIssuesHeader() {
   return <IssuesHeader />;

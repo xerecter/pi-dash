@@ -6,15 +6,15 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { WORKSPACE_DEFAULT_SEARCH_RESULT } from "@pi-dash/constants";
-import type { IWorkspaceSearchResults } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { WORKSPACE_DEFAULT_SEARCH_RESULT } from "@karma-team/constants";
+import type { IWorkspaceSearchResults } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // hooks
 import { usePowerK } from "@/hooks/store/use-power-k";
 import useDebounce from "@/hooks/use-debounce";
-// pi dash web imports
-import { PowerKModalNoSearchResultsCommand } from "@/pi-dash-web/components/command-palette/power-k/search/no-results-command";
+// karma-team web imports
+import { PowerKModalNoSearchResultsCommand } from "@/karma-team-web/components/command-palette/power-k/search/no-results-command";
 import { WorkspaceService } from "@/services/workspace.service";
 // local imports
 import type { TPowerKContext, TPowerKPageType } from "../../core/types";

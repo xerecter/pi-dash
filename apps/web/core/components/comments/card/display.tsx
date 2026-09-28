@@ -8,20 +8,20 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { usePathname } from "next/navigation";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
-import { useHashScroll } from "@pi-dash/hooks";
-import { GlobeIcon, LockIcon } from "@pi-dash/propel/icons";
-import { EIssueCommentAccessSpecifier } from "@pi-dash/types";
-import type { TCommentsOperations, TIssueComment } from "@pi-dash/types";
-import { calculateTimeAgo, cn, getFileURL, renderFormattedDate, renderFormattedTime } from "@pi-dash/utils";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
+import { useHashScroll } from "@karma-team/hooks";
+import { GlobeIcon, LockIcon } from "@karma-team/propel/icons";
+import { EIssueCommentAccessSpecifier } from "@karma-team/types";
+import type { TCommentsOperations, TIssueComment } from "@karma-team/types";
+import { calculateTimeAgo, cn, getFileURL, renderFormattedDate, renderFormattedTime } from "@karma-team/utils";
 // components
 import { LiteTextEditor } from "@/components/editor/lite-text";
 // local imports
 import { CommentReactions } from "../comment-reaction";
 import { CommentCardEditForm } from "./edit-form";
-import { EmojiReactionButton, EmojiReactionPicker } from "@pi-dash/propel/emoji-reaction";
-import { Avatar, Tooltip } from "@pi-dash/ui";
+import { EmojiReactionButton, EmojiReactionPicker } from "@karma-team/propel/emoji-reaction";
+import { Avatar, Tooltip } from "@karma-team/ui";
 import { useMember } from "@/hooks/store/use-member";
 
 export type TCommentCardDisplayProps = {

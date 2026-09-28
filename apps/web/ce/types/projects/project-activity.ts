@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TProjectBaseActivity } from "@pi-dash/types";
+import type { TProjectBaseActivity } from "@karma-team/types";
 
 export type TProjectActivity = TProjectBaseActivity & {
   content: string;

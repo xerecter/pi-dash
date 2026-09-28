@@ -7,8 +7,8 @@
 import React from "react";
 import { observer } from "mobx-react";
 // hooks
-import type { TInstanceAuthenticationMethodKeys } from "@pi-dash/types";
-import { ToggleSwitch } from "@pi-dash/ui";
+import type { TInstanceAuthenticationMethodKeys } from "@karma-team/types";
+import { ToggleSwitch } from "@karma-team/ui";
 import { useInstance } from "@/hooks/store";
 // ui
 // types

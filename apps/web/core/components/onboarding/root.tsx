@@ -6,16 +6,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
+// karma-team imports
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 import type {
   IWorkspaceJoinRequest,
   IWorkspaceMemberInvitation,
   TOnboardingStep,
   TOnboardingSteps,
   TUserProfile,
-} from "@pi-dash/types";
-import { EOnboardingSteps } from "@pi-dash/types";
+} from "@karma-team/types";
+import { EOnboardingSteps } from "@karma-team/types";
 // hooks
 import { useInstance } from "@/hooks/store/use-instance";
 import { useWorkspace } from "@/hooks/store/use-workspace";

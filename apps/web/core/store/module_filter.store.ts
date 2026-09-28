@@ -8,7 +8,7 @@ import { set } from "lodash-es";
 import { action, computed, observable, makeObservable, runInAction, reaction } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { TModuleDisplayFilters, TModuleFilters, TModuleFiltersByState } from "@pi-dash/types";
+import type { TModuleDisplayFilters, TModuleFilters, TModuleFiltersByState } from "@karma-team/types";
 // helpers
 import { storage } from "@/lib/local-storage";
 // store

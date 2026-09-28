@@ -8,17 +8,17 @@ import { useCallback, useEffect, useState, useRef } from "react";
 import { debounce } from "lodash-es";
 import { observer } from "mobx-react";
 import { Controller, useForm } from "react-hook-form";
-// pi dash imports
-import type { EditorRefApi, TExtensions } from "@pi-dash/editor";
-import { useTranslation } from "@pi-dash/i18n";
-import type { EFileAssetType, TNameDescriptionLoader } from "@pi-dash/types";
-import { getDescriptionPlaceholderI18n } from "@pi-dash/utils";
+// karma-team imports
+import type { EditorRefApi, TExtensions } from "@karma-team/editor";
+import { useTranslation } from "@karma-team/i18n";
+import type { EFileAssetType, TNameDescriptionLoader } from "@karma-team/types";
+import { getDescriptionPlaceholderI18n } from "@karma-team/utils";
 // components
 import { RichTextEditor } from "@/components/editor/rich-text";
 // hooks
 import { useEditorAsset } from "@/hooks/store/use-editor-asset";
 import { useWorkspace } from "@/hooks/store/use-workspace";
-// pi dash web services
+// karma-team web services
 import { WorkspaceService } from "@/services/workspace.service";
 // local imports
 import { DescriptionInputLoader } from "./loader";

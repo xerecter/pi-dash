@@ -6,8 +6,8 @@
 
 import type { ReactElement } from "react";
 import { createContext } from "react";
-// pi dash web store
-import { RootStore } from "@/pi-dash-web/store/root.store";
+// karma-team web store
+import { RootStore } from "@/karma-team-web/store/root.store";
 
 export let rootStore = new RootStore();
 

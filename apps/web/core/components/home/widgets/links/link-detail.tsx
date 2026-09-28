@@ -7,13 +7,13 @@
 import { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
 
-import { useTranslation } from "@pi-dash/i18n";
-import { LinkIcon, NewTabIcon, EditIcon, TrashIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { TContextMenuItem } from "@pi-dash/ui";
-import { LinkItemBlock } from "@pi-dash/ui";
-// pi dash utils
-import { copyTextToClipboard } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { LinkIcon, NewTabIcon, EditIcon, TrashIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { TContextMenuItem } from "@karma-team/ui";
+import { LinkItemBlock } from "@karma-team/ui";
+// karma-team utils
+import { copyTextToClipboard } from "@karma-team/utils";
 // hooks
 import { useHome } from "@/hooks/store/use-home";
 // types

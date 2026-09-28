@@ -5,7 +5,7 @@
  */
 
 // services
-import { API_BASE_URL } from "@pi-dash/constants";
+import { API_BASE_URL } from "@karma-team/constants";
 import type {
   TIssue,
   IUser,
@@ -18,7 +18,7 @@ import type {
   TIssuesResponse,
   TUserProfile,
   IEmailCheckResponse,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 import { APIService } from "@/services/api.service";
 // types
 // helpers

@@ -5,7 +5,7 @@
  */
 
 import type { ReactNode } from "react";
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   children: ReactNode;

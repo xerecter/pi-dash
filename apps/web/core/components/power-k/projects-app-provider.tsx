@@ -12,10 +12,10 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { usePowerK } from "@/hooks/store/use-power-k";
 import { useUser } from "@/hooks/store/user";
 import { useAppRouter } from "@/hooks/use-app-router";
-// pi dash web imports
-import { ProjectLevelModals } from "@/pi-dash-web/components/command-palette/modals/project-level";
-import { WorkItemLevelModals } from "@/pi-dash-web/components/command-palette/modals/work-item-level";
-import { WorkspaceLevelModals } from "@/pi-dash-web/components/command-palette/modals/workspace-level";
+// karma-team web imports
+import { ProjectLevelModals } from "@/karma-team-web/components/command-palette/modals/project-level";
+import { WorkItemLevelModals } from "@/karma-team-web/components/command-palette/modals/work-item-level";
+import { WorkspaceLevelModals } from "@/karma-team-web/components/command-palette/modals/workspace-level";
 // local imports
 import { useProjectsAppPowerKCommands } from "./config/commands";
 import type { TPowerKCommandConfig, TPowerKContext } from "./core/types";

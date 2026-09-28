@@ -1,7 +1,7 @@
-//! `pidash uninstall` — stop the service and delete the unit file.
+//! `karma-team uninstall` — stop the service and delete the unit file.
 //!
-//! PR 1 scope: equivalent to the old `pidash service uninstall`. The extended
-//! `pidash remove` cleanup (which also calls uninstall) is wired in PR 2.
+//! PR 1 scope: equivalent to the old `karma-team service uninstall`. The extended
+//! `karma-team remove` cleanup (which also calls uninstall) is wired in PR 2.
 
 use anyhow::Result;
 use clap::Args as ClapArgs;

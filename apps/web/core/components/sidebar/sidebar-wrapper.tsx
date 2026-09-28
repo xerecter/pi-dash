@@ -6,21 +6,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash helpers
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { PreferencesIcon } from "@pi-dash/propel/icons";
-import { ScrollArea } from "@pi-dash/propel/scrollarea";
+// karma-team helpers
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { PreferencesIcon } from "@karma-team/propel/icons";
+import { ScrollArea } from "@karma-team/propel/scrollarea";
 // components
 import { CustomizeNavigationDialog } from "@/components/navigation/customize-navigation-dialog";
 // hooks
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import useSize from "@/hooks/use-window-size";
-// pi dash web components
+// karma-team web components
 import { UserMenuRoot } from "@/components/workspace/sidebar/user-menu-root";
-import { IconButton } from "@pi-dash/propel/icon-button";
+import { IconButton } from "@karma-team/propel/icon-button";
 // assets
-import piSymbolDark from "@/app/assets/pi-dash-logos/pi-symbol-dark.svg?url";
-import piSymbolLight from "@/app/assets/pi-dash-logos/pi-symbol-light.svg?url";
+import karmaTeamSymbolDark from "@/app/assets/karma-team-logos/karma-team-symbol-dark.svg?url";
+import karmaTeamSymbolLight from "@/app/assets/karma-team-logos/karma-team-symbol-light.svg?url";
 
 type TSidebarWrapperProps = {
   title: string;
@@ -58,17 +58,17 @@ export const SidebarWrapper = observer(function SidebarWrapper(props: TSidebarWr
 
           <div className="flex items-center justify-between gap-2 px-2">
             <div className="flex items-center gap-2">
-              {title === "Pi Dash" && (
+              {title === "karma-team" && (
                 <>
                   <img
-                    src={piSymbolLight}
-                    alt="Pi Dash"
+                    src={karmaTeamSymbolLight}
+                    alt="karma-team"
                     className="h-5 w-auto object-contain dark:hidden"
                     aria-hidden="true"
                   />
                   <img
-                    src={piSymbolDark}
-                    alt="Pi Dash"
+                    src={karmaTeamSymbolDark}
+                    alt="karma-team"
                     className="hidden h-5 w-auto object-contain dark:block"
                     aria-hidden="true"
                   />
@@ -77,7 +77,7 @@ export const SidebarWrapper = observer(function SidebarWrapper(props: TSidebarWr
               <span className="pt-1 text-16 font-medium text-primary">{title}</span>
             </div>
             <div className="flex items-center gap-2">
-              {title === "Pi Dash" && (
+              {title === "karma-team" && (
                 <IconButton
                   size="base"
                   variant="ghost"

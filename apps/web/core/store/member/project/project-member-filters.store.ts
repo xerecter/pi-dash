@@ -7,7 +7,7 @@
 import { action, makeObservable, observable } from "mobx";
 import { computedFn } from "mobx-utils";
 // types
-import type { IUserLite, TProjectMembership } from "@pi-dash/types";
+import type { IUserLite, TProjectMembership } from "@karma-team/types";
 // local imports
 import type { IMemberFilters } from "../utils";
 import { sortProjectMembers } from "../utils";

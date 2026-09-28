@@ -6,9 +6,9 @@
 
 import { clone } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
-// pi dash imports
-import { SitesStateService } from "@pi-dash/services";
-import type { IState } from "@pi-dash/types";
+// karma-team imports
+import { SitesStateService } from "@karma-team/services";
+import type { IState } from "@karma-team/types";
 // helpers
 import { sortStates } from "@/helpers/state.helper";
 // store

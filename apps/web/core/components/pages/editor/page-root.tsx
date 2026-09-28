@@ -6,16 +6,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { CollaborationState, EditorRefApi } from "@pi-dash/editor";
-import type { TDocumentPayload, TPage, TPageVersion, TWebhookConnectionQueryParams } from "@pi-dash/types";
+// karma-team imports
+import type { CollaborationState, EditorRefApi } from "@karma-team/editor";
+import type { TDocumentPayload, TPage, TPageVersion, TWebhookConnectionQueryParams } from "@karma-team/types";
 // hooks
 import { usePageFallback } from "@/hooks/use-page-fallback";
-// pi dash web import
+// karma-team web import
 import type { PageUpdateHandler, TCustomEventHandlers } from "@/hooks/use-realtime-page-events";
-import { PageModals } from "@/pi-dash-web/components/pages";
-import { usePagesPaneExtensions, useExtendedEditorProps } from "@/pi-dash-web/hooks/pages";
-import type { EPageStoreType } from "@/pi-dash-web/hooks/store";
+import { PageModals } from "@/karma-team-web/components/pages";
+import { usePagesPaneExtensions, useExtendedEditorProps } from "@/karma-team-web/hooks/pages";
+import type { EPageStoreType } from "@/karma-team-web/hooks/store";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports

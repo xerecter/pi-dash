@@ -24,11 +24,11 @@ beforeEach(() => {
   vi.useFakeTimers();
   streams = [];
   invoke.mockClear();
-  Object.assign(window, { __PIDASH_NATIVE_HTTP__: api, __TAURI__: { core: { invoke, Channel } } });
+  Object.assign(window, { __KARMA_TEAM_NATIVE_HTTP__: api, __TAURI__: { core: { invoke, Channel } } });
 });
 afterEach(() => {
   vi.useRealTimers();
-  delete (window as any).__PIDASH_NATIVE_HTTP__;
+  delete (window as any).__KARMA_TEAM_NATIVE_HTTP__;
   delete (window as any).__TAURI__;
 });
 
@@ -37,9 +37,9 @@ describe("desktop API event streams", () => {
     const Native = vi.fn();
     vi.stubGlobal("EventSource", Native);
     try {
-      delete (window as any).__PIDASH_NATIVE_HTTP__;
+      delete (window as any).__KARMA_TEAM_NATIVE_HTTP__;
       createApiEventSource(url, { withCredentials: true });
-      (window as any).__PIDASH_NATIVE_HTTP__ = api;
+      (window as any).__KARMA_TEAM_NATIVE_HTTP__ = api;
       createApiEventSource("https://elsewhere.test/api/events/", { withCredentials: true });
       expect(Native).toHaveBeenCalledTimes(2);
       expect(invoke).not.toHaveBeenCalled();

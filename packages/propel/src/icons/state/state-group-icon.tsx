@@ -6,7 +6,7 @@
 
 import * as React from "react";
 
-import { EIconSize } from "@pi-dash/constants";
+import { EIconSize } from "@karma-team/constants";
 import { BacklogGroupIcon } from "./backlog-group-icon";
 import { CancelledGroupIcon } from "./cancelled-group-icon";
 import { CompletedGroupIcon } from "./completed-group-icon";

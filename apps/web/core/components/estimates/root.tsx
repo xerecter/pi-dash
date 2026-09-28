@@ -7,17 +7,17 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
 // components
 import { SettingsBoxedControlItem } from "@/components/settings/boxed-control-item";
 import { SettingsHeading } from "@/components/settings/heading";
 // hooks
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
 import { useProjectEstimates } from "@/hooks/store/estimates";
 import { useProject } from "@/hooks/store/use-project";
-// pi dash web components
-import { UpdateEstimateModal } from "@/pi-dash-web/components/estimates";
+// karma-team web components
+import { UpdateEstimateModal } from "@/karma-team-web/components/estimates";
 // local imports
 import { CreateEstimateModal } from "./create/modal";
 import { DeleteEstimateModal } from "./delete/modal";
@@ -111,7 +111,7 @@ export const EstimateRoot = observer(function EstimateRoot(props: TEstimateRoot)
                     Estimates have gone through a change, these are the estimates you had in your older versions which
                     were not in use. Read more about them&nbsp;
                     <a
-                      href={"https://github.com/The-AI-Republic/pi-dash#readme"}
+                      href={"https://github.com/xerecter/karma-team#readme"}
                       target="_blank"
                       className="text-accent-primary/80 hover:text-accent-primary"
                       rel="noreferrer"

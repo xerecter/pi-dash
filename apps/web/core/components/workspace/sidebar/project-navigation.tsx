@@ -8,12 +8,12 @@ import React, { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { EUserPermissionsLevel, EUserPermissions } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+import { EUserPermissionsLevel, EUserPermissions } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 import { Bot, CalendarClock } from "lucide-react";
-import { CycleIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon, WorkItemsIcon } from "@pi-dash/propel/icons";
-import type { EUserProjectRoles } from "@pi-dash/types";
-// pi dash ui
+import { CycleIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon, WorkItemsIcon } from "@karma-team/propel/icons";
+import type { EUserProjectRoles } from "@karma-team/types";
+// karma-team ui
 // components
 import { SidebarNavItem } from "@/components/sidebar/sidebar-navigation";
 // hooks

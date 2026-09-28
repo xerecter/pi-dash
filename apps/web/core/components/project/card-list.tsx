@@ -5,13 +5,13 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import { EUserPermissionsLevel, EUserPermissions } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import { ContentWrapper } from "@pi-dash/ui";
+// karma-team imports
+import { EUserPermissionsLevel, EUserPermissions } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import { ContentWrapper } from "@karma-team/ui";
 // components
-import { calculateTotalFilters } from "@pi-dash/utils";
+import { calculateTotalFilters } from "@karma-team/utils";
 import { ProjectsLoader } from "@/components/ui/loader/projects-loader";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
@@ -28,7 +28,7 @@ type TProjectCardListProps = {
 
 export const ProjectCardList = observer(function ProjectCardList(props: TProjectCardListProps) {
   const { totalProjectIds: totalProjectIdsProps, filteredProjectIds: filteredProjectIdsProps } = props;
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store hooks
   const { toggleCreateProjectModal } = useCommandPalette();
@@ -59,7 +59,9 @@ export const ProjectCardList = observer(function ProjectCardList(props: TProject
     return (
       <EmptyStateDetailed
         title={t("No active projects")}
-        description={t("Think of each project as the parent for goal-oriented work. Projects are where Jobs, Cycles, and Modules live and, along with your colleagues, help you achieve that goal. Create a new project or filter for archived projects.")}
+        description={t(
+          "Think of each project as the parent for goal-oriented work. Projects are where Jobs, Cycles, and Modules live and, along with your colleagues, help you achieve that goal. Create a new project or filter for archived projects."
+        )}
         assetKey="project"
         assetClassName="size-40"
         actions={[

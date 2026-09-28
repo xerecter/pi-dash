@@ -6,13 +6,13 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import type { TInboxIssueCurrentTab } from "@pi-dash/types";
-import { EInboxIssueCurrentTab } from "@pi-dash/types";
-// pi dash imports
-import { Header, Loader, EHeaderVariant } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import type { TInboxIssueCurrentTab } from "@karma-team/types";
+import { EInboxIssueCurrentTab } from "@karma-team/types";
+// karma-team imports
+import { Header, Loader, EHeaderVariant } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // components
 import { InboxSidebarLoader } from "@/components/ui/loader/layouts/project-inbox/inbox-sidebar-loader";
 // hooks
@@ -50,7 +50,7 @@ export const InboxSidebar = observer(function InboxSidebar(props: IInboxSidebarP
   // ref
   const containerRef = useRef<HTMLDivElement>(null);
   const [elementRef, setElementRef] = useState<HTMLDivElement | null>(null);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // store
   const { currentProjectDetails } = useProject();
@@ -149,7 +149,9 @@ export const InboxSidebar = observer(function InboxSidebar(props: IInboxSidebarP
                   <EmptyStateDetailed
                     assetKey="inbox"
                     title={t("Log Intake requests")}
-                    description={t("Submit new requests to be reviewed, prioritized, and tracked within your project's workflow.")}
+                    description={t(
+                      "Submit new requests to be reviewed, prioritized, and tracked within your project's workflow."
+                    )}
                     assetClassName="size-20"
                     actions={[
                       {

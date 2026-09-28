@@ -9,9 +9,9 @@ import type { SuggestionProps } from "@tiptap/suggestion";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { debounce } from "lodash-es";
-// pi dash utils
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { cn } from "@pi-dash/utils";
+// karma-team utils
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { cn } from "@karma-team/utils";
 // helpers
 import { DROPDOWN_NAVIGATION_KEYS, getNextValidIndex } from "@/helpers/tippy";
 // types

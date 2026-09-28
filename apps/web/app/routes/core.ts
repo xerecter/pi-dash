@@ -35,7 +35,7 @@ export const coreRoutes: RouteConfigEntry[] = [
   // Onboarding
   layout("./(all)/onboarding/layout.tsx", [route("onboarding", "./(all)/onboarding/page.tsx")]),
 
-  // Device-code CLI authorization (`pidash auth login` redirects users here).
+  // Device-code CLI authorization (`karma-team auth login` redirects users here).
   layout("./(all)/auth/device/layout.tsx", [route("auth/device", "./(all)/auth/device/page.tsx")]),
 
   // Invitations
@@ -124,7 +124,7 @@ export const coreRoutes: RouteConfigEntry[] = [
           route(":workspaceSlug/schedulers", "./(all)/[workspaceSlug]/schedulers/page.tsx"),
         ]),
 
-        // AI Dev Machines — explains what pidash CLI / daemon / runner is for and
+        // AI Dev Machines — explains what karma-team CLI / daemon / runner is for and
         // surfaces the install one-liner + an "add runner" entry point. Lives inside
         // the (projects) layout so it inherits the workspace sidebar shell, matching
         // sibling pages like Prompts and Schedulers. Its own layout adds the flex /
@@ -336,7 +336,7 @@ export const coreRoutes: RouteConfigEntry[] = [
         ]),
       ]),
 
-      // Runners (Pi Dash runner: connect dev machines, review runs, decide approvals)
+      // Runners (karma-team runner: connect dev machines, review runs, decide approvals)
       layout("./(all)/[workspaceSlug]/runners/layout.tsx", [
         route(":workspaceSlug/runners", "./(all)/[workspaceSlug]/runners/page.tsx"),
         route(":workspaceSlug/runners/runs/:runId?", "./(all)/[workspaceSlug]/runners/runs/page.tsx"),

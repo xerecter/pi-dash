@@ -3,25 +3,25 @@
 // See the LICENSE file for details.
 
 fn main() {
-    println!("cargo:rerun-if-env-changed=PI_DASH_URL");
+    println!("cargo:rerun-if-env-changed=KARMA_TEAM_URL");
     println!("cargo:rerun-if-env-changed=VITE_API_BASE_URL");
     println!("cargo:rerun-if-env-changed=VITE_WEB_BASE_URL");
-    println!("cargo:rerun-if-env-changed=PI_DASH_OSS_SHA");
-    println!("cargo:rerun-if-env-changed=PIDASH_DESKTOP_EXTERNAL_SIGNIN");
-    // PIDASH_DESKTOP_HOT_RELOAD is read by main.rs via option_env! at
+    println!("cargo:rerun-if-env-changed=KARMA_TEAM_OSS_SHA");
+    println!("cargo:rerun-if-env-changed=KARMA_TEAM_DESKTOP_EXTERNAL_SIGNIN");
+    // KARMA_TEAM_DESKTOP_HOT_RELOAD is read by main.rs via option_env! at
     // compile time, not by build.rs. Re-declaring it here makes Cargo
     // invalidate the crate (not just build.rs) when the env toggles, so
     // switching between bundled and hot-reload modes between `cargo tauri
     // dev` invocations forces main.rs to recompile.
-    println!("cargo:rerun-if-env-changed=PIDASH_DESKTOP_HOT_RELOAD");
+    println!("cargo:rerun-if-env-changed=KARMA_TEAM_DESKTOP_HOT_RELOAD");
     // Same idea for the dist/ validity signal below — let main.rs
     // recompile when the embedded flag flips.
     println!("cargo:rerun-if-changed=dist/index.html");
 
-    if let Ok(url) = std::env::var("PI_DASH_URL")
+    if let Ok(url) = std::env::var("KARMA_TEAM_URL")
         && url::Url::parse(&url).is_err()
     {
-        panic!("PI_DASH_URL is set but is not a valid absolute URL: {url}");
+        panic!("KARMA_TEAM_URL is set but is not a valid absolute URL: {url}");
     }
 
     // Embed a yes/no flag for main.rs: is dist/ a real SPA bundle, or
@@ -33,7 +33,7 @@ fn main() {
     // tauri.conf's beforeDevCommand entirely.
     let dist_valid = dist_index_looks_real();
     println!(
-        "cargo:rustc-env=PIDASH_DIST_VALID={}",
+        "cargo:rustc-env=KARMA_TEAM_DIST_VALID={}",
         if dist_valid { "1" } else { "0" }
     );
 
@@ -55,7 +55,7 @@ fn main() {
             Err(e) => panic!(
                 "Release build but desktop/src-tauri/dist/index.html cannot be read: {e}. \
                 Run desktop/scripts/dev-prep.sh to populate dist/ (release pipelines may \
-                pre-populate it and set PIDASH_SKIP_DEV_PREP=1)."
+                pre-populate it and set KARMA_TEAM_SKIP_DEV_PREP=1)."
             ),
         };
         if meta.len() < 4096 {
@@ -81,7 +81,7 @@ fn main() {
         // Editions whose sign-in hands off to the system browser (an OIDC
         // provider that must not run inside the webview) opt into checking
         // that the bundled sign-in screen actually does so.
-        if std::env::var("PIDASH_DESKTOP_EXTERNAL_SIGNIN").as_deref() == Ok("1") {
+        if std::env::var("KARMA_TEAM_DESKTOP_EXTERNAL_SIGNIN").as_deref() == Ok("1") {
             validate_desktop_login_handoff(&dist);
         }
     }
@@ -117,17 +117,17 @@ fn validate_baked_api_base(dist: &std::path::Path) {
 /// against `VITE_WEB_BASE_URL` instead, which only works if the value was
 /// actually baked into the bundle.
 ///
-/// Falls back to `PI_DASH_URL`, which `dev-prep.sh` uses as the default and
+/// Falls back to `KARMA_TEAM_URL`, which `dev-prep.sh` uses as the default and
 /// which `main.rs` requires via `env!` in release -- so in a release build
 /// this is never empty, and the panic below is reachable only from a
 /// hand-managed `dist/`.
 fn validate_baked_web_base(dist: &std::path::Path) {
     let expected = std::env::var("VITE_WEB_BASE_URL")
-        .or_else(|_| std::env::var("PI_DASH_URL"))
+        .or_else(|_| std::env::var("KARMA_TEAM_URL"))
         .unwrap_or_default();
     if expected.trim().is_empty() {
         panic!(
-            "Release build but neither VITE_WEB_BASE_URL nor PI_DASH_URL is set. The bundled \
+            "Release build but neither VITE_WEB_BASE_URL nor KARMA_TEAM_URL is set. The bundled \
              desktop SPA could expose its Tauri origin in copied links."
         );
     }
@@ -149,7 +149,7 @@ fn validate_desktop_login_handoff(dist: &std::path::Path) {
 
     if home_signin_chunks.is_empty() {
         panic!(
-            "Release build with PIDASH_DESKTOP_EXTERNAL_SIGNIN=1 but desktop/src-tauri/dist does \
+            "Release build with KARMA_TEAM_DESKTOP_EXTERNAL_SIGNIN=1 but desktop/src-tauri/dist does \
             not contain the home sign-in route. The frontend overlays may not have been applied."
         );
     }
@@ -184,7 +184,7 @@ fn collect_home_signin_chunks(dir: &std::path::Path, chunks: &mut Vec<String>) {
         let Ok(contents) = std::fs::read_to_string(&path) else {
             continue;
         };
-        if contents.contains("Sign in to Pi Dash") {
+        if contents.contains("Sign in to karma-team") {
             chunks.push(contents);
         }
     }
@@ -220,7 +220,7 @@ fn is_text_asset(path: &std::path::Path) -> bool {
 }
 
 /// Shared validity check used by both the release-build guard (panic) and
-/// the debug-build runtime-warning flag (PIDASH_DIST_VALID). Mirrors the
+/// the debug-build runtime-warning flag (KARMA_TEAM_DIST_VALID). Mirrors the
 /// criteria in dev-prep.sh so the three layers agree on what counts as a
 /// "real" SPA bundle.
 fn dist_index_looks_real() -> bool {

@@ -6,8 +6,8 @@
 
 import { startOfToday, format } from "date-fns";
 import { isEmpty, orderBy, sortBy, uniqBy } from "lodash-es";
-// pi dash imports
-import type { ICycle, TCycleFilters, TProgressSnapshot } from "@pi-dash/types";
+// karma-team imports
+import type { ICycle, TCycleFilters, TProgressSnapshot } from "@karma-team/types";
 // local imports
 import { findTotalDaysInRange, generateDateArray, getDate } from "./datetime";
 import { satisfiesDateFilter } from "./filter";

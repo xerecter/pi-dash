@@ -6,8 +6,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import useSWR from "swr";
-import { AssistantService } from "@pi-dash/services";
-import type { IUserSTTConfig } from "@pi-dash/types";
+import { AssistantService } from "@karma-team/services";
+import type { IUserSTTConfig } from "@karma-team/types";
 
 /**
  * Push-to-talk voice dictation for the chat composer. Wraps the browser

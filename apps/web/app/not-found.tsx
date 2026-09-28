@@ -6,7 +6,7 @@
 
 import Link from "next/link";
 // ui
-import { Button } from "@pi-dash/propel/button";
+import { Button } from "@karma-team/propel/button";
 // images
 import Image404 from "@/app/assets/404.svg?url";
 // types

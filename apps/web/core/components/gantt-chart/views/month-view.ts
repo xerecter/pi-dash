@@ -5,8 +5,8 @@
  */
 
 import { cloneDeep, uniqBy } from "lodash-es";
-// pi dash imports
-import type { ChartDataType } from "@pi-dash/types";
+// karma-team imports
+import type { ChartDataType } from "@karma-team/types";
 // local imports
 import { months } from "../data";
 import { getNumberOfDaysBetweenTwoDates, getNumberOfDaysInMonth } from "./helpers";

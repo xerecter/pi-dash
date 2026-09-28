@@ -47,6 +47,6 @@ const IconButton = React.forwardRef(function IconButton(
   );
 });
 
-IconButton.displayName = "pi-dash-ui-icon-button";
+IconButton.displayName = "karma-team-ui-icon-button";
 
 export { IconButton };

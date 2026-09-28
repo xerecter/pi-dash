@@ -7,12 +7,12 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { MoreHorizontal, Star } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import type { IFavorite } from "@pi-dash/types";
-import { CustomMenu } from "@pi-dash/ui";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import type { IFavorite } from "@karma-team/types";
+import { CustomMenu } from "@karma-team/ui";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   ref: React.MutableRefObject<HTMLDivElement | null>;

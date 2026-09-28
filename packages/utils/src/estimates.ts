@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash web constants
-import { EEstimateSystem } from "@pi-dash/constants";
+// karma-team web constants
+import { EEstimateSystem } from "@karma-team/constants";
 
 export const isEstimatePointValuesRepeated = (
   estimatePoints: string[],

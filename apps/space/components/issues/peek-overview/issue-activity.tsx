@@ -8,8 +8,8 @@ import { observer } from "mobx-react";
 import { Link } from "react-router";
 import { usePathname } from "next/navigation";
 import { Lock } from "lucide-react";
-// pi dash imports
-import { Button } from "@pi-dash/propel/button";
+// karma-team imports
+import { Button } from "@karma-team/propel/button";
 // components
 import { AddComment } from "@/components/issues/peek-overview/comment/add-comment";
 import { CommentCard } from "@/components/issues/peek-overview/comment/comment-detail-card";

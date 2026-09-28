@@ -6,7 +6,7 @@
 
 import { useCallback } from "react";
 // helpers
-import type { TCustomComponentsMetaData } from "@pi-dash/utils";
+import type { TCustomComponentsMetaData } from "@karma-team/utils";
 // helpers
 import { getEditorAssetSrc } from "@/helpers/editor.helper";
 // hooks

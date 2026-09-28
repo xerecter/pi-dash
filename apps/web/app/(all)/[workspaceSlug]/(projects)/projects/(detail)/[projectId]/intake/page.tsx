@@ -7,10 +7,10 @@
 import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
-// pi dash imports
-import { EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EUserProjectRoles, EInboxIssueCurrentTab } from "@pi-dash/types";
+// karma-team imports
+import { EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EUserProjectRoles, EInboxIssueCurrentTab } from "@karma-team/types";
 // assets
 import darkIntakeAsset from "@/app/assets/empty-state/disabled-feature/intake-dark.webp?url";
 import lightIntakeAsset from "@/app/assets/empty-state/disabled-feature/intake-light.webp?url";
@@ -33,7 +33,7 @@ function ProjectInboxPage({ params }: Route.ComponentProps) {
   const inboxIssueId = searchParams.get("inboxIssueId");
   // theme hook
   const { resolvedTheme } = useTheme();
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // hooks
   const { currentProjectDetails } = useProject();
@@ -48,7 +48,9 @@ function ProjectInboxPage({ params }: Route.ComponentProps) {
       <div className="flex h-full w-full items-center justify-center">
         <DetailedEmptyState
           title={t("Intake is not enabled for the project.")}
-          description={t("Intake helps you manage incoming requests to your project and add them as work items in your workflow. Enable intake from project settings to manage requests.")}
+          description={t(
+            "Intake helps you manage incoming requests to your project and add them as work items in your workflow. Enable intake from project settings to manage requests."
+          )}
           assetPath={resolvedPath}
           primaryButton={{
             text: t("Manage features"),
@@ -67,7 +69,7 @@ function ProjectInboxPage({ params }: Route.ComponentProps) {
         workspace: currentProjectDetails?.name,
       })
     : t("{workspace} - Intake", {
-        workspace: "Pi Dash",
+        workspace: "karma-team",
       });
 
   const currentNavigationTab = navigationTab

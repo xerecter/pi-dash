@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { TCoreSupportedOperators, TCoreSupportedDateFilterOperators } from "@pi-dash/types";
-import { CORE_EQUALITY_OPERATOR, CORE_COLLECTION_OPERATOR, CORE_COMPARISON_OPERATOR } from "@pi-dash/types";
+import type { TCoreSupportedOperators, TCoreSupportedDateFilterOperators } from "@karma-team/types";
+import { CORE_EQUALITY_OPERATOR, CORE_COLLECTION_OPERATOR, CORE_COMPARISON_OPERATOR } from "@karma-team/types";
 
 /**
  * Core operator labels

@@ -5,11 +5,11 @@
  */
 
 import { observer } from "mobx-react";
-import { CloseIcon } from "@pi-dash/propel/icons";
-// pi dash ui
-import { Avatar } from "@pi-dash/ui";
+import { CloseIcon } from "@karma-team/propel/icons";
+// karma-team ui
+import { Avatar } from "@karma-team/ui";
 // helpers
-import { getFileURL } from "@pi-dash/utils";
+import { getFileURL } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 

@@ -5,9 +5,9 @@
  */
 
 import { useMemo, useState } from "react";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 
 type Props = {
   cloudUrl: string;
@@ -109,8 +109,8 @@ export function RunnerCliCommand(props: Props) {
       ["--model", model],
       ["--reasoning-effort", reasoningEffort],
     ];
-    if (shell === "posix") return posixCommandLines("pidash runner add", args).join("\n");
-    return oneLineCommand("pidash runner add", shell, args);
+    if (shell === "posix") return posixCommandLines("karma-team runner add", args).join("\n");
+    return oneLineCommand("karma-team runner add", shell, args);
   }, [agent, cloudUrl, model, name, podName, projectIdentifier, reasoningEffort, shell, workspaceSlug, workingDir]);
 
   const shellLabel = (value: TShell): string => {

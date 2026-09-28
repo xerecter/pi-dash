@@ -4,11 +4,11 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
+// karma-team imports
 import { useSearchParams } from "next/navigation";
 import { useTheme } from "next-themes";
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { TOAuthConfigs, TOAuthOption } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+import type { TOAuthConfigs, TOAuthOption } from "@karma-team/types";
 // assets
 import giteaLogo from "@/app/assets/logos/gitea-logo.svg?url";
 import GithubLightLogo from "@/app/assets/logos/github-black.png?url";

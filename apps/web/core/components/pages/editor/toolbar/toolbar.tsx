@@ -5,12 +5,12 @@
  */
 
 import React, { useEffect, useState, useCallback } from "react";
-import type { EditorRefApi } from "@pi-dash/editor";
-// pi dash imports
-import { CheckIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { CustomMenu } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import type { EditorRefApi } from "@karma-team/editor";
+// karma-team imports
+import { CheckIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { CustomMenu } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // constants
 import type { ToolbarMenuItem } from "@/constants/editor";
 import { TOOLBAR_ITEMS, TYPOGRAPHY_ITEMS } from "@/constants/editor";

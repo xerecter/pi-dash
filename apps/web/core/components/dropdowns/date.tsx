@@ -11,11 +11,11 @@ import { usePopper } from "react-popper";
 import { CalendarDays } from "lucide-react";
 import { Combobox } from "@headlessui/react";
 // ui
-import type { Matcher } from "@pi-dash/propel/calendar";
-import { Calendar } from "@pi-dash/propel/calendar";
-import { CloseIcon } from "@pi-dash/propel/icons";
-import { ComboDropDown } from "@pi-dash/ui";
-import { cn, renderFormattedDate, getDate } from "@pi-dash/utils";
+import type { Matcher } from "@karma-team/propel/calendar";
+import { Calendar } from "@karma-team/propel/calendar";
+import { CloseIcon } from "@karma-team/propel/icons";
+import { ComboDropDown } from "@karma-team/ui";
+import { cn, renderFormattedDate, getDate } from "@karma-team/utils";
 // helpers
 // hooks
 import { useUserProfile } from "@/hooks/store/user";

@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TLoginMediums } from "@pi-dash/types";
+import type { TLoginMediums } from "@karma-team/types";
 import { CORE_LOGIN_MEDIUM_LABELS } from "./core";
 import { EXTENDED_LOGIN_MEDIUM_LABELS } from "./extended";
 

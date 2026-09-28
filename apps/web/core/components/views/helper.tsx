@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-import { EIssueLayoutTypes } from "@pi-dash/types";
+import { EIssueLayoutTypes } from "@karma-team/types";
 import { WorkspaceSpreadsheetRoot } from "@/components/issues/issue-layouts/spreadsheet/roots/workspace-root";
-import { WorkspaceAdditionalLayouts } from "@/pi-dash-web/components/views/helper";
+import { WorkspaceAdditionalLayouts } from "@/karma-team-web/components/views/helper";
 
 export type TWorkspaceLayoutProps = {
   activeLayout: EIssueLayoutTypes | undefined;

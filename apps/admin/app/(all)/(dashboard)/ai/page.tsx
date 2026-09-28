@@ -6,7 +6,7 @@
 
 import { observer } from "mobx-react";
 import useSWR from "swr";
-import { Loader } from "@pi-dash/ui";
+import { Loader } from "@karma-team/ui";
 // components
 import { PageWrapper } from "@/components/common/page-wrapper";
 // hooks
@@ -26,7 +26,8 @@ const InstanceAIPage = observer(function InstanceAIPage(_props: Route.ComponentP
     <PageWrapper
       header={{
         title: "AI features for all your workspaces",
-        description: "Configure your AI API credentials so Pi Dash AI features are turned on for all your workspaces.",
+        description:
+          "Configure your AI API credentials so karma-team AI features are turned on for all your workspaces.",
       }}
     >
       {formattedConfig ? (

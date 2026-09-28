@@ -7,14 +7,14 @@
 import { set, groupBy } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import { STATE_GROUPS } from "@pi-dash/constants";
-import type { IIntakeState, IState } from "@pi-dash/types";
+// karma-team imports
+import { STATE_GROUPS } from "@karma-team/constants";
+import type { IIntakeState, IState } from "@karma-team/types";
 // helpers
-import { sortStates } from "@pi-dash/utils";
-// pi dash web
+import { sortStates } from "@karma-team/utils";
+// karma-team web
 import { ProjectStateService } from "@/services/project/project-state.service";
-import type { RootStore } from "@/pi-dash-web/store/root.store";
+import type { RootStore } from "@/karma-team-web/store/root.store";
 
 export interface IStateStore {
   //Loaders

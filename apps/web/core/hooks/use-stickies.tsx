@@ -8,7 +8,7 @@ import { useContext } from "react";
 // context
 import { StoreContext } from "@/lib/store-context";
 import type { IStickyStore } from "@/store/sticky/sticky.store";
-// pi dash web stores
+// karma-team web stores
 
 export const useSticky = (): IStickyStore => {
   const context = useContext(StoreContext);

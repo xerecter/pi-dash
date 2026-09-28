@@ -7,11 +7,11 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import useSWR from "swr";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { EmptyStateCompact } from "@pi-dash/propel/empty-state";
-import { APITokenService } from "@pi-dash/services";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { EmptyStateCompact } from "@karma-team/propel/empty-state";
+import { APITokenService } from "@karma-team/services";
 // components
 import { CreateApiTokenModal } from "@/components/api-token/modal/create-token-modal";
 import { ApiTokenListItem } from "@/components/api-token/token-list-item";
@@ -60,7 +60,9 @@ export const APITokensProfileSettings = observer(function APITokensProfileSettin
             assetKey="token"
             assetClassName="size-20"
             title={t("No Personal token yet")}
-            description={t("Generate secure API tokens to connect your workspace with external systems and applications.")}
+            description={t(
+              "Generate secure API tokens to connect your workspace with external systems and applications."
+            )}
             actions={[
               {
                 label: t("Add API token"),

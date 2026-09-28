@@ -6,12 +6,12 @@
 
 import { useContext } from "react";
 // types
-import type { TTimelineType } from "@pi-dash/types";
+import type { TTimelineType } from "@karma-team/types";
 // lib
 import { StoreContext } from "@/lib/store-context";
-// Pi Dash-web
-import { getTimelineStore } from "@/pi-dash-web/hooks/use-timeline-chart";
-import type { IBaseTimelineStore } from "@/pi-dash-web/store/timeline/base-timeline.store";
+// karma-team-web
+import { getTimelineStore } from "@/karma-team-web/hooks/use-timeline-chart";
+import type { IBaseTimelineStore } from "@/karma-team-web/store/timeline/base-timeline.store";
 import { useTimeLineType } from "../components/gantt-chart/contexts";
 
 export const useTimeLineChart = (timelineType: TTimelineType): IBaseTimelineStore => {

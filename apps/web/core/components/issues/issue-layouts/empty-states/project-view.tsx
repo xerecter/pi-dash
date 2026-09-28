@@ -6,9 +6,9 @@
 
 import { observer } from "mobx-react";
 // components
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import { EIssuesStoreType } from "@pi-dash/types";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import { EIssuesStoreType } from "@karma-team/types";
 // hooks
 import { useCommandPalette } from "@/hooks/store/use-command-palette";
 import { useUserPermissions } from "@/hooks/store/user";

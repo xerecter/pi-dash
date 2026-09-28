@@ -8,7 +8,7 @@ import { useCallback } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // types
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 // components
 import { CycleDropdown } from "@/components/dropdowns/cycle";
 // hooks

@@ -15,8 +15,8 @@ import {
   createRealtimeEvent,
   extractTextFromHTML,
   generateTitleProsemirrorJson,
-} from "@pi-dash/editor";
-import { logger } from "@pi-dash/logger";
+} from "@karma-team/editor";
+import { logger } from "@karma-team/logger";
 import { AppError } from "@/lib/errors";
 // helpers
 import { getPageService } from "@/services/page/handler";

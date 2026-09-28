@@ -6,8 +6,8 @@
 
 import type { Control } from "react-hook-form";
 import { Controller } from "react-hook-form";
-import type { IWebhook } from "@pi-dash/types";
-import { Checkbox } from "@pi-dash/ui";
+import type { IWebhook } from "@karma-team/types";
+import { Checkbox } from "@karma-team/ui";
 
 export const INDIVIDUAL_WEBHOOK_OPTIONS: {
   key: keyof IWebhook;

@@ -6,12 +6,12 @@
 
 import { observer } from "mobx-react";
 // ui
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 // components
 import { ProductUpdatesFooter } from "@/components/global";
-// pi dash web components
-import { ProductUpdatesChangelog } from "@/pi-dash-web/components/global/product-updates/changelog";
-import { ProductUpdatesHeader } from "@/pi-dash-web/components/global/product-updates/header";
+// karma-team web components
+import { ProductUpdatesChangelog } from "@/karma-team-web/components/global/product-updates/changelog";
+import { ProductUpdatesHeader } from "@/karma-team-web/components/global/product-updates/header";
 
 export type ProductUpdatesModalProps = {
   isOpen: boolean;

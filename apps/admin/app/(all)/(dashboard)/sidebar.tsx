@@ -6,8 +6,8 @@
 
 import { useEffect, useRef } from "react";
 import { observer } from "mobx-react";
-// pi dash helpers
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+// karma-team helpers
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // hooks
 import { useTheme } from "@/hooks/store";
 // components

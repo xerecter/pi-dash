@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import type { TIssueActivityComment } from "@pi-dash/types";
+import type { TIssueActivityComment } from "@karma-team/types";
 
 type TIssueActivityWorklog = {
   workspaceSlug: string;

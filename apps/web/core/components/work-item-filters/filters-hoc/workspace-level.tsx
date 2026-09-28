@@ -7,11 +7,11 @@
 import { useCallback, useMemo, useState } from "react";
 import { isEqual, cloneDeep } from "lodash-es";
 import { observer } from "mobx-react";
-// pi dash imports
-import { DEFAULT_GLOBAL_VIEWS_LIST, EUserPermissionsLevel } from "@pi-dash/constants";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
-import type { IWorkspaceView, TWorkItemFilterExpression } from "@pi-dash/types";
-import { EUserProjectRoles, EViewAccess } from "@pi-dash/types";
+// karma-team imports
+import { DEFAULT_GLOBAL_VIEWS_LIST, EUserPermissionsLevel } from "@karma-team/constants";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
+import type { IWorkspaceView, TWorkItemFilterExpression } from "@karma-team/types";
+import { EUserProjectRoles, EViewAccess } from "@karma-team/types";
 // components
 import { removeNillKeys } from "@/components/issues/issue-layouts/utils";
 import { CreateUpdateWorkspaceViewModal } from "@/components/workspace/views/modal";

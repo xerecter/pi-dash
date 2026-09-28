@@ -6,7 +6,7 @@
 
 import type { ReactNode } from "react";
 import { MessageSquare, SquarePen } from "lucide-react";
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 
 export interface ChatHistoryItem {
   id: string;
@@ -33,7 +33,7 @@ interface ChatHistoryPanelProps {
 }
 
 /**
- * Left-column chat history panel shared by the Pi Dash AI and AI runner chat
+ * Left-column chat history panel shared by the karma-team AI and AI runner chat
  * pages. Lists prior conversations (clickable to load) and exposes a New Chat
  * action. Purely presentational — the host owns session state and data fetching.
  */

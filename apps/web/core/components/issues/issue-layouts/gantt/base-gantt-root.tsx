@@ -7,13 +7,13 @@
 import React, { useCallback, useEffect } from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import { ALL_ISSUES, EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { EIssuesStoreType, IBlockUpdateData, TIssue } from "@pi-dash/types";
-import { EIssueLayoutTypes, GANTT_TIMELINE_TYPE } from "@pi-dash/types";
-import { renderFormattedPayloadDate } from "@pi-dash/utils";
+// karma-team imports
+import { ALL_ISSUES, EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { EIssuesStoreType, IBlockUpdateData, TIssue } from "@karma-team/types";
+import { EIssueLayoutTypes, GANTT_TIMELINE_TYPE } from "@karma-team/types";
+import { renderFormattedPayloadDate } from "@karma-team/utils";
 // components
 import { TimeLineTypeContext } from "@/components/gantt-chart/contexts";
 import { GanttChartRoot } from "@/components/gantt-chart/root";
@@ -24,8 +24,8 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import { useIssuesActions } from "@/hooks/use-issues-actions";
 import { useTimeLineChart } from "@/hooks/use-timeline-chart";
-// pi dash web hooks
-import { useBulkOperationStatus } from "@/pi-dash-web/hooks/use-bulk-operation-status";
+// karma-team web hooks
+import { useBulkOperationStatus } from "@/karma-team-web/hooks/use-bulk-operation-status";
 
 import { IssueLayoutHOC } from "../issue-layout-HOC";
 import { GanttQuickAddIssueButton, QuickAddIssueRoot } from "../quick-add";
@@ -58,7 +58,7 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
   const { allowPermissions } = useUserPermissions();
 
   const appliedDisplayFilters = issuesFilter.issueFilters?.displayFilters;
-  // pi dash web hooks
+  // karma-team web hooks
   const isBulkOperationsEnabled = useBulkOperationStatus();
   // derived values
   const targetDate = new Date();
@@ -130,8 +130,16 @@ export const BaseGanttRoot = observer(function BaseGanttRoot(props: IBaseGanttRo
         <div className="h-full w-full">
           <GanttChartRoot
             border={false}
-            title={isEpic ? t("{count, plural, one {Epic} other {Epics}}", { count: 2 }) : t("{count, plural, one {Work item} other {Work items}}", { count: 2 })}
-            loaderTitle={isEpic ? t("{count, plural, one {Epic} other {Epics}}", { count: 2 }) : t("{count, plural, one {Work item} other {Work items}}", { count: 2 })}
+            title={
+              isEpic
+                ? t("{count, plural, one {Epic} other {Epics}}", { count: 2 })
+                : t("{count, plural, one {Work item} other {Work items}}", { count: 2 })
+            }
+            loaderTitle={
+              isEpic
+                ? t("{count, plural, one {Epic} other {Epics}}", { count: 2 })
+                : t("{count, plural, one {Work item} other {Work items}}", { count: 2 })
+            }
             blockIds={issuesIds}
             blockUpdateHandler={updateIssueBlockStructure}
             blockToRender={(data: TIssue) => <IssueGanttBlock issueId={data.id} isEpic={isEpic} />}

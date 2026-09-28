@@ -5,8 +5,8 @@
  */
 
 import React from "react";
-// pi dash imports
-import { CheckIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { CheckIcon } from "@karma-team/propel/icons";
 
 type Props = {
   icon?: React.ReactNode;

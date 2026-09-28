@@ -14,7 +14,7 @@ import type {
   ViewFlags,
   TBulkOperationsPayload,
   TProfileViews,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 import { UserService } from "@/services/user.service";
 
 // services

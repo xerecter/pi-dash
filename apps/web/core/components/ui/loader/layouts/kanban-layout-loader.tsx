@@ -6,10 +6,10 @@
 
 import { forwardRef } from "react";
 import { range } from "lodash-es";
-// pi dash ui
-import { ContentWrapper } from "@pi-dash/ui";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team ui
+import { ContentWrapper } from "@karma-team/ui";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 
 export const KanbanIssueBlockLoader = forwardRef(function KanbanIssueBlockLoader(
   { cardHeight = 100, shouldAnimate = true }: { cardHeight?: number; shouldAnimate?: boolean },

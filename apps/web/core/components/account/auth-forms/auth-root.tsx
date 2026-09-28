@@ -7,8 +7,8 @@
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { useSearchParams } from "next/navigation";
-// pi dash imports
-import { OAuthOptions } from "@pi-dash/ui";
+// karma-team imports
+import { OAuthOptions } from "@karma-team/ui";
 // helpers
 import type { TAuthErrorInfo } from "@/helpers/authentication.helper";
 import {

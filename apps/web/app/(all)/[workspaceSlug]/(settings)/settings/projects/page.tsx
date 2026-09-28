@@ -7,10 +7,10 @@
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-// pi dash imports
-import { PROJECT_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { Button, getButtonStyling } from "@pi-dash/propel/button";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { PROJECT_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { Button, getButtonStyling } from "@karma-team/propel/button";
+import { cn } from "@karma-team/utils";
 // assets
 import ProjectDarkEmptyState from "@/app/assets/empty-state/project-settings/no-projects-dark.png?url";
 import ProjectLightEmptyState from "@/app/assets/empty-state/project-settings/no-projects-light.png?url";

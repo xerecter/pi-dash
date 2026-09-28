@@ -30,10 +30,10 @@ import {
   TextQuote,
   Underline,
 } from "lucide-react";
-// pi dash imports
-import type { TCommandExtraProps, TEditorCommands, TEditorFontStyle } from "@pi-dash/editor";
-import { MonospaceIcon, SansSerifIcon, SerifIcon } from "@pi-dash/propel/icons";
-import { convertRemToPixel } from "@pi-dash/utils";
+// karma-team imports
+import type { TCommandExtraProps, TEditorCommands, TEditorFontStyle } from "@karma-team/editor";
+import { MonospaceIcon, SansSerifIcon, SerifIcon } from "@karma-team/propel/icons";
+import { convertRemToPixel } from "@karma-team/utils";
 
 type TEditorTypes = "lite" | "document" | "sticky";
 

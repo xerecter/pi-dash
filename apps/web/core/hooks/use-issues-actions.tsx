@@ -8,8 +8,8 @@
 import { useCallback, useMemo } from "react";
 // types
 import { useParams } from "next/navigation";
-import type { TSupportedFilterTypeForUpdate } from "@pi-dash/constants";
-import { EDraftIssuePaginationType } from "@pi-dash/constants";
+import type { TSupportedFilterTypeForUpdate } from "@karma-team/constants";
+import { EDraftIssuePaginationType } from "@karma-team/constants";
 import type {
   IIssueDisplayFilterOptions,
   IIssueDisplayProperties,
@@ -19,8 +19,8 @@ import type {
   TLoader,
   TProfileViews,
   TSupportedFilterForUpdate,
-} from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
+} from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
 import { useIssues } from "./store/use-issues";
 
 export interface IssueActions {

@@ -5,8 +5,8 @@
  */
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { cn } from "@karma-team/utils";
 import { addMonths, addWeeks, formatMonthYear, type CalendarView } from "./date-helpers";
 
 type Props = {

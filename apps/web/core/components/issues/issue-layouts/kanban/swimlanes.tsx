@@ -6,7 +6,7 @@
 
 import type { MutableRefObject } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
+// karma-team imports
 import type {
   GroupByColumnTypes,
   IGroupByColumn,
@@ -18,12 +18,12 @@ import type {
   TIssueKanbanFilters,
   TIssueGroupByOptions,
   TIssueOrderByOptions,
-} from "@pi-dash/types";
-import { Row } from "@pi-dash/ui";
+} from "@karma-team/types";
+import { Row } from "@karma-team/ui";
 // hooks
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
-// pi dash web imports
-import { useWorkFlowFDragNDrop } from "@/pi-dash-web/components/workflow";
+// karma-team web imports
+import { useWorkFlowFDragNDrop } from "@/karma-team-web/components/workflow";
 // local imports
 import type { TRenderQuickActions } from "../list/list-view-types";
 import type { GroupDropLocation } from "../utils";

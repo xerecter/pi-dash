@@ -4,9 +4,9 @@
  * See the LICENSE file for details.
  */
 
-import type { TIssueLayout } from "@pi-dash/constants";
-import { ListLayoutIcon, BoardLayoutIcon } from "@pi-dash/propel/icons";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
+import type { TIssueLayout } from "@karma-team/constants";
+import { ListLayoutIcon, BoardLayoutIcon } from "@karma-team/propel/icons";
+import type { ISvgIcons } from "@karma-team/propel/icons";
 
 export function IssueLayoutIcon({
   layout,

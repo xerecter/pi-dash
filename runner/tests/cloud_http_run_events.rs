@@ -2,10 +2,10 @@ use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 
 use chrono::{Duration as ChronoDuration, Utc};
-use pidash::cloud::http::{
+use karma_team::cloud::http::{
     CredentialsHandle, RunnerCloudClient, RunnerCredentials, SharedHttpTransport,
 };
-use pidash::cloud::protocol::{ClientMsg, Envelope, RunEventRecord};
+use karma_team::cloud::protocol::{ClientMsg, Envelope, RunEventRecord};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use uuid::Uuid;

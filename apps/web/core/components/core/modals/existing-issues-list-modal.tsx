@@ -8,22 +8,22 @@ import { useEffect, useState, useRef } from "react";
 import { Rocket } from "lucide-react";
 import { Combobox } from "@headlessui/react";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 // types
-import { Button } from "@pi-dash/propel/button";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { ISearchIssueResponse, TProjectIssuesSearchParams } from "@pi-dash/types";
+import { Button } from "@karma-team/propel/button";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { ISearchIssueResponse, TProjectIssuesSearchParams } from "@karma-team/types";
 // ui
-import { Loader, ToggleSwitch, EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
-import { generateWorkItemLink, getTabIndex } from "@pi-dash/utils";
+import { Loader, ToggleSwitch, EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
+import { generateWorkItemLink, getTabIndex } from "@karma-team/utils";
 // helpers
 // hooks
 import useDebounce from "@/hooks/use-debounce";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 // services
 import { ProjectService } from "@/services/project";
 // components

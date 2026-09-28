@@ -6,9 +6,9 @@
 
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { IWorkspaceJoinRequest, IWorkspaceMemberInvitation } from "@pi-dash/types";
-import { ECreateOrJoinWorkspaceViews, EOnboardingSteps, EWorkspaceJoinRequestStatus } from "@pi-dash/types";
+// karma-team imports
+import type { IWorkspaceJoinRequest, IWorkspaceMemberInvitation } from "@karma-team/types";
+import { ECreateOrJoinWorkspaceViews, EOnboardingSteps, EWorkspaceJoinRequestStatus } from "@karma-team/types";
 // hooks
 import { useUser } from "@/hooks/store/user";
 // local components

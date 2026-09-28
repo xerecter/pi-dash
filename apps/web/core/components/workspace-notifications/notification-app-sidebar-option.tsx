@@ -6,8 +6,8 @@
 
 import { observer } from "mobx-react";
 import useSWR from "swr";
-// pi dash imports
-import { getNumberCount } from "@pi-dash/utils";
+// karma-team imports
+import { getNumberCount } from "@karma-team/utils";
 // components
 import { CountChip } from "@/components/common/count-chip";
 // hooks

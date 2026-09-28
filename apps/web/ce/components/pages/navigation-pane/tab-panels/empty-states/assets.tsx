@@ -5,8 +5,8 @@
  */
 
 import { useTheme } from "next-themes";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
 // assets
 import darkAssetsAsset from "@/app/assets/empty-state/wiki/navigation-pane/assets-dark.webp?url";
 import lightAssetsAsset from "@/app/assets/empty-state/wiki/navigation-pane/assets-light.webp?url";
@@ -25,9 +25,7 @@ export function PageNavigationPaneAssetsTabEmptyState() {
         <img src={resolvedPath} className="size-40 object-contain" alt="depicts the assets of a page" />
         <div className="space-y-2.5">
           <h4 className="text-14 font-medium">{t("Missing images")}</h4>
-          <p className="text-13 font-medium text-secondary">
-            {t("Add images to see them here.")}
-          </p>
+          <p className="text-13 font-medium text-secondary">{t("Add images to see them here.")}</p>
         </div>
       </div>
     </div>

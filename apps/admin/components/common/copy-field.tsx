@@ -6,9 +6,9 @@
 
 import React from "react";
 // ui
-import { Button } from "@pi-dash/propel/button";
-import { CopyIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
+import { Button } from "@karma-team/propel/button";
+import { CopyIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 
 type Props = {
   label: string;

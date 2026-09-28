@@ -7,8 +7,8 @@
 import { set, cloneDeep, isEqual } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import type { IWorkspaceView } from "@pi-dash/types";
+// karma-team imports
+import type { IWorkspaceView } from "@karma-team/types";
 // services
 import { WorkspaceService } from "@/services/workspace.service";
 // store

@@ -5,9 +5,9 @@
  */
 
 import { action, makeObservable, runInAction } from "mobx";
-// pi dash imports
-import { SitesIssueService } from "@pi-dash/services";
-import type { IssuePaginationOptions, TLoader } from "@pi-dash/types";
+// karma-team imports
+import { SitesIssueService } from "@karma-team/services";
+import type { IssuePaginationOptions, TLoader } from "@karma-team/types";
 // store
 import type { RootStore } from "@/store/root.store";
 // types

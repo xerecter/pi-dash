@@ -320,11 +320,7 @@ pub fn display_value(cfg: &Config, id: FieldId, runner_idx: usize) -> String {
         FieldId::CodexBinary => runner.codex.binary.clone(),
         FieldId::CodexModelDefault => runner.codex.model_default.clone().unwrap_or_default(),
         FieldId::ClaudeBinary => runner.claude_code.binary.clone(),
-        FieldId::ClaudeModelDefault => runner
-            .claude_code
-            .model_default
-            .clone()
-            .unwrap_or_default(),
+        FieldId::ClaudeModelDefault => runner.claude_code.model_default.clone().unwrap_or_default(),
         FieldId::CursorBinary => runner.cursor_agent.binary.clone(),
         FieldId::CursorModelDefault => runner
             .cursor_agent
@@ -332,15 +328,11 @@ pub fn display_value(cfg: &Config, id: FieldId, runner_idx: usize) -> String {
             .clone()
             .unwrap_or_default(),
         FieldId::OpenClawBinary => runner.openclaw.binary.clone(),
-        FieldId::OpenClawModelDefault => {
-            runner.openclaw.model_default.clone().unwrap_or_default()
-        }
+        FieldId::OpenClawModelDefault => runner.openclaw.model_default.clone().unwrap_or_default(),
         FieldId::GrokBinary => runner.grok.binary.clone(),
         FieldId::GrokModelDefault => runner.grok.model_default.clone().unwrap_or_default(),
         FieldId::MuseCodeBinary => runner.muse_code.binary.clone(),
-        FieldId::MuseCodeModelDefault => {
-            runner.muse_code.model_default.clone().unwrap_or_default()
-        }
+        FieldId::MuseCodeModelDefault => runner.muse_code.model_default.clone().unwrap_or_default(),
         FieldId::ApprovalAutoReadonly => runner
             .approval_policy
             .auto_approve_readonly_shell
@@ -368,7 +360,7 @@ pub fn set_text_value(
         return Ok(());
     }
     let Some(runner) = runner_at_mut(cfg, runner_idx) else {
-        return Err("no runners configured; add one with `pidash runner add` first".into());
+        return Err("no runners configured; add one with `karma-team runner add` first".into());
     };
     match id {
         FieldId::RunnerName => {
@@ -539,14 +531,14 @@ pub fn differs(a: &Config, b: &Config) -> bool {
 
 pub fn runner_picker_bar(data: &AppData) -> Paragraph<'static> {
     let Some(working) = data.config_working.as_ref() else {
-        return Paragraph::new(Line::raw("")).block(
-            Block::default()
-                .borders(Borders::ALL)
-                .title(" Runners "),
-        );
+        return Paragraph::new(Line::raw(""))
+            .block(Block::default().borders(Borders::ALL).title(" Runners "));
     };
     let total = working.runners.len();
-    let picked = data.picker_runner_index().unwrap_or(0).min(total.saturating_sub(1));
+    let picked = data
+        .picker_runner_index()
+        .unwrap_or(0)
+        .min(total.saturating_sub(1));
     let mut spans: Vec<Span<'static>> = Vec::new();
     for (i, r) in working.runners.iter().enumerate() {
         let label = format!(" {}. {} ", i + 1, r.name);
@@ -606,7 +598,7 @@ pub fn editable_lines(
     }
     lines.push(readonly_hint(
         "workspace + project are bound at registration. Re-register or use \
-         `pidash token add-runner` to change them.",
+         `karma-team token add-runner` to change them.",
     ));
     lines.push(Line::raw(""));
 
@@ -901,9 +893,7 @@ fn index_of(id: FieldId) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::schema::{
-        Config, DaemonConfig, RunnerConfig, WorkspaceSection,
-    };
+    use crate::config::schema::{Config, DaemonConfig, RunnerConfig, WorkspaceSection};
     use std::path::PathBuf;
     use uuid::Uuid;
 
@@ -915,7 +905,7 @@ mod tests {
             project_slug: Some("TEST".into()),
             pod_id: None,
             workspace: WorkspaceSection {
-                working_dir: PathBuf::from("/tmp/pidash-test"),
+                working_dir: PathBuf::from("/tmp/karma-team-test"),
             },
             agent: Default::default(),
             codex: Default::default(),
@@ -930,7 +920,7 @@ mod tests {
         Config {
             version: 2,
             daemon: DaemonConfig {
-                cloud_url: "https://pidash.example".into(),
+                cloud_url: "https://karma-team.example".into(),
                 dev_machine_id: None,
                 log_level: "info".into(),
                 log_retention_days: 14,

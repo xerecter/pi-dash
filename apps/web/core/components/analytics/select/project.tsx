@@ -5,12 +5,12 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash package imports
-import { getButtonStyling } from "@pi-dash/propel/button";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { ChevronDownIcon, ProjectIcon } from "@pi-dash/propel/icons";
-import { CustomSearchSelect } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+// karma-team package imports
+import { getButtonStyling } from "@karma-team/propel/button";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { ChevronDownIcon, ProjectIcon } from "@karma-team/propel/icons";
+import { CustomSearchSelect } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 

@@ -8,8 +8,8 @@ import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { ArrowRight } from "lucide-react";
 // helpers
-import type { IBlockUpdateData, IGanttBlock } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+import type { IBlockUpdateData, IGanttBlock } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";

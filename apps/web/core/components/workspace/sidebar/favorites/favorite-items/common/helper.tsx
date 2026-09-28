@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { PageIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import type { IFavorite, TLogoProps } from "@pi-dash/types";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { PageIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import type { IFavorite, TLogoProps } from "@karma-team/types";
 // components
-// pi dash web constants
+// karma-team web constants
 import { FAVORITE_ITEM_ICONS, FAVORITE_ITEM_LINKS } from "@/constants/sidebar-favorites";
 
 export const getFavoriteItemIcon = (type: string, logo?: TLogoProps) => {

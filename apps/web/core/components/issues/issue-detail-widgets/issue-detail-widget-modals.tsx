@@ -6,14 +6,14 @@
 
 import React from "react";
 import { observer } from "mobx-react";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { ISearchIssueResponse, TIssue, TIssueServiceType, TWorkItemWidgets } from "@pi-dash/types";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { ISearchIssueResponse, TIssue, TIssueServiceType, TWorkItemWidgets } from "@karma-team/types";
 // components
 import { ExistingIssuesListModal } from "@/components/core/modals/existing-issues-list-modal";
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
-// pi dash web imports
-import { WorkItemAdditionalWidgetModals } from "@/pi-dash-web/components/issues/issue-detail-widgets/modals";
+// karma-team web imports
+import { WorkItemAdditionalWidgetModals } from "@/karma-team-web/components/issues/issue-detail-widgets/modals";
 // local imports
 import { IssueLinkCreateUpdateModal } from "../issue-detail/links/create-update-link-modal";
 // helpers

@@ -1,6 +1,6 @@
 //! Deprecated token-compatibility add-runner modal.
 //!
-//! New runners should be added with `pidash runner add`. This modal is
+//! New runners should be added with `karma-team runner add`. This modal is
 //! kept only for existing one-time enrollment/revive tokens.
 //!
 //! Three fields: enrollment token (masked), host label (defaults to
@@ -154,7 +154,7 @@ impl Renderable for AddRunnerView {
                     .add_modifier(Modifier::BOLD),
             )),
             Line::from(Span::styled(
-                "Prefer `pidash runner add --project <PROJECT>` outside the TUI.",
+                "Prefer `karma-team runner add --project <PROJECT>` outside the TUI.",
                 Style::default().add_modifier(Modifier::DIM),
             )),
             Line::from(Span::styled(
@@ -204,11 +204,7 @@ impl Renderable for AddRunnerView {
             )));
         }
         let p = Paragraph::new(lines)
-            .block(
-                Block::default()
-                    .borders(Borders::ALL)
-                    .title(" Add runner "),
-            )
+            .block(Block::default().borders(Borders::ALL).title(" Add runner "))
             .wrap(Wrap { trim: false });
         p.render(modal, buf);
     }
@@ -225,9 +221,7 @@ impl View for AddRunnerView {
         }
 
         match (key.code, key.modifiers) {
-            (KeyCode::Char('c'), m) if m.contains(KeyModifiers::CONTROL) => {
-                KeyHandled::NotConsumed
-            }
+            (KeyCode::Char('c'), m) if m.contains(KeyModifiers::CONTROL) => KeyHandled::NotConsumed,
             (KeyCode::Esc, _) => {
                 self.complete = true;
                 self.completion = Some(ViewCompletion::Cancelled);

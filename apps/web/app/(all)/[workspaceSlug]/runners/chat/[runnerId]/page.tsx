@@ -9,8 +9,8 @@ import { observer } from "mobx-react";
 import { X } from "lucide-react";
 import { useParams, useSearchParams } from "react-router";
 import useSWR from "swr";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { getChatTransport, getRunnerDetail } from "@pi-dash/services";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { getChatTransport, getRunnerDetail } from "@karma-team/services";
 import type {
   IAgentChatEvent,
   IAgentChatMessage,
@@ -19,16 +19,20 @@ import type {
   TApprovalDecision,
   TApprovalKind,
   TApprovalMode,
-} from "@pi-dash/types";
-import { Badge, Button } from "@pi-dash/ui";
-import { calculateTimeAgo, renderFormattedDate } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { Badge, Button } from "@karma-team/ui";
+import { calculateTimeAgo, renderFormattedDate } from "@karma-team/utils";
 import { ChatComposer } from "@/components/chat/composer";
 import { ChatContainer } from "@/components/chat/container";
 import { type ChatHistoryItem, ChatHistoryPanel } from "@/components/chat/history-panel";
 import { ChatMessage } from "@/components/chat/message";
 import { useAgentChatEvents } from "@/components/runners/chat/use-agent-chat-events";
 import { useWorkspace } from "@/hooks/store/use-workspace";
-import { ChatApprovalModeSelect, ChatApprovalPrompt, type PendingChatApproval } from "@/pi-dash-web/components/desktop";
+import {
+  ChatApprovalModeSelect,
+  ChatApprovalPrompt,
+  type PendingChatApproval,
+} from "@/karma-team-web/components/desktop";
 
 /**
  * The additive, local-only transport verbs for built-in-engine approvals (see
@@ -45,7 +49,7 @@ const DEFAULT_APPROVAL_MODE: TApprovalMode = "full_access";
 
 /** Persisted per-runner so the chosen mode survives a reload. */
 function approvalModeStorageKey(runnerId: string | undefined): string {
-  return `pidash:chat-approval-mode:${runnerId ?? "unknown"}`;
+  return `karma-team:chat-approval-mode:${runnerId ?? "unknown"}`;
 }
 
 /** Project a `chat_approval_request` event onto the prompt's shape. */
@@ -565,7 +569,7 @@ const RunnerChatPage = observer(function RunnerChatPage() {
     } catch (e: unknown) {
       // `error` is the API's field; `message` is what a thrown `Error` carries.
       // Reading only the former flattened every local-transport failure —
-      // "Pi Dash Agent is not enabled on this server", "connecting to managed
+      // "karma-team Agent is not enabled on this server", "connecting to managed
       // daemon" — into a generic "Unable to send message".
       const err = e as { error?: string; message?: string } | null;
       const reason = err?.error ?? err?.message;

@@ -5,8 +5,8 @@
  */
 
 import { useCallback, useMemo } from "react";
-// pi dash editor
-import type { TEditorFontSize, TEditorFontStyle } from "@pi-dash/editor";
+// karma-team editor
+import type { TEditorFontSize, TEditorFontStyle } from "@karma-team/editor";
 // hooks
 import useLocalStorage from "@/hooks/use-local-storage";
 

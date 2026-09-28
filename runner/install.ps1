@@ -1,32 +1,32 @@
-# Pi Dash runner installer (Windows / PowerShell).
+# karma-team runner installer (Windows / PowerShell).
 #
-# PowerShell mirror of install.sh. Wraps the cargo-dist-generated
-# `pidash-installer.ps1`, then launches `pidash auth login` so the user
+# Windows wrapper for the cargo-dist-generated installer. Wraps
+# `karma-team-installer.ps1`, then launches `karma-team auth login` so the user
 # lands in the device-code flow on the same install one-liner. The
-# runner is a "set up once, forget" daemon driven by Pi Dash cloud, so
+# runner is a "set up once, forget" daemon driven by karma-team cloud, so
 # the natural moment to authenticate is right now while the user is
-# at the terminal — not the first time they happen to type `pidash`
+# at the terminal — not the first time they happen to type `karma-team`
 # themselves (which may be never).
 #
 # Usage:
-#   irm https://github.com/The-AI-Republic/pi-dash/releases/latest/download/install.ps1 | iex
+#   irm https://github.com/xerecter/karma-team/releases/latest/download/install.ps1 | iex
 
 $ErrorActionPreference = 'Stop'
 
-$installerUrl = 'https://github.com/The-AI-Republic/pi-dash/releases/latest/download/pidash-installer.ps1'
+$installerUrl = 'https://github.com/xerecter/karma-team/releases/latest/download/karma-team-installer.ps1'
 
-Write-Host '==> Downloading pidash...'
+Write-Host '==> Downloading karma-team...'
 Invoke-Expression (Invoke-RestMethod $installerUrl)
 
-# cargo-dist drops pidash.exe into $env:USERPROFILE\.local\bin (the
+# cargo-dist drops karma-team.exe into $env:USERPROFILE\.local\bin (the
 # install-path = "$HOME/.local/bin" in dist-workspace.toml resolves
 # to USERPROFILE on Windows). If a future release moves it, surface
 # a clear error instead of silently continuing.
-$pidashBin = Join-Path $env:USERPROFILE '.local\bin\pidash.exe'
-if (-not (Test-Path -PathType Leaf $pidashBin)) {
+$karmaTeamBin = Join-Path $env:USERPROFILE '.local\bin\karma-team.exe'
+if (-not (Test-Path -PathType Leaf $karmaTeamBin)) {
     Write-Host ''
-    Write-Host "pidash.exe not found at $pidashBin after install."
-    Write-Host "Run ``$installerUrl`` manually, then ``pidash auth login``."
+    Write-Host "karma-team.exe not found at $karmaTeamBin after install."
+    Write-Host "Run ``$installerUrl`` manually, then ``karma-team auth login``."
     exit 1
 }
 
@@ -42,14 +42,14 @@ Write-Host ''
 #
 # Unix's /dev/tty reattach trick has no Windows equivalent and isn't
 # needed: PowerShell child processes inherit the console host directly,
-# so even when our own stdin is the `irm | iex` pipe, `pidash auth
+# so even when our own stdin is the `irm | iex` pipe, `karma-team auth
 # login` still reads keystrokes from the user's console.
 if (-not [Environment]::UserInteractive) {
     Write-Host 'No interactive console detected — skipping auto-auth.'
-    Write-Host 'Run `pidash auth login --no-browser --url <URL>`, approve the printed'
-    Write-Host 'URL from another browser, then run `pidash runner add --project <PROJECT>`.'
+    Write-Host 'Run `karma-team auth login --no-browser --url <URL>`, approve the printed'
+    Write-Host 'URL from another browser, then run `karma-team runner add --project <PROJECT>`.'
     exit 0
 }
 
-& $pidashBin auth login
+& $karmaTeamBin auth login
 exit $LASTEXITCODE

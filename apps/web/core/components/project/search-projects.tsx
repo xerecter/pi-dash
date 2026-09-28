@@ -6,16 +6,16 @@
 
 import { useRef, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash hooks
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+// karma-team hooks
+import { useOutsideClickDetector } from "@karma-team/hooks";
 // i18n
-import { useTranslation } from "@pi-dash/i18n";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
+import { useTranslation } from "@karma-team/i18n";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
 // helpers
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useProjectFilter } from "@/hooks/store/use-project-filter";
-import { IconButton } from "@pi-dash/propel/icon-button";
+import { IconButton } from "@karma-team/propel/icon-button";
 
 export const ProjectSearch = observer(function ProjectSearch() {
   // i18n

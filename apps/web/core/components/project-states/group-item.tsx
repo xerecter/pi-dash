@@ -7,12 +7,12 @@
 import { useState, useRef } from "react";
 import { observer } from "mobx-react";
 
-// pi dash imports
-import { EIconSize, STATE_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { PlusIcon, StateGroupIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
-import type { IState, TStateGroups, TStateOperationsCallbacks } from "@pi-dash/types";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { EIconSize, STATE_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { PlusIcon, StateGroupIcon, ChevronDownIcon } from "@karma-team/propel/icons";
+import type { IState, TStateGroups, TStateOperationsCallbacks } from "@karma-team/types";
+import { cn } from "@karma-team/utils";
 // components
 import { StateList, StateCreate } from "@/components/project-states";
 
@@ -46,7 +46,7 @@ export const GroupItem = observer(function GroupItem(props: TGroupItem) {
   } = props;
   // refs
   const dropElementRef = useRef<HTMLDivElement | null>(null);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   // state
   const [createState, setCreateState] = useState(false);

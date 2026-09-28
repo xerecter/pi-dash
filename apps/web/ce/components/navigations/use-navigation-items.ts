@@ -5,11 +5,11 @@
  */
 
 import { useMemo, useCallback } from "react";
-// pi dash imports
+// karma-team imports
 import { CalendarClock } from "lucide-react";
-import { EUserPermissions, EUserPermissionsLevel } from "@pi-dash/constants";
-import { CycleIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon, WorkItemsIcon } from "@pi-dash/propel/icons";
-import type { EUserProjectRoles, IPartialProject } from "@pi-dash/types";
+import { EUserPermissions, EUserPermissionsLevel } from "@karma-team/constants";
+import { CycleIcon, IntakeIcon, ModuleIcon, PageIcon, ViewsIcon, WorkItemsIcon } from "@karma-team/propel/icons";
+import type { EUserProjectRoles, IPartialProject } from "@karma-team/types";
 import type { TNavigationItem } from "@/components/navigation/tab-navigation-root";
 
 type UseNavigationItemsProps = {

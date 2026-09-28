@@ -6,9 +6,9 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { EmojiPicker, EmojiIconPickerTypes, Logo } from "@karma-team/propel/emoji-icon-picker";
+import { cn } from "@karma-team/utils";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

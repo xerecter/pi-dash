@@ -18,7 +18,7 @@ import type {
   TIssueOrderByOptions,
   TPaginationData,
   TLoader,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 // hooks
 import { useCycle } from "@/hooks/store/use-cycle";
 import { useLabel } from "@/hooks/store/use-label";

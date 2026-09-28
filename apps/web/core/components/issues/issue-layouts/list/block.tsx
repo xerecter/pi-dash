@@ -10,15 +10,15 @@ import { combine } from "@atlaskit/pragmatic-drag-and-drop/combine";
 import { draggable } from "@atlaskit/pragmatic-drag-and-drop/element/adapter";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-import { ChevronRightIcon } from "@pi-dash/propel/icons";
+import { ChevronRightIcon } from "@karma-team/propel/icons";
 // types
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TIssue, IIssueDisplayProperties, TIssueMap } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TIssue, IIssueDisplayProperties, TIssueMap } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // ui
-import { Spinner, ControlLink, Row } from "@pi-dash/ui";
-import { cn, generateWorkItemLink } from "@pi-dash/utils";
+import { Spinner, ControlLink, Row } from "@karma-team/ui";
+import { cn, generateWorkItemLink } from "@karma-team/utils";
 // components
 import { MultipleSelectEntityAction } from "@/components/core/multiple-select";
 import { IssueProperties } from "@/components/issues/issue-layouts/properties";
@@ -29,9 +29,9 @@ import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useProject } from "@/hooks/store/use-project";
 import type { TSelectionHelper } from "@/hooks/use-multiple-select";
 import { usePlatformOS } from "@/hooks/use-platform-os";
-// pi dash web components
-import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
-import { IssueStats } from "@/pi-dash-web/components/issues/issue-layouts/issue-stats";
+// karma-team web components
+import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
+import { IssueStats } from "@/karma-team-web/components/issues/issue-layouts/issue-stats";
 // types
 import { WithDisplayPropertiesHOC } from "../properties/with-display-properties-HOC";
 import { calculateIdentifierWidth } from "../utils";

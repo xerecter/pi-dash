@@ -5,4 +5,4 @@ python manage.py wait_for_db
 # Wait for migrations
 python manage.py wait_for_migrations
 # Run the processes
-celery -A pi_dash worker -l info
+celery -A karma_team worker -l info

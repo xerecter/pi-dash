@@ -2,9 +2,9 @@
 //! slice 1b).
 //!
 //! The desktop host drives the built-in agent engine *directly* over the
-//! daemon's local IPC socket rather than relaying chat through the Pi Dash
+//! daemon's local IPC socket rather than relaying chat through the karma-team
 //! cloud. This module is the runner-side of that surface: it services the
-//! `Chat{Warm,Send,Cancel,Close,Decide}` requests added to `pidash-ipc` in
+//! `Chat{Warm,Send,Cancel,Close,Decide}` requests added to `karma-team-ipc` in
 //! slice 1a, spawning/driving an [`AgentBridge`] and streaming the turn's
 //! events back as `Response::Chat*` frames on the same connection.
 //!
@@ -12,7 +12,7 @@
 //!
 //! The cloud chat runtime (`daemon/supervisor.rs::ChatWorker`) is bound to a
 //! [`RunnerOut`](crate::daemon::runner_out::RunnerOut) sink that emits
-//! `ClientMsg::Chat*` frames to the Pi Dash server. Reusing it here would mean
+//! `ClientMsg::Chat*` frames to the karma-team server. Reusing it here would mean
 //! abstracting that concrete sink and teeing its output onto the IPC socket —
 //! surgery on the live cloud path, at the cost of the "existing cloud chat is
 //! unchanged" acceptance criterion. Instead this is a **self-contained lane**
@@ -170,7 +170,9 @@ impl Drop for LocalTurnGuard {
 /// assign lane's mirror check of `chat_active` (supervisor.rs) closes the
 /// other direction. This is best-effort advisory exclusion, consistent with
 /// the cloud loop's own `current_chat`/`current_run` checks.
-pub(crate) fn try_begin_local_turn(inst: &RunnerInstance) -> std::result::Result<LocalTurnGuard, String> {
+pub(crate) fn try_begin_local_turn(
+    inst: &RunnerInstance,
+) -> std::result::Result<LocalTurnGuard, String> {
     if inst.state.rx_in_flight.borrow().is_some() {
         return Err("a managed issue run is using this runner's working copy".to_string());
     }
@@ -387,7 +389,10 @@ pub(crate) async fn handle_send<S: ChatSink>(
 
 /// `ChatCancel`: interrupt the in-flight turn (if any). Best-effort — trips
 /// the session's cancel signal, which the active turn observes.
-pub(crate) async fn handle_cancel(inst: &RunnerInstance, chat_session_id: Uuid) -> Result<Response> {
+pub(crate) async fn handle_cancel(
+    inst: &RunnerInstance,
+    chat_session_id: Uuid,
+) -> Result<Response> {
     if let Some(session) = inst.chat_sessions.get(chat_session_id).await {
         session.cancel.notify_waiters();
     }
@@ -944,7 +949,7 @@ mod tests {
             project_slug: Some("PROJ".into()),
             pod_id: None,
             workspace: WorkspaceSection {
-                working_dir: std::env::temp_dir().join("pidash-chat-drive-test"),
+                working_dir: std::env::temp_dir().join("karma-team-chat-drive-test"),
             },
             agent: AgentSection::default(),
             codex: CodexSection::default(),
@@ -1187,7 +1192,7 @@ mod tests {
     fn offline_instance() -> RunnerInstance {
         use crate::config::schema::DaemonConfig;
         use crate::util::paths::Paths;
-        let base = std::env::temp_dir().join(format!("pidash-chat-guard-{}", Uuid::new_v4()));
+        let base = std::env::temp_dir().join(format!("karma-team-chat-guard-{}", Uuid::new_v4()));
         let paths = Paths {
             config_dir: base.join("config"),
             data_dir: base.join("data"),
@@ -1216,7 +1221,7 @@ mod tests {
 
     #[tokio::test]
     async fn local_turn_guard_refuses_while_managed_run_in_flight() {
-        use pidash_ipc::protocol::CurrentRunSummary;
+        use karma_team_ipc::protocol::CurrentRunSummary;
         let inst = offline_instance();
         inst.state
             .set_current_run(Some(CurrentRunSummary {

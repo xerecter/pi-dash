@@ -8,7 +8,7 @@ import type {
   IFormattedInstanceConfiguration,
   TInstanceAuthenticationModes,
   TInstanceConfigurationKeys,
-} from "@pi-dash/types";
+} from "@karma-team/types";
 
 /**
  * Checks if a given authentication method can be disabled.

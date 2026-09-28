@@ -5,7 +5,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
+import { useOutsideClickDetector } from "@karma-team/hooks";
 
 type UseExpandableSearchOptions = {
   onClose?: () => void;

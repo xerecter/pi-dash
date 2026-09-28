@@ -6,9 +6,9 @@
 
 import { useState } from "react";
 import { observer } from "mobx-react";
-import { SearchIcon, CloseIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import type { TProjectDisplayFilters, TProjectFilters } from "@pi-dash/types";
+import { SearchIcon, CloseIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import type { TProjectDisplayFilters, TProjectFilters } from "@karma-team/types";
 // components
 import { FilterOption } from "@/components/issues/issue-layouts/filters";
 // hooks

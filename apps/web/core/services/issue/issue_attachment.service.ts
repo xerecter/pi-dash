@@ -5,11 +5,11 @@
  */
 
 import type { AxiosRequestConfig } from "axios";
-import { API_BASE_URL } from "@pi-dash/constants";
-// pi dash types
-import { getFileMetaDataForUpload, generateFileUploadPayload } from "@pi-dash/services";
-import type { TIssueAttachment, TIssueAttachmentUploadResponse, TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+// karma-team types
+import { getFileMetaDataForUpload, generateFileUploadPayload } from "@karma-team/services";
+import type { TIssueAttachment, TIssueAttachmentUploadResponse, TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // services
 import { APIService } from "@/services/api.service";
 import { FileUploadService } from "@/services/file-upload.service";

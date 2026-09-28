@@ -8,10 +8,10 @@ import React from "react";
 import { observer } from "mobx-react";
 import { Disclosure } from "@headlessui/react";
 // components
-import { useTranslation } from "@pi-dash/i18n";
-import { ContentWrapper, ERowVariant } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { ContentWrapper, ERowVariant } from "@karma-team/ui";
 import { ListLayout } from "@/components/core/list";
-import { ActiveCycleRoot } from "@/pi-dash-web/components/cycles";
+import { ActiveCycleRoot } from "@/karma-team-web/components/cycles";
 // local imports
 import { CyclePeekOverview } from "../cycle-peek-overview";
 import { CycleListGroupHeader } from "./cycle-list-group-header";

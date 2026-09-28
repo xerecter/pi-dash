@@ -1,12 +1,12 @@
-# Pi Dash Community All-In-One (AIO) Docker Image
+# karma-team Community All-In-One (AIO) Docker Image
 
-The Pi Dash Community All-In-One Docker image packages all Pi Dash services into a single container for easy deployment and testing. This image includes web interface, API server, background workers, live server, and more.
+The karma-team Community All-In-One Docker image packages all karma-team services into a single container for easy deployment and testing. This image includes web interface, API server, background workers, live server, and more.
 
 ## What's Included
 
 The AIO image contains the following services:
 
-- **Web App** (Port 3001): Main Pi Dash web interface
+- **Web App** (Port 3001): Main karma-team web interface
 - **Space** (Port 3002): Public project spaces
 - **Admin** (Port 3003): Administrative interface
 - **API Server** (Port 3004): Backend API
@@ -56,7 +56,7 @@ Generate each with `openssl rand -hex 32`:
 ### Basic Usage
 
 ```bash
-docker run --name pi-dash-aio --rm -it \
+docker run --name karma-team-aio --rm -it \
     -p 80:80 \
     -e DOMAIN_NAME=your-domain.com \
     -e DATABASE_URL=postgresql://user:pass@host:port/database \
@@ -68,7 +68,7 @@ docker run --name pi-dash-aio --rm -it \
     -e AWS_S3_BUCKET_NAME=your-bucket \
     -e SECRET_KEY=$(openssl rand -hex 32) \
     -e LIVE_SERVER_SECRET_KEY=$(openssl rand -hex 32) \
-    airepublic/pi-dash-aio-community:latest
+    airepublic/karma-team-aio-community:latest
 ```
 
 ### Example with IP Address
@@ -78,18 +78,18 @@ MYIP=192.168.68.169
 docker run --name myaio --rm -it \
     -p 80:80 \
     -e DOMAIN_NAME=${MYIP} \
-    -e DATABASE_URL=postgresql://pi-dash:pi-dash@${MYIP}:15432/pi-dash \
+    -e DATABASE_URL=postgresql://karma-team:karma-team@${MYIP}:15432/karma-team \
     -e REDIS_URL=redis://${MYIP}:16379 \
-    -e AMQP_URL=amqp://pi-dash:pi-dash@${MYIP}:15673/pi-dash \
+    -e AMQP_URL=amqp://karma-team:karma-team@${MYIP}:15673/karma-team \
     -e AWS_REGION=us-east-1 \
     -e AWS_ACCESS_KEY_ID=YOUR_ACCESS_KEY \
     -e AWS_SECRET_ACCESS_KEY=YOUR_SECRET_KEY \
-    -e AWS_S3_BUCKET_NAME=pi-dash-app \
+    -e AWS_S3_BUCKET_NAME=karma-team-app \
     -e AWS_S3_ENDPOINT_URL=http://${MYIP}:19000 \
     -e FILE_SIZE_LIMIT=10485760 \
     -e SECRET_KEY=$(openssl rand -hex 32) \
     -e LIVE_SERVER_SECRET_KEY=$(openssl rand -hex 32) \
-    airepublic/pi-dash-aio-community:latest
+    airepublic/karma-team-aio-community:latest
 ```
 
 ## Configuration Options
@@ -130,13 +130,13 @@ To build the AIO image yourself:
 
 ```bash
 cd deployments/aio/community
-IMAGE_NAME=mypidash-aio ./build.sh --release=v0.27.1 [--platform=linux/amd64]
+IMAGE_NAME=mykarma-team-aio ./build.sh --release=v0.27.1 [--platform=linux/amd64]
 ```
 
 Available build options:
 
-- `--release`: Pi Dash version to build (required)
-- `--image-name`: Custom image name (default: `pi-dash-aio-community`)
+- `--release`: karma-team version to build (required)
+- `--image-name`: Custom image name (default: `karma-team-aio-community`)
 
 ## Troubleshooting
 
@@ -176,4 +176,4 @@ The container will validate required environment variables on startup and displa
 
 ## Support
 
-For issues and support, please refer to the official Pi Dash documentation.
+For issues and support, please refer to the official karma-team documentation.

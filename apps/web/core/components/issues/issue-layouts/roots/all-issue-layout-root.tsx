@@ -8,11 +8,11 @@ import React, { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR from "swr";
-// pi dash imports
-import { GLOBAL_VIEW_TRACKER_ELEMENTS, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@pi-dash/constants";
-import { EmptyStateDetailed } from "@pi-dash/propel/empty-state";
-import type { EIssueLayoutTypes } from "@pi-dash/types";
-import { EIssuesStoreType, STATIC_VIEW_TYPES } from "@pi-dash/types";
+// karma-team imports
+import { GLOBAL_VIEW_TRACKER_ELEMENTS, ISSUE_DISPLAY_FILTERS_BY_PAGE } from "@karma-team/constants";
+import { EmptyStateDetailed } from "@karma-team/propel/empty-state";
+import type { EIssueLayoutTypes } from "@karma-team/types";
+import { EIssuesStoreType, STATIC_VIEW_TYPES } from "@karma-team/types";
 // assets
 // components
 import { IssuePeekOverview, IssuePeekUrlSync } from "@/components/issues/peek-overview";

@@ -6,14 +6,14 @@
 
 import { useEffect } from "react";
 import { Controller, useForm } from "react-hook-form";
-// pi dash imports
-import { ETabIndices } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { IModule } from "@pi-dash/types";
+// karma-team imports
+import { ETabIndices } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { IModule } from "@karma-team/types";
 // ui
-import { Input, TextArea } from "@pi-dash/ui";
-import { getDate, renderFormattedPayloadDate, getTabIndex } from "@pi-dash/utils";
+import { Input, TextArea } from "@karma-team/ui";
+import { getDate, renderFormattedPayloadDate, getTabIndex } from "@karma-team/utils";
 // components
 import { DateRangeDropdown } from "@/components/dropdowns/date-range";
 import { MemberDropdown } from "@/components/dropdowns/member/dropdown";

@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { MAX_FILE_SIZE } from "@pi-dash/constants";
+// karma-team imports
+import { MAX_FILE_SIZE } from "@karma-team/constants";
 // hooks
 import { useInstance } from "@/hooks/store/use-instance";
 

@@ -8,9 +8,9 @@ import { useState } from "react";
 import { observer } from "mobx-react";
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
-import { CloseIcon } from "@pi-dash/propel/icons";
+import { CloseIcon } from "@karma-team/propel/icons";
 // ui
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import { Tooltip } from "@karma-team/propel/tooltip";
 import {
   convertBytesToSize,
   getFileExtension,
@@ -18,7 +18,7 @@ import {
   getFileURL,
   renderFormattedDate,
   truncateText,
-} from "@pi-dash/utils";
+} from "@karma-team/utils";
 // icons
 //
 import { getFileIcon } from "@/components/icons";

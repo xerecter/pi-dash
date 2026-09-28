@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-import { API_BASE_URL } from "@pi-dash/constants";
-import type { IPod } from "@pi-dash/types";
+import { API_BASE_URL } from "@karma-team/constants";
+import type { IPod } from "@karma-team/types";
 import { APIService } from "../api.service";
 
 /**
- * Pi Dash Pod CRUD client. Session-authenticated; mounted at
+ * karma-team Pod CRUD client. Session-authenticated; mounted at
  * /api/runners/pods/ on the Django server. See
  * .ai_design/issue_runner/design.md §8.1.
  */

@@ -5,7 +5,7 @@
  */
 
 import React from "react";
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import { Tooltip } from "@karma-team/propel/tooltip";
 import { cn } from "../utils";
 
 type Props = {

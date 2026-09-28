@@ -9,12 +9,12 @@ import { useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
 // icons
 import { CircleAlert, XCircle } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { IEmailCheckData } from "@pi-dash/types";
-import { Input, Spinner } from "@pi-dash/ui";
-import { cn, checkEmailValidity } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { IEmailCheckData } from "@karma-team/types";
+import { Input, Spinner } from "@karma-team/ui";
+import { cn, checkEmailValidity } from "@karma-team/utils";
 // helpers
 type TAuthEmailForm = {
   defaultEmail: string;
@@ -26,7 +26,7 @@ export const AuthEmailForm = observer(function AuthEmailForm(props: TAuthEmailFo
   // states
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [email, setEmail] = useState(defaultEmail);
-  // pi dash hooks
+  // karma-team hooks
   const { t } = useTranslation();
   const emailError = useMemo(
     () => (email && !checkEmailValidity(email) ? { email: "Email is invalid" } : undefined),

@@ -5,8 +5,8 @@
  */
 
 import { CalendarClock } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { Breadcrumbs } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { Breadcrumbs } from "@karma-team/ui";
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { SettingsPageHeader } from "@/components/settings/page-header";
 
@@ -19,10 +19,7 @@ export function SchedulersProjectSettingsHeader() {
           <Breadcrumbs>
             <Breadcrumbs.Item
               component={
-                <BreadcrumbLink
-                  label={t("Schedulers")}
-                  icon={<CalendarClock className="size-4 text-tertiary" />}
-                />
+                <BreadcrumbLink label={t("Schedulers")} icon={<CalendarClock className="size-4 text-tertiary" />} />
               }
             />
           </Breadcrumbs>

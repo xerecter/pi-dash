@@ -5,10 +5,10 @@
  */
 
 import { useState, useEffect } from "react";
-// pi dash imports
-// import { useTranslation } from "@pi-dash/i18n";
-import type { TIssueEntityData, TIssueSearchResponse, TActivityEntityData } from "@pi-dash/types";
-// import { generateWorkItemLink } from "@pi-dash/utils";
+// karma-team imports
+// import { useTranslation } from "@karma-team/i18n";
+import type { TIssueEntityData, TIssueSearchResponse, TActivityEntityData } from "@karma-team/types";
+// import { generateWorkItemLink } from "@karma-team/utils";
 // components
 // import { CommandPaletteEntityList } from "@/components/command-palette";
 // import { SimpleEmptyState } from "@/components/empty-state/simple-empty-state-root";
@@ -16,8 +16,8 @@ import type { TIssueEntityData, TIssueSearchResponse, TActivityEntityData } from
 // import { useCommandPalette } from "@/hooks/store/use-command-palette";
 // import { usePowerK } from "@/hooks/store/use-power-k";
 // import { useAppRouter } from "@/hooks/use-app-router";
-// pi dash web imports
-// import { IssueIdentifier } from "@/pi-dash-web/components/issues/issue-details/issue-identifier";
+// karma-team web imports
+// import { IssueIdentifier } from "@/karma-team-web/components/issues/issue-details/issue-identifier";
 import { WorkspaceService } from "@/services/workspace.service";
 
 const workspaceService = new WorkspaceService();
@@ -37,7 +37,7 @@ export function WorkItemSelectionPage(props: Props) {
   const { workspaceSlug, projectId, debouncedSearchTerm, isWorkspaceLevel = false } = props;
   // router
   // const router = useAppRouter();
-  // pi dash hooks
+  // karma-team hooks
   // const { t } = useTranslation();
   // store hooks
   // const { togglePowerKModal } = usePowerK();

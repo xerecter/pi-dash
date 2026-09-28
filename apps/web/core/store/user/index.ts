@@ -6,13 +6,13 @@
 
 import { cloneDeep, set } from "lodash-es";
 import { action, makeObservable, observable, runInAction, computed } from "mobx";
-// pi dash imports
-import { EUserPermissions, API_BASE_URL } from "@pi-dash/constants";
-import type { IUser, TUserPermissions } from "@pi-dash/types";
-// pi dash web imports
-import type { RootStore } from "@/pi-dash-web/store/root.store";
-import type { IUserPermissionStore } from "@/pi-dash-web/store/user/permission.store";
-import { UserPermissionStore } from "@/pi-dash-web/store/user/permission.store";
+// karma-team imports
+import { EUserPermissions, API_BASE_URL } from "@karma-team/constants";
+import type { IUser, TUserPermissions } from "@karma-team/types";
+// karma-team web imports
+import type { RootStore } from "@/karma-team-web/store/root.store";
+import type { IUserPermissionStore } from "@/karma-team-web/store/user/permission.store";
+import { UserPermissionStore } from "@/karma-team-web/store/user/permission.store";
 // services
 import { AuthService } from "@/services/auth.service";
 import { UserService } from "@/services/user.service";

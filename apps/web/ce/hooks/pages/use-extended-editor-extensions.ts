@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import type { IEditorPropsExtended } from "@pi-dash/editor";
-import type { TSearchEntityRequestPayload, TSearchResponse } from "@pi-dash/types";
+import type { IEditorPropsExtended } from "@karma-team/editor";
+import type { TSearchEntityRequestPayload, TSearchResponse } from "@karma-team/types";
 import type { TPageInstance } from "@/store/pages/base-page";
 import type { EPageStoreType } from "../store";
 

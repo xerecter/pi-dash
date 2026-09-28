@@ -5,7 +5,7 @@
  */
 
 import { PlugZap } from "lucide-react";
-import type { IAssistantSkippedServer } from "@pi-dash/types";
+import type { IAssistantSkippedServer } from "@karma-team/types";
 
 // Machine-readable reason codes the backend emits for a dropped tool server,
 // mapped to short human text. The set covers OSS (mcp.py + the resolver

@@ -6,8 +6,8 @@
 
 import { Eye, EyeClosed } from "lucide-react";
 import { useState } from "react";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { cn } from "@pi-dash/utils";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { cn } from "@karma-team/utils";
 
 type TPasswordInputProps = {
   id: string;

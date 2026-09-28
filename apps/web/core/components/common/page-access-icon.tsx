@@ -5,9 +5,9 @@
  */
 
 import { ArchiveIcon, Earth } from "lucide-react";
-import { EPageAccess } from "@pi-dash/constants";
-import { LockIcon } from "@pi-dash/propel/icons";
-import type { TPage } from "@pi-dash/types";
+import { EPageAccess } from "@karma-team/constants";
+import { LockIcon } from "@karma-team/propel/icons";
+import type { TPage } from "@karma-team/types";
 
 export function PageAccessIcon(page: TPage) {
   return (

@@ -7,9 +7,9 @@
 import { FloatingOverlay } from "@floating-ui/react";
 import type { SuggestionKeyDownProps, SuggestionProps } from "@tiptap/suggestion";
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from "react";
-// pi dash imports
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { cn } from "@karma-team/utils";
 
 export type EmojiItem = {
   name: string;

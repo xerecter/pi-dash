@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { TBuildFilterExpressionParams, TExternalFilter, TFilterProperty, TFilterValue } from "@pi-dash/types";
-import { LOGICAL_OPERATOR } from "@pi-dash/types";
-import { getOperatorForPayload } from "@pi-dash/utils";
+// karma-team imports
+import type { TBuildFilterExpressionParams, TExternalFilter, TFilterProperty, TFilterValue } from "@karma-team/types";
+import { LOGICAL_OPERATOR } from "@karma-team/types";
+import { getOperatorForPayload } from "@karma-team/utils";
 // local imports
 import { FilterInstance } from "../store/rich-filters/filter";
 

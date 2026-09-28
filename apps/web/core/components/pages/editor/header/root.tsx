@@ -7,9 +7,9 @@
 import { useState } from "react";
 import { observer } from "mobx-react";
 import { SmilePlus } from "lucide-react";
-// pi dash imports
-import { EmojiPicker, EmojiIconPickerTypes } from "@pi-dash/propel/emoji-icon-picker";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { EmojiPicker, EmojiIconPickerTypes } from "@karma-team/propel/emoji-icon-picker";
+import { cn } from "@karma-team/utils";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports

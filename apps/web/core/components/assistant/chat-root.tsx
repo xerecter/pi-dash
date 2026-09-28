@@ -6,7 +6,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
-import { setToast, TOAST_TYPE } from "@pi-dash/propel/toast";
+import { setToast, TOAST_TYPE } from "@karma-team/propel/toast";
 import { ChatComposer } from "@/components/chat/composer";
 import { ChatContainer } from "@/components/chat/container";
 import { AssistantMessage } from "@/components/assistant/assistant-message";

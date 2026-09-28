@@ -5,16 +5,16 @@
  */
 
 import React from "react";
-import { useTranslation } from "@pi-dash/i18n";
+import { useTranslation } from "@karma-team/i18n";
 
 export function AuthHero({ className = "" }: { className?: string }) {
   const { t } = useTranslation();
   return (
     <div className={`flex w-full max-w-md flex-col gap-4 text-center lg:text-left ${className}`}>
       <h1 className="text-3xl sm:text-4xl leading-tight font-semibold text-primary">
-        {t("Pi Dash: Your AI Employee Management Platform")}
+        {t("karma-team: Your AI Employee Management Platform")}
       </h1>
-      <p className="text-lg text-tertiary">{t("Pi Dash helps you utilize best out of Claude Fable 5")}</p>
+      <p className="text-lg text-tertiary">{t("karma-team helps you utilize best out of Claude Fable 5")}</p>
     </div>
   );
 }

@@ -5,9 +5,9 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash types
-import type { ICycle, TIssue } from "@pi-dash/types";
-import { Spinner } from "@pi-dash/ui";
+// karma-team types
+import type { ICycle, TIssue } from "@karma-team/types";
+import { Spinner } from "@karma-team/ui";
 // components
 import { PowerKCyclesMenu } from "@/components/power-k/menus/cycles";
 // hooks

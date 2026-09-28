@@ -18,13 +18,13 @@ import { attachInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { createRoot } from "react-dom/client";
-// pi dash types
-import { useTranslation } from "@pi-dash/i18n";
-import type { InstructionType } from "@pi-dash/types";
-// pi dash ui
-import { DropIndicator, ToggleSwitch } from "@pi-dash/ui";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team types
+import { useTranslation } from "@karma-team/i18n";
+import type { InstructionType } from "@karma-team/types";
+// karma-team ui
+import { DropIndicator, ToggleSwitch } from "@karma-team/ui";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // hooks
 import { useHome } from "@/hooks/store/use-home";
 import { HOME_WIDGETS_LIST } from "../../home-dashboard-widgets";

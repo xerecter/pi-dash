@@ -7,11 +7,11 @@
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import { Bot } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { Breadcrumbs, Header } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { Breadcrumbs, Header } from "@karma-team/ui";
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { useProject } from "@/hooks/store/use-project";
-import { CommonProjectBreadcrumbs } from "@/pi-dash-web/components/breadcrumbs/common";
+import { CommonProjectBreadcrumbs } from "@/karma-team-web/components/breadcrumbs/common";
 
 export const ProjectRunnersHeader = observer(function ProjectRunnersHeader() {
   const { workspaceSlug, projectId } = useParams();

@@ -5,8 +5,8 @@
  */
 
 import { observer } from "mobx-react";
-// pi dash imports
-import type { TIssueServiceType } from "@pi-dash/types";
+// karma-team imports
+import type { TIssueServiceType } from "@karma-team/types";
 // computed
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 // local imports

@@ -6,9 +6,9 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash imports
-import type { TIssue } from "@pi-dash/types";
-import { EIssueServiceType, EIssuesStoreType } from "@pi-dash/types";
+// karma-team imports
+import type { TIssue } from "@karma-team/types";
+import { EIssueServiceType, EIssuesStoreType } from "@karma-team/types";
 // components
 import { BulkDeleteIssuesModal } from "@/components/core/modals/bulk-delete-issues-modal";
 import { DeleteIssueModal } from "@/components/issues/delete-issue-modal";

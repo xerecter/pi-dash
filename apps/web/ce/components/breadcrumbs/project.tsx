@@ -5,16 +5,16 @@
  */
 
 import { observer } from "mobx-react";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import { ProjectIcon } from "@pi-dash/propel/icons";
-// pi dash imports
-import type { ICustomSearchSelectOption } from "@pi-dash/types";
-import { BreadcrumbNavigationSearchDropdown, Breadcrumbs } from "@pi-dash/ui";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import { ProjectIcon } from "@karma-team/propel/icons";
+// karma-team imports
+import type { ICustomSearchSelectOption } from "@karma-team/types";
+import { BreadcrumbNavigationSearchDropdown, Breadcrumbs } from "@karma-team/ui";
 import { SwitcherLabel } from "@/components/common/switcher-label";
 // hooks
 import { useProject } from "@/hooks/store/use-project";
 import { useAppRouter } from "@/hooks/use-app-router";
-import type { TProject } from "@/pi-dash-web/types";
+import type { TProject } from "@/karma-team-web/types";
 
 type TProjectBreadcrumbProps = {
   workspaceSlug: string;

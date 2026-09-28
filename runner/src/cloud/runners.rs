@@ -115,7 +115,7 @@ pub async fn delete_runner(
 }
 
 /// Probe the cloud's `/api/v1/runner/health/` endpoint with a short
-/// timeout. Used by `pidash runner remove` to decide whether to take
+/// timeout. Used by `karma-team runner remove` to decide whether to take
 /// the cascade path (B1) or the local-only path (B2) when the user
 /// hasn't passed `--local-only`.
 ///
@@ -131,7 +131,7 @@ pub async fn probe_cloud_reachable(cloud_url: &str) -> bool {
     let url = format!("{}/api/v1/runner/health/", cloud_url.trim_end_matches('/'),);
     let client = match reqwest::Client::builder()
         .timeout(Duration::from_secs(4))
-        .user_agent(format!("pidash/{}", crate::RUNNER_VERSION))
+        .user_agent(format!("karma-team/{}", crate::RUNNER_VERSION))
         .build()
     {
         Ok(c) => c,
@@ -158,7 +158,7 @@ fn classify(status: reqwest::StatusCode, body: &str) -> RunnerCrudError {
 fn http_client() -> Result<reqwest::Client> {
     Ok(reqwest::Client::builder()
         .timeout(Duration::from_secs(30))
-        .user_agent(format!("pidash/{}", crate::RUNNER_VERSION))
+        .user_agent(format!("karma-team/{}", crate::RUNNER_VERSION))
         .build()?)
 }
 

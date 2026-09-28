@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import type { SingleOrArray, TFilterExpression, TFilterProperty, TFilterValue } from "@pi-dash/types";
+// karma-team imports
+import type { SingleOrArray, TFilterExpression, TFilterProperty, TFilterValue } from "@karma-team/types";
 // local imports
 import { getGroupChildren } from "../types";
 import { isConditionNode, isGroupNode } from "../types/core";

@@ -7,7 +7,7 @@
 import { set } from "lodash-es";
 import { action, computed, makeObservable, observable, runInAction } from "mobx";
 // services
-import type { TIssueLink, TIssueLinkMap, TIssueLinkIdMap, TIssueServiceType } from "@pi-dash/types";
+import type { TIssueLink, TIssueLinkMap, TIssueLinkIdMap, TIssueServiceType } from "@karma-team/types";
 import { IssueService } from "@/services/issue";
 // types
 import type { IIssueDetail } from "./root.store";

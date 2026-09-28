@@ -8,11 +8,11 @@ import type { CSSProperties } from "react";
 import { extractInstruction } from "@atlaskit/pragmatic-drag-and-drop-hitbox/tree-item";
 import { clone, isNil, pull, uniq, concat } from "lodash-es";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
-// pi dash types
-import { EIconSize, ISSUE_PRIORITIES, STATE_GROUPS } from "@pi-dash/constants";
-import { Logo } from "@pi-dash/propel/emoji-icon-picker";
-import type { ISvgIcons } from "@pi-dash/propel/icons";
-import { CycleGroupIcon, CycleIcon, ModuleIcon, PriorityIcon, StateGroupIcon } from "@pi-dash/propel/icons";
+// karma-team types
+import { EIconSize, ISSUE_PRIORITIES, STATE_GROUPS } from "@karma-team/constants";
+import { Logo } from "@karma-team/propel/emoji-icon-picker";
+import type { ISvgIcons } from "@karma-team/propel/icons";
+import { CycleGroupIcon, CycleIcon, ModuleIcon, PriorityIcon, StateGroupIcon } from "@karma-team/propel/icons";
 import type {
   GroupByColumnTypes,
   IGroupByColumn,
@@ -26,20 +26,20 @@ import type {
   TGroupedIssues,
   IIssueDisplayFilterOptions,
   TGetColumns,
-} from "@pi-dash/types";
-import { EIssuesStoreType } from "@pi-dash/types";
-// pi dash ui
-import { Avatar } from "@pi-dash/ui";
-import { renderFormattedDate, getFileURL } from "@pi-dash/utils";
+} from "@karma-team/types";
+import { EIssuesStoreType } from "@karma-team/types";
+// karma-team ui
+import { Avatar } from "@karma-team/ui";
+import { renderFormattedDate, getFileURL } from "@karma-team/utils";
 // helpers
 // store
 import { store } from "@/lib/store-context";
-// pi dash web store
+// karma-team web store
 import {
   getScopeMemberIds,
   getTeamProjectColumns,
   SpreadSheetPropertyIconMap,
-} from "@/pi-dash-web/components/issues/issue-layouts/utils";
+} from "@/karma-team-web/components/issues/issue-layouts/utils";
 // store
 import { ISSUE_FILTER_DEFAULT_DATA } from "@/store/issue/helpers/base-issues.store";
 import { DEFAULT_DISPLAY_PROPERTIES } from "@/store/issue/issue-details/sub_issues_filter.store";

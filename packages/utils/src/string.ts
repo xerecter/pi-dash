@@ -5,7 +5,7 @@
  */
 
 import sanitizeHtml from "sanitize-html";
-import type { Content, JSONContent } from "@pi-dash/types";
+import type { Content, JSONContent } from "@karma-team/types";
 
 /**
  * @description Adds space between camelCase words

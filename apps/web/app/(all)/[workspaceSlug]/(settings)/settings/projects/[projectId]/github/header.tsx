@@ -5,7 +5,7 @@
  */
 
 import { GitBranch } from "lucide-react";
-import { Breadcrumbs } from "@pi-dash/ui";
+import { Breadcrumbs } from "@karma-team/ui";
 import { BreadcrumbLink } from "@/components/common/breadcrumb-link";
 import { SettingsPageHeader } from "@/components/settings/page-header";
 

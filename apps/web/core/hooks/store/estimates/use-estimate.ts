@@ -8,7 +8,7 @@ import { useContext } from "react";
 // mobx store
 import { StoreContext } from "@/lib/store-context";
 // mobx store
-import type { IEstimate } from "@/pi-dash-web/store/estimates/estimate";
+import type { IEstimate } from "@/karma-team-web/store/estimates/estimate";
 
 export const useEstimate = (estimateId: string | undefined): IEstimate => {
   const context = useContext(StoreContext);

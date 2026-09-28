@@ -34,7 +34,7 @@ function SkeletonItem({ height = "auto", width = "auto", className = "" }: ItemP
 
 const Skeleton = Object.assign(SkeletonRoot, { Item: SkeletonItem });
 
-SkeletonRoot.displayName = "pi-dash-ui-skeleton";
-SkeletonItem.displayName = "pi-dash-ui-skeleton-item";
+SkeletonRoot.displayName = "karma-team-ui-skeleton";
+SkeletonItem.displayName = "karma-team-ui-skeleton-item";
 
 export { Skeleton, SkeletonRoot, SkeletonItem };

@@ -10,15 +10,15 @@ import { powerKCommandFilter } from "@/components/power-k/ui/modal/filter";
 
 describe("powerKCommandFilter", () => {
   it("keeps server-matched search results when the query only matches keywords", () => {
-    expect(powerKCommandFilter("issue-de4163f5-front end error-PIDASH-1", "38 same errors", ["38 same errors"])).toBe(
-      1
-    );
+    expect(
+      powerKCommandFilter("issue-de4163f5-front end error-KARMA_TEAM-1", "38 same errors", ["38 same errors"])
+    ).toBe(1);
   });
 
   it("keeps server-matched search results when the query has surrounding whitespace", () => {
-    expect(powerKCommandFilter("issue-de4163f5-front end error-PIDASH-1", " 38 same errors ", ["38 same errors"])).toBe(
-      1
-    );
+    expect(
+      powerKCommandFilter("issue-de4163f5-front end error-KARMA_TEAM-1", " 38 same errors ", ["38 same errors"])
+    ).toBe(1);
   });
 
   it("still filters ordinary command values", () => {

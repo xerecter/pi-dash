@@ -6,11 +6,11 @@
 
 import { useState } from "react";
 import { XCircle } from "lucide-react";
-// pi dash imports
-import { PROFILE_SETTINGS_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { IApiToken } from "@pi-dash/types";
-import { renderFormattedDate, calculateTimeAgo, renderFormattedTime } from "@pi-dash/utils";
+// karma-team imports
+import { PROFILE_SETTINGS_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { IApiToken } from "@karma-team/types";
+import { renderFormattedDate, calculateTimeAgo, renderFormattedTime } from "@karma-team/utils";
 // components
 import { DeleteApiTokenModal } from "@/components/api-token/delete-token-modal";
 // hooks

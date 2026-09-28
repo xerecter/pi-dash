@@ -5,7 +5,7 @@
  */
 
 import type { Request, Response } from "express";
-import { Controller, Get } from "@pi-dash/decorators";
+import { Controller, Get } from "@karma-team/decorators";
 import { env } from "@/env";
 
 @Controller("/health")

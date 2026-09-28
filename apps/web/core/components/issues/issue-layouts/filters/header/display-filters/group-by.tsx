@@ -6,11 +6,11 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import type { IIssueDisplayFilterOptions, TIssueGroupByOptions } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import type { IIssueDisplayFilterOptions, TIssueGroupByOptions } from "@karma-team/types";
 // components
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
-import { useGroupByOptions } from "@/pi-dash-web/components/issues/issue-layouts/utils";
+import { useGroupByOptions } from "@/karma-team-web/components/issues/issue-layouts/utils";
 
 type Props = {
   displayFilters: IIssueDisplayFilterOptions | undefined;

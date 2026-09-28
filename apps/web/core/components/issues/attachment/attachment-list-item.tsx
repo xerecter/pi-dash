@@ -6,14 +6,14 @@
 
 import { observer } from "mobx-react";
 
-import { useTranslation } from "@pi-dash/i18n";
-import { TrashIcon } from "@pi-dash/propel/icons";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { TrashIcon } from "@karma-team/propel/icons";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // ui
-import { CustomMenu } from "@pi-dash/ui";
-import { convertBytesToSize, getFileExtension, getFileName, getFileURL, renderFormattedDate } from "@pi-dash/utils";
+import { CustomMenu } from "@karma-team/ui";
+import { convertBytesToSize, getFileExtension, getFileName, getFileURL, renderFormattedDate } from "@karma-team/utils";
 // components
 //
 import { ButtonAvatars } from "@/components/dropdowns/member/avatar";

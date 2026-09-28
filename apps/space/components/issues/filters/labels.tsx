@@ -5,8 +5,8 @@
  */
 
 import React, { useState } from "react";
-// pi dash imports
-import { Loader } from "@pi-dash/ui";
+// karma-team imports
+import { Loader } from "@karma-team/ui";
 // types
 import type { IIssueLabel } from "@/types/issue";
 // local imports

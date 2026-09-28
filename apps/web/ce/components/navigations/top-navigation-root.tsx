@@ -7,8 +7,8 @@
 // components
 import { observer } from "mobx-react";
 import { useParams, usePathname } from "next/navigation";
-import { useTranslation } from "@pi-dash/i18n";
-import { cn } from "@pi-dash/utils";
+import { useTranslation } from "@karma-team/i18n";
+import { cn } from "@karma-team/utils";
 import { TopNavPowerK } from "@/components/navigation";
 import { AppSidebarToggleButton } from "@/components/sidebar/sidebar-toggle-button";
 import { HelpMenuRoot } from "@/components/workspace/sidebar/help-section/root";
@@ -16,9 +16,9 @@ import { UserMenuRoot } from "@/components/workspace/sidebar/user-menu-root";
 import { WorkspaceMenuRoot } from "@/components/workspace/sidebar/workspace-menu-root";
 import { useAppTheme } from "@/hooks/store/use-app-theme";
 import { useAppRailPreferences } from "@/hooks/use-navigation-preferences";
-import { Tooltip } from "@pi-dash/propel/tooltip";
+import { Tooltip } from "@karma-team/propel/tooltip";
 import { AppSidebarItem } from "@/components/sidebar/sidebar-item";
-import { InboxIcon } from "@pi-dash/propel/icons";
+import { InboxIcon } from "@karma-team/propel/icons";
 import useSWR from "swr";
 import { useWorkspaceNotifications } from "@/hooks/store/notifications";
 // local imports
@@ -41,9 +41,7 @@ export const TopNavigationRoot = observer(function TopNavigationRoot() {
     !!workspaceSlugString &&
     !pathname?.startsWith(`/${workspaceSlugString}/settings`) &&
     !pathname?.startsWith(`/${workspaceSlugString}/notifications`);
-  const sidebarToggleTooltip = sidebarCollapsed
-    ? t("Expand sidebar")
-    : t("Collapse sidebar");
+  const sidebarToggleTooltip = sidebarCollapsed ? t("Expand sidebar") : t("Collapse sidebar");
 
   // Fetch notification count
   useSWR(

@@ -7,7 +7,7 @@
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
 // helpers
-import type { ChartDataType, TGanttViews } from "@pi-dash/types";
+import type { ChartDataType, TGanttViews } from "@karma-team/types";
 import { currentViewDataWithView } from "@/components/gantt-chart/data";
 // types
 

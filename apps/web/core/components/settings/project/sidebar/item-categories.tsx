@@ -7,14 +7,14 @@
 import { observer } from "mobx-react";
 import { usePathname } from "next/navigation";
 import { useParams } from "react-router";
-// pi dash imports
+// karma-team imports
 import {
   EUserPermissionsLevel,
   GROUPED_PROJECT_SETTINGS,
   PROJECT_SETTINGS_CATEGORIES,
   PROJECT_SETTINGS_CATEGORY_I18N_LABELS,
-} from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
+} from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
 // components
 import { SettingsSidebarItem } from "@/components/settings/sidebar/item";
 // hooks

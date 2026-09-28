@@ -8,19 +8,19 @@ import type { FormEvent } from "react";
 import { useEffect, useState } from "react";
 import { observer } from "mobx-react";
 import { Info } from "lucide-react";
-import { EEstimateSystem, MAX_ESTIMATE_POINT_INPUT_LENGTH } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { CheckIcon, CloseIcon } from "@pi-dash/propel/icons";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import type { TEstimatePointsObject, TEstimateSystemKeys, TEstimateTypeErrorObject } from "@pi-dash/types";
-import { Spinner } from "@pi-dash/ui";
-import { cn, isEstimatePointValuesRepeated } from "@pi-dash/utils";
+import { EEstimateSystem, MAX_ESTIMATE_POINT_INPUT_LENGTH } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { CheckIcon, CloseIcon } from "@karma-team/propel/icons";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import type { TEstimatePointsObject, TEstimateSystemKeys, TEstimateTypeErrorObject } from "@karma-team/types";
+import { Spinner } from "@karma-team/ui";
+import { cn, isEstimatePointValuesRepeated } from "@karma-team/utils";
 import { EstimateInputRoot } from "@/components/estimates/inputs/root";
 // helpers
 // hooks
 import { useEstimatePoint } from "@/hooks/store/estimates/use-estimate-point";
-// pi dash web constants
+// karma-team web constants
 
 type TEstimatePointUpdate = {
   workspaceSlug: string;

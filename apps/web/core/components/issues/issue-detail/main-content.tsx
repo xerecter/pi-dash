@@ -6,11 +6,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import type { EditorRefApi } from "@pi-dash/editor";
-import type { TNameDescriptionLoader } from "@pi-dash/types";
-import { EFileAssetType, EIssueServiceType } from "@pi-dash/types";
-import { getTextContent } from "@pi-dash/utils";
+// karma-team imports
+import type { EditorRefApi } from "@karma-team/editor";
+import type { TNameDescriptionLoader } from "@karma-team/types";
+import { EFileAssetType, EIssueServiceType } from "@karma-team/types";
+import { getTextContent } from "@karma-team/utils";
 // components
 import { DescriptionVersionsRoot } from "@/components/core/description-versions";
 import { DescriptionInput } from "@/components/editor/rich-text/description-input";
@@ -21,10 +21,10 @@ import { useProject } from "@/hooks/store/use-project";
 import { useUser } from "@/hooks/store/user";
 import useReloadConfirmations from "@/hooks/use-reload-confirmation";
 import useSize from "@/hooks/use-window-size";
-// pi dash web components
-import { DeDupeIssuePopoverRoot } from "@/pi-dash-web/components/de-dupe/duplicate-popover";
-import { IssueTypeSwitcher } from "@/pi-dash-web/components/issues/issue-details/issue-type-switcher";
-import { useDebouncedDuplicateIssues } from "@/pi-dash-web/hooks/use-debounced-duplicate-issues";
+// karma-team web components
+import { DeDupeIssuePopoverRoot } from "@/karma-team-web/components/de-dupe/duplicate-popover";
+import { IssueTypeSwitcher } from "@/karma-team-web/components/issues/issue-details/issue-type-switcher";
+import { useDebouncedDuplicateIssues } from "@/karma-team-web/hooks/use-debounced-duplicate-issues";
 // services
 import { WorkItemVersionService } from "@/services/issue";
 // local imports

@@ -15,9 +15,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-// pi dash imports
-import { AXIS_LABEL_CLASSNAME } from "@pi-dash/constants";
-import type { TLineChartProps } from "@pi-dash/types";
+// karma-team imports
+import { AXIS_LABEL_CLASSNAME } from "@karma-team/constants";
+import type { TLineChartProps } from "@karma-team/types";
 // local components
 import { getLegendProps } from "../components/legend";
 import { CustomXAxisTick, CustomYAxisTick } from "../components/tick";

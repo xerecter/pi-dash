@@ -6,8 +6,8 @@
 
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
-// pi dash utils
-import { cn } from "@pi-dash/utils";
+// karma-team utils
+import { cn } from "@karma-team/utils";
 // components
 import { IssueEmojiReactions } from "@/components/issues/reactions/issue-emoji-reactions";
 import { IssueVotes } from "@/components/issues/reactions/issue-vote-reactions";

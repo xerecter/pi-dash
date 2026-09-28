@@ -6,9 +6,9 @@
 
 import React, { useState } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
-import { STATE_GROUPS } from "@pi-dash/constants";
-import { StateGroupIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { STATE_GROUPS } from "@karma-team/constants";
+import { StateGroupIcon } from "@karma-team/propel/icons";
 // components
 import { FilterHeader, FilterOption } from "@/components/issues/issue-layouts/filters";
 

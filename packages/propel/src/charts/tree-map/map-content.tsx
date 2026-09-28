@@ -5,8 +5,8 @@
  */
 
 import React, { useMemo } from "react";
-// pi dash imports
-import type { TBottomSectionConfig, TContentVisibility, TTopSectionConfig } from "@pi-dash/types";
+// karma-team imports
+import type { TBottomSectionConfig, TContentVisibility, TTopSectionConfig } from "@karma-team/types";
 import { cn } from "../../utils/classname";
 
 const LAYOUT = {

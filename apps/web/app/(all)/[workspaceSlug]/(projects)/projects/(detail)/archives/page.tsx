@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { ProjectPageRoot } from "@/pi-dash-web/components/projects/page";
+import { ProjectPageRoot } from "@/karma-team-web/components/projects/page";
 
 function ProjectsPage() {
   return <ProjectPageRoot />;

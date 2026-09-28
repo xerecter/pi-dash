@@ -7,14 +7,14 @@
 import { useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react";
 import { GripVertical } from "lucide-react";
-// pi dash imports
-import { EEstimateSystem, estimateCount } from "@pi-dash/constants";
-import { useTranslation } from "@pi-dash/i18n";
-import { EditIcon, TrashIcon } from "@pi-dash/propel/icons";
-import type { TEstimatePointsObject, TEstimateSystemKeys, TEstimateTypeErrorObject } from "@pi-dash/types";
-import { convertMinutesToHoursMinutesString } from "@pi-dash/utils";
-// pi dash web imports
-import { EstimatePointDelete } from "@/pi-dash-web/components/estimates";
+// karma-team imports
+import { EEstimateSystem, estimateCount } from "@karma-team/constants";
+import { useTranslation } from "@karma-team/i18n";
+import { EditIcon, TrashIcon } from "@karma-team/propel/icons";
+import type { TEstimatePointsObject, TEstimateSystemKeys, TEstimateTypeErrorObject } from "@karma-team/types";
+import { convertMinutesToHoursMinutesString } from "@karma-team/utils";
+// karma-team web imports
+import { EstimatePointDelete } from "@/karma-team-web/components/estimates";
 // local imports
 import { EstimatePointUpdate } from "./update";
 

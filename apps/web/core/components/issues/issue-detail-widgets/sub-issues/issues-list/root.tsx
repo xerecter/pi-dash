@@ -6,12 +6,12 @@
 
 import { useCallback, useMemo } from "react";
 import { observer } from "mobx-react";
-// pi dash imports
+// karma-team imports
 import { ListFilter } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { GroupByColumnTypes, TIssue, TIssueServiceType, TSubIssueOperations } from "@pi-dash/types";
-import { EIssueServiceType, EIssuesStoreType } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { GroupByColumnTypes, TIssue, TIssueServiceType, TSubIssueOperations } from "@karma-team/types";
+import { EIssueServiceType, EIssuesStoreType } from "@karma-team/types";
 // hooks
 import { SectionEmptyState } from "@/components/empty-state/section-empty-state-root";
 import { getGroupByColumns, isWorkspaceLevel } from "@/components/issues/issue-layouts/utils";

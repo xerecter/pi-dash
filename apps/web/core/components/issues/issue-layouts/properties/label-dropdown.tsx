@@ -10,17 +10,17 @@ import { useParams } from "next/navigation";
 import { usePopper } from "react-popper";
 import { Loader } from "lucide-react";
 import { Combobox } from "@headlessui/react";
-// pi dash imports
-import { EUserPermissionsLevel, getRandomLabelColor } from "@pi-dash/constants";
-import { useOutsideClickDetector } from "@pi-dash/hooks";
-import { useTranslation } from "@pi-dash/i18n";
-import { CheckIcon, SearchIcon, ChevronDownIcon } from "@pi-dash/propel/icons";
+// karma-team imports
+import { EUserPermissionsLevel, getRandomLabelColor } from "@karma-team/constants";
+import { useOutsideClickDetector } from "@karma-team/hooks";
+import { useTranslation } from "@karma-team/i18n";
+import { CheckIcon, SearchIcon, ChevronDownIcon } from "@karma-team/propel/icons";
 // types
-import type { IIssueLabel } from "@pi-dash/types";
-import { EUserProjectRoles } from "@pi-dash/types";
+import type { IIssueLabel } from "@karma-team/types";
+import { EUserProjectRoles } from "@karma-team/types";
 // components
-import { ComboDropDown } from "@pi-dash/ui";
-import { sortBySelectedFirst } from "@pi-dash/utils";
+import { ComboDropDown } from "@karma-team/ui";
+import { sortBySelectedFirst } from "@karma-team/utils";
 // hooks
 import { useLabel } from "@/hooks/store/use-label";
 import { useUserPermissions } from "@/hooks/store/user";

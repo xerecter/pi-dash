@@ -8,11 +8,11 @@ import React, { useState } from "react";
 import { observer } from "mobx-react";
 import { usePopper } from "react-popper";
 import { Popover, Transition } from "@headlessui/react";
-import { ChevronLeftIcon, ChevronRightIcon } from "@pi-dash/propel/icons";
+import { ChevronLeftIcon, ChevronRightIcon } from "@karma-team/propel/icons";
 //hooks
 // icons
 // constants
-import { getDate } from "@pi-dash/utils";
+import { getDate } from "@karma-team/utils";
 import { MONTHS_LIST } from "@/constants/calendar";
 import { useCalendarView } from "@/hooks/store/use-calendar-view";
 import type { ICycleIssuesFilter } from "@/store/issue/cycle";

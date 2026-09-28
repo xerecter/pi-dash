@@ -195,7 +195,7 @@ impl Supervisor {
         // machine-scoped commands (``create_runner``) down to this
         // machine even when it hosts zero runners. Requires the shared
         // machine token and a persisted dev_machine_id — both written
-        // by `pidash auth login` / modern enrollments; legacy installs
+        // by `karma-team auth login` / modern enrollments; legacy installs
         // without them simply don't get the channel.
         let machine_handle = match (
             transport.clone(),
@@ -867,8 +867,12 @@ struct ChatWarm {
 enum ChatCommand {
     Warm(ChatWarm),
     Message(ChatTurn),
-    Cancel { reason: Option<String> },
-    Close { reason: Option<String> },
+    Cancel {
+        reason: Option<String>,
+    },
+    Close {
+        reason: Option<String>,
+    },
     /// Tear down this runtime to make room for another session (or to free the
     /// runner's working dir for an assign) WITHOUT closing the
     /// cloud session: it stays open and a later warm/message revives it via
@@ -1023,7 +1027,7 @@ impl RunnerLoop {
                             let _swap_guard = swap_guard;
                             tracing::info!(
                                 target = %latest_owned,
-                                "auto-update: swapping pidash on disk",
+                                "auto-update: swapping karma-team on disk",
                             );
                             match crate::cli::update::check_or_swap(false, &paths).await {
                                 Ok(crate::cli::update::SwapOutcome::Swapped {
@@ -1509,14 +1513,14 @@ impl RunnerLoop {
                     }
                     // Strip the matching `[[runner]]` block from
                     // config.toml under the host-wide config lock so a
-                    // concurrent `pidash runner add` can't lose its
+                    // concurrent `karma-team runner add` can't lose its
                     // write. Without this the next daemon restart would
                     // re-Hello for the dead runner_id and the cloud
                     // would tear it down again on every boot.
                     //
-                    // The systemd unit (`pidash.service`) hosts every
+                    // The systemd unit (`karma-team.service`) hosts every
                     // runner under one process, so we deliberately
-                    // never touch it here — only `pidash uninstall`
+                    // never touch it here — only `karma-team uninstall`
                     // does. If this was the last runner, log a hint
                     // so the operator knows they can remove the unit.
                     let target_runner_id = self.runner_paths.runner_id;
@@ -1540,8 +1544,8 @@ impl RunnerLoop {
                             if post.runners.is_empty() {
                                 tracing::warn!(
                                     "config.toml has no remaining runners; \
-                                     run `pidash uninstall` to remove the \
-                                     pidash.service systemd unit if you \
+                                     run `karma-team uninstall` to remove the \
+                                     karma-team.service systemd unit if you \
                                      no longer need the daemon on this host.",
                                 );
                             }
@@ -1552,7 +1556,7 @@ impl RunnerLoop {
                                 runner_id = %target_runner_id,
                                 "failed to strip [[runner]] block from \
                                  config.toml: {e:#}. Run \
-                                 `pidash runner remove --local-only \
+                                 `karma-team runner remove --local-only \
                                  --yes {runner_name}` to clean it up by \
                                  hand; otherwise the next daemon restart \
                                  will re-Hello this id.",
@@ -2705,7 +2709,7 @@ impl AssignWorker {
     ) -> Result<()> {
         // Scope the run id (and issue key) over everything this run does so
         // every agent subprocess the bridges spawn (and re-spawn per turn)
-        // inherits `PIDASH_RUN_ID` / `PIDASH_ISSUE_IDENTIFIER` — see
+        // inherits `KARMA_TEAM_RUN_ID` / `KARMA_TEAM_ISSUE_IDENTIFIER` — see
         // `util::shell::RUN_ENV`.
         crate::util::shell::RUN_ENV
             .scope(
@@ -2771,7 +2775,7 @@ impl AssignWorker {
         {
             tracing::debug!(
                 error = %err,
-                "skipping .pidash/context.md refresh after workspace resolution",
+                "skipping .karma-team/context.md refresh after workspace resolution",
             );
         }
 
@@ -3253,7 +3257,11 @@ impl AssignWorker {
                 reason,
             } => {
                 run_events.flush_before_lifecycle(&self.out).await;
-                let policy = Policy::new(&self.runner_config.approval_policy, workspace_root, crate::cloud::protocol::ApprovalMode::Ask);
+                let policy = Policy::new(
+                    &self.runner_config.approval_policy,
+                    workspace_root,
+                    crate::cloud::protocol::ApprovalMode::Ask,
+                );
                 let decision = policy.evaluate(kind, &payload);
                 if let Some(auto) = decision.into_cloud() {
                     bridge.send_approval(&approval_id, auto).await.ok();
@@ -3540,7 +3548,11 @@ mod tests {
             let mut config = runner_config("general-tasks", "TEST", wd.clone());
             config.project_slug = None; // no cloud context lookup in this test
             config.agent.kind = kind;
-            let missing_binary = tmp.path().join("missing-agent").to_string_lossy().into_owned();
+            let missing_binary = tmp
+                .path()
+                .join("missing-agent")
+                .to_string_lossy()
+                .into_owned();
             config.codex.binary = missing_binary.clone();
             config.claude_code.binary = missing_binary;
             let runner_paths = paths.for_runner(config.runner_id);
@@ -3670,7 +3682,7 @@ mod tests {
         let now = Utc.with_ymd_and_hms(2026, 5, 27, 9, 44, 0).unwrap();
         let detail = format_exec_command_detail(
             &ExecCommandSnapshot {
-                command: "cat .pidash-workpad.md".into(),
+                command: "cat .karma-team-workpad.md".into(),
                 cwd: None,
                 tool_call_id: Some("tool-1".into()),
                 started_at,
@@ -3738,21 +3750,21 @@ mod tests {
     #[test]
     fn diagnostic_signal_prefers_json_error_messages() {
         let lines = vec![
-            "pidash 0.1.10".to_string(),
+            "karma-team 0.1.10".to_string(),
             "Process exited with code 1".to_string(),
-            r#"{"error":"GET https://pidash.airepublic.com/api/v1/users/me/: error sending request"}"#.to_string(),
+            r#"{"error":"GET https://karma-team.example.com/api/v1/users/me/: error sending request"}"#.to_string(),
         ];
         let signal = diagnostic_signal_from_stderr(&lines).unwrap();
         assert_eq!(
             signal,
-            "stderr JSON error: GET https://pidash.airepublic.com/api/v1/users/me/: error sending request"
+            "stderr JSON error: GET https://karma-team.example.com/api/v1/users/me/: error sending request"
         );
     }
 
     #[test]
     fn diagnostic_signal_keeps_non_json_errors() {
         let lines = vec![
-            "pidash 0.1.10".to_string(),
+            "karma-team 0.1.10".to_string(),
             "gh: error: HTTP 401: Bad credentials".to_string(),
         ];
         let signal = diagnostic_signal_from_stderr(&lines).unwrap();
@@ -3778,7 +3790,7 @@ mod tests {
         let started_at = Utc.with_ymd_and_hms(2026, 5, 29, 5, 25, 53).unwrap();
         let now = Utc.with_ymd_and_hms(2026, 5, 29, 5, 30, 57).unwrap();
         let cmd = ExecCommandSnapshot {
-            command: "pidash workspace me".into(),
+            command: "karma-team workspace me".into(),
             cwd: Some("/work".into()),
             tool_call_id: Some("call-1".into()),
             started_at,
@@ -3787,9 +3799,9 @@ mod tests {
         };
         let stderr = crate::agent::StderrSnapshot {
             lines: vec![
-                "pidash 0.1.10".into(),
+                "karma-team 0.1.10".into(),
                 "Process exited with code 1".into(),
-                r#"{"error":"GET https://pidash.airepublic.com/api/v1/users/me/: error sending request"}"#.into(),
+                r#"{"error":"GET https://karma-team.example.com/api/v1/users/me/: error sending request"}"#.into(),
             ],
             dropped: 42,
         };
@@ -3805,18 +3817,17 @@ mod tests {
         assert_eq!(
             lines.next(),
             Some(
-                "Core error: GET https://pidash.airepublic.com/api/v1/users/me/: error sending request"
+                "Core error: GET https://karma-team.example.com/api/v1/users/me/: error sending request"
             )
         );
         assert!(detail.contains("\n\nError trace:\n"));
         assert!(
             detail.contains("- watchdog: agent stalled for 5 minutes without new agent events")
         );
-        assert!(detail.contains("- diagnostic signal: stderr JSON error: GET https://pidash.airepublic.com/api/v1/users/me/: error sending request"));
-        assert!(
-            detail
-                .contains("- command context: last command frame `pidash workspace me` in `/work`")
-        );
+        assert!(detail.contains("- diagnostic signal: stderr JSON error: GET https://karma-team.example.com/api/v1/users/me/: error sending request"));
+        assert!(detail.contains(
+            "- command context: last command frame `karma-team workspace me` in `/work`"
+        ));
         assert!(detail.contains(
             "- stderr context (3 line(s) (plus 42 low-signal line(s) filtered from agent stderr))"
         ));

@@ -6,10 +6,10 @@
 
 import { useState } from "react";
 // ui
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import { Calendar } from "@pi-dash/propel/calendar";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import { Calendar } from "@karma-team/propel/calendar";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
 
 export type InboxIssueSnoozeModalProps = {
   isOpen: boolean;

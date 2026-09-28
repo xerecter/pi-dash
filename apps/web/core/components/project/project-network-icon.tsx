@@ -4,10 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import type { TNetworkChoiceIconKey } from "@pi-dash/constants";
-// pi dash imports
-import { GlobeIcon, LockIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+import type { TNetworkChoiceIconKey } from "@karma-team/constants";
+// karma-team imports
+import { GlobeIcon, LockIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 
 type Props = {
   iconKey: TNetworkChoiceIconKey;

@@ -7,9 +7,9 @@
 import type { Dispatch, SetStateAction } from "react";
 import { useState } from "react";
 import { useParams } from "next/navigation";
-import { EditIcon, CloseIcon } from "@pi-dash/propel/icons";
+import { EditIcon, CloseIcon } from "@karma-team/propel/icons";
 // types
-import type { IIssueLabel } from "@pi-dash/types";
+import type { IIssueLabel } from "@karma-team/types";
 // hooks
 import { useLabel } from "@/hooks/store/use-label";
 // components

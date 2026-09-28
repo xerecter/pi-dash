@@ -5,7 +5,7 @@
  */
 
 import type { ReactNode } from "react";
-import { cn } from "@pi-dash/utils";
+import { cn } from "@karma-team/utils";
 import { type ChatListItem, ChatMessageList } from "@/components/chat/message-list";
 
 interface ChatContainerProps<M extends ChatListItem> {
@@ -27,7 +27,7 @@ interface ChatContainerProps<M extends ChatListItem> {
 /**
  * Shared chat shell that assembles the message list, an optional header/footer,
  * an optional inline error, and the composer into the standard full-height
- * chat layout. Both the Pi Dash AI assistant chat and the runner agent chat
+ * chat layout. Both the karma-team AI assistant chat and the runner agent chat
  * render through this so layout and streaming/scroll behavior improve in one
  * place; surface-specific differences are supplied via props/slots.
  */

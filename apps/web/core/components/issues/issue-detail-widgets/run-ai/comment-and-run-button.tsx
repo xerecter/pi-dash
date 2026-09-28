@@ -7,10 +7,10 @@
 import React from "react";
 import { observer } from "mobx-react";
 import { MessageSquarePlus } from "lucide-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
-import type { TButtonSize } from "@pi-dash/propel/button";
-import type { TIssueComment } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
+import type { TButtonSize } from "@karma-team/propel/button";
+import type { TIssueComment } from "@karma-team/types";
 // local
 import { useCreateAgentRun } from "./use-create-agent-run";
 

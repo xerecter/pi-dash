@@ -4,7 +4,7 @@
 
 //! Provisioning and supervision of the built-in agent engine.
 //!
-//! The desktop app ships three things: this window, the `pidash` daemon, and
+//! The desktop app ships three things: this window, the `karma-team` daemon, and
 //! the agent engine. This module owns the second and third — it writes their
 //! configuration, starts the daemon as a child process, keeps the model
 //! credential fresh on disk, and tears all of it down on sign-out.
@@ -16,18 +16,18 @@
 //! CSRF handling and would put a second copy of the session in play.
 //!
 //! It also never re-implements enrollment. Writing `config.toml`, registering
-//! a runner and applying the response are `pidash`'s own code paths, reached
-//! through the hidden `pidash __managed` subcommands. A second implementation
+//! a runner and applying the response are `karma-team`'s own code paths, reached
+//! through the hidden `karma-team __managed` subcommands. A second implementation
 //! in a second language would drift from the first the week after it shipped.
 //!
-//! See `pi-dash/.ai_design/managed_runner/design.md` §9.
+//! See `karma-team/.ai_design/managed_runner/design.md` §9.
 
 use std::collections::BTreeMap;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use std::time::Duration;
 use std::sync::Mutex;
+use std::time::Duration;
 
 use serde::Serialize;
 use tauri::{AppHandle, Manager, Runtime};
@@ -39,14 +39,14 @@ use tauri::{AppHandle, Manager, Runtime};
 /// invite exactly the confusion with a personal install that the rest of this
 /// design works to avoid.
 #[cfg(windows)]
-pub const ENGINE_BIN: &str = "pidash-agent-engine.exe";
+pub const ENGINE_BIN: &str = "karma-team-agent-engine.exe";
 #[cfg(not(windows))]
-pub const ENGINE_BIN: &str = "pidash-agent-engine";
+pub const ENGINE_BIN: &str = "karma-team-agent-engine";
 
 #[cfg(windows)]
-pub const RUNNER_BIN: &str = "pidash.exe";
+pub const RUNNER_BIN: &str = "karma-team.exe";
 #[cfg(not(windows))]
-pub const RUNNER_BIN: &str = "pidash";
+pub const RUNNER_BIN: &str = "karma-team";
 
 /// The bundled engine binary path for a given Tauri `resource_dir`.
 ///
@@ -68,7 +68,7 @@ pub struct DaemonState(pub Mutex<BTreeMap<String, Child>>);
 /// Absolute paths of the managed tree, derived once from Tauri's app-data dir.
 ///
 /// Everything the bundled runner touches lives under `managed/`, passed to it
-/// as `PIDASH_CONFIG_DIR` / `PIDASH_DATA_DIR`. A user-installed `pidash` uses
+/// as `KARMA_TEAM_CONFIG_DIR` / `KARMA_TEAM_DATA_DIR`. A user-installed `karma-team` uses
 /// the XDG defaults and never sees any of this, which is what keeps the two
 /// installs from colliding in either direction.
 #[derive(Debug, Clone, Serialize)]
@@ -90,7 +90,10 @@ pub struct ManagedPaths {
 }
 
 impl ManagedPaths {
-    pub(crate) fn for_workspace<R: Runtime>(app: &AppHandle<R>, workspace: &str) -> Result<Self, String> {
+    pub(crate) fn for_workspace<R: Runtime>(
+        app: &AppHandle<R>,
+        workspace: &str,
+    ) -> Result<Self, String> {
         if !valid_component(workspace) {
             return Err("Invalid workspace slug".into());
         }
@@ -103,7 +106,7 @@ impl ManagedPaths {
     /// Where the daemon for *this* tree binds its control socket.
     ///
     /// Not `runtime_dir`. The daemon is started per workspace with
-    /// `PIDASH_DATA_DIR` pointing at the re-rooted `data_dir`, and the runner
+    /// `KARMA_TEAM_DATA_DIR` pointing at the re-rooted `data_dir`, and the runner
     /// derives its runtime dir as `<data_dir>/runtime` whenever that override
     /// is present (`runner/src/util/paths.rs`). `runtime_dir` here is the
     /// *shared* tree that holds the model token, which no daemon binds under —
@@ -131,8 +134,8 @@ impl ManagedPaths {
             .map_err(|e| format!("resolving resource dir: {e}"))?;
         let bin_dir = resource_dir.join("bin");
         Ok(Self {
-            config_dir: root.join("pidash"),
-            data_dir: root.join("pidash/data"),
+            config_dir: root.join("karma-team"),
+            data_dir: root.join("karma-team/data"),
             codex_home: root.join("codex-home"),
             runtime_dir: root.join("runtime"),
             model_token_file: root.join("runtime/model.token"),
@@ -151,8 +154,8 @@ impl ManagedPaths {
     pub fn for_test_root(root: PathBuf) -> Self {
         let bin_dir = root.join("bin");
         Self {
-            config_dir: root.join("pidash"),
-            data_dir: root.join("pidash/data"),
+            config_dir: root.join("karma-team"),
+            data_dir: root.join("karma-team/data"),
             codex_home: root.join("codex-home"),
             runtime_dir: root.join("runtime"),
             model_token_file: root.join("runtime/model.token"),
@@ -214,7 +217,7 @@ pub async fn managed_paths<R: Runtime>(app: AppHandle<R>) -> Result<ManagedPaths
 /// Write the machine token into the managed config.
 ///
 /// Takes the token as an argument from the overlay (which fetched it from the
-/// session-authenticated enroll endpoint) and pipes it to `pidash` on **stdin**
+/// session-authenticated enroll endpoint) and pipes it to `karma-team` on **stdin**
 /// rather than argv, so it never appears in the process table.
 #[tauri::command]
 pub async fn managed_bootstrap<R: Runtime>(
@@ -242,12 +245,12 @@ pub async fn managed_bootstrap<R: Runtime>(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| format!("spawning pidash __managed bootstrap: {e}"))?;
+        .map_err(|e| format!("spawning karma-team __managed bootstrap: {e}"))?;
 
     child
         .stdin
         .as_mut()
-        .ok_or_else(|| "pidash stdin unavailable".to_string())?
+        .ok_or_else(|| "karma-team stdin unavailable".to_string())?
         .write_all(machine_token.as_bytes())
         .map_err(|e| format!("writing machine token: {e}"))?;
     // Drop stdin so the child sees EOF; without this it blocks reading forever.
@@ -302,7 +305,7 @@ pub async fn managed_enroll<R: Runtime>(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
-        .map_err(|e| format!("spawning pidash __managed enroll: {e}"))?;
+        .map_err(|e| format!("spawning karma-team __managed enroll: {e}"))?;
     finish(child, "enroll")
 }
 
@@ -310,7 +313,7 @@ pub async fn managed_enroll<R: Runtime>(
 ///
 /// Rewritten whenever the profile changes (a settings save, a model switch)
 /// and read by the engine at its next spawn, so a user changing their model in
-/// Pi Dash settings does not have to restart anything.
+/// karma-team settings does not have to restart anything.
 #[tauri::command]
 pub async fn managed_write_engine_config<R: Runtime>(
     app: AppHandle<R>,
@@ -364,7 +367,7 @@ pub async fn managed_start_daemon<R: Runtime>(
     // Spawning is not the same as being reachable. The daemon binds its control
     // socket a moment after exec, and callers — the chat transport above all —
     // connect the instant this returns, so returning early surfaced as
-    // "connecting to managed daemon: … pidash.sock" on the first send of a
+    // "connecting to managed daemon: … karma-team.sock" on the first send of a
     // session. Wait for the socket to answer before claiming the daemon is up.
     wait_for_daemon(&paths).await;
     Ok(())
@@ -426,7 +429,7 @@ fn spawn_daemon_locked<R: Runtime>(
         .stdout(Stdio::null())
         .stderr(Stdio::from(log))
         .spawn()
-        .map_err(|e| format!("spawning pidash __run: {e}"))?;
+        .map_err(|e| format!("spawning karma-team __run: {e}"))?;
     guard.insert(workspace.to_string(), child);
     Ok(DaemonStart::Spawned)
 }
@@ -525,7 +528,7 @@ pub async fn managed_sign_out<R: Runtime>(
 
 /// Whether the bundled binaries are present and runnable.
 ///
-/// Surfaced as the app's "Pi Dash Agent needs repair" state: a partial install
+/// Surfaced as the app's "karma-team Agent needs repair" state: a partial install
 /// or an interrupted update should say so, not fail at the first Run.
 #[tauri::command]
 pub async fn managed_doctor<R: Runtime>(app: AppHandle<R>) -> Result<serde_json::Value, String> {
@@ -555,7 +558,7 @@ pub async fn managed_doctor<R: Runtime>(app: AppHandle<R>) -> Result<serde_json:
 // Internals
 // ---------------------------------------------------------------------------
 
-/// Whether any workspace on this machine has a written `pidash` config.
+/// Whether any workspace on this machine has a written `karma-team` config.
 ///
 /// `managed_bootstrap` goes through `ManagedPaths::for_workspace`, which roots
 /// `config_dir` at `<config_dir>/<workspace>/`, so the config never lands at
@@ -571,18 +574,19 @@ fn config_present(config_dir: &Path) -> bool {
         return false;
     };
     entries.flatten().any(|entry| {
-        entry.file_type().is_ok_and(|kind| kind.is_dir()) && entry.path().join("config.toml").is_file()
+        entry.file_type().is_ok_and(|kind| kind.is_dir())
+            && entry.path().join("config.toml").is_file()
     })
 }
 
-/// A `pidash` invocation pointed at the managed tree.
+/// A `karma-team` invocation pointed at the managed tree.
 ///
 /// Every call goes through here so no code path can accidentally run against
-/// the user's own `pidash` configuration.
+/// the user's own `karma-team` configuration.
 fn base_command(paths: &ManagedPaths, program: &Path) -> Command {
     let mut cmd = Command::new(program);
-    cmd.env("PIDASH_CONFIG_DIR", &paths.config_dir);
-    cmd.env("PIDASH_DATA_DIR", &paths.data_dir);
+    cmd.env("KARMA_TEAM_CONFIG_DIR", &paths.config_dir);
+    cmd.env("KARMA_TEAM_DATA_DIR", &paths.data_dir);
     #[cfg(windows)]
     {
         // Keep the console window from flashing on every invocation.
@@ -603,12 +607,12 @@ fn valid_component(value: &str) -> bool {
 fn finish(child: Child, what: &str) -> Result<String, String> {
     let out = child
         .wait_with_output()
-        .map_err(|e| format!("waiting for pidash {what}: {e}"))?;
+        .map_err(|e| format!("waiting for karma-team {what}: {e}"))?;
     if !out.status.success() {
-        // stderr carries pidash's own diagnostics, which are more useful to a
+        // stderr carries karma-team's own diagnostics, which are more useful to a
         // user than anything we could synthesise here.
         return Err(format!(
-            "pidash {what} failed: {}",
+            "karma-team {what} failed: {}",
             String::from_utf8_lossy(&out.stderr).trim()
         ));
     }
@@ -630,13 +634,13 @@ fn stop_daemon<R: Runtime>(app: &AppHandle<R>, grace_seconds: u64) {
     for (_, mut child) in children {
         // Ask the daemon to finish its current run and exit, then wait for it.
         //
-        // Unix only. `base_command` spawns every `pidash` invocation with
+        // Unix only. `base_command` spawns every `karma-team` invocation with
         // CREATE_NO_WINDOW on Windows so a GUI app never flashes a console, and
         // a process with no console cannot receive console control events —
         // GenerateConsoleCtrlEvent only reaches a process group sharing the
         // caller's console. A real graceful stop on Windows needs an
         // out-of-band channel the daemon listens on (a control socket, or a
-        // stop file polled by `pidash __run`); none exists today. Until one
+        // stop file polled by `karma-team __run`); none exists today. Until one
         // does, waiting out the grace period on Windows would only delay a kill
         // that is going to happen regardless, so go straight to it rather than
         // hanging every app exit for `grace_seconds`.
@@ -650,7 +654,8 @@ fn stop_daemon<R: Runtime>(app: &AppHandle<R>, grace_seconds: u64) {
             // Poll rather than sleeping the full grace period: a daemon with
             // nothing in flight exits immediately and the user should not wait
             // for a timer.
-            let deadline = std::time::Instant::now() + std::time::Duration::from_secs(grace_seconds);
+            let deadline =
+                std::time::Instant::now() + std::time::Duration::from_secs(grace_seconds);
             while std::time::Instant::now() < deadline {
                 match child.try_wait() {
                     Ok(Some(_)) => break,
@@ -678,8 +683,8 @@ fn render_engine_config(profile: &AgentProfile, runner: &Path, token_file: &Path
     ])
     .expect("serialize helper args");
     format!(
-        r#"# Managed by Pi Dash Desktop. Edits are overwritten on launch.
-model_provider = "pidash"
+        r#"# Managed by karma-team Desktop. Edits are overwritten on launch.
+model_provider = "karma-team"
 model = "{model}"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
@@ -687,11 +692,11 @@ sandbox_mode = "workspace-write"
 # Leave task execution tools available without advertising that hosted tool.
 web_search = "disabled"
 
-[model_providers.pidash]
-name = "Pi Dash"
+[model_providers.karma-team]
+name = "karma-team"
 base_url = "{base_url}"
 wire_api = "responses"
-[model_providers.pidash.auth]
+[model_providers.karma-team.auth]
 command = {command}
 args = {args}
 timeout_ms = 5000
@@ -757,8 +762,8 @@ mod tests {
     /// previous install. This pins that invariant (PDASHOSS01-158, item 2).
     #[test]
     fn engine_path_tracks_the_current_bundle_resource_dir() {
-        let old = Path::new("/Applications/Pi Dash.app/Contents/Resources/v1");
-        let new = Path::new("/Applications/Pi Dash.app/Contents/Resources/v2");
+        let old = Path::new("/Applications/karma-team.app/Contents/Resources/v1");
+        let new = Path::new("/Applications/karma-team.app/Contents/Resources/v2");
 
         // Fully determined by resource_dir: `<resource_dir>/bin/<engine>`.
         assert_eq!(engine_bin_path(old), old.join("bin").join(ENGINE_BIN));
@@ -793,7 +798,7 @@ mod tests {
     fn engine_config_points_at_the_gateway_and_disables_login() {
         let text = render_engine_config(
             &profile(),
-            Path::new("/bundle/pidash"),
+            Path::new("/bundle/karma-team"),
             Path::new("/managed/model.token"),
         );
         assert!(text.contains(r#"base_url = "https://gateway.example.com/v1""#));
@@ -804,8 +809,8 @@ mod tests {
         // No login screen, no auth.json, no ChatGPT OAuth.
         assert!(!text.contains("requires_openai_auth"));
         assert!(!text.contains("env_key"));
-        assert!(text.contains("[model_providers.pidash.auth]"));
-        assert!(text.contains(r#"command = "/bundle/pidash""#));
+        assert!(text.contains("[model_providers.karma-team.auth]"));
+        assert!(text.contains(r#"command = "/bundle/karma-team""#));
         assert!(
             text.contains(r#"args = ["__managed","model-token","--file","/managed/model.token"]"#)
         );
@@ -820,7 +825,7 @@ sandbox_mode = "danger-full-access"#
             .into();
         let text = render_engine_config(
             &p,
-            Path::new("/bundle/pidash"),
+            Path::new("/bundle/karma-team"),
             Path::new("/managed/model.token"),
         );
         // The payload may survive *inside* the quoted value — that is inert.
@@ -850,8 +855,8 @@ sandbox_mode = "danger-full-access"#
 
     #[test]
     fn auth_helper_paths_preserve_windows_separators_and_spaces() {
-        let runner = Path::new(r"C:\Program Files\Pi Dash\bin\pidash.exe");
-        let token = Path::new(r"C:\Users\Jane Doe\Pi Dash\runtime\model.token");
+        let runner = Path::new(r"C:\Program Files\karma-team\bin\karma-team.exe");
+        let token = Path::new(r"C:\Users\Jane Doe\karma-team\runtime\model.token");
         let config = render_engine_config(&profile(), runner, token);
         let value = |key: &str| {
             config
@@ -876,10 +881,10 @@ sandbox_mode = "danger-full-access"#
     }
 
     #[test]
-    #[ignore = "requires PIDASH_TEST_ENGINE and PIDASH_TEST_RUNNER binaries; offline fake gateway"]
+    #[ignore = "requires KARMA_TEAM_TEST_ENGINE and KARMA_TEAM_TEST_RUNNER binaries; offline fake gateway"]
     fn running_engine_refreshes_credentials_after_expiry() {
-        let engine = std::env::var("PIDASH_TEST_ENGINE").expect("bundled engine path");
-        let runner = std::env::var("PIDASH_TEST_RUNNER").expect("current runner path");
+        let engine = std::env::var("KARMA_TEAM_TEST_ENGINE").expect("bundled engine path");
+        let runner = std::env::var("KARMA_TEAM_TEST_RUNNER").expect("current runner path");
         let root = tempfile::tempdir().unwrap();
         let config_home = root.path().join("engine home with spaces");
         std::fs::create_dir(&config_home).unwrap();

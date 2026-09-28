@@ -6,12 +6,12 @@
 
 import { useState } from "react";
 import { mutate } from "swr";
-// pi dash imports
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import { APITokenService } from "@pi-dash/services";
-import type { IApiToken } from "@pi-dash/types";
-import { EModalPosition, EModalWidth, ModalCore } from "@pi-dash/ui";
-import { renderFormattedDate, csvDownload } from "@pi-dash/utils";
+// karma-team imports
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { APITokenService } from "@karma-team/services";
+import type { IApiToken } from "@karma-team/types";
+import { EModalPosition, EModalWidth, ModalCore } from "@karma-team/ui";
+import { renderFormattedDate, csvDownload } from "@karma-team/utils";
 // constants
 import { API_TOKENS_LIST } from "@/constants/fetch-keys";
 // local imports

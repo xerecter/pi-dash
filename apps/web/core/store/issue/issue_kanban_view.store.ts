@@ -6,9 +6,9 @@
 
 import { action, computed, makeObservable, observable } from "mobx";
 import { computedFn } from "mobx-utils";
-import { DRAG_ALLOWED_GROUPS } from "@pi-dash/constants";
+import { DRAG_ALLOWED_GROUPS } from "@karma-team/constants";
 // types
-import type { TIssueGroupByOptions } from "@pi-dash/types";
+import type { TIssueGroupByOptions } from "@karma-team/types";
 // constants
 // store
 import type { IssueRootStore } from "./root.store";

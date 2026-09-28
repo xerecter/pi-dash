@@ -6,8 +6,8 @@
 > four phases of §12). Two implementation notes that differ in detail from
 > the text below: the yield endpoint lives in the external API
 > (`POST /api/v1/workspaces/<slug>/agent-runs/<run_id>/yield/`, API-key
-> auth — the `pidash` CLI authenticates as the runner owner, not as a
-> runner), and the runner injects `PIDASH_RUN_ID` through a task-scoped
+> auth — the `karma-team` CLI authenticates as the runner owner, not as a
+> runner), and the runner injects `KARMA_TEAM_RUN_ID` through a task-scoped
 > `RUN_ENV` read by `util::shell::login_shell_command`, which every bridge
 > already goes through, rather than by threading a parameter into each
 > bridge's spawn signature.
@@ -27,7 +27,7 @@
 > owner, or runner owner) — membership alone is not authority; (7) a run id
 > that is not active on _this_ issue makes the request a plain one rather
 > than a 400 (the CLI sends the header on every write); (8) the cloud
-> agent's `pidash_transition_current_issue` tool attributes its move to the
+> agent's `karma_team_transition_current_issue` tool attributes its move to the
 > run; (9) the human levers re-time the clock inside the dispatch
 > transaction, so a click that produced no run leaves the ticker untouched;
 > (10) migration `0163` folds prior Re-tick grants into `granted` and stamps
@@ -35,13 +35,13 @@
 >
 > **Second review pass:** (11) that migration stamp is `pool_spent`, not
 > `cap_hit` (which would auto-Pause live issues on deploy); (12) a state
-> move on the external API with no `X-Pi-Dash-Run-Id` is still an agent
+> move on the external API with no `X-karma-team-Run-Id` is still an agent
 > move when the caller owns a run that is active on the issue — an older
-> `pidash` binary sends no header and must not earn free runs; (13) the
+> `karma-team` binary sends no header and must not earn free runs; (13) the
 > legacy `noop` status follows the per-kind default (In Progress keeps
 > ticking, review / test stop); (14) the assistant's `update_issue` tool
 > lets the signal update the clock only and dispatches once itself; (15)
-> `pidash issue re-tick` from inside an agent run is refused (403) and the
+> `karma-team issue re-tick` from inside an agent run is refused (403) and the
 > CLI docs list it under "Not for you"; (16) Re-tick is honoured from the
 > Paused state the cap-hit auto-pause parks issues in — it grants, moves the
 > issue back to In Progress as a human move and fires; (17) the prompt's
@@ -81,8 +81,8 @@
 >   `review` and `test` recipes.
 > - Review and test prompts inline the workpad and must write it before
 >   exit. A `### Path to done` block is added to the workpad template.
-> - The run outcome is reported through `pidash` and read by the ticker
->   (replaces the dead `pi-dash-done` fence / `done_payload["status"]` gate).
+> - The run outcome is reported through `karma-team` and read by the ticker
+>   (replaces the dead `karma-team-done` fence / `done_payload["status"]` gate).
 
 ## 1. Problem
 
@@ -239,7 +239,7 @@ criteria verified`, `nothing changed`).
    itself: leave the task hand-off-able rather than start something it
    cannot finish.
 4. Write `### Path to done` on the workpad (§6) — including _why_ this state.
-5. Move the issue (or leave it) via `pidash issue patch`.
+5. Move the issue (or leave it) via `karma-team issue patch`.
 6. Report the outcome (§7).
 
 ### 4.4 Agent-made moves fire the next stage's entry run — as soon as the issue is free
@@ -264,8 +264,8 @@ the implementation lineage.
 
 ### 4.5 Entry-run queue: the ticker is the queue
 
-**The situation.** An implementation run is working on PIDASH-42. Near the
-end it runs `pidash issue patch PIDASH-42 --state "In Review"`. We want a
+**The situation.** An implementation run is working on KARMA_TEAM-42. Near the
+end it runs `karma-team issue patch KARMA_TEAM-42 --state "In Review"`. We want a
 review run to start right after this implementation run finishes.
 
 **Why we can't just create the review run right there.** The obvious idea is
@@ -274,7 +274,7 @@ state changes, and let it start when the implementation run ends. Two things
 go wrong:
 
 1. _The runners would start it right away, not "when the implementation run
-   ends"._ Pi Dash hands queued runs to runners through `drain_pod`
+   ends"._ karma-team hands queued runs to runners through `drain_pod`
    (`runner/services/matcher.py`). That function asks "which runners are
    idle?", not "which issues are busy?". If there is a second idle runner in
    the pod, it grabs the queued review run while the implementation run is
@@ -442,7 +442,7 @@ stand in the way today:
    `handle_issue_state_transition(..., actor=None)`
    (`orchestration/signals.py:74`). Nothing tells it who saved.
 2. _Account identity is the wrong signal._ When the agent runs
-   `pidash issue patch`, the CLI authenticates with the runner's token,
+   `karma-team issue patch`, the CLI authenticates with the runner's token,
    which resolves to the **runner's owner** — a human account
    (`runner/authentication.py`, `api/middleware/api_authentication.py`).
    The patch view records that human as the actor
@@ -452,10 +452,10 @@ stand in the way today:
 So the question is not _who_ but **"was this move made from inside an agent
 run?"** — and that is easy to carry:
 
-1. The runner injects `PIDASH_RUN_ID` into the agent process, next to
-   `PIDASH_ISSUE_IDENTIFIER` and `PIDASH_PROJECT_ID` (§10, runner).
-2. Every mutating `pidash` route sends it as a header,
-   `X-Pi-Dash-Run-Id: <uuid>`.
+1. The runner injects `KARMA_TEAM_RUN_ID` into the agent process, next to
+   `KARMA_TEAM_ISSUE_IDENTIFIER` and `KARMA_TEAM_PROJECT_ID` (§10, runner).
+2. Every mutating `karma-team` route sends it as a header,
+   `X-karma-team-Run-Id: <uuid>`.
 3. The work-item patch view verifies the header — the run exists, is
    active, is for this issue, and belongs to the authenticated runner — and
    sets `issue._orchestration_moved_by_run = run` before saving, the same
@@ -468,7 +468,7 @@ run?"** — and that is easy to carry:
    remains.
 
 A human clicking in the UI never has a run id, so the check cannot be fooled
-by account identity. The same header is what `pidash run yield` uses (§7).
+by account identity. The same header is what `karma-team run yield` uses (§7).
 
 ## 6. Workpad as the cross-stage channel
 
@@ -530,19 +530,19 @@ hand-off as a _mirror_ for humans. They are never the agent's memory.
 for a human, or stop. Today it cannot — the prompt says "emit noop", the only
 consumer of that (`maybe_disarm_on_terminal_signal`) reads
 `run.done_payload["status"]`, local runners never send a `status` key
-(bridges emit `{"conclusion": …}`), and the old `pi-dash-done` fence parser
+(bridges emit `{"conclusion": …}`), and the old `karma-team-done` fence parser
 has no callers. So every review ticks to its cap saying "no change".
 
-**The channel.** The agent's only write path is `pidash`, so the outcome
+**The channel.** The agent's only write path is `karma-team`, so the outcome
 travels the same way, as the run's last act:
 
 ```
-pidash run yield --outcome <progressed|waiting_on_human|waiting_on_external|done|blocked> [--note "<one line>"]
+karma-team run yield --outcome <progressed|waiting_on_human|waiting_on_external|done|blocked> [--note "<one line>"]
 ```
 
 **Which run?** The cloud must know _which_ AgentRun is reporting. The CLI
-reads `PIDASH_RUN_ID` from the environment (§5.6 step 1) and sends it as
-`X-Pi-Dash-Run-Id`. The endpoint verifies the run exists, is active, belongs
+reads `KARMA_TEAM_RUN_ID` from the environment (§5.6 step 1) and sends it as
+`X-karma-team-Run-Id`. The endpoint verifies the run exists, is active, belongs
 to the authenticated runner, and is for the issue named in the request;
 then writes `run.done_payload = {"status": <outcome>, "note": …,
 "yielded_at": …}`. A yield with no run id, a stale run id, or another
@@ -598,12 +598,12 @@ the `backlog` / `unstarted` / `completed` / `cancelled` no-op routing.
 ### 8.2 Recipe membership
 
 ```
-coding-task: intro, session-framing, pidash-cli, task-lifecycle, default-posture,
+coding-task: intro, session-framing, karma-team-cli, task-lifecycle, default-posture,
              autonomy, state-routing, analyze-and-scope, workpad-setup,
              implementation, blocking, guardrails, workpad-template, ending-run
-review:      review-intro, session-framing, pidash-cli, task-lifecycle,
+review:      review-intro, session-framing, karma-team-cli, task-lifecycle,
              repo-context*, workpad-context*, review-cycle, blocking, guardrails, ending-run
-test:        test-intro, session-framing, pidash-cli, task-lifecycle,
+test:        test-intro, session-framing, karma-team-cli, task-lifecycle,
              repo-context*, workpad-context*, test-cycle, blocking, guardrails, ending-run
 ```
 
@@ -623,7 +623,7 @@ the implementation-only text around them.
   moves; "changes needed → Blocked" becomes "→ In Progress with open items".
 - `ending-run`: the workpad checklist is guarded — implementation fields for
   `coding-task`, `Path to done` for `review` / `test`. The "Analyze & scope"
-  tone reference is guarded the same way. Adds the `pidash run yield` step.
+  tone reference is guarded the same way. Adds the `karma-team run yield` step.
 - `implementation` Step 7: acceptance criteria are written to the workpad
   `Path to done` block _and_ mirrored in the hand-off comment.
 - `workpad-template`: adds `### Path to done`.
@@ -710,14 +710,14 @@ and tests migrate gradually.
   `apply_run_paused` send `run_ended(run, outcome)`; optionally call
   `fire_tick` directly when `pending_entry` is set (sub-minute pickup).
 - `runner/views/run_endpoints.py`: new `POST /runs/<run_id>/yield/`
-  (`pidash run yield`); verifies run ↔ runner ↔ issue ↔ active; writes
+  (`karma-team run yield`); verifies run ↔ runner ↔ issue ↔ active; writes
   `done_payload`.
-- Work-item patch view (`api/views/issue.py`): read `X-Pi-Dash-Run-Id`,
+- Work-item patch view (`api/views/issue.py`): read `X-karma-team-Run-Id`,
   verify, set `issue._orchestration_moved_by_run` before save (§5.6).
-- Runner (`runner/src/daemon/supervisor.rs`): inject `PIDASH_RUN_ID` next to
-  `PIDASH_ISSUE_IDENTIFIER`.
-- `pidash` CLI (`runner/src/cli/`): `run yield` subcommand; send
-  `X-Pi-Dash-Run-Id` from `PIDASH_RUN_ID` on every mutating route.
+- Runner (`runner/src/daemon/supervisor.rs`): inject `KARMA_TEAM_RUN_ID` next to
+  `KARMA_TEAM_ISSUE_IDENTIFIER`.
+- `karma-team` CLI (`runner/src/cli/`): `run yield` subcommand; send
+  `X-karma-team-Run-Id` from `KARMA_TEAM_RUN_ID` on every mutating route.
 - `orchestration/agent_phases.py`: `CADENCE_FIELDS` keeps interval only;
   cap resolution goes through the pool; `auto_pause_on_cap` stays per stage.
 - `prompting/context.py`: `_tick_context` returns `used`, `cap`,
@@ -745,13 +745,13 @@ and tests migrate gradually.
 
 ## 12. PR sequence
 
-1. **Outcome channel.** `PIDASH_RUN_ID` in the agent env, `pidash run
+1. **Outcome channel.** `KARMA_TEAM_RUN_ID` in the agent env, `karma-team run
 yield` + endpoint, `done_payload` write, disarm hook with the stage-match
    guard and per-kind defaults. Independently valuable: stops today's noop
    ticks.
 2. **One clock, one pool.** `reconcile` replaces the six mutators; `used`
    / `granted`; drop the per-stage cap columns; entry-run queue (§4.5);
-   agent-vs-human via `X-Pi-Dash-Run-Id` (§5.6); parent captured on every
+   agent-vs-human via `X-karma-team-Run-Id` (§5.6); parent captured on every
    cross-stage move. Independently valuable: hard ceiling of 10, no
    counter reset, no lost entry run, review starts right after
    implementation.
@@ -786,12 +786,12 @@ Prompt (`tests/unit/prompting/`): all three recipes render with
 review/test render `workpad_body` and `code_reviews`; no dangling
 "Blocking the run" / "Analyze & scope" reference in review/test output.
 
-Runner (`runner/tests/`): `PIDASH_RUN_ID` present in the agent env;
-`pidash run yield` sends the header; mutating routes send the header.
+Runner (`runner/tests/`): `KARMA_TEAM_RUN_ID` present in the agent env;
+`karma-team run yield` sends the header; mutating routes send the header.
 
 ## Appendix A — Worked timeline (the bounce that needs no bounce rule)
 
-Pool 10, intervals 12 h / 8 h / 12 h. Human delegates PIDASH-42.
+Pool 10, intervals 12 h / 8 h / 12 h. Human delegates KARMA_TEAM-42.
 
 | #   | Event                                 | Stage after | `used` | Clock                                                                |
 | --- | ------------------------------------- | ----------- | ------ | -------------------------------------------------------------------- |

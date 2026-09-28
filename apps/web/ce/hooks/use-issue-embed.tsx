@@ -5,11 +5,11 @@
  */
 
 // editor
-import type { TEmbedConfig } from "@pi-dash/editor";
-// pi dash types
-import type { TSearchEntityRequestPayload, TSearchResponse } from "@pi-dash/types";
-// pi dash web components
-import { IssueEmbedUpgradeCard } from "@/pi-dash-web/components/pages";
+import type { TEmbedConfig } from "@karma-team/editor";
+// karma-team types
+import type { TSearchEntityRequestPayload, TSearchResponse } from "@karma-team/types";
+// karma-team web components
+import { IssueEmbedUpgradeCard } from "@/karma-team-web/components/pages";
 
 export type TIssueEmbedHookProps = {
   fetchEmbedSuggestions?: (payload: TSearchEntityRequestPayload) => Promise<TSearchResponse>;

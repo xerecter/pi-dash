@@ -8,10 +8,10 @@ import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
-// pi dash imports
-import { ISSUE_DISPLAY_FILTERS_BY_PAGE, PROJECT_VIEW_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { EIssuesStoreType, EIssueLayoutTypes } from "@pi-dash/types";
-import { Row, ERowVariant } from "@pi-dash/ui";
+// karma-team imports
+import { ISSUE_DISPLAY_FILTERS_BY_PAGE, PROJECT_VIEW_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { EIssuesStoreType, EIssueLayoutTypes } from "@karma-team/types";
+import { Row, ERowVariant } from "@karma-team/ui";
 // hooks
 import { ProjectLevelWorkItemFiltersHOC } from "@/components/work-item-filters/filters-hoc/project-level";
 import { WorkItemFiltersRow } from "@/components/work-item-filters/filters-row";

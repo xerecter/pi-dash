@@ -9,16 +9,16 @@ import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
 
 import { Disclosure } from "@headlessui/react";
-// pi dash imports
-import { ROLE, EUserPermissions, EUserPermissionsLevel, MEMBER_TRACKER_ELEMENTS } from "@pi-dash/constants";
-import { TrashIcon, SuspendedUserIcon } from "@pi-dash/propel/icons";
-import { Pill, EPillVariant, EPillSize } from "@pi-dash/propel/pill";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IUser, IWorkspaceMember } from "@pi-dash/types";
-// pi dash ui
-import { CustomSelect, PopoverMenu } from "@pi-dash/ui";
+// karma-team imports
+import { ROLE, EUserPermissions, EUserPermissionsLevel, MEMBER_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { TrashIcon, SuspendedUserIcon } from "@karma-team/propel/icons";
+import { Pill, EPillVariant, EPillSize } from "@karma-team/propel/pill";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IUser, IWorkspaceMember } from "@karma-team/types";
+// karma-team ui
+import { CustomSelect, PopoverMenu } from "@karma-team/ui";
 // helpers
-import { getFileURL } from "@pi-dash/utils";
+import { getFileURL } from "@karma-team/utils";
 // hooks
 import { useMember } from "@/hooks/store/use-member";
 import { useUser, useUserPermissions } from "@/hooks/store/user";

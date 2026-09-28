@@ -6,7 +6,7 @@
 
 import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { IRunner } from "@pi-dash/types";
+import type { IRunner } from "@karma-team/types";
 
 const { useSWR, getRunnerDetail } = vi.hoisted(() => ({
   useSWR: vi.fn(),
@@ -27,18 +27,18 @@ vi.mock("mobx-react", () => ({
   observer: (component: unknown) => component,
 }));
 
-vi.mock("@pi-dash/i18n", () => ({
+vi.mock("@karma-team/i18n", () => ({
   useTranslation: () => ({
     t: (key: string, vars?: Record<string, unknown>) =>
       vars ? key.replace(/\{(\w+)\}/g, (_m, k) => String(vars[k] ?? "")) : key,
   }),
 }));
 
-vi.mock("@pi-dash/services", () => ({
+vi.mock("@karma-team/services", () => ({
   getRunnerDetail,
 }));
 
-vi.mock("@pi-dash/ui", () => ({
+vi.mock("@karma-team/ui", () => ({
   Badge: ({ children }: { children: React.ReactNode }) => <span>{children}</span>,
   Button: ({ children }: { children: React.ReactNode }) => <button type="button">{children}</button>,
 }));

@@ -4,12 +4,12 @@
  * See the LICENSE file for details.
  */
 
-import { GOD_MODE_URL } from "@pi-dash/constants";
+import { GOD_MODE_URL } from "@karma-team/constants";
 // assets — same Pi mark used by the project README, no duplicate copies.
-import PiLogo from "../../../../../pi-symbol-light.svg?url";
+import PiLogo from "../../../../../karma-team-symbol-light.svg?url";
 import DefaultLayout from "@/layouts/default-layout";
-import { PiDashLockup } from "@pi-dash/propel/icons";
-import { Button } from "@pi-dash/propel/button";
+import { KarmaTeamLockup } from "@karma-team/propel/icons";
+import { Button } from "@karma-team/propel/button";
 
 export function InstanceNotReady() {
   return (
@@ -31,13 +31,13 @@ export function InstanceNotReady() {
         {/* Main content */}
         <div className="flex h-full w-full flex-col items-center px-8 pt-6 pb-10">
           <div className="sticky top-0 flex w-full shrink-0 items-center justify-between gap-6">
-            <PiDashLockup height={20} width={37} className="text-primary" />
+            <KarmaTeamLockup height={20} width={37} className="text-primary" />
           </div>
           <div className="flex h-full w-full flex-col items-center justify-center gap-7">
             <div className="flex flex-col items-center gap-11">
-              <img src={PiLogo} className="h-24 w-40 object-contain" alt="Pi Dash Logo" />
+              <img src={PiLogo} className="h-24 w-40 object-contain" alt="karma-team Logo" />
               <div className="flex max-w-124 flex-col items-center gap-3">
-                <h1 className="text-h2-semibold text-primary">Welcome to Pi Dash</h1>
+                <h1 className="text-h2-semibold text-primary">Welcome to karma-team</h1>
                 <p className="text-center text-body-md-regular text-secondary">
                   Set up your instance and create your first workspace to begin managing projects and work.
                 </p>

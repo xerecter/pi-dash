@@ -50,8 +50,8 @@ export default {
   "{workspace} - General settings": "{workspace} - General settings",
   "{workspace} - Inbox": "{workspace} - Inbox",
   "{workspace} - Intake": "{workspace} - Intake",
-  "`pidash runner add` starts `pidash auth login` first when the host is not logged in yet. Run it again for each project or pod this machine should serve.":
-    "`pidash runner add` starts `pidash auth login` first when the host is not logged in yet. Run it again for each project or pod this machine should serve.",
+  "`karma-team runner add` starts `karma-team auth login` first when the host is not logged in yet. Run it again for each project or pod this machine should serve.":
+    "`karma-team runner add` starts `karma-team auth login` first when the host is not logged in yet. Run it again for each project or pod this machine should serve.",
   "1 day": "1 day",
   "1 month ago": "1 month ago",
   "1 week": "1 week",
@@ -59,12 +59,12 @@ export default {
   "2 weeks": "2 weeks",
   "3 days": "3 days",
   "5 days": "5 days",
-  "A cloud-side row that represents one agent instance bound to a project (and optionally a pod). Running `pidash runner add` on a logged-in machine creates the row and binds that machine as the host. A machine can host many runners.":
-    "A cloud-side row that represents one agent instance bound to a project (and optionally a pod). Running `pidash runner add` on a logged-in machine creates the row and binds that machine as the host. A machine can host many runners.",
-  "A long-running background process that maintains the WebSocket session with Pi Dash cloud, dispatches work to the configured agent, and streams approvals + heartbeats back. One daemon per machine.":
-    "A long-running background process that maintains the WebSocket session with Pi Dash cloud, dispatches work to the configured agent, and streams approvals + heartbeats back. One daemon per machine.",
-  'A runner is an AI agent instance working on a given project.\n\n1. Click "Add runner", pick a project + pod and generate the CLI command.\n2. On the machine that will host the runner, run the displayed `pidash runner add` command. If the host is not logged in yet, the CLI starts `pidash auth login` first.\n3. The daemon registers the runner and it shows online here.\n\nPrerequisite: the agent CLI (codex / claude) must already be installed on the host.':
-    'A runner is an AI agent instance working on a given project.\n\n1. Click "Add runner", pick a project + pod and generate the CLI command.\n2. On the machine that will host the runner, run the displayed `pidash runner add` command. If the host is not logged in yet, the CLI starts `pidash auth login` first.\n3. The daemon registers the runner and it shows online here.\n\nPrerequisite: the agent CLI (codex / claude) must already be installed on the host.',
+  "A cloud-side row that represents one agent instance bound to a project (and optionally a pod). Running `karma-team runner add` on a logged-in machine creates the row and binds that machine as the host. A machine can host many runners.":
+    "A cloud-side row that represents one agent instance bound to a project (and optionally a pod). Running `karma-team runner add` on a logged-in machine creates the row and binds that machine as the host. A machine can host many runners.",
+  "A long-running background process that maintains the WebSocket session with karma-team cloud, dispatches work to the configured agent, and streams approvals + heartbeats back. One daemon per machine.":
+    "A long-running background process that maintains the WebSocket session with karma-team cloud, dispatches work to the configured agent, and streams approvals + heartbeats back. One daemon per machine.",
+  'A runner is an AI agent instance working on a given project.\n\n1. Click "Add runner", pick a project + pod and generate the CLI command.\n2. On the machine that will host the runner, run the displayed `karma-team runner add` command. If the host is not logged in yet, the CLI starts `karma-team auth login` first.\n3. The daemon registers the runner and it shows online here.\n\nPrerequisite: the agent CLI (codex / claude) must already be installed on the host.':
+    'A runner is an AI agent instance working on a given project.\n\n1. Click "Add runner", pick a project + pod and generate the CLI command.\n2. On the machine that will host the runner, run the displayed `karma-team runner add` command. If the host is not logged in yet, the CLI starts `karma-team auth login` first.\n3. The daemon registers the runner and it shows online here.\n\nPrerequisite: the agent CLI (codex / claude) must already be installed on the host.',
   "Ability to read, write, edit, and delete entities inside projects, cycles, and modules":
     "Ability to read, write, edit, and delete entities inside projects, cycles, and modules",
   Accept: "Accept",
@@ -172,8 +172,8 @@ export default {
   "An active cycle includes any period that encompasses today's date within its range. Find the progress and details of the active cycle here.":
     "An active cycle includes any period that encompasses today's date within its range. Find the progress and details of the active cycle here.",
   Analytics: "Analytics",
-  "Any application using this token will no longer have the access to Pi Dash data. This action cannot be undone.":
-    "Any application using this token will no longer have the access to Pi Dash data. This action cannot be undone.",
+  "Any application using this token will no longer have the access to karma-team data. This action cannot be undone.":
+    "Any application using this token will no longer have the access to karma-team data. This action cannot be undone.",
   "Appended to the scheduler's base prompt at run time. Use it to give project-specific framing the workspace prompt shouldn't carry.":
     "Appended to the scheduler's base prompt at run time. Use it to give project-specific framing the workspace prompt shouldn't carry.",
   Approval: "Approval",
@@ -350,8 +350,8 @@ export default {
   Contextual: "Contextual",
   Continue: "Continue",
   "Copied!": "Copied!",
-  "Copy and save this secret key in Pi Dash Pages. You can't see this key after you hit Close. A CSV file containing the key has been downloaded.":
-    "Copy and save this secret key in Pi Dash Pages. You can't see this key after you hit Close. A CSV file containing the key has been downloaded.",
+  "Copy and save this secret key in karma-team Pages. You can't see this key after you hit Close. A CSV file containing the key has been downloaded.":
+    "Copy and save this secret key in karma-team Pages. You can't see this key after you hit Close. A CSV file containing the key has been downloaded.",
   "Copy command": "Copy command",
   "Copy current page URL": "Copy current page URL",
   "Copy ID": "Copy ID",
@@ -476,8 +476,8 @@ export default {
   Declining: "Declining",
   default: "default",
   Default: "Default",
-  "Default model this runner's agent uses. ``Default`` lets the agent pick its own; the choice is baked into the displayed ``pidash runner add`` command.":
-    "Default model this runner's agent uses. ``Default`` lets the agent pick its own; the choice is baked into the displayed ``pidash runner add`` command.",
+  "Default model this runner's agent uses. ``Default`` lets the agent pick its own; the choice is baked into the displayed ``karma-team runner add`` command.":
+    "Default model this runner's agent uses. ``Default`` lets the agent pick its own; the choice is baked into the displayed ``karma-team runner add`` command.",
   "Defaults to the project's default pod.": "Defaults to the project's default pod.",
   "Define and customize workflow states to track the progress of your work items.":
     "Define and customize workflow states to track the progress of your work items.",
@@ -688,19 +688,19 @@ export default {
   "Gallery layout": "Gallery layout",
   General: "General",
   "General settings": "General settings",
-  "Generate a `pidash runner add` command for the machine that will host this runner.":
-    "Generate a `pidash runner add` command for the machine that will host this runner.",
+  "Generate a `karma-team runner add` command for the machine that will host this runner.":
+    "Generate a `karma-team runner add` command for the machine that will host this runner.",
   "Generate a token to sign-in to the webhook payload": "Generate a token to sign-in to the webhook payload",
   "Generate command": "Generate command",
   "Generate Runner": "Generate Runner",
-  "Create a runner on a connected dev machine, or generate a `pidash runner add` command to run manually.":
-    "Create a runner on a connected dev machine, or generate a `pidash runner add` command to run manually.",
+  "Create a runner on a connected dev machine, or generate a `karma-team runner add` command to run manually.":
+    "Create a runner on a connected dev machine, or generate a `karma-team runner add` command to run manually.",
   "Dev machine": "Dev machine",
-  "Run `pidash runner add` manually": "Run `pidash runner add` manually",
+  "Run `karma-team runner add` manually": "Run `karma-team runner add` manually",
   "Connected dev machines can create the runner directly — no copy-paste needed.":
     "Connected dev machines can create the runner directly — no copy-paste needed.",
-  "No connected dev machines. Install and start the pidash daemon on your machine, or generate the command to run manually.":
-    "No connected dev machines. Install and start the pidash daemon on your machine, or generate the command to run manually.",
+  "No connected dev machines. Install and start the karma-team daemon on your machine, or generate the command to run manually.":
+    "No connected dev machines. Install and start the karma-team daemon on your machine, or generate the command to run manually.",
   "Runner created": "Runner created",
   "Creating runner on": "Creating runner on",
   "Waiting for the dev machine to report back. This usually takes a few seconds.":
@@ -720,8 +720,8 @@ export default {
   "Generate token": "Generate token",
   Generating: "Generating",
   "Get a snapshot of each active cycle.": "Get a snapshot of each active cycle.",
-  "Get started by creating a new work item! Add details and properties to it. Explore more in Pi Dash to see your activity.":
-    "Get started by creating a new work item! Add details and properties to it. Explore more in Pi Dash to see your activity.",
+  "Get started by creating a new work item! Add details and properties to it. Explore more in karma-team to see your activity.":
+    "Get started by creating a new work item! Add details and properties to it. Explore more in karma-team to see your activity.",
   "Git repository URL": "Git repository URL",
   "Git repository URL (e.g. git@github.com:org/repo.git)": "Git repository URL (e.g. git@github.com:org/repo.git)",
   Github: "Github",
@@ -795,9 +795,9 @@ export default {
   "Install a scheduler from the List tab to see its occurrences on the calendar.":
     "Install a scheduler from the List tab to see its occurrences on the calendar.",
   "Install scheduler": "Install scheduler",
-  "Install the pidash CLI": "Install the pidash CLI",
-  "Install the pidash CLI and register dev machines as AI agent runners":
-    "Install the pidash CLI and register dev machines as AI agent runners",
+  "Install the karma-team CLI": "Install the karma-team CLI",
+  "Install the karma-team CLI and register dev machines as AI agent runners":
+    "Install the karma-team CLI and register dev machines as AI agent runners",
   "Install updated": "Install updated",
   Installed: "Installed",
   "Installing…": "Installing…",
@@ -912,8 +912,8 @@ export default {
   "Lowercase identifier used in URLs. Cannot be changed after creation.":
     "Lowercase identifier used in URLs. Cannot be changed after creation.",
   Machine: "Machine",
-  "Machines that have authenticated with Pi Dash or host runners for this workspace.":
-    "Machines that have authenticated with Pi Dash or host runners for this workspace.",
+  "Machines that have authenticated with karma-team or host runners for this workspace.":
+    "Machines that have authenticated with karma-team or host runners for this workspace.",
   "macOS / Linux": "macOS / Linux",
   "macOS/Linux": "macOS/Linux",
   "Make a copy": "Make a copy",
@@ -988,7 +988,7 @@ export default {
   "New password must be different from old password": "New password must be different from old password",
   "New project": "New project",
   "New scheduler": "New scheduler",
-  "New to Pi Dash?": "New to Pi Dash?",
+  "New to karma-team?": "New to karma-team?",
   "New view": "New view",
   "New work item": "New work item",
   "New workspace": "New workspace",
@@ -1031,8 +1031,8 @@ export default {
   "No projects detected with the matching criteria. \n Create a new project instead.":
     "No projects detected with the matching criteria. \n Create a new project instead.",
   "No projects match your search.": "No projects match your search.",
-  "No prompt templates available. The Pi Dash default will be seeded on the next migrate.":
-    "No prompt templates available. The Pi Dash default will be seeded on the next migrate.",
+  "No prompt templates available. The karma-team default will be seeded on the next migrate.":
+    "No prompt templates available. The karma-team default will be seeded on the next migrate.",
   "No results found": "No results found",
   "No results found. Try adjusting your search terms.": "No results found. Try adjusting your search terms.",
   'No runners yet. Click "Add runner" to generate your first runner command.':
@@ -1116,7 +1116,7 @@ export default {
   "Open navigation pane": "Open navigation pane",
   "Open outline": "Open outline",
   "Open paid plans' modal": "Open paid plans' modal",
-  "Open Pi Dash documentation": "Open Pi Dash documentation",
+  "Open karma-team documentation": "Open karma-team documentation",
   "Open project": "Open project",
   "Open project menu": "Open project menu",
   "Open projects menu": "Open projects menu",
@@ -1163,16 +1163,16 @@ export default {
   Personal: "Personal",
   "Personal Access Tokens": "Personal Access Tokens",
   "Pi Chat": "Pi Chat",
-  "Pi Dash AI": "Pi Dash AI",
-  "Pi Dash default": "Pi Dash default",
-  "Pi Dash hands AI agents (Claude Code, Codex, …) the keys to a real dev machine so they can pick up work items, write code, and open changes. Three pieces work together to make that possible:":
-    "Pi Dash hands AI agents (Claude Code, Codex, …) the keys to a real dev machine so they can pick up work items, write code, and open changes. Three pieces work together to make that possible:",
-  "Pi Dash helps you utilize best out of Claude Fable 5": "Pi Dash helps you utilize best out of Claude Fable 5",
-  "Pi Dash will auto archive work items that have been completed or canceled.":
-    "Pi Dash will auto archive work items that have been completed or canceled.",
-  "Pi Dash will automatically close work items that haven't been completed or canceled.":
-    "Pi Dash will automatically close work items that haven't been completed or canceled.",
-  "Pi Dash: Your AI Employee Management Platform": "Pi Dash: Your AI Employee Management Platform",
+  "karma-team AI": "karma-team AI",
+  "karma-team default": "karma-team default",
+  "karma-team hands AI agents (Claude Code, Codex, …) the keys to a real dev machine so they can pick up work items, write code, and open changes. Three pieces work together to make that possible:":
+    "karma-team hands AI agents (Claude Code, Codex, …) the keys to a real dev machine so they can pick up work items, write code, and open changes. Three pieces work together to make that possible:",
+  "karma-team helps you utilize best out of Claude Fable 5": "karma-team helps you utilize best out of Claude Fable 5",
+  "karma-team will auto archive work items that have been completed or canceled.":
+    "karma-team will auto archive work items that have been completed or canceled.",
+  "karma-team will automatically close work items that haven't been completed or canceled.":
+    "karma-team will automatically close work items that haven't been completed or canceled.",
+  "karma-team: Your AI Employee Management Platform": "karma-team: Your AI Employee Management Platform",
   "Pick a project.": "Pick a project.",
   "Pick a scheduler.": "Pick a scheduler.",
   "Pick at least one project to install this scheduler on.": "Pick at least one project to install this scheduler on.",
@@ -1180,8 +1180,8 @@ export default {
     "Pick from your workspace's enabled schedulers. Already-installed ones aren't listed.",
   "Pick one or more projects. One schedule applies to all of them.":
     "Pick one or more projects. One schedule applies to all of them.",
-  "pidash CLI": "pidash CLI",
-  "pidash daemon": "pidash daemon",
+  "karma-team CLI": "karma-team CLI",
+  "karma-team daemon": "karma-team daemon",
   "Plan work in focused timeframes.": "Plan work in focused timeframes.",
   Planned: "Planned",
   "Please create a new state": "Please create a new state",
@@ -1197,12 +1197,12 @@ export default {
   "Pods group your runners. Issues delegate to a pod, and any free runner inside picks up the work. Click a tile to filter runners.":
     "Pods group your runners. Issues delegate to a pod, and any free runner inside picks up the work. Click a tile to filter runners.",
   Points: "Points",
-  "Powered by Pi Dash Pages": "Powered by Pi Dash Pages",
+  "Powered by karma-team Pages": "Powered by karma-team Pages",
   PowerShell: "PowerShell",
   Preferences: "Preferences",
   "Preferences updated successfully.": "Preferences updated successfully.",
-  "Prerequisite: the agent CLI you plan to use (`codex` or `claude`) must already be installed and on PATH. Run `pidash doctor` after install to verify.":
-    "Prerequisite: the agent CLI you plan to use (`codex` or `claude`) must already be installed and on PATH. Run `pidash doctor` after install to verify.",
+  "Prerequisite: the agent CLI you plan to use (`codex` or `claude`) must already be installed and on PATH. Run `karma-team doctor` after install to verify.":
+    "Prerequisite: the agent CLI you plan to use (`codex` or `claude`) must already be installed and on PATH. Run `karma-team doctor` after install to verify.",
   "Press '/' for commands": "Press '/' for commands",
   "Press 'Enter' to add another epic": "Press 'Enter' to add another epic",
   "Press 'Enter' to add another work item": "Press 'Enter' to add another work item",
@@ -1250,7 +1250,7 @@ export default {
   Prompt: "Prompt",
   "Prompt is required.": "Prompt is required.",
   "Prompt saved": "Prompt saved",
-  "Prompt template (Pi Dash default)": "Prompt template (Pi Dash default)",
+  "Prompt template (karma-team default)": "Prompt template (karma-team default)",
   "Prompt template (workspace override)": "Prompt template (workspace override)",
   Prompts: "Prompts",
   Properties: "Properties",
@@ -1308,8 +1308,8 @@ export default {
     "Reusable scheduler definitions for this workspace. Install one on a project to run its prompt against the project on a cron.",
   Revert: "Revert",
   "Revert to default": "Revert to default",
-  "Revert to the Pi Dash default?": "Revert to the Pi Dash default?",
-  "Reverted to Pi Dash default": "Reverted to Pi Dash default",
+  "Revert to the karma-team default?": "Revert to the karma-team default?",
+  "Reverted to karma-team default": "Reverted to karma-team default",
   Review: "Review",
   Revoke: "Revoke",
   "Revoke dev machine?": "Revoke dev machine?",
@@ -1324,8 +1324,8 @@ export default {
   Rotate: "Rotate",
   "Rotate dev machine token?": "Rotate dev machine token?",
   "Run {runId} · requested {at}": "Run {runId} · requested {at}",
-  "Run an installer on the machine that will host your AI agent. The wrapper commands download the latest signed binary, drop `pidash` on your PATH, and walk you through the device-code login.":
-    "Run an installer on the machine that will host your AI agent. The wrapper commands download the latest signed binary, drop `pidash` on your PATH, and walk you through the device-code login.",
+  "Run an installer on the machine that will host your AI agent. The wrapper commands download the latest signed binary, drop `karma-team` on your PATH, and walk you through the device-code login.":
+    "Run an installer on the machine that will host your AI agent. The wrapper commands download the latest signed binary, drop `karma-team` on your PATH, and walk you through the device-code login.",
   "Run this on the machine that will host the runner:": "Run this on the machine that will host the runner:",
   "Runner {name}": "Runner {name}",
   "Runner detail": "Runner detail",
@@ -1515,13 +1515,13 @@ export default {
   "Template not found.": "Template not found.",
   "That didn't work.": "That didn't work.",
   "That doesn't match any of your stickies.": "That doesn't match any of your stickies.",
-  "The active auth token for this dev machine will be invalidated. Runners on that machine will stop connecting until `pidash auth login` is run there again.":
-    "The active auth token for this dev machine will be invalidated. Runners on that machine will stop connecting until `pidash auth login` is run there again.",
+  "The active auth token for this dev machine will be invalidated. Runners on that machine will stop connecting until `karma-team auth login` is run there again.":
+    "The active auth token for this dev machine will be invalidated. Runners on that machine will stop connecting until `karma-team auth login` is run there again.",
   "The AI agent will pick up this work item shortly.": "The AI agent will pick up this work item shortly.",
   "The base prompt the agent runs each tick. Per-project context is appended at install time, so keep this prompt project-agnostic.":
     "The base prompt the agent runs each tick. Per-project context is appended at install time, so keep this prompt project-agnostic.",
-  "The command-line tool installed on each dev machine. Handles authentication with the cloud, manages local config (`~/.pidash/config.toml`), and exposes commands for issues, comments, and runner management (`pidash auth login`, `pidash runner add`, `pidash doctor`, …).":
-    "The command-line tool installed on each dev machine. Handles authentication with the cloud, manages local config (`~/.pidash/config.toml`), and exposes commands for issues, comments, and runner management (`pidash auth login`, `pidash runner add`, `pidash doctor`, …).",
+  "The command-line tool installed on each dev machine. Handles authentication with the cloud, manages local config (`~/.karma-team/config.toml`), and exposes commands for issues, comments, and runner management (`karma-team auth login`, `karma-team runner add`, `karma-team doctor`, …).":
+    "The command-line tool installed on each dev machine. Handles authentication with the cloud, manages local config (`~/.karma-team/config.toml`), and exposes commands for issues, comments, and runner management (`karma-team auth login`, `karma-team runner add`, `karma-team doctor`, …).",
   "The cycle could not be restored. Please try again.": "The cycle could not be restored. Please try again.",
   "The cycle has been restored.": "The cycle has been restored.",
   "The estimate has been created successfully": "The estimate has been created successfully",
@@ -1569,11 +1569,11 @@ export default {
     "They help you in communicating complexity and workload of the team.",
   "Think of each project as the parent for goal-oriented work. Projects are where Jobs, Cycles, and Modules live and, along with your colleagues, help you achieve that goal. Create a new project or filter for archived projects.":
     "Think of each project as the parent for goal-oriented work. Projects are where Jobs, Cycles, and Modules live and, along with your colleagues, help you achieve that goal. Create a new project or filter for archived projects.",
-  "This archives your workspace-scoped template. New agent runs in this workspace will use the Pi Dash default until you create another override.":
-    "This archives your workspace-scoped template. New agent runs in this workspace will use the Pi Dash default until you create another override.",
+  "This archives your workspace-scoped template. New agent runs in this workspace will use the karma-team default until you create another override.":
+    "This archives your workspace-scoped template. New agent runs in this workspace will use the karma-team default until you create another override.",
   "This field is required": "This field is required",
-  "This is the built-in Pi Dash default. Workspace admins cannot edit it here — customize for your workspace to override.":
-    "This is the built-in Pi Dash default. Workspace admins cannot edit it here — customize for your workspace to override.",
+  "This is the built-in karma-team default. Workspace admins cannot edit it here — customize for your workspace to override.":
+    "This is the built-in karma-team default. Workspace admins cannot edit it here — customize for your workspace to override.",
   "This layout is ordered by": "This layout is ordered by",
   "This module isn't active yet.": "This module isn't active yet.",
   "This permanently revokes the dev machine, invalidates its auth token, and revokes runners hosted on it. Use this when the machine should no longer be trusted.":
@@ -1608,21 +1608,22 @@ export default {
   Timezone: "Timezone",
   "Timezone updated successfully.": "Timezone updated successfully.",
   Title: "Title",
-  "Title is optional — Pi Dash AI will generate it": "Title is optional — Pi Dash AI will generate it",
+  "Title is optional — karma-team AI will generate it": "Title is optional — karma-team AI will generate it",
   "Title is required": "Title is required",
-  "Add a description so Pi Dash AI can generate a title.": "Add a description so Pi Dash AI can generate a title.",
+  "Add a description so karma-team AI can generate a title.":
+    "Add a description so karma-team AI can generate a title.",
   "Generating title": "Generating title",
-  "Pi Dash AI is generating a title.": "Pi Dash AI is generating a title.",
-  "Pi Dash AI couldn't generate a title. Try again or enter a title manually.":
-    "Pi Dash AI couldn't generate a title. Try again or enter a title manually.",
+  "karma-team AI is generating a title.": "karma-team AI is generating a title.",
+  "karma-team AI couldn't generate a title. Try again or enter a title manually.":
+    "karma-team AI couldn't generate a title. Try again or enter a title manually.",
   "Title should be less than {length} characters": "Title should be less than {length} characters",
   "Title should be less than 255 characters": "Title should be less than 255 characters",
   "To create work items or manage your work, you need to create a project or be a part of one.":
     "To create work items or manage your work, you need to create a project or be a part of one.",
   "To see all sub-work items, clear all applied filters.": "To see all sub-work items, clear all applied filters.",
   "To see all work items, clear all applied filters.": "To see all work items, clear all applied filters.",
-  "To start using Pi Dash, you need to create or join a workspace.":
-    "To start using Pi Dash, you need to create or join a workspace.",
+  "To start using karma-team, you need to create or join a workspace.":
+    "To start using karma-team, you need to create or join a workspace.",
   "To tidy up your project, archive completed cycles. Find them here once archived.":
     "To tidy up your project, archive completed cycles. Find them here once archived.",
   "To tidy up your project, archive completed or cancelled modules. Find them here once archived.":
@@ -1713,8 +1714,8 @@ export default {
   Warning: "Warning",
   "We are unable to process your request, please try again.":
     "We are unable to process your request, please try again.",
-  "We copied the current Pi Dash default. Edit and save to customize it.":
-    "We copied the current Pi Dash default. Edit and save to customize it.",
+  "We copied the current karma-team default. Edit and save to customize it.":
+    "We copied the current karma-team default. Edit and save to customize it.",
   "We couldn't send your request. Please try again.": "We couldn't send your request. Please try again.",
   "We need an email address to invite them.": "We need an email address to invite them.",
   "We see that someone has invited you to join a workspace": "We see that someone has invited you to join a workspace",
@@ -1730,7 +1731,7 @@ export default {
   "Webhook not created": "Webhook not created",
   Webhooks: "Webhooks",
   Week: "Week",
-  "What is the pidash CLI, daemon, and runner?": "What is the pidash CLI, daemon, and runner?",
+  "What is the karma-team CLI, daemon, and runner?": "What is the karma-team CLI, daemon, and runner?",
   "What to do with findings": "What to do with findings",
   "What you'd like to see this link as": "What you'd like to see this link as",
   "What's new?": "What's new?",
@@ -1742,8 +1743,8 @@ export default {
   "When enabled, project members can add, edit, reorder, and delete workflow states. When disabled, only admins can manage states.":
     "When enabled, project members can add, edit, reorder, and delete workflow states. When disabled, only admins can manage states.",
   "Where this pod runs, what it's for, etc.": "Where this pod runs, what it's for, etc.",
-  "Which AI agent CLI this runner will drive. Baked into the displayed ``pidash runner add`` command.":
-    "Which AI agent CLI this runner will drive. Baked into the displayed ``pidash runner add`` command.",
+  "Which AI agent CLI this runner will drive. Baked into the displayed ``karma-team runner add`` command.":
+    "Which AI agent CLI this runner will drive. Baked into the displayed ``karma-team runner add`` command.",
   "Which events would you like to trigger this webhook?": "Which events would you like to trigger this webhook?",
   "Which pod's runners serve this scheduler's runs. Leave on the project default unless you need a specific machine fleet.":
     "Which pod's runners serve this scheduler's runs. Leave on the project default unless you need a specific machine fleet.",
@@ -1845,8 +1846,8 @@ export default {
   "Your stickies": "Your stickies",
   "Your work": "Your work",
   "Your work item can be found in project work items.": "Your work item can be found in project work items.",
-  "Your workspace's override of the Pi Dash default. Edits bump the version and apply to the next agent run for this workspace.":
-    "Your workspace's override of the Pi Dash default. Edits bump the version and apply to the next agent run for this workspace.",
+  "Your workspace's override of the karma-team default. Edits bump the version and apply to the next agent run for this workspace.":
+    "Your workspace's override of the karma-team default. Edits bump the version and apply to the next agent run for this workspace.",
   "Zoom into cycles that need attention. ": "Zoom into cycles that need attention. ",
   "Zoom out to see running cycles across all your projects at once instead of going from Cycle to Cycle in each project.":
     "Zoom out to see running cycles across all your projects at once instead of going from Cycle to Cycle in each project.",
@@ -1854,14 +1855,14 @@ export default {
   "Changing this affects new runs only. Existing and queued runs keep their original executor.":
     "Changing this affects new runs only. Existing and queued runs keep their original executor.",
   "Cloud execution": "Cloud execution",
-  "Configure your AI provider in Pi Dash AI settings to use the Cloud Agent.":
-    "Configure your AI provider in Pi Dash AI settings to use the Cloud Agent.",
+  "Configure your AI provider in karma-team AI settings to use the Cloud Agent.":
+    "Configure your AI provider in karma-team AI settings to use the Cloud Agent.",
   "Default AI executor": "Default AI executor",
   Executor: "Executor",
   "Local Runner": "Local Runner",
-  "Pi Dash Cloud Agent": "Pi Dash Cloud Agent",
-  "Pi Dash Cloud Agent is using the project's bounded tools.":
-    "Pi Dash Cloud Agent is using the project's bounded tools.",
+  "karma-team Cloud Agent": "karma-team Cloud Agent",
+  "karma-team Cloud Agent is using the project's bounded tools.":
+    "karma-team Cloud Agent is using the project's bounded tools.",
   Refused: "Refused",
   Result: "Result",
   "Runs on your connected development machine with repository access.":
@@ -1871,11 +1872,11 @@ export default {
     "Unavailable on this instance. Ask an administrator to enable the Cloud Agent.",
   "Unavailable until a Local Runner is connected to this project.":
     "Unavailable until a Local Runner is connected to this project.",
-  "Waiting for Pi Dash Cloud Agent capacity.": "Waiting for Pi Dash Cloud Agent capacity.",
+  "Waiting for karma-team Cloud Agent capacity.": "Waiting for karma-team Cloud Agent capacity.",
   "Works out of the box with project and connected GitHub tools; no filesystem or shell.":
     "Works out of the box with project and connected GitHub tools; no filesystem or shell.",
   "Runs on": "Runs on",
-  "Use Pi Dash Cloud Agent by default": "Use Pi Dash Cloud Agent by default",
+  "Use karma-team Cloud Agent by default": "Use karma-team Cloud Agent by default",
   "New work items run on the Cloud Agent — no machine required. Turn this off to default to this project's pod instead. Either way both remain selectable per work item.":
     "New work items run on the Cloud Agent — no machine required. Turn this off to default to this project's pod instead. Either way both remain selectable per work item.",
 } as const;

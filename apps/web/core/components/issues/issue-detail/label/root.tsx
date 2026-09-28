@@ -6,10 +6,10 @@
 
 import { useMemo } from "react";
 import { observer } from "mobx-react";
-import { useTranslation } from "@pi-dash/i18n";
-import { TOAST_TYPE, setToast } from "@pi-dash/propel/toast";
-import type { IIssueLabel, TIssue, TIssueServiceType } from "@pi-dash/types";
-import { EIssueServiceType } from "@pi-dash/types";
+import { useTranslation } from "@karma-team/i18n";
+import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import type { IIssueLabel, TIssue, TIssueServiceType } from "@karma-team/types";
+import { EIssueServiceType } from "@karma-team/types";
 // components
 // hooks
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
@@ -66,7 +66,9 @@ export const IssueLabel = observer(function IssueLabel(props: TIssueLabel) {
           setToast({
             title: t("Error!"),
             type: TOAST_TYPE.ERROR,
-            message: t("{entity} update failed", { entity: t("{count, plural, one {Work item} other {Work items}}", { count: 1 }) }),
+            message: t("{entity} update failed", {
+              entity: t("{count, plural, one {Work item} other {Work items}}", { count: 1 }),
+            }),
           });
         }
       },

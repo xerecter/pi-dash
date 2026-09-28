@@ -8,10 +8,10 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 // services
 // ui
-import { useTranslation } from "@pi-dash/i18n";
-import { Button } from "@pi-dash/propel/button";
+import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
 // helpers
-import { renderFormattedPayloadDate } from "@pi-dash/utils";
+import { renderFormattedPayloadDate } from "@karma-team/utils";
 import { UserService } from "@/services/user.service";
 
 const userService = new UserService();

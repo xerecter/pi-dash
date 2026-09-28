@@ -6,16 +6,16 @@
 
 import { observer } from "mobx-react";
 import { PanelRight } from "lucide-react";
-// pi dash imports
-import { useTranslation } from "@pi-dash/i18n";
-import { Tooltip } from "@pi-dash/propel/tooltip";
-import { cn } from "@pi-dash/utils";
+// karma-team imports
+import { useTranslation } from "@karma-team/i18n";
+import { Tooltip } from "@karma-team/propel/tooltip";
+import { cn } from "@karma-team/utils";
 // components
 import { PageToolbar } from "@/components/pages/editor/toolbar";
 // hooks
 import { usePageFilters } from "@/hooks/use-page-filters";
-// pi dash web components
-import { PageCollaboratorsList } from "@/pi-dash-web/components/pages/header/collaborators-list";
+// karma-team web components
+import { PageCollaboratorsList } from "@/karma-team-web/components/pages/header/collaborators-list";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 

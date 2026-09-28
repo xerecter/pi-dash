@@ -27,8 +27,8 @@ import "@fontsource/material-symbols-rounded";
 // eslint-disable-next-line import/no-unassigned-import
 import "@fontsource/ibm-plex-mono";
 
-const APP_TITLE = "Pi Dash Publish | Make your Pi Dash boards public with one-click";
-const APP_DESCRIPTION = "Pi Dash Publish is a customer feedback management tool built with Pi Dash";
+const APP_TITLE = "karma-team Publish | Make your karma-team boards public with one-click";
+const APP_DESCRIPTION = "karma-team Publish is a customer feedback management tool built with karma-team";
 
 export const links: Route.LinksFunction = () => [
   { rel: "apple-touch-icon", sizes: "180x180", href: appleTouchIcon },

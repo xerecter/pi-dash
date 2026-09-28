@@ -4,8 +4,8 @@
  * See the LICENSE file for details.
  */
 
-// pi dash imports
-import { ScrollArea } from "@pi-dash/propel/scrollarea";
+// karma-team imports
+import { ScrollArea } from "@karma-team/propel/scrollarea";
 // local imports
 import { ProjectSettingsSidebarHeader } from "./header";
 import { ProjectSettingsSidebarItemCategories } from "./item-categories";

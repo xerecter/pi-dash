@@ -7,7 +7,7 @@
 ## Implementation Assumptions
 
 - Initial private clone support is `runner_managed`.
-- Pi Dash does not pass GitHub or GitLab clone credentials to runners in the first implementation.
+- karma-team does not pass GitHub or GitLab clone credentials to runners in the first implementation.
 - `GitProviderAccount` is the source of truth for provider API access.
 - `WorkspaceIntegration` remains only as compatibility glue where needed.
 - Each project has at most one active `GitRepositoryBinding`.
@@ -25,7 +25,7 @@
 
 ## Phase 1 - Provider Registry, DTOs, and Parsers
 
-- [ ] Create generic Git integration package, for example `pi_dash/integrations/git/`.
+- [ ] Create generic Git integration package, for example `karma_team/integrations/git/`.
 - [ ] Add provider registry with lookup by provider key and URL host.
 - [ ] Add normalized DTOs:
   - [ ] `ParsedRepository`
@@ -157,7 +157,7 @@
 - [ ] Point old GitHub PR attach endpoint to generic service.
 - [ ] Migrate web app GitHub PR endpoint usage to generic code-review endpoint.
 - [ ] Implement generic code-review attach service.
-- [ ] Preserve one remote code review to one Pi Dash issue behavior.
+- [ ] Preserve one remote code review to one karma-team issue behavior.
 - [ ] Use stable repository id for uniqueness when available.
 - [ ] Add GitLab MR parser integration.
 - [ ] Add GitLab Merge Requests API snapshot fetch.
@@ -214,8 +214,8 @@
 
 ## Phase 9 - CLI, Assistant, and Prompting
 
-- [ ] Add canonical CLI command `pidash issue attach-review` or accepted final name.
-- [ ] Keep `pidash issue attach-pr` as alias.
+- [ ] Add canonical CLI command `karma-team issue attach-review` or accepted final name.
+- [ ] Keep `karma-team issue attach-pr` as alias.
 - [ ] Update `attach-pr` help text to accept GitHub PR and GitLab MR URLs.
 - [ ] Point CLI attach command to generic code-review endpoint.
 - [ ] Add CLI contract test for old GitHub PR behavior.
@@ -227,7 +227,7 @@
 - [ ] Update implementation prompts for GitHub PR flow.
 - [ ] Update implementation prompts for GitLab MR flow.
 - [ ] Update prompts for unknown provider fallback.
-- [ ] Update Pi Dash skill docs for PR/MR attach workflow.
+- [ ] Update karma-team skill docs for PR/MR attach workflow.
 - [ ] Add prompt snapshot tests for GitHub.
 - [ ] Add prompt snapshot tests for GitLab.
 - [ ] Add prompt snapshot tests for unknown provider.
@@ -252,8 +252,8 @@
 - [ ] A workspace can connect `gitlab.com` and self-hosted GitLab at the same time.
 - [ ] Project A can bind a GitHub repo while Project B binds a GitLab repo in the same workspace.
 - [ ] Existing GitHub bind, sync, PR attach, webhook, CLI, assistant, and prompt behavior remains compatible.
-- [ ] GitLab open issues sync into Pi Dash.
-- [ ] GitLab issue notes sync into Pi Dash comments.
+- [ ] GitLab open issues sync into karma-team.
+- [ ] GitLab issue notes sync into karma-team comments.
 - [ ] GitLab completion notes post back once.
 - [ ] GitLab MR URLs attach from web, API, and CLI.
 - [ ] GitLab MR status snapshots display correctly.

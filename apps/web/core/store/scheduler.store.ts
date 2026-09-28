@@ -7,9 +7,9 @@
 import { set, unset } from "lodash-es";
 import { action, makeObservable, observable, runInAction } from "mobx";
 import { computedFn } from "mobx-utils";
-// pi dash imports
-import type { IScheduler, ISchedulerCreatePayload, ISchedulerUpdatePayload } from "@pi-dash/services";
-import { SchedulerService } from "@pi-dash/services";
+// karma-team imports
+import type { IScheduler, ISchedulerCreatePayload, ISchedulerUpdatePayload } from "@karma-team/services";
+import { SchedulerService } from "@karma-team/services";
 // store
 import type { CoreRootStore } from "./root.store";
 

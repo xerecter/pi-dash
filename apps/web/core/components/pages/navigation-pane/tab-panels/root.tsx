@@ -6,16 +6,16 @@
 
 // components
 import type { TPageRootHandlers } from "@/components/pages/editor/page-root";
-// pi dash web imports
-import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/pi-dash-web/components/pages/navigation-pane";
-import { PageNavigationPaneAdditionalTabPanelsRoot } from "@/pi-dash-web/components/pages/navigation-pane/tab-panels/root";
+// karma-team web imports
+import { ORDERED_PAGE_NAVIGATION_TABS_LIST } from "@/karma-team-web/components/pages/navigation-pane";
+import { PageNavigationPaneAdditionalTabPanelsRoot } from "@/karma-team-web/components/pages/navigation-pane/tab-panels/root";
 // store
 import type { TPageInstance } from "@/store/pages/base-page";
 // local imports
 import { PageNavigationPaneAssetsTabPanel } from "./assets";
 import { PageNavigationPaneInfoTabPanel } from "./info/root";
 import { PageNavigationPaneOutlineTabPanel } from "./outline";
-import { Tabs } from "@pi-dash/propel/tabs";
+import { Tabs } from "@karma-team/propel/tabs";
 
 type Props = {
   page: TPageInstance;

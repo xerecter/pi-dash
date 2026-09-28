@@ -5,8 +5,8 @@
  */
 
 // types
-import type { WeekMonthDataType, ChartDataType, TGanttViews } from "@pi-dash/types";
-import { EStartOfTheWeek } from "@pi-dash/types";
+import type { WeekMonthDataType, ChartDataType, TGanttViews } from "@karma-team/types";
+import { EStartOfTheWeek } from "@karma-team/types";
 
 // constants
 export const generateWeeks = (startOfWeek: EStartOfTheWeek = EStartOfTheWeek.SUNDAY): WeekMonthDataType[] => [

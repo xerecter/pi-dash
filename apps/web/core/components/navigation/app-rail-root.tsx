@@ -8,16 +8,16 @@
 import { observer } from "mobx-react";
 import { useParams, usePathname } from "next/navigation";
 import { SettingsIcon } from "lucide-react";
-import { ContextMenu } from "@pi-dash/propel/context-menu";
-import { CheckIcon } from "@pi-dash/propel/icons";
-import { cn } from "@pi-dash/utils";
+import { ContextMenu } from "@karma-team/propel/context-menu";
+import { CheckIcon } from "@karma-team/propel/icons";
+import { cn } from "@karma-team/utils";
 // components
 import { AppSidebarItem } from "@/components/sidebar/sidebar-item";
 // hooks
 import { useAppRailPreferences } from "@/hooks/use-navigation-preferences";
 import { useAppRailVisibility } from "@/lib/app-rail/context";
-// pi dash web imports
-import { DesktopSidebarWorkspaceMenu } from "@/pi-dash-web/components/desktop";
+// karma-team web imports
+import { DesktopSidebarWorkspaceMenu } from "@/karma-team-web/components/desktop";
 // local imports
 import { AppSidebarItemsRoot } from "./items-root";
 

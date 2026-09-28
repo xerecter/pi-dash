@@ -1,6 +1,6 @@
 # 05 — Frontend Architecture
 
-The browser side of Pi Dash is **four React Router 7 apps** sharing a common workspace of TypeScript packages. State is managed with **MobX** (not Redux, not Zustand). Styling is Tailwind + the in-house `@pi-dash/ui` component library.
+The browser side of karma-team is **four React Router 7 apps** sharing a common workspace of TypeScript packages. State is managed with **MobX** (not Redux, not Zustand). Styling is Tailwind + the in-house `@karma-team/ui` component library.
 
 ## The four apps
 
@@ -13,12 +13,12 @@ The browser side of Pi Dash is **four React Router 7 apps** sharing a common wor
 
 `web`, `admin`, and `space` are structured similarly: `app/` for routes, `components/` for app-local components, `store/` for MobX root composition, `helpers/`, `hooks/`, `lib/`, plus `vite.config.ts`, `react-router.config.ts`, `Dockerfile.*`, `nginx/` (for prod static serving).
 
-`apps/web/ce/` is the **Community Edition split**: code that's compiled-in for OSS builds but can be overridden in the proprietary build of Pi Dash Cloud (`private-pi-dash`). Treat `ce/` as the OSS implementation; do not fork it into private code.
+`apps/web/ce/` is the **Community Edition split**: code that's compiled-in for OSS builds but can be overridden in the proprietary build of karma-team Cloud (`private-karma-team`). Treat `ce/` as the OSS implementation; do not fork it into private code.
 
 ## Shared packages (`packages/`)
 
 ```
-ui/              ← component library + Storybook (pnpm --filter @pi-dash/ui storybook → :6006)
+ui/              ← component library + Storybook (pnpm --filter @karma-team/ui storybook → :6006)
 shared-state/    ← MobX stores: user, workspace, filters — the canonical client state
 services/        ← API client (fetch wrappers, typed endpoints)
 editor/          ← Tiptap/ProseMirror — collab editor (used with live server)
@@ -35,7 +35,7 @@ typescript-config/ ← shared tsconfig bases
 codemods/        ← jscodeshift transforms for repo-wide refactors
 ```
 
-Apps consume packages via `"@pi-dash/<name>": "workspace:*"`. **External** deps go through the `catalog:` block in `pnpm-workspace.yaml` — see [03 — Repository layout](./03-repository-layout.md).
+Apps consume packages via `"@karma-team/<name>": "workspace:*"`. **External** deps go through the `catalog:` block in `pnpm-workspace.yaml` — see [03 — Repository layout](./03-repository-layout.md).
 
 ## State: MobX shared-state
 
@@ -63,7 +63,7 @@ Each app uses **React Router v7** (file-based + programmatic).
 - **`react-router.config.ts`** for RR7-specific config (SSR mode, route discovery).
 - **Turborepo** drives `dev` / `build` / `check` across the workspace. `pnpm dev` runs `turbo run dev --concurrency=18`.
 - **`packages/*` build** with `tsdown` (Rust-based, fast).
-- **Storybook** is run inside `@pi-dash/ui` only — `pnpm --filter @pi-dash/ui storybook` → `:6006`. Build components there in isolation before wiring them into an app.
+- **Storybook** is run inside `@karma-team/ui` only — `pnpm --filter @karma-team/ui storybook` → `:6006`. Build components there in isolation before wiring them into an app.
 
 ## Linting & formatting
 
@@ -76,19 +76,19 @@ Both tools are Rust-based, replacing ESLint + Prettier. `eslint-disable` comment
 
 **Per-app `--max-warnings` ceilings** (pinned in each `package.json`):
 
-| App           | Ceiling |
-| ------------- | ------- |
-| `web`         | 11957   |
-| `space`       | 676     |
-| `admin`       | 759     |
-| `live`        | 119     |
-| `@pi-dash/ui` | 66      |
+| App              | Ceiling |
+| ---------------- | ------- |
+| `web`            | 11957   |
+| `space`          | 676     |
+| `admin`          | 759     |
+| `live`           | 119     |
+| `@karma-team/ui` | 66      |
 
 Crossing the ceiling fails `pnpm check:lint`. After cleanups, **lower** the ceiling instead of leaving headroom. See [13 — Development workflow](./13-development-workflow.md) for the full toolchain.
 
 ## i18n
 
-UI code uses source English text directly as the message id, for example `t("Create project")` — there's no separate key catalogue to maintain. The OSS build is English-only; the English locale lives in `packages/i18n/src/locales/en/`. Self-hosters can add their own languages — see `packages/i18n/README.md`. (Upstream multi-language locales and their sync/translate tooling are part of Pi Dash Cloud, not this repo.)
+UI code uses source English text directly as the message id, for example `t("Create project")` — there's no separate key catalogue to maintain. The OSS build is English-only; the English locale lives in `packages/i18n/src/locales/en/`. Self-hosters can add their own languages — see `packages/i18n/README.md`. (Upstream multi-language locales and their sync/translate tooling are part of karma-team Cloud, not this repo.)
 
 ## Where to read next
 

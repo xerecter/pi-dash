@@ -8,13 +8,13 @@ import React from "react";
 import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // types
-import type { TIssue } from "@pi-dash/types";
+import type { TIssue } from "@karma-team/types";
 // helpers
-import { Row } from "@pi-dash/ui";
-import { cn } from "@pi-dash/utils";
+import { Row } from "@karma-team/ui";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useAppRouter } from "@/hooks/use-app-router";
-import { IssueStats } from "@/pi-dash-web/components/issues/issue-layouts/issue-stats";
+import { IssueStats } from "@/karma-team-web/components/issues/issue-layouts/issue-stats";
 
 type Props = {
   issue: TIssue;
