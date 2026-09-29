@@ -938,6 +938,7 @@ pub async fn submit_register(
         openclaw: Default::default(),
         grok: Default::default(),
         muse_code: Default::default(),
+        karma: Default::default(),
         approval_policy: Default::default(),
     };
     let cfg = crate::config::schema::Config {

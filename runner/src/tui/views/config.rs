@@ -28,6 +28,7 @@ pub const AGENT_KINDS: &[&str] = &[
     "open-claw",
     "grok",
     "muse-code",
+    "karma",
 ];
 pub const LOG_LEVELS: &[&str] = &["trace", "debug", "info", "warn", "error"];
 
@@ -48,6 +49,8 @@ pub enum FieldId {
     GrokModelDefault,
     MuseCodeBinary,
     MuseCodeModelDefault,
+    KarmaBinary,
+    KarmaModelDefault,
     ApprovalAutoReadonly,
     ApprovalAutoWrites,
     ApprovalAutoNetwork,
@@ -74,6 +77,8 @@ impl FieldId {
             FieldId::GrokModelDefault => "field:grok_model_default",
             FieldId::MuseCodeBinary => "field:muse_code_binary",
             FieldId::MuseCodeModelDefault => "field:muse_code_model_default",
+            FieldId::KarmaBinary => "field:karma_binary",
+            FieldId::KarmaModelDefault => "field:karma_model_default",
             FieldId::ApprovalAutoReadonly => "field:approval_auto_readonly",
             FieldId::ApprovalAutoWrites => "field:approval_auto_writes",
             FieldId::ApprovalAutoNetwork => "field:approval_auto_network",
@@ -99,6 +104,8 @@ impl FieldId {
             "field:grok_model_default" => FieldId::GrokModelDefault,
             "field:muse_code_binary" => FieldId::MuseCodeBinary,
             "field:muse_code_model_default" => FieldId::MuseCodeModelDefault,
+            "field:karma_binary" => FieldId::KarmaBinary,
+            "field:karma_model_default" => FieldId::KarmaModelDefault,
             "field:approval_auto_readonly" => FieldId::ApprovalAutoReadonly,
             "field:approval_auto_writes" => FieldId::ApprovalAutoWrites,
             "field:approval_auto_network" => FieldId::ApprovalAutoNetwork,
@@ -216,6 +223,18 @@ pub const FIELDS: &[FieldSpec] = &[
         kind: FieldKind::Text,
     },
     FieldSpec {
+        id: FieldId::KarmaBinary,
+        label: "binary",
+        section: "Karma",
+        kind: FieldKind::Text,
+    },
+    FieldSpec {
+        id: FieldId::KarmaModelDefault,
+        label: "model_default",
+        section: "Karma",
+        kind: FieldKind::Text,
+    },
+    FieldSpec {
         id: FieldId::ApprovalAutoReadonly,
         label: "auto_approve_readonly_shell",
         section: "Approval policy",
@@ -254,6 +273,7 @@ pub fn field_agent_kind(id: FieldId) -> Option<AgentKind> {
         FieldId::OpenClawBinary | FieldId::OpenClawModelDefault => Some(AgentKind::OpenClaw),
         FieldId::GrokBinary | FieldId::GrokModelDefault => Some(AgentKind::Grok),
         FieldId::MuseCodeBinary | FieldId::MuseCodeModelDefault => Some(AgentKind::MuseCode),
+        FieldId::KarmaBinary | FieldId::KarmaModelDefault => Some(AgentKind::Karma),
         _ => None,
     }
 }
@@ -316,6 +336,7 @@ pub fn display_value(cfg: &Config, id: FieldId, runner_idx: usize) -> String {
             AgentKind::OpenClaw => "open-claw".into(),
             AgentKind::Grok => "grok".into(),
             AgentKind::MuseCode => "muse-code".into(),
+            AgentKind::Karma => "karma".into(),
         },
         FieldId::CodexBinary => runner.codex.binary.clone(),
         FieldId::CodexModelDefault => runner.codex.model_default.clone().unwrap_or_default(),
@@ -333,6 +354,8 @@ pub fn display_value(cfg: &Config, id: FieldId, runner_idx: usize) -> String {
         FieldId::GrokModelDefault => runner.grok.model_default.clone().unwrap_or_default(),
         FieldId::MuseCodeBinary => runner.muse_code.binary.clone(),
         FieldId::MuseCodeModelDefault => runner.muse_code.model_default.clone().unwrap_or_default(),
+        FieldId::KarmaBinary => runner.karma.binary.clone(),
+        FieldId::KarmaModelDefault => runner.karma.model_default.clone().unwrap_or_default(),
         FieldId::ApprovalAutoReadonly => runner
             .approval_policy
             .auto_approve_readonly_shell
@@ -451,6 +474,19 @@ pub fn set_text_value(
                 Some(s.to_string())
             };
         }
+        FieldId::KarmaBinary => {
+            if s.trim().is_empty() {
+                return Err("binary cannot be empty".into());
+            }
+            runner.karma.binary = s.to_string();
+        }
+        FieldId::KarmaModelDefault => {
+            runner.karma.model_default = if s.is_empty() {
+                None
+            } else {
+                Some(s.to_string())
+            };
+        }
         FieldId::AgentKind
         | FieldId::ApprovalAutoReadonly
         | FieldId::ApprovalAutoWrites
@@ -496,7 +532,8 @@ pub fn cycle_enum(cfg: &mut Config, id: FieldId, runner_idx: usize) {
                 AgentKind::CursorAgent => AgentKind::OpenClaw,
                 AgentKind::OpenClaw => AgentKind::Grok,
                 AgentKind::Grok => AgentKind::MuseCode,
-                AgentKind::MuseCode => AgentKind::Codex,
+                AgentKind::MuseCode => AgentKind::Karma,
+                AgentKind::Karma => AgentKind::Codex,
             };
         }
         FieldId::LogLevel => {
@@ -655,6 +692,11 @@ pub fn editable_lines(
             "Grok",
             AgentKind::Grok,
             [FieldId::GrokBinary, FieldId::GrokModelDefault],
+        ),
+        (
+            "Karma",
+            AgentKind::Karma,
+            [FieldId::KarmaBinary, FieldId::KarmaModelDefault],
         ),
     ] {
         if kind != selected_kind {
@@ -914,6 +956,7 @@ mod tests {
             openclaw: Default::default(),
             grok: Default::default(),
             muse_code: Default::default(),
+            karma: Default::default(),
             approval_policy: Default::default(),
         };
         runner.agent.kind = kind;

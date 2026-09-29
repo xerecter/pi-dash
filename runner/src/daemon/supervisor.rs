@@ -398,6 +398,7 @@ fn agent_binary_for(config: &crate::config::schema::RunnerConfig) -> &str {
         crate::config::schema::AgentKind::OpenClaw => &config.openclaw.binary,
         crate::config::schema::AgentKind::Grok => &config.grok.binary,
         crate::config::schema::AgentKind::MuseCode => &config.muse_code.binary,
+        crate::config::schema::AgentKind::Karma => &config.karma.binary,
     }
 }
 
@@ -2677,7 +2678,8 @@ impl AssignWorker {
             | AgentKind::CursorAgent
             | AgentKind::OpenClaw
             | AgentKind::Grok
-            | AgentKind::MuseCode => FailureReason::AgentCrash,
+            | AgentKind::MuseCode
+            | AgentKind::Karma => FailureReason::AgentCrash,
         }
     }
 
@@ -3520,6 +3522,7 @@ mod tests {
             openclaw: OpenClawSection::default(),
             grok: GrokSection::default(),
             muse_code: MuseCodeSection::default(),
+            karma: crate::config::schema::KarmaSection::default(),
             approval_policy: ApprovalPolicySection::default(),
         }
     }

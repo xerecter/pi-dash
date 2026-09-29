@@ -305,6 +305,9 @@ pub enum AgentBridge {
     OpenClaw(crate::openclaw::bridge::Bridge),
     Grok(crate::grok::bridge::Bridge),
     MuseCode(crate::muse_code::bridge::Bridge),
+    /// Karma drives the Claude Code CLI contract, so it shares the Claude Code
+    /// bridge type; only the configured executable differs.
+    Karma(crate::karma::bridge::Bridge),
 }
 
 /// Per-run cursor, paired with an `AgentBridge`. Holds agent-specific frame
@@ -316,6 +319,7 @@ pub enum AgentCursor {
     OpenClaw(crate::openclaw::bridge::BridgeCursor),
     Grok(crate::grok::bridge::BridgeCursor),
     MuseCode(crate::muse_code::bridge::BridgeCursor),
+    Karma(crate::karma::bridge::BridgeCursor),
 }
 
 impl AgentCursor {
@@ -327,6 +331,7 @@ impl AgentCursor {
             AgentCursor::OpenClaw(c) => c.run_id,
             AgentCursor::Grok(c) => c.run_id,
             AgentCursor::MuseCode(c) => c.run_id,
+            AgentCursor::Karma(c) => c.run_id,
         }
     }
 
@@ -338,6 +343,7 @@ impl AgentCursor {
             AgentCursor::OpenClaw(c) => &c.thread_id,
             AgentCursor::Grok(c) => &c.thread_id,
             AgentCursor::MuseCode(c) => &c.thread_id,
+            AgentCursor::Karma(c) => &c.thread_id,
         }
     }
 
@@ -356,6 +362,7 @@ impl AgentCursor {
             AgentCursor::OpenClaw(_) => "openclaw",
             AgentCursor::Grok(_) => "grok",
             AgentCursor::MuseCode(_) => "muse_code",
+            AgentCursor::Karma(_) => "karma",
         }
     }
 
@@ -367,6 +374,7 @@ impl AgentCursor {
             AgentCursor::OpenClaw(c) => c.model.as_deref(),
             AgentCursor::Grok(c) => c.model.as_deref(),
             AgentCursor::MuseCode(c) => c.model.as_deref(),
+            AgentCursor::Karma(c) => c.model.as_deref(),
         }
     }
 }
@@ -461,6 +469,18 @@ impl AgentBridge {
                 .await?;
                 Ok(AgentBridge::MuseCode(b))
             }
+            AgentKind::Karma => {
+                // Karma wraps Claude Code and exposes the identical headless
+                // CLI, so it is driven by the Claude Code bridge unchanged.
+                let b = crate::karma::bridge::Bridge::spawn_with_resume(
+                    &runner.karma.binary,
+                    cwd,
+                    selected_model(model_override, runner.karma.model_default.clone()),
+                    resume_session_id,
+                )
+                .await?;
+                Ok(AgentBridge::Karma(b))
+            }
         }
     }
 
@@ -472,6 +492,7 @@ impl AgentBridge {
             AgentBridge::OpenClaw(b) => Ok(AgentCursor::OpenClaw(b.run(payload, cwd).await?)),
             AgentBridge::Grok(b) => Ok(AgentCursor::Grok(b.run(payload, cwd).await?)),
             AgentBridge::MuseCode(b) => Ok(AgentCursor::MuseCode(b.run(payload, cwd).await?)),
+            AgentBridge::Karma(b) => Ok(AgentCursor::Karma(b.run(payload, cwd).await?)),
         }
     }
 
@@ -491,6 +512,7 @@ impl AgentBridge {
             AgentBridge::MuseCode(b) => {
                 Ok(AgentCursor::MuseCode(b.run_one_shot(payload, cwd).await?))
             }
+            AgentBridge::Karma(b) => Ok(AgentCursor::Karma(b.run_one_shot(payload, cwd).await?)),
         }
     }
 
@@ -507,6 +529,7 @@ impl AgentBridge {
             AgentBridge::OpenClaw(b) => b.warm(cwd).await,
             AgentBridge::Grok(b) => b.warm(cwd).await,
             AgentBridge::MuseCode(b) => b.warm(cwd).await,
+            AgentBridge::Karma(b) => b.warm(cwd).await,
         }
     }
 
@@ -524,6 +547,7 @@ impl AgentBridge {
             (AgentBridge::OpenClaw(b), AgentCursor::OpenClaw(c)) => b.next_events(c).await,
             (AgentBridge::Grok(b), AgentCursor::Grok(c)) => b.next_events(c).await,
             (AgentBridge::MuseCode(b), AgentCursor::MuseCode(c)) => b.next_events(c).await,
+            (AgentBridge::Karma(b), AgentCursor::Karma(c)) => b.next_events(c).await,
             // These pairings are constructed together by `run`, so a mismatch
             // is a programmer error — fail loudly.
             _ => panic!("agent bridge and cursor variants mismatched"),
@@ -542,6 +566,7 @@ impl AgentBridge {
             AgentBridge::OpenClaw(b) => b.send_approval(approval_id, decision).await,
             AgentBridge::Grok(b) => b.send_approval(approval_id, decision).await,
             AgentBridge::MuseCode(b) => b.send_approval(approval_id, decision).await,
+            AgentBridge::Karma(b) => b.send_approval(approval_id, decision).await,
         }
     }
 
@@ -553,6 +578,7 @@ impl AgentBridge {
             AgentBridge::OpenClaw(b) => b.interrupt().await,
             AgentBridge::Grok(b) => b.interrupt().await,
             AgentBridge::MuseCode(b) => b.interrupt().await,
+            AgentBridge::Karma(b) => b.interrupt().await,
         }
     }
 
@@ -564,6 +590,7 @@ impl AgentBridge {
             AgentBridge::OpenClaw(b) => b.shutdown(grace).await,
             AgentBridge::Grok(b) => b.shutdown(grace).await,
             AgentBridge::MuseCode(b) => b.shutdown(grace).await,
+            AgentBridge::Karma(b) => b.shutdown(grace).await,
         }
     }
 
@@ -579,6 +606,7 @@ impl AgentBridge {
             AgentBridge::OpenClaw(b) => b.process_handle(),
             AgentBridge::Grok(b) => b.process_handle(),
             AgentBridge::MuseCode(b) => b.process_handle(),
+            AgentBridge::Karma(b) => b.process_handle(),
         }
     }
 
@@ -595,6 +623,7 @@ impl AgentBridge {
             AgentBridge::OpenClaw(b) => b.recent_stderr().await,
             AgentBridge::Grok(b) => b.recent_stderr().await,
             AgentBridge::MuseCode(b) => b.recent_stderr().await,
+            AgentBridge::Karma(b) => b.recent_stderr().await,
         }
     }
 }

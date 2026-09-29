@@ -31,13 +31,14 @@ boundary or a mechanism for accepting packages from issues or remote users.
 
 The protocol selects an existing bridge's complete CLI and wire contract:
 
-| `protocol`     | Contract implemented by the supplied executable                                   |
-| -------------- | --------------------------------------------------------------------------------- |
-| `codex`        | `app-server`: Codex JSON-RPC initialization, threads, turns, events and approvals |
-| `claude_code`  | Claude Code headless stream-JSON CLI, including session/resume arguments          |
-| `cursor_agent` | Cursor Agent headless stream-JSON CLI, including session/resume arguments         |
-| `open_claw`    | The **acpx client** CLI contract, including `--format json openclaw exec`         |
-| `grok`         | `agent stdio`: the Grok bridge's ACP server contract                              |
+| `protocol`     | Contract implemented by the supplied executable                                    |
+| -------------- | ---------------------------------------------------------------------------------- |
+| `codex`        | `app-server`: Codex JSON-RPC initialization, threads, turns, events and approvals  |
+| `claude_code`  | Claude Code headless stream-JSON CLI, including session/resume arguments           |
+| `cursor_agent` | Cursor Agent headless stream-JSON CLI, including session/resume arguments          |
+| `open_claw`    | The **acpx client** CLI contract, including `--format json openclaw exec`          |
+| `grok`         | `agent stdio`: the Grok bridge's ACP server contract                               |
+| `karma`        | Karma CLI: the Claude Code headless stream-JSON contract (Karma wraps Claude Code) |
 
 These names identify protocols, not a restriction on who supplies the binary.
 An arbitrary executable that prints text is not protocol-compatible. To use a

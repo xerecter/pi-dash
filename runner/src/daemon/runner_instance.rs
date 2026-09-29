@@ -185,6 +185,7 @@ mod tests {
             openclaw: Default::default(),
             grok: Default::default(),
             muse_code: Default::default(),
+            karma: Default::default(),
             approval_policy: ApprovalPolicySection::default(),
         }
     }

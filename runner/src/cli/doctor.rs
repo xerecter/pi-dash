@@ -83,6 +83,7 @@ pub async fn execute(paths: &Paths, runner_filter: Option<&str>) -> Result<Repor
             "acpx",
             "grok",
             "muse",
+            "karma",
         )
         .await;
     } else {
@@ -98,6 +99,7 @@ pub async fn execute(paths: &Paths, runner_filter: Option<&str>) -> Result<Repor
                 &r.openclaw.binary,
                 &r.grok.binary,
                 &r.muse_code.binary,
+                &r.karma.binary,
             )
             .await;
         }
@@ -158,6 +160,7 @@ async fn run_agent_checks(
     openclaw_binary: &str,
     grok_binary: &str,
     muse_binary: &str,
+    karma_binary: &str,
 ) {
     let tag = |base: &str| match prefix {
         Some(p) => format!("{base}@{p}"),
@@ -340,6 +343,32 @@ async fn run_agent_checks(
                 blocker: false,
             });
         }
+        crate::config::schema::AgentKind::Karma => {
+            // Karma wraps Claude Code, so `karma --version` is the same probe.
+            match check_version(karma_binary).await {
+                Ok(detail) => checks.push(Check {
+                    name: tag("karma"),
+                    ok: true,
+                    detail,
+                    blocker: true,
+                }),
+                Err(e) => checks.push(Check {
+                    name: tag("karma"),
+                    ok: false,
+                    detail: e.to_string(),
+                    blocker: true,
+                }),
+            }
+            checks.push(Check {
+                name: tag("karma-auth"),
+                ok: true,
+                detail: format!(
+                    "assumed ok (run `{} login` if runs fail with auth errors)",
+                    karma_binary
+                ),
+                blocker: false,
+            });
+        }
     }
 }
 
@@ -448,6 +477,7 @@ mod tests {
             openclaw: OpenClawSection::default(),
             grok: GrokSection::default(),
             muse_code: MuseCodeSection::default(),
+            karma: crate::config::schema::KarmaSection::default(),
             approval_policy: Default::default(),
         }
     }
@@ -575,6 +605,7 @@ mod tests {
             "acpx-missing",
             "grok-missing",
             "muse-missing",
+            "karma-missing",
         )
         .await;
         run_agent_checks(
@@ -587,6 +618,7 @@ mod tests {
             "acpx-missing",
             "grok-missing",
             "muse-missing",
+            "karma-missing",
         )
         .await;
         run_agent_checks(
@@ -599,6 +631,7 @@ mod tests {
             "acpx-missing",
             "grok-missing",
             "muse-missing",
+            "karma-missing",
         )
         .await;
         run_agent_checks(
@@ -611,6 +644,7 @@ mod tests {
             "acpx-missing",
             "grok-missing",
             "muse-missing",
+            "karma-missing",
         )
         .await;
         run_agent_checks(
@@ -623,6 +657,7 @@ mod tests {
             "acpx-missing",
             "grok-missing",
             "muse-missing",
+            "karma-missing",
         )
         .await;
         let mut muse_checks: Vec<Check> = Vec::new();
@@ -636,6 +671,21 @@ mod tests {
             "acpx-missing",
             "grok-missing",
             "muse-missing",
+            "karma-missing",
+        )
+        .await;
+        let mut karma_checks: Vec<Check> = Vec::new();
+        run_agent_checks(
+            &mut karma_checks,
+            None,
+            AgentKind::Karma,
+            "codex-missing",
+            "claude-missing",
+            "cursor-missing",
+            "acpx-missing",
+            "grok-missing",
+            "muse-missing",
+            "karma-missing",
         )
         .await;
         assert!(codex_checks.iter().any(|c| c.name == "codex"));
@@ -650,5 +700,7 @@ mod tests {
         assert!(grok_checks.iter().any(|c| c.name == "grok-auth"));
         assert!(muse_checks.iter().any(|c| c.name == "muse"));
         assert!(muse_checks.iter().any(|c| c.name == "muse-auth"));
+        assert!(karma_checks.iter().any(|c| c.name == "karma"));
+        assert!(karma_checks.iter().any(|c| c.name == "karma-auth"));
     }
 }

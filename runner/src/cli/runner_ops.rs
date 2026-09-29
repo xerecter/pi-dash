@@ -14,8 +14,8 @@ use crate::cloud::http::{EnrollResponse, RunnerCredentials, write_runner_credent
 use crate::config::file;
 use crate::config::schema::{
     AgentKind, AgentSection, ApprovalPolicySection, ClaudeCodeSection, CliSection, CodexSection,
-    Config, CursorAgentSection, DaemonConfig, GrokSection, MuseCodeSection, OpenClawSection,
-    RunnerConfig, WorkspaceSection,
+    Config, CursorAgentSection, DaemonConfig, GrokSection, KarmaSection, MuseCodeSection,
+    OpenClawSection, RunnerConfig, WorkspaceSection,
 };
 use crate::util::paths::Paths;
 use std::io::IsTerminal;
@@ -65,6 +65,8 @@ fn model_applies_to_agent(kind: AgentKind, model: &str) -> bool {
     let has = |prefix: &str| m.strip_prefix(prefix).is_some_and(|rest| !rest.is_empty());
     match kind {
         AgentKind::ClaudeCode => has("claude-"),
+        // Karma wraps Claude Code, so it drives Anthropic models too.
+        AgentKind::Karma => has("claude-"),
         // `o3` / `o4` are valid bare model names; the dash-terminated
         // families (`gpt-`, `codex`) require a suffix.
         AgentKind::Codex => {
@@ -96,6 +98,7 @@ pub fn agent_sections_for(
     OpenClawSection,
     GrokSection,
     MuseCodeSection,
+    KarmaSection,
 ) {
     let model = model.map(str::trim).filter(|s| !s.is_empty());
     let effort = reasoning_effort.map(str::trim).filter(|s| !s.is_empty());
@@ -154,6 +157,7 @@ pub fn agent_sections_for(
     let mut openclaw = OpenClawSection::default();
     let mut grok = GrokSection::default();
     let mut muse_code = MuseCodeSection::default();
+    let mut karma = KarmaSection::default();
     match agent_kind {
         AgentKind::Codex => {
             codex.model_default = model;
@@ -164,8 +168,17 @@ pub fn agent_sections_for(
         AgentKind::OpenClaw => openclaw.model_default = model,
         AgentKind::Grok => grok.model_default = model,
         AgentKind::MuseCode => muse_code.model_default = model,
+        AgentKind::Karma => karma.model_default = model,
     }
-    (codex, claude_code, cursor_agent, openclaw, grok, muse_code)
+    (
+        codex,
+        claude_code,
+        cursor_agent,
+        openclaw,
+        grok,
+        muse_code,
+        karma,
+    )
 }
 
 /// Read the user's CLI token from `[cli].token` in `config.toml`.
@@ -413,7 +426,7 @@ pub async fn apply_enroll_response(
         )
     });
 
-    let (codex, claude_code, cursor_agent, openclaw, grok, muse_code) =
+    let (codex, claude_code, cursor_agent, openclaw, grok, muse_code, karma) =
         agent_sections_for(options.agent_kind, options.model, options.reasoning_effort);
     let new_runner = RunnerConfig {
         name: resp.runner_name.clone(),
@@ -431,6 +444,7 @@ pub async fn apply_enroll_response(
         openclaw,
         grok,
         muse_code,
+        karma,
         approval_policy: ApprovalPolicySection::default(),
     };
 
@@ -547,7 +561,7 @@ mod tests {
 
     #[test]
     fn model_routes_to_selected_agent_section() {
-        let (codex, claude, cursor, openclaw, _, _) =
+        let (codex, claude, cursor, openclaw, _, _, _) =
             agent_sections_for(AgentKind::ClaudeCode, Some("claude-opus-4-8"), None);
         assert_eq!(claude.model_default.as_deref(), Some("claude-opus-4-8"));
         assert_eq!(codex.model_default, None);
@@ -557,7 +571,7 @@ mod tests {
 
     #[test]
     fn codex_model_and_effort_are_applied_together() {
-        let (codex, _, _, _, _, _) =
+        let (codex, _, _, _, _, _, _) =
             agent_sections_for(AgentKind::Codex, Some("gpt-5.5"), Some("High"));
         assert_eq!(codex.model_default.as_deref(), Some("gpt-5.5"));
         // Effort is normalized to lowercase.
@@ -569,14 +583,14 @@ mod tests {
         // The user's example: a Codex model handed to the Claude agent.
         // Non-fatal — the model is dropped (warning printed) and the
         // section is left at its default (None).
-        let (_, claude, _, _, _, _) =
+        let (_, claude, _, _, _, _, _) =
             agent_sections_for(AgentKind::ClaudeCode, Some("gpt-5.5"), None);
         assert_eq!(claude.model_default, None);
     }
 
     #[test]
     fn effort_ignored_for_non_codex_agents() {
-        let (_, claude, _, _, _, _) =
+        let (_, claude, _, _, _, _, _) =
             agent_sections_for(AgentKind::ClaudeCode, Some("claude-opus-4-8"), Some("high"));
         // Model still applies; effort has no home on the claude section.
         assert_eq!(claude.model_default.as_deref(), Some("claude-opus-4-8"));
@@ -584,7 +598,7 @@ mod tests {
 
     #[test]
     fn unknown_codex_effort_is_dropped() {
-        let (codex, _, _, _, _, _) =
+        let (codex, _, _, _, _, _, _) =
             agent_sections_for(AgentKind::Codex, Some("gpt-5.5"), Some("turbo"));
         assert_eq!(codex.model_default.as_deref(), Some("gpt-5.5"));
         assert_eq!(codex.effort_default, None);
@@ -592,7 +606,7 @@ mod tests {
 
     #[test]
     fn cursor_accepts_any_nonempty_slug() {
-        let (_, _, cursor, _, _, _) = agent_sections_for(
+        let (_, _, cursor, _, _, _, _) = agent_sections_for(
             AgentKind::CursorAgent,
             Some("claude-opus-4-8-thinking-high"),
             None,
@@ -607,7 +621,7 @@ mod tests {
     fn openclaw_accepts_any_nonempty_slug() {
         // OpenClaw's model space is provider-agnostic (resolved by the
         // Gateway), so any non-empty slug routes to its section.
-        let (codex, claude, cursor, openclaw, _, _) =
+        let (codex, claude, cursor, openclaw, _, _, _) =
             agent_sections_for(AgentKind::OpenClaw, Some("anthropic/claude-opus-4-8"), None);
         assert_eq!(
             openclaw.model_default.as_deref(),
@@ -619,8 +633,24 @@ mod tests {
     }
 
     #[test]
+    fn karma_routes_claude_models_to_its_section() {
+        // Karma wraps Claude Code, so it accepts `claude-…` models and stores
+        // them on its own `[runner.karma]` section (not claude_code's).
+        let (_, claude, _, _, _, _, karma) =
+            agent_sections_for(AgentKind::Karma, Some("claude-opus-4-8"), None);
+        assert_eq!(karma.model_default.as_deref(), Some("claude-opus-4-8"));
+        assert_eq!(claude.model_default, None);
+    }
+
+    #[test]
+    fn karma_rejects_non_claude_models() {
+        let (_, _, _, _, _, _, karma) = agent_sections_for(AgentKind::Karma, Some("gpt-5.5"), None);
+        assert_eq!(karma.model_default, None);
+    }
+
+    #[test]
     fn blank_model_is_treated_as_unset() {
-        let (codex, _, _, _, _, _) = agent_sections_for(AgentKind::Codex, Some("   "), None);
+        let (codex, _, _, _, _, _, _) = agent_sections_for(AgentKind::Codex, Some("   "), None);
         assert_eq!(codex.model_default, None);
     }
 
@@ -628,7 +658,7 @@ mod tests {
     fn codex_effort_dropped_when_model_inapplicable() {
         // A Claude model handed to codex: the model is dropped, and the
         // effort meant for it must not survive onto codex's default model.
-        let (codex, _, _, _, _, _) =
+        let (codex, _, _, _, _, _, _) =
             agent_sections_for(AgentKind::Codex, Some("claude-opus-4-8"), Some("high"));
         assert_eq!(codex.model_default, None);
         assert_eq!(codex.effort_default, None);
@@ -638,7 +668,7 @@ mod tests {
     fn codex_effort_dropped_without_a_model() {
         // Effort is meaningless without an explicit model (see the
         // CodexSection::effort_default contract).
-        let (codex, _, _, _, _, _) = agent_sections_for(AgentKind::Codex, None, Some("high"));
+        let (codex, _, _, _, _, _, _) = agent_sections_for(AgentKind::Codex, None, Some("high"));
         assert_eq!(codex.model_default, None);
         assert_eq!(codex.effort_default, None);
     }
@@ -647,10 +677,10 @@ mod tests {
     fn bare_prefix_models_are_rejected() {
         // A dash-terminated prefix with nothing after it is an incomplete
         // slug, not a model — it must not become a bogus model_default.
-        let (_, claude, _, _, _, _) =
+        let (_, claude, _, _, _, _, _) =
             agent_sections_for(AgentKind::ClaudeCode, Some("claude-"), None);
         assert_eq!(claude.model_default, None);
-        let (codex, _, _, _, _, _) = agent_sections_for(AgentKind::Codex, Some("gpt-"), None);
+        let (codex, _, _, _, _, _, _) = agent_sections_for(AgentKind::Codex, Some("gpt-"), None);
         assert_eq!(codex.model_default, None);
     }
 
@@ -658,7 +688,7 @@ mod tests {
     fn bare_openai_reasoning_models_are_accepted() {
         // `o3` / `o4` are valid bare model names; the bare-prefix guard
         // must not reject them.
-        let (codex, _, _, _, _, _) = agent_sections_for(AgentKind::Codex, Some("o3"), None);
+        let (codex, _, _, _, _, _, _) = agent_sections_for(AgentKind::Codex, Some("o3"), None);
         assert_eq!(codex.model_default.as_deref(), Some("o3"));
     }
 
@@ -955,6 +985,7 @@ mod tests {
             openclaw: OpenClawSection::default(),
             grok: GrokSection::default(),
             muse_code: MuseCodeSection::default(),
+            karma: KarmaSection::default(),
             approval_policy: ApprovalPolicySection::default(),
         });
         file::write_config(&paths, &cfg).unwrap();

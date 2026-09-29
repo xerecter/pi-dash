@@ -104,6 +104,7 @@ impl AgentPackage {
             AgentKind::OpenClaw => runner.openclaw.binary = executable,
             AgentKind::Grok => runner.grok.binary = executable,
             AgentKind::MuseCode => runner.muse_code.binary = executable,
+            AgentKind::Karma => runner.karma.binary = executable,
         }
         runner.agent.kind = self.protocol;
         Ok(())

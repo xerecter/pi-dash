@@ -316,6 +316,7 @@ mod tests {
         assert_eq!(parse_agent_kind("open-claw").unwrap(), AgentKind::OpenClaw);
         assert_eq!(parse_agent_kind("grok").unwrap(), AgentKind::Grok);
         assert_eq!(parse_agent_kind("muse-code").unwrap(), AgentKind::MuseCode);
+        assert_eq!(parse_agent_kind("karma").unwrap(), AgentKind::Karma);
         assert_eq!(parse_agent_kind("").unwrap(), AgentKind::default());
         assert!(parse_agent_kind("skynet").is_err());
     }

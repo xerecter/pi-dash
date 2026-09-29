@@ -167,6 +167,13 @@ pub struct RunnerConfig {
     /// `agent.kind == muse_code`.
     #[serde(default)]
     pub muse_code: MuseCodeSection,
+    /// Karma settings. Karma is a wrapper over Claude Code that exposes the
+    /// identical headless CLI, so this section mirrors `ClaudeCodeSection`.
+    /// Missing section falls back to `KarmaSection::default()` so existing
+    /// `config.toml` files still parse. Only consulted when
+    /// `agent.kind == karma`.
+    #[serde(default)]
+    pub karma: KarmaSection,
     /// Missing section falls back to `ApprovalPolicySection::default()` so
     /// a minimal `config.toml` doesn't have to spell out every knob.
     #[serde(default)]
@@ -266,6 +273,11 @@ pub enum AgentKind {
     /// (`muse exec --json --prompt-file <PATH>`), whose JSONL event stream the
     /// runner drives one turn per subprocess.
     MuseCode,
+    /// Karma — a wrapper over Claude Code that exposes the identical headless
+    /// CLI (`karma --print --input-format stream-json --output-format
+    /// stream-json`). The runner drives it through the Claude Code bridge
+    /// unchanged; only the executable differs.
+    Karma,
 }
 
 impl AgentKind {
@@ -298,11 +310,14 @@ impl AgentKind {
             // Muse Code (`muse exec`), like Cursor, is one-shot per turn and can
             // be silent for the full duration of a single tool call; use the
             // same 15-minute envelope.
+            // Karma wraps Claude Code, so it shares Claude's quiet-tool-call
+            // profile and the same 15-minute envelope.
             AgentKind::ClaudeCode
             | AgentKind::CursorAgent
             | AgentKind::OpenClaw
             | AgentKind::Grok
-            | AgentKind::MuseCode => Duration::from_secs(15 * 60),
+            | AgentKind::MuseCode
+            | AgentKind::Karma => Duration::from_secs(15 * 60),
         }
     }
 
@@ -316,6 +331,7 @@ impl AgentKind {
             AgentKind::OpenClaw => "OpenClaw",
             AgentKind::Grok => "Grok",
             AgentKind::MuseCode => "Muse Code",
+            AgentKind::Karma => "Karma",
         }
     }
 
@@ -336,6 +352,8 @@ impl AgentKind {
             AgentKind::Grok => "grok",
             // Muse Code ships as the `muse` CLI; the runner drives `muse exec`.
             AgentKind::MuseCode => "muse",
+            // Karma is the `karma` CLI, which wraps Claude Code.
+            AgentKind::Karma => "karma",
         }
     }
 
@@ -350,6 +368,7 @@ impl AgentKind {
             AgentKind::OpenClaw => "https://github.com/openclaw/acpx",
             AgentKind::Grok => "https://x.ai/cli",
             AgentKind::MuseCode => "https://developer.meta.com/ai/products/muse-code/",
+            AgentKind::Karma => "https://github.com/xerecter/karma-team",
         }
     }
 }
@@ -469,6 +488,31 @@ impl Default for MuseCodeSection {
     fn default() -> Self {
         Self {
             binary: default_muse_binary(),
+            model_default: None,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KarmaSection {
+    /// The `karma` binary the runner drives. Karma wraps Claude Code and
+    /// accepts the identical headless flags, so the Claude Code bridge runs it
+    /// unchanged. Per-field default so a partial `[karma]` block (e.g. only
+    /// `model_default`) still parses without spelling out `binary = "karma"`.
+    #[serde(default = "default_karma_binary")]
+    pub binary: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model_default: Option<String>,
+}
+
+fn default_karma_binary() -> String {
+    "karma".to_string()
+}
+
+impl Default for KarmaSection {
+    fn default() -> Self {
+        Self {
+            binary: default_karma_binary(),
             model_default: None,
         }
     }
@@ -796,6 +840,7 @@ mod tests {
             openclaw: Default::default(),
             grok: Default::default(),
             muse_code: Default::default(),
+            karma: Default::default(),
             approval_policy: Default::default(),
         }
     }
@@ -981,6 +1026,10 @@ mod tests {
             AgentKind::MuseCode.default_binary(),
             MuseCodeSection::default().binary
         );
+        assert_eq!(
+            AgentKind::Karma.default_binary(),
+            KarmaSection::default().binary
+        );
     }
 
     #[test]
@@ -994,6 +1043,7 @@ mod tests {
             AgentKind::OpenClaw,
             AgentKind::Grok,
             AgentKind::MuseCode,
+            AgentKind::Karma,
         ] {
             let url = kind.install_page_url();
             assert!(url.starts_with("https://"), "{kind:?} url not https: {url}");
