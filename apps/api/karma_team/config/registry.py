@@ -165,6 +165,10 @@ _ENV_INFRA = {
     "MINIO_ENDPOINT_SSL": None,
     "SIGNED_URL_EXPIRATION": "3600",
     "WEB_URL": None,
+    # Public CLI distribution (HTTP(S) base URL, optionally with a base path).
+    "KARMA_TEAM_PUBLIC_URL": "",
+    "KARMA_TEAM_CLI_ARTIFACT_DIR": "/code/cli-artifacts",
+    "KARMA_TEAM_CLI_INSTALLER_DIR": "/code/cli-installers",
     # RabbitMQ / Celery
     "RABBITMQ_HOST": "localhost",
     "RABBITMQ_PORT": "5672",

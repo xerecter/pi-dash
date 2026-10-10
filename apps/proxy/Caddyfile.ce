@@ -27,6 +27,13 @@
 
 	reverse_proxy /api/* api:8000
 
+	# Device-code approval page is a web SPA route (apps/web …/auth/device);
+	# the device-code API itself lives under /api/v1/auth/device/. This more
+	# specific matcher MUST precede the generic /auth/* → api rule below,
+	# otherwise the approval page 404s (served by Django, which has no such route).
+	reverse_proxy /auth/device/* web:3000
+	reverse_proxy /auth/device web:3000
+
 	reverse_proxy /auth/* api:8000
 
 	reverse_proxy /static/* api:8000

@@ -96,8 +96,8 @@ pub struct AddArgs {
     #[arg(long)]
     pub working_dir: Option<PathBuf>,
 
-    /// Which agent CLI this runner drives.
-    #[arg(long, value_enum, default_value_t = AgentKind::Codex)]
+    /// Which agent CLI this runner drives. Only karma is currently supported.
+    #[arg(long, value_enum, default_value_t = AgentKind::Karma)]
     pub agent: AgentKind,
 
     /// Default LLM model for this runner's agent (e.g. `claude-opus-4-8`
@@ -147,6 +147,7 @@ pub async fn run(args: RunnerArgs, paths: &Paths) -> Result<()> {
 /// the cloud to create a runner under this host. Older configs with a
 /// user-scoped API token are upgraded when the cloud returns a machine token.
 pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
+    args.agent.ensure_supported()?;
     let runner_name = args
         .name
         .as_deref()
@@ -162,7 +163,9 @@ pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
 
     // Cap check is local + cheap; do it before auth or any network call.
     let existing_count = if paths.config_path().exists() {
-        file::load_config(paths)?.runners.len()
+        let config = file::load_config(paths)?;
+        config.validate_agents()?;
+        config.runners.len()
     } else {
         0
     };
@@ -587,7 +590,7 @@ pub async fn remove(args: RemoveArgs, paths: &Paths) -> Result<()> {
     // cascade handler does the same thing on its own; doing it here
     // too is a no-op when both paths run, and the only path when the
     // daemon is offline.
-    file::mutate_config(paths, |c| {
+    file::mutate_config_for_cleanup(paths, |c| {
         c.runners.retain(|r| r.runner_id != runner_id);
         Ok(())
     })?;

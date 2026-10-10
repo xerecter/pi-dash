@@ -403,6 +403,7 @@ impl AgentBridge {
         resume_session_id: Option<&str>,
         mode: Option<crate::cloud::protocol::ApprovalMode>,
     ) -> Result<Self> {
+        runner.agent.kind.ensure_supported()?;
         match runner.agent.kind {
             AgentKind::Codex => {
                 let engine_settings = mode
@@ -470,13 +471,16 @@ impl AgentBridge {
                 Ok(AgentBridge::MuseCode(b))
             }
             AgentKind::Karma => {
-                // Karma wraps Claude Code and exposes the identical headless
-                // CLI, so it is driven by the Claude Code bridge unchanged.
-                let b = crate::karma::bridge::Bridge::spawn_with_resume(
+                // Karma requires a Git worktree before it emits stream-JSON.
+                // Bootstrap only Git metadata and an empty commit; existing
+                // workspace files remain untracked.
+                crate::workspace::git::ensure_worktree_base(cwd).await?;
+                let b = crate::karma::bridge::Bridge::spawn_with_resume_options(
                     &runner.karma.binary,
                     cwd,
                     selected_model(model_override, runner.karma.model_default.clone()),
                     resume_session_id,
+                    true,
                 )
                 .await?;
                 Ok(AgentBridge::Karma(b))

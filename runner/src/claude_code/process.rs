@@ -51,6 +51,10 @@ pub struct SpawnArgs<'a> {
     /// When `true`, pass `--permission-mode bypassPermissions`. Always `true`
     /// for MVP; wiring a real permission prompt needs an MCP bridge.
     pub bypass_permissions: bool,
+    /// Ask Karma to create/use an isolated git worktree. This is intentionally
+    /// opt-in: Claude Code does not understand Karma's worktree flag, while
+    /// the Karma wrapper requires it for cloud-synced sessions.
+    pub create_worktree: bool,
 }
 
 impl ClaudeProcess {
@@ -67,6 +71,9 @@ impl ClaudeProcess {
             "stream-json",
             "--include-partial-messages",
         ];
+        if args.create_worktree {
+            argv.push("--worktree");
+        }
         if args.bypass_permissions {
             argv.extend(["--permission-mode", "bypassPermissions"]);
         }
@@ -76,7 +83,20 @@ impl ClaudeProcess {
         if let Some(session_id) = args.resume_session_id.filter(|s| !s.is_empty()) {
             argv.extend(["--resume", session_id]);
         }
-        let cmd = login_shell_command(args.binary, &argv, Some(args.cwd));
+        let mut cmd = login_shell_command(args.binary, &argv, Some(args.cwd));
+        if args.bypass_permissions {
+            // claude — and karma, which wraps it — refuse
+            // `--permission-mode bypassPermissions` when running as root/sudo
+            // unless it believes it is inside a sandbox. The runner drives
+            // agents unattended and always requests bypass permissions, so
+            // announce the sandbox flag to let a root-hosted daemon (container,
+            // CI, root dev box) start at all. Keep a runner-owned copy too:
+            // login-shell rc files run after Command::env and may unset or
+            // rewrite ordinary variables before the agent is exec'd.
+            // Non-root processes ignore it.
+            cmd.env("IS_SANDBOX", "1");
+            cmd.env("KARMA_TEAM_IS_SANDBOX", "1");
+        }
         Self::spawn_command(cmd).await
     }
 

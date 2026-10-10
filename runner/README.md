@@ -1,6 +1,34 @@
 # karma-team Runner
 
-Local daemon + TUI (`karma-team` binary) that connects a developer machine to the karma-team cloud and drives `codex app-server` for assigned tasks.
+Local daemon + TUI (`karma-team` binary) that connects a developer machine to the karma-team cloud and drives `karma agent` for assigned tasks.
+
+## Supported agent
+
+This CLI supports only Karma. `karma-team runner add --project WEB` defaults
+to `--agent karma`, and an omitted `[runner.agent]` section also defaults to
+Karma. Explicitly selecting another agent fails with an error such as:
+
+```text
+unsupported agent 'codex'; only the karma agent is supported
+```
+
+The restriction applies to runner registration, config saves and daemon
+startup, local agent packages, and runtime dispatch. Existing non-Karma
+configs remain readable for inspection/removal but are not silently migrated.
+To use an existing runner with Karma, configure it explicitly and ensure the
+Karma executable is installed and authenticated:
+
+```toml
+[runner.agent]
+kind = "karma"
+
+[runner.karma]
+binary = "karma"
+```
+
+Codex, Claude Code, Cursor Agent, OpenClaw, Grok, and Muse Code adapters remain
+in the source tree; their CLI entry points are disabled. The Codex-specific
+managed enrollment/rebind path is disabled as well.
 
 ## Developer-owned agent packages
 
@@ -17,6 +45,46 @@ The developer owns those responsibilities and restarts the owning daemon when
 idle. Ordinary task folders do not require Git.
 
 ## Install
+
+### From your karma-team service
+
+The web onboarding and AI Dev Machines pages obtain installation commands from
+the backend at runtime. For the current deployment:
+
+```bash
+curl -fsSL 'http://172.16.13.81:28000/api/cli/install.sh' | sh
+```
+
+```powershell
+irm 'http://172.16.13.81:28000/api/cli/install.ps1' | iex
+```
+
+The backend's `KARMA_TEAM_PUBLIC_URL` setting controls both the download and
+login addresses. The installer downloads a published platform binary from the
+service and starts authentication with that service. Missing platform binaries
+return an explicit error. See [Self-hosted CLI distribution](docs/self-hosted-install.md)
+for configuration, publishing builds, and changing the service address.
+
+On Linux/macOS, run the installer as the runner's user without `sudo`. It
+installs into `~/.local/bin` and configures the user's sh/Bash/Zsh startup files.
+For the current terminal, run `export PATH="$HOME/.local/bin${PATH:+:$PATH}"`
+after installation, or use the printed PATH command for a custom install
+directory. Existing startup settings are preserved; if a startup file cannot
+be updated, installation succeeds with a warning and manual PATH instructions.
+
+The corresponding user-scoped uninstaller is served by the same deployment:
+
+```bash
+curl -fsSL 'http://172.16.13.81:28000/api/cli/uninstall.sh' | sh
+```
+
+It asks for confirmation when run interactively. Use `sh -s -- --dry-run --yes`
+to preview the files and service actions, or `sh -s -- --yes` for a confirmed
+non-interactive removal. Cloud runner deregistration is attempted before local
+state deletion; a cloud failure aborts and preserves credentials. `--local-only`
+skips that cloud step. The script removes only the current user's karma-team
+binary, daemon, state, logs, cache, runtime data, and installer PATH block; it
+does not remove project workspaces, Git checkouts, or other commands.
 
 ### From a source checkout or a custom binary
 
@@ -44,12 +112,13 @@ KARMA_TEAM_BIN_URL=https://downloads.example.com/linux-amd64/karma-team \
 | `KARMA_TEAM_LOCAL_BIN`   | Existing executable to install; takes precedence over automatic local discovery.                                                  |
 | `KARMA_TEAM_BIN_URL`     | HTTP(S) URL of a raw executable for the target OS and CPU; uses `curl` or `wget`. No Cargo build is needed.                       |
 | `KARMA_TEAM_INSTALL_DIR` | Destination directory; defaults to `~/.local/bin`. The installed command is `karma-team` (`karma-team.exe` for an `.exe` source). |
+| `KARMA_TEAM_API_URL`     | Service URL for platform download and login. Explicit local/binary sources still take precedence.                                 |
 
 Set only one source variable. An invalid explicit path, failed download, or empty download fails the installation and preserves the previously installed binary. Temporary download files are removed. Archive URLs (`.tar.gz`, `.tar.xz`, `.zip`) must be unpacked first and installed using `KARMA_TEAM_LOCAL_BIN`.
 
-Custom URLs control this installation only. The shell installer starts `karma-team auth login` when a terminal is available and skips authentication in headless environments. These source variables apply to `install.sh`; the Windows PowerShell wrapper below uses GitHub Releases.
+The shell installer starts `karma-team auth login` when a terminal is available and skips authentication in headless environments. When `KARMA_TEAM_API_URL` is set, it passes that address to login. The Windows PowerShell installer also downloads directly from the configured service.
 
-### GitHub Releases
+### Upstream GitHub Releases (optional)
 
 Once release artifacts have been published, prebuilt binaries for macOS (arm64, x86_64), Linux (arm64, x86_64 — glibc and musl), and Windows (x86_64) can be installed from GitHub Releases. The generated cargo-dist installers choose the platform artifact. They are separate from the local-first `runner/install.sh` above.
 
@@ -64,16 +133,17 @@ karma-team auth login
 **Windows (PowerShell):**
 
 ```powershell
-irm https://github.com/xerecter/karma-team/releases/latest/download/install.ps1 | iex
+irm https://github.com/xerecter/karma-team/releases/latest/download/karma-team-installer.ps1 | iex
+karma-team auth login --url https://karma-team.example.com
 ```
 
 **Windows (Command Prompt):**
 
 ```bat
-powershell -c "irm https://github.com/xerecter/karma-team/releases/latest/download/install.ps1 | iex"
+powershell -c "irm https://github.com/xerecter/karma-team/releases/latest/download/karma-team-installer.ps1 | iex"
 ```
 
-### Platform notes
+### Upstream release platform notes
 
 | Environment               | Behaviour                                                                                                                                                                                                      |
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -89,7 +159,7 @@ The installer will prompt for your karma-team cloud URL, walk you through device
 
 ### Installing a specific version (pinning / prereleases)
 
-To select a specific release, use the generated cargo-dist installer (`karma-team-installer.sh` / `karma-team-installer.ps1`) and swap `latest` for the tag you want. The PowerShell wrapper uses the latest release regardless of the URL used to fetch the wrapper; the source-checkout shell installer selects local files or `KARMA_TEAM_BIN_URL`.
+To select a specific upstream release, use the generated cargo-dist installer (`karma-team-installer.sh` / `karma-team-installer.ps1`) and swap `latest` for the tag you want. Self-hosted installers instead serve the binary published by the deployment operator.
 
 ```bash
 # macOS / Linux — bare installer (no auto-auth)
@@ -109,7 +179,8 @@ curl --proto '=https' --tlsv1.2 -LsSf \
   https://github.com/xerecter/karma-team/releases/download/karma-team-v0.1.5-rc.1/karma-team-installer.sh | sh
 ```
 
-**Prerequisite:** the runner shells out to [Codex](https://github.com/openai/codex) — install it and make sure `codex --version` works before running `karma-team configure`. `karma-team doctor` checks this.
+**Prerequisite:** install and authenticate Karma, and make sure `karma --version`
+works before adding a runner. `karma-team doctor` checks the Karma installation.
 
 ### Alternative install paths
 

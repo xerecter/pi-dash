@@ -12,7 +12,7 @@ Create a local UTF-8 TOML manifest alongside your package:
 
 ```toml
 version = 1
-protocol = "codex"
+protocol = "karma"
 executable = "bin/my-task-engine"
 ```
 
@@ -29,23 +29,23 @@ There are no install hooks, dependency resolution, or manifest secret fields.
 Treat the executable and manifest as trusted local code: this is not a security
 boundary or a mechanism for accepting packages from issues or remote users.
 
-The protocol selects an existing bridge's complete CLI and wire contract:
+The package entry point must implement Karma's Claude-compatible headless
+stream-JSON CLI contract. The package seam accepts **only** the `karma`
+protocol; manifests naming another built-in agent are rejected before the
+executable is resolved, and the runner configuration is left unchanged.
 
-| `protocol`     | Contract implemented by the supplied executable                                    |
-| -------------- | ---------------------------------------------------------------------------------- |
-| `codex`        | `app-server`: Codex JSON-RPC initialization, threads, turns, events and approvals  |
-| `claude_code`  | Claude Code headless stream-JSON CLI, including session/resume arguments           |
-| `cursor_agent` | Cursor Agent headless stream-JSON CLI, including session/resume arguments          |
-| `open_claw`    | The **acpx client** CLI contract, including `--format json openclaw exec`          |
-| `grok`         | `agent stdio`: the Grok bridge's ACP server contract                               |
-| `karma`        | Karma CLI: the Claude Code headless stream-JSON contract (Karma wraps Claude Code) |
+Karma packages use the existing Claude Code bridge's complete CLI and wire
+contract:
 
-These names identify protocols, not a restriction on who supplies the binary.
-An arbitrary executable that prints text is not protocol-compatible. To use a
-different protocol, implement an executable adapter that translates one of
-these contracts, or add a bridge to `runner/src/agent/`. Setting a new name in
-the manifest does not dynamically load a Rust plugin. The existing bridge
-implementations and their fake-agent integration tests are the contract source.
+| `protocol` | Contract implemented by the supplied executable                                    |
+| ---------- | ---------------------------------------------------------------------------------- |
+| `karma`    | Karma CLI: the Claude Code headless stream-JSON contract (Karma wraps Claude Code) |
+
+The protocol name identifies Karma's wire contract, not who supplies the
+binary. An arbitrary executable that prints text is not protocol-compatible.
+To use a different agent, add a dedicated bridge and configuration path;
+setting another built-in protocol name in this manifest is rejected and does
+not dynamically load a Rust plugin.
 
 ## Connect an existing runner
 

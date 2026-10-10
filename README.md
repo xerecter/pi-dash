@@ -52,7 +52,12 @@ A local command-line tool and background daemon that runs on your development ma
 
 ### AI Agent (user-provided)
 
-karma-team is agent-agnostic — bring your own coding agent. Today the runner ships first-class support for **Claude Code** and **Codex**; the dispatch layer is designed so additional agents can be wired in without changing the orchestration model. You configure which agent the runner invokes; karma-team handles the rest.
+The runner currently supports the **Karma agent** only. Karma is installed and
+authenticated by the operator, and `karma-team` drives its Claude-compatible
+stream-JSON interface. The legacy Codex, Claude Code, Cursor Agent, OpenClaw,
+Grok, and Muse Code adapters remain in the source tree for compatibility, but
+their configuration and CLI entry points are intentionally rejected until
+support is re-enabled.
 
 ## 🚀 Installation
 

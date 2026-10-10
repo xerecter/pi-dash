@@ -69,8 +69,11 @@ async fn karma_agent_drives_the_claude_contract_to_completion() {
         prompt: "say hi".into(),
         model: None,
     };
+    // Generous timeout: the agent is spawned through a login shell
+    // (`bash -ilc`), whose startup sources the host's rc files and can take
+    // several seconds (conda/nvm/etc.), so a tight bound is flaky.
     let mut cursor =
-        tokio::time::timeout(Duration::from_secs(5), bridge.run_one_shot(&payload, &cwd))
+        tokio::time::timeout(Duration::from_secs(30), bridge.run_one_shot(&payload, &cwd))
             .await
             .expect("karma run setup should not time out")
             .expect("karma run setup");
@@ -79,7 +82,7 @@ async fn karma_agent_drives_the_claude_contract_to_completion() {
     assert_eq!(cursor.agent_kind(), "karma");
 
     let mut completed = false;
-    let deadline = tokio::time::Instant::now() + Duration::from_secs(5);
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(30);
     while tokio::time::Instant::now() < deadline && !completed {
         let Some(events) =
             tokio::time::timeout(Duration::from_millis(500), bridge.next_events(&mut cursor))
@@ -113,6 +116,7 @@ async fn karma_agent_drives_the_claude_contract_to_completion() {
     // Claude Code headless contract the Karma agent reuses.
     let argv = std::fs::read_to_string(cwd.join("argv.txt")).unwrap();
     for expected in [
+        "--worktree",
         "--print",
         "--input-format",
         "stream-json",

@@ -5,8 +5,8 @@
 //! (`karma --print --input-format stream-json --output-format stream-json
 //! --include-partial-messages …`) and emits the identical stream-json event
 //! schema. Rather than duplicate the bridge, the Karma agent re-uses the
-//! Claude Code implementation verbatim — only the configured executable
-//! differs (`karma` instead of `claude`).
+//! Claude Code implementation — the configured executable differs (`karma`
+//! instead of `claude`) and requests Karma's isolated worktree mode.
 //!
 //! See [`crate::claude_code`] for the protocol details, subprocess lifecycle,
 //! and event translation. If Karma's CLI ever diverges from Claude Code's,

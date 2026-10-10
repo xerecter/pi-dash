@@ -1,6 +1,6 @@
 # 07 — Runner Architecture
 
-The runner is the agent on the developer's machine: a single Rust binary (`karma-team`) that authenticates to karma-team cloud, pulls assigned runs, and drives an AI agent (`codex` or `claude`) as a subprocess.
+The runner is the agent on the developer's machine: a single Rust binary (`karma-team`) that authenticates to karma-team cloud, pulls assigned runs, and drives the Karma agent (`karma`) as a subprocess. Legacy bridge implementations remain in the crate but are not selectable.
 
 It lives at `runner/` and is an **independent Cargo crate** — not part of the Turborepo workspace. Edition 2024, MSRV 1.93 (`rust-toolchain.toml` pins the toolchain).
 

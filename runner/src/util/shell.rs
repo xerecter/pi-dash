@@ -107,6 +107,7 @@ const SHELL_SCRIPT: &str = r#"[ -n "${KARMA_TEAM_AGENT_CWD-}" ] && cd -- "$KARMA
 [ -n "${KARMA_TEAM_AGENT_CONFIG_DIR-}" ] && export KARMA_TEAM_CONFIG_DIR="$KARMA_TEAM_AGENT_CONFIG_DIR"
 [ -n "${KARMA_TEAM_AGENT_DATA_DIR-}" ] && export KARMA_TEAM_DATA_DIR="$KARMA_TEAM_AGENT_DATA_DIR"
 [ -n "${KARMA_TEAM_MODEL_TOKEN_FILE-}" ] && [ -r "$KARMA_TEAM_MODEL_TOKEN_FILE" ] &&   export KARMA_TEAM_GATEWAY_TOKEN="$(cat "$KARMA_TEAM_MODEL_TOKEN_FILE")"
+[ -n "${KARMA_TEAM_IS_SANDBOX-}" ] && export IS_SANDBOX="$KARMA_TEAM_IS_SANDBOX"
 exec "$@""#;
 
 /// karma-team-controlled environment for a spawned agent process.
@@ -598,6 +599,35 @@ mod tests {
             observed_canonical, expected,
             ".bashrc's `cd /` leaked past our guard; pwd reported {observed}"
         );
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    #[tokio::test]
+    async fn sandbox_marker_survives_bashrc_unset() {
+        // Claude/Karma reject bypassPermissions for root unless IS_SANDBOX is
+        // present on the final agent process. A user's rc file can unset or
+        // rewrite ordinary environment variables, so the runner-owned marker
+        // must be restored by the post-rc wrapper script.
+        let home = tempfile::tempdir().expect("tempdir for fake HOME");
+        std::fs::write(
+            home.path().join(".bash_profile"),
+            "[ -f \"$HOME/.bashrc\" ] && . \"$HOME/.bashrc\"\n",
+        )
+        .expect("write .bash_profile");
+        std::fs::write(home.path().join(".bashrc"), "unset IS_SANDBOX\n").expect("write .bashrc");
+
+        let mut cmd =
+            login_shell_command("sh", &["-c", "printf '%s' \"${IS_SANDBOX:-unset}\""], None);
+        cmd.env("HOME", home.path());
+        cmd.env("KARMA_TEAM_IS_SANDBOX", "1");
+        cmd.env_remove("BASH_ENV");
+        let out = cmd.output().await.expect("spawn shell marker probe");
+        assert!(
+            out.status.success(),
+            "stderr: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        assert_eq!(String::from_utf8_lossy(&out.stdout), "1");
     }
 
     // -----------------------------------------------------------------

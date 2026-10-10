@@ -320,14 +320,18 @@ def claim_pending_for_new_session(
                 min_idle_time=min_idle_ms,
                 start_id=cursor,
                 count=200,
-                justid=True,
             )
         except Exception:
             logger.exception("xautoclaim failed for runner %s", runner_id)
             return claimed
         if not result:
             return claimed
-        # xautoclaim returns (next_cursor, claimed_ids[, deleted_ids])
+        # redis-py returns the full Redis response here:
+        # (next_cursor, claimed_entries[, deleted_ids]).  Do not pass
+        # ``justid=True``: redis-py's JUSTID response parser intentionally
+        # returns only the claimed-id array and drops the continuation
+        # cursor, which would make this loop treat the first message id as
+        # a cursor forever when the PEL is non-empty.
         next_cursor = result[0]
         claimed_ids = result[1] if len(result) > 1 else []
         if isinstance(next_cursor, bytes):

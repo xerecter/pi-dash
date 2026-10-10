@@ -627,6 +627,11 @@ LIVE_URL = urljoin(LIVE_BASE_URL, LIVE_BASE_PATH) if LIVE_BASE_URL else None
 # WEB URL
 WEB_URL = get_config("WEB_URL")
 
+# Public CLI installation URLs and locally published release artifacts.
+KARMA_TEAM_PUBLIC_URL = get_config("KARMA_TEAM_PUBLIC_URL", "")
+KARMA_TEAM_CLI_ARTIFACT_DIR = get_config("KARMA_TEAM_CLI_ARTIFACT_DIR", "/code/cli-artifacts")
+KARMA_TEAM_CLI_INSTALLER_DIR = get_config("KARMA_TEAM_CLI_INSTALLER_DIR", "/code/cli-installers")
+
 HARD_DELETE_AFTER_DAYS = int(get_config("HARD_DELETE_AFTER_DAYS", 60))
 
 # Instance Changelog URL

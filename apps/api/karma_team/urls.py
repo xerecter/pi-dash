@@ -15,6 +15,7 @@ from drf_spectacular.views import (
 handler404 = "karma_team.app.views.error_404.custom_404_view"
 
 urlpatterns = [
+    path("api/cli/", include("karma_team.runner.cli_urls")),
     path("api/", include("karma_team.app.urls")),
     path("api/", include("karma_team.assistant.urls")),
     path("api/", include("karma_team.loop.urls")),

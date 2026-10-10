@@ -41,7 +41,11 @@ See [07 — Runner architecture](./07-runner-architecture.md) and [08 — Cloud 
 
 ### 3. AI Agent (user-provided)
 
-karma-team is agent-agnostic. The runner ships first-class support for **Claude Code** (`claude`) and **Codex** (`codex`); the dispatch layer is designed so other agents can be wired in without changing the orchestration model. Users install the agent binary themselves; `karma-team doctor` checks it.
+The runner currently drives the **Karma agent** (`karma`) only. The existing
+Codex, Claude Code, Cursor Agent, OpenClaw, Grok, and Muse Code adapters remain
+compiled for compatibility, while configuration and runtime entry points reject
+those agents with an explicit unsupported-agent error. Users install Karma
+themselves; `karma-team doctor` checks it.
 
 ## End-to-end task lifecycle
 
@@ -49,7 +53,7 @@ karma-team is agent-agnostic. The runner ships first-class support for **Claude 
 2. **Platform assigns** the work item to a project that has at least one connected runner.
 3. **Orchestration layer** (`apps/api/karma_team/orchestration/`) produces an agent run plan — phase, prompt, working dir, approval policy — and persists it.
 4. **Runner polls** the cloud for new runs over HTTPS long-poll (wire protocol v4, see [08](./08-cloud-runner-protocol.md)).
-5. **Runner spawns** the configured agent (`codex app-server` or `claude`) in the project's workspace, streaming the JSON-RPC bridge into the daemon.
+5. **Runner spawns** the configured Karma agent in the project's workspace, streaming its Claude-compatible JSON protocol into the daemon.
 6. **Approval router** (first-writer-wins between TUI / cloud / policy) handles any approval prompts the agent emits.
 7. **Run transcripts** (JSONL) are written locally under the runner's data dir, and progress events are pushed back to the platform.
 8. **User reviews** results in the web UI — diff, transcript, approval decisions, follow-up.

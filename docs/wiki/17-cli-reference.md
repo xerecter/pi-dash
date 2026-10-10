@@ -79,7 +79,7 @@ Register a new runner. Uses the CLI token from `karma-team auth login`.
 
 ```
 karma-team runner add --project <PROJECT> [--name <NAME>] [--workspace <SLUG>]
-                  [--pod <POD>] [--working-dir <PATH>] [--agent codex|claude-code]
+                  [--pod <POD>] [--working-dir <PATH>] [--agent karma]
 ```
 
 | Flag                | Purpose                                                            |
@@ -89,7 +89,11 @@ karma-team runner add --project <PROJECT> [--name <NAME>] [--workspace <SLUG>]
 | `--workspace <S>`   | Workspace slug. Required if you belong to multiple workspaces.     |
 | `--pod <P>`         | Pod within the project. Defaults to project's default pod.         |
 | `--working-dir <P>` | Local working dir for clones. Defaults to a path under `data_dir`. |
-| `--agent <K>`       | `codex` (default) or `claude-code`.                                |
+| `--agent <K>`       | `karma` (default and currently the only supported agent).          |
+
+Selecting another built-in agent returns `unsupported agent '<name>'; only the
+karma agent is supported`. The legacy adapters remain in the binary's source
+tree but are not selectable through configuration or runner commands.
 
 On the first runner: installs the OS service (systemd user unit / launchd agent / Windows scheduled task) and starts the daemon.
 

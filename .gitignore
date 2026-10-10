@@ -120,3 +120,4 @@ scripts/
 # Rust
 /target/
 /runner/target/
+/deployments/cli/artifacts/

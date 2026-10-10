@@ -271,11 +271,13 @@ impl MachineControl {
 /// Kebab-case wire value → AgentKind, via the same clap ValueEnum
 /// parser `--agent` uses, so web and CLI accept identical spellings.
 fn parse_agent_kind(raw: &str) -> Result<AgentKind> {
-    if raw.is_empty() {
-        return Ok(AgentKind::default());
-    }
-    <AgentKind as clap::ValueEnum>::from_str(raw, false)
-        .map_err(|_| anyhow::anyhow!("unknown agent kind {raw:?}"))
+    let kind = if raw.is_empty() {
+        AgentKind::default()
+    } else {
+        <AgentKind as clap::ValueEnum>::from_str(raw, false)
+            .map_err(|_| anyhow::anyhow!("unknown agent kind {raw:?}"))?
+    };
+    kind.ensure_supported().map(|()| kind)
 }
 
 /// Errors that no amount of retrying fixes: the credential itself is
@@ -303,21 +305,24 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parses_kebab_case_agent_kinds() {
-        assert_eq!(
-            parse_agent_kind("claude-code").unwrap(),
-            AgentKind::ClaudeCode
-        );
-        assert_eq!(parse_agent_kind("codex").unwrap(), AgentKind::Codex);
-        assert_eq!(
-            parse_agent_kind("cursor-agent").unwrap(),
-            AgentKind::CursorAgent
-        );
-        assert_eq!(parse_agent_kind("open-claw").unwrap(), AgentKind::OpenClaw);
-        assert_eq!(parse_agent_kind("grok").unwrap(), AgentKind::Grok);
-        assert_eq!(parse_agent_kind("muse-code").unwrap(), AgentKind::MuseCode);
+    fn only_karma_agent_can_be_created_remotely() {
+        for name in [
+            "codex",
+            "claude-code",
+            "cursor-agent",
+            "open-claw",
+            "grok",
+            "muse-code",
+        ] {
+            let error = parse_agent_kind(name).unwrap_err().to_string();
+            assert!(error.contains("unsupported agent"), "{error}");
+            assert!(
+                error.contains("only the karma agent is supported"),
+                "{error}"
+            );
+        }
         assert_eq!(parse_agent_kind("karma").unwrap(), AgentKind::Karma);
-        assert_eq!(parse_agent_kind("").unwrap(), AgentKind::default());
+        assert_eq!(parse_agent_kind("").unwrap(), AgentKind::Karma);
         assert!(parse_agent_kind("skynet").is_err());
     }
 

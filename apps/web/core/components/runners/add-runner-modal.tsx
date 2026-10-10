@@ -10,7 +10,6 @@ import type { SubmitHandler } from "react-hook-form";
 import { Controller, useForm } from "react-hook-form";
 import useSWR from "swr";
 // karma-team imports
-import { API_BASE_URL } from "@karma-team/constants";
 import { useTranslation } from "@karma-team/i18n";
 import { Button } from "@karma-team/propel/button";
 import { PodService, RunnerService } from "@karma-team/services";
@@ -18,6 +17,7 @@ import type { IDevMachine, IPod, TPartialProject } from "@karma-team/types";
 import { CustomSelect, EModalPosition, EModalWidth, Input, ModalCore } from "@karma-team/ui";
 // app
 import { RunnerCliCommand } from "@/components/runners/runner-cli-command";
+import { CliInstallConfigStatus } from "@/components/runners/cli-install-config-status";
 import {
   DEFAULT_MODEL_BY_AGENT,
   RUNNER_MODEL_OPTIONS,
@@ -25,6 +25,7 @@ import {
   runnerModelLabel,
 } from "@/components/runners/runner-models";
 import { ProjectService } from "@/services/project";
+import { useCliInstallConfig } from "@/hooks/use-cli-install-config";
 
 type Props = {
   isOpen: boolean;
@@ -95,14 +96,7 @@ const machineDisplayLabel = (machine: IDevMachine): string => machine.label || m
 export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
   const { isOpen, onClose, workspaceId, workspaceSlug } = props;
   const { t } = useTranslation();
-  const [origin, setOrigin] = useState(() => (typeof window !== "undefined" ? window.location.origin : ""));
-
-  useEffect(() => {
-    if (typeof window !== "undefined") setOrigin(window.location.origin);
-  }, []);
-
-  const cloudUrl = API_BASE_URL || origin;
-  const isUsingBrowserOrigin = !API_BASE_URL;
+  const { data: installConfig, error: installConfigError, mutate: reloadInstallConfig } = useCliInstallConfig(isOpen);
 
   const {
     control,
@@ -646,18 +640,21 @@ export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
             </p>
           </div>
 
-          <RunnerCliCommand
-            cloudUrl={cloudUrl}
-            workspaceSlug={workspaceSlug}
-            projectIdentifier={runnerCommand.projectIdentifier}
-            podName={runnerCommand.podName}
-            name={runnerCommand.name}
-            workingDir={runnerCommand.workingDir}
-            agent={runnerCommand.agent}
-            model={runnerCommand.model}
-            reasoningEffort={runnerCommand.reasoningEffort}
-            isUsingBrowserOrigin={isUsingBrowserOrigin}
-          />
+          {installConfig ? (
+            <RunnerCliCommand
+              cloudUrl={installConfig.service_url}
+              workspaceSlug={workspaceSlug}
+              projectIdentifier={runnerCommand.projectIdentifier}
+              podName={runnerCommand.podName}
+              name={runnerCommand.name}
+              workingDir={runnerCommand.workingDir}
+              agent={runnerCommand.agent}
+              model={runnerCommand.model}
+              reasoningEffort={runnerCommand.reasoningEffort}
+            />
+          ) : (
+            <CliInstallConfigStatus error={installConfigError} onRetry={() => void reloadInstallConfig()} />
+          )}
 
           <div className="flex justify-end gap-2">
             <Button variant="secondary" onClick={() => setRunnerCommand(null)}>

@@ -417,6 +417,7 @@ pub async fn apply_enroll_response(
     cloud_url: &str,
     options: ApplyEnrollOptions<'_>,
 ) -> Result<AppliedRunner> {
+    options.agent_kind.ensure_supported()?;
     let working_dir = options.working_dir.unwrap_or_else(|| {
         default_working_dir(
             paths,
@@ -728,6 +729,27 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn enrollment_rejects_unsupported_agent_without_writing_config() {
+        let tmp = tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let error = apply_enroll_response(
+            &paths,
+            &sample_response("unsupported"),
+            "http://localhost:8000",
+            enroll_options(tmp.path().join("workspace"), AgentKind::Codex),
+        )
+        .await
+        .unwrap_err();
+        assert!(
+            error
+                .to_string()
+                .contains("only the karma agent is supported")
+        );
+        assert!(!paths.config_path().exists());
+        assert!(!paths.data_dir.exists());
+    }
+
+    #[tokio::test]
     async fn first_runner_bootstraps_config_when_none_exists() {
         let tmp = tempdir().unwrap();
         let paths = paths_for(tmp.path());
@@ -736,7 +758,7 @@ mod tests {
             &paths,
             &resp,
             "https://example.com",
-            enroll_options(tmp.path().join("wd"), AgentKind::Codex),
+            enroll_options(tmp.path().join("wd"), AgentKind::Karma),
         )
         .await
         .unwrap();
@@ -756,7 +778,7 @@ mod tests {
             &paths,
             &r1,
             "https://example.com",
-            enroll_options(tmp.path().join("wd1"), AgentKind::Codex),
+            enroll_options(tmp.path().join("wd1"), AgentKind::Karma),
         )
         .await
         .unwrap();
@@ -766,7 +788,7 @@ mod tests {
             &paths,
             &r2,
             "https://example.com",
-            enroll_options(tmp.path().join("wd2"), AgentKind::Codex),
+            enroll_options(tmp.path().join("wd2"), AgentKind::Karma),
         )
         .await
         .unwrap();
@@ -813,7 +835,7 @@ mod tests {
             "https://example.com",
             ApplyEnrollOptions {
                 working_dir: None,
-                agent_kind: AgentKind::Codex,
+                agent_kind: AgentKind::Karma,
                 model: None,
                 reasoning_effort: None,
             },
@@ -840,7 +862,7 @@ mod tests {
             &paths,
             &r1,
             "https://example.com",
-            enroll_options(repo.clone(), AgentKind::Codex),
+            enroll_options(repo.clone(), AgentKind::Karma),
         )
         .await
         .unwrap();
@@ -850,7 +872,7 @@ mod tests {
             &paths,
             &r2,
             "https://example.com",
-            enroll_options(repo, AgentKind::Codex),
+            enroll_options(repo, AgentKind::Karma),
         )
         .await
         .unwrap_err();
@@ -874,7 +896,7 @@ mod tests {
             &paths,
             &r1,
             "https://cloud-a.example.com",
-            enroll_options(tmp.path().join("wd1"), AgentKind::Codex),
+            enroll_options(tmp.path().join("wd1"), AgentKind::Karma),
         )
         .await
         .unwrap();
@@ -884,7 +906,7 @@ mod tests {
             &paths,
             &r2,
             "https://cloud-b.example.com",
-            enroll_options(tmp.path().join("wd2"), AgentKind::Codex),
+            enroll_options(tmp.path().join("wd2"), AgentKind::Karma),
         )
         .await
         .unwrap_err();

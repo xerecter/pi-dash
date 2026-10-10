@@ -3,7 +3,7 @@ use karma_team::util::paths::Paths;
 use std::process::Command;
 
 #[test]
-fn reusing_enrollment_and_startup_rebind_refresh_all_managed_paths() {
+fn managed_enrollment_and_rebind_are_rejected_without_changing_paths() {
     for verb in ["enroll", "rebind"] {
         let root = tempfile::tempdir().unwrap();
         let paths = Paths::resolve(
@@ -52,36 +52,18 @@ fn reusing_enrollment_and_startup_rebind_refresh_all_managed_paths() {
             .output()
             .unwrap();
         assert!(
-            output.status.success(),
+            !output.status.success(),
             "{}",
             String::from_utf8_lossy(&output.stderr)
         );
+        assert!(
+            String::from_utf8_lossy(&output.stderr).contains("only the karma agent is supported")
+        );
         let updated = file::load_config(&paths).unwrap();
-        for (before, after) in cfg.runners.iter().zip(&updated.runners) {
-            assert_eq!(before.runner_id, after.runner_id);
-            assert_eq!(before.workspace.working_dir, after.workspace.working_dir);
-            if after.name == "MANUAL" {
-                assert_eq!(after.codex.binary, "personal-agent");
-                assert!(after.codex.codex_home.is_none());
-            } else {
-                assert_eq!(
-                    after.codex.binary,
-                    root.path().join("new mount/engine").to_str().unwrap()
-                );
-                assert_eq!(
-                    after.codex.path_prepend.as_ref(),
-                    Some(&root.path().join("new mount"))
-                );
-                assert_eq!(
-                    after.codex.codex_home.as_ref(),
-                    Some(&root.path().join("engine-home"))
-                );
-                assert_eq!(
-                    after.codex.model_token_file.as_ref(),
-                    Some(&root.path().join("model.token"))
-                );
-            }
-        }
+        assert_eq!(
+            serde_json::to_value(updated).unwrap(),
+            serde_json::to_value(cfg).unwrap()
+        );
     }
 }
 

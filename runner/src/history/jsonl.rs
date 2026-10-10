@@ -18,6 +18,12 @@ pub enum HistoryEntry {
         prompt_preview: String,
         started_at: DateTime<Utc>,
         repo_url: Option<String>,
+        /// Agent CLI that drove this run, as the stable wire label
+        /// (`codex`, `claude_code`, `karma`, …). Written from the runner's
+        /// config when the run starts, so the transcript self-documents which
+        /// tool was invoked. Absent in logs written by older runners.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        agent_kind: Option<String>,
     },
     Lifecycle {
         ts: DateTime<Utc>,
@@ -25,6 +31,11 @@ pub enum HistoryEntry {
         detail: Option<String>,
     },
     CodexEvent {
+        ts: DateTime<Utc>,
+        method: String,
+        params: serde_json::Value,
+    },
+    KarmaEvent {
         ts: DateTime<Utc>,
         method: String,
         params: serde_json::Value,
@@ -98,4 +109,51 @@ pub async fn read_all(path: &Path) -> Result<Vec<HistoryEntry>> {
         }
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn header_without_agent_kind_still_parses() {
+        // Transcripts written before the field existed must keep loading.
+        let line = r#"{"kind":"header","run_id":"00000000-0000-0000-0000-000000000000","work_item_id":null,"prompt_preview":"x","started_at":"2026-01-01T00:00:00Z","repo_url":null}"#;
+        match serde_json::from_str::<HistoryEntry>(line).unwrap() {
+            HistoryEntry::Header { agent_kind, .. } => assert!(agent_kind.is_none()),
+            other => panic!("expected Header, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn header_serialises_agent_kind_when_present() {
+        let entry = HistoryEntry::Header {
+            run_id: Uuid::nil(),
+            work_item_id: None,
+            prompt_preview: "x".into(),
+            started_at: Utc::now(),
+            repo_url: None,
+            agent_kind: Some("karma".into()),
+        };
+        let value = serde_json::to_value(&entry).unwrap();
+        assert_eq!(
+            value.get("agent_kind").and_then(|v| v.as_str()),
+            Some("karma")
+        );
+    }
+
+    #[test]
+    fn karma_events_use_the_karma_history_kind() {
+        let entry = HistoryEntry::KarmaEvent {
+            ts: Utc::now(),
+            method: "system/status".into(),
+            params: serde_json::json!({"status": "requesting"}),
+        };
+
+        let value = serde_json::to_value(entry).unwrap();
+        assert_eq!(
+            value.get("kind").and_then(|v| v.as_str()),
+            Some("karma_event")
+        );
+    }
 }

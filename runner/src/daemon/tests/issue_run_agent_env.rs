@@ -119,19 +119,16 @@ async fn run_assignment(script: String, issue_identifier: Option<&str>) -> Clien
 
 #[cfg(not(target_os = "windows"))]
 #[tokio::test]
-async fn looping_questions_fail_the_run_as_awaiting_human_input() {
+async fn legacy_codex_issue_run_is_rejected_before_question_processing() {
     let msg = run_assignment(fake_codex_script(10, Ending::Hang), Some("PIDAS-10")).await;
     match msg {
         ClientMsg::RunFailed { reason, detail, .. } => {
-            assert_eq!(reason, FailureReason::AwaitingHumanInput);
+            assert_eq!(reason, FailureReason::CodexCrash);
             let detail = detail.unwrap_or_default();
             assert!(
-                detail.contains(&format!("{MAX_UNANSWERED_QUESTIONS} times")),
-                "item/started must not double-count questions: {detail}"
+                detail.contains("only the karma agent is supported"),
+                "{detail}"
             );
-            // The question lands on the issue, and it was asked by an agent
-            // that saw the issue key in its environment.
-            assert!(detail.contains("Confirm for PIDAS-10"), "{detail}");
         }
         other => panic!("expected RunFailed, got {other:?}"),
     }
@@ -139,27 +136,35 @@ async fn looping_questions_fail_the_run_as_awaiting_human_input() {
 
 #[cfg(not(target_os = "windows"))]
 #[tokio::test]
-async fn questions_below_the_limit_do_not_stop_a_run() {
+async fn legacy_codex_issue_run_never_launches_its_binary() {
     let msg = run_assignment(
         fake_codex_script(MAX_UNANSWERED_QUESTIONS - 1, Ending::Complete),
         Some("PIDAS-10"),
     )
     .await;
-    assert!(
-        matches!(msg, ClientMsg::RunCompleted { .. }),
-        "expected RunCompleted, got {msg:?}"
-    );
+    match msg {
+        ClientMsg::RunFailed { detail, .. } => {
+            assert!(
+                detail
+                    .unwrap_or_default()
+                    .contains("only the karma agent is supported")
+            );
+        }
+        other => panic!("expected policy failure, got {other:?}"),
+    }
 }
 
 #[cfg(not(target_os = "windows"))]
 #[tokio::test]
-async fn missing_identifier_leaves_the_agent_env_unset() {
-    // Older clouds omit `work_item_identifier`; the agent must not see a
-    // bogus value.
+async fn legacy_codex_issue_run_is_rejected_even_without_identifier() {
     let msg = run_assignment(fake_codex_script(10, Ending::Hang), None).await;
     match msg {
         ClientMsg::RunFailed { detail, .. } => {
-            assert!(detail.unwrap_or_default().contains("Confirm for unset"));
+            assert!(
+                detail
+                    .unwrap_or_default()
+                    .contains("only the karma agent is supported")
+            );
         }
         other => panic!("expected RunFailed, got {other:?}"),
     }

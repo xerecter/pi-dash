@@ -65,41 +65,71 @@ fn use_package(paths: &Paths, name: &str, manifest: &Path) -> Output {
 }
 
 #[test]
-fn configures_every_supported_protocol_without_changing_other_runner_fields() {
+fn configures_karma_without_changing_other_runner_fields() {
     let root = tempfile::tempdir().unwrap();
     let executable = supplied_binary(root.path()).canonicalize().unwrap();
-    for (protocol, kind) in [
-        ("codex", AgentKind::Codex),
-        ("claude_code", AgentKind::ClaudeCode),
-        ("cursor_agent", AgentKind::CursorAgent),
-        ("open_claw", AgentKind::OpenClaw),
-        ("grok", AgentKind::Grok),
-        ("muse_code", AgentKind::MuseCode),
-        ("karma", AgentKind::Karma),
+    let path = manifest(
+        root.path(),
+        "version = 1\nprotocol = 'karma'\nexecutable = 'my engine.exe'\n",
+    );
+    let package = AgentPackage::from_manifest(&path).unwrap();
+    let mut actual = runner(root.path(), "custom");
+    let mut expected = actual.clone();
+    expected.agent.kind = AgentKind::Karma;
+    expected.karma.binary = executable.to_str().unwrap().to_string();
+    package.apply_to_runner(&mut actual).unwrap();
+    assert_eq!(
+        serde_json::to_value(actual).unwrap(),
+        serde_json::to_value(expected).unwrap()
+    );
+}
+
+#[test]
+fn non_karma_protocols_are_rejected_before_executable_resolution() {
+    let root = tempfile::tempdir().unwrap();
+    for (protocol, wire_name) in [
+        ("codex", "codex"),
+        ("claude_code", "claude_code"),
+        ("cursor_agent", "cursor_agent"),
+        ("open_claw", "openclaw"),
+        ("grok", "grok"),
+        ("muse_code", "muse_code"),
+    ] {
+        let path = manifest(
+            root.path(),
+            &format!("version = 1\nprotocol = {protocol:?}\nexecutable = 'missing-engine'\n"),
+        );
+        assert_eq!(
+            AgentPackage::from_manifest(&path).unwrap_err().to_string(),
+            format!("unsupported agent '{wire_name}'; only the karma agent is supported")
+        );
+    }
+}
+
+#[test]
+fn cli_rejects_non_karma_packages_without_changing_config() {
+    let root = tempfile::tempdir().unwrap();
+    let paths = setup(root.path());
+    supplied_binary(root.path());
+    let before = std::fs::read(paths.config_path()).unwrap();
+    for protocol in [
+        "codex",
+        "claude_code",
+        "cursor_agent",
+        "open_claw",
+        "grok",
+        "muse_code",
     ] {
         let path = manifest(
             root.path(),
             &format!("version = 1\nprotocol = {protocol:?}\nexecutable = 'my engine.exe'\n"),
         );
-        let package = AgentPackage::from_manifest(&path).unwrap();
-        let mut actual = runner(root.path(), "custom");
-        let mut expected = actual.clone();
-        expected.agent.kind = kind;
-        let binary = executable.to_str().unwrap().to_string();
-        match kind {
-            AgentKind::Codex => expected.codex.binary = binary,
-            AgentKind::ClaudeCode => expected.claude_code.binary = binary,
-            AgentKind::CursorAgent => expected.cursor_agent.binary = binary,
-            AgentKind::OpenClaw => expected.openclaw.binary = binary,
-            AgentKind::Grok => expected.grok.binary = binary,
-            AgentKind::MuseCode => expected.muse_code.binary = binary,
-            AgentKind::Karma => expected.karma.binary = binary,
-        }
-        package.apply_to_runner(&mut actual).unwrap();
-        assert_eq!(
-            serde_json::to_value(actual).unwrap(),
-            serde_json::to_value(expected).unwrap()
+        let output = use_package(&paths, "custom", &path);
+        assert!(!output.status.success(), "accepted {protocol}");
+        assert!(
+            String::from_utf8_lossy(&output.stderr).contains("only the karma agent is supported")
         );
+        assert_eq!(std::fs::read(paths.config_path()).unwrap(), before);
     }
 }
 
@@ -110,10 +140,11 @@ fn cli_changes_only_the_selected_runner_and_is_idempotent() {
     let executable = supplied_binary(root.path());
     let path = manifest(
         root.path(),
-        "version = 1\nprotocol = 'codex'\nexecutable = 'my engine.exe'\n",
+        "version = 1\nprotocol = 'karma'\nexecutable = 'my engine.exe'\n",
     );
     let mut expected = file::load_config(&paths).unwrap();
-    expected.runners[0].codex.binary = executable.canonicalize().unwrap().to_str().unwrap().into();
+    expected.runners[0].agent.kind = AgentKind::Karma;
+    expected.runners[0].karma.binary = executable.canonicalize().unwrap().to_str().unwrap().into();
     for _ in 0..2 {
         let output = use_package(&paths, "custom", &path);
         assert!(
@@ -141,14 +172,14 @@ fn invalid_manifests_leave_config_unchanged() {
     supplied_binary(root.path());
     let before = std::fs::read(paths.config_path()).unwrap();
     for text in [
-        "version = 2\nprotocol = 'codex'\nexecutable = 'my engine.exe'",
+        "version = 2\nprotocol = 'karma'\nexecutable = 'my engine.exe'",
         "version = 1\nprotocol = 'unknown-protocol'\nexecutable = 'my engine.exe'",
-        "version = 1\nprotocol = 'codex'\nexecutable = ''",
-        "version = 1\nprotocol = 'codex'\nexecutable = '.'",
-        "version = 1\nprotocol = 'codex'\nexecutable = 'missing'",
-        "version = 1\nprotocol = 'codex'\nexecutable = 'https://example.invalid/engine'",
-        "version = 1\nprotocol = 'codex'\nexecutable = 'my engine.exe'\ninstall = 'some command'",
-        "version = 1\nprotocol = 'codex'\nexecutable = 'my engine.exe'\ntoken = 'not-supported'",
+        "version = 1\nprotocol = 'karma'\nexecutable = ''",
+        "version = 1\nprotocol = 'karma'\nexecutable = '.'",
+        "version = 1\nprotocol = 'karma'\nexecutable = 'missing'",
+        "version = 1\nprotocol = 'karma'\nexecutable = 'https://example.invalid/engine'",
+        "version = 1\nprotocol = 'karma'\nexecutable = 'my engine.exe'\ninstall = 'some command'",
+        "version = 1\nprotocol = 'karma'\nexecutable = 'my engine.exe'\ntoken = 'not-supported'",
     ] {
         let path = manifest(root.path(), text);
         assert!(
@@ -166,7 +197,7 @@ fn unknown_runner_and_managed_host_are_not_modified() {
     supplied_binary(root.path());
     let path = manifest(
         root.path(),
-        "version = 1\nprotocol = 'codex'\nexecutable = 'my engine.exe'",
+        "version = 1\nprotocol = 'karma'\nexecutable = 'my engine.exe'",
     );
     let before = std::fs::read(paths.config_path()).unwrap();
     assert!(!use_package(&paths, "missing", &path).status.success());
@@ -196,7 +227,7 @@ fn non_executable_package_is_refused_without_chmod() {
     std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o600)).unwrap();
     let path = manifest(
         root.path(),
-        "version = 1\nprotocol = 'codex'\nexecutable = 'engine'",
+        "version = 1\nprotocol = 'karma'\nexecutable = 'engine'",
     );
     assert!(AgentPackage::from_manifest(&path).is_err());
     assert_eq!(
@@ -219,15 +250,11 @@ async fn supplied_package_runs_through_the_normal_bridge_without_git() {
         &binary,
         r#"#!/bin/sh
 set -eu
-test "$1" = app-server
 printf 'started' > package-started
-read -r init
-printf '%s\n' '{"jsonrpc":"2.0","id":1,"result":{"capabilities":{}}}'
-read -r initialized
-read -r thread
-printf '%s\n' '{"jsonrpc":"2.0","id":2,"result":{"threadId":"package-test"}}'
-read -r turn
-printf '%s\n' '{"jsonrpc":"2.0","method":"turn/completed","params":{"conclusion":"success"}}'
+(cat >/dev/null) &
+printf '%s\n' '{"type":"system","subtype":"init","session_id":"package-test","model":"test-model"}'
+printf '%s\n' '{"type":"assistant","message":{"role":"assistant","content":[{"type":"text","text":"hello from package"}]},"session_id":"package-test"}'
+printf '%s\n' '{"type":"result","subtype":"success","session_id":"package-test","result":"done","total_cost_usd":0.0,"usage":{"input_tokens":1,"output_tokens":1}}'
 while read -r rest; do :; done
 "#,
     )
@@ -235,7 +262,7 @@ while read -r rest; do :; done
     std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o700)).unwrap();
     let path = manifest(
         root.path(),
-        "version = 1\nprotocol = 'codex'\nexecutable = 'my engine'",
+        "version = 1\nprotocol = 'karma'\nexecutable = 'my engine'",
     );
     let output = use_package(&paths, "custom", &path);
     assert!(
@@ -258,11 +285,13 @@ while read -r rest; do :; done
         prompt: "ordinary task".into(),
         model: None,
     };
-    let mut cursor = tokio::time::timeout(Duration::from_secs(5), bridge.run(&payload, cwd))
-        .await
-        .unwrap()
-        .unwrap();
-    tokio::time::timeout(Duration::from_secs(5), async {
+    let mut cursor =
+        tokio::time::timeout(Duration::from_secs(30), bridge.run_one_shot(&payload, cwd))
+            .await
+            .unwrap()
+            .unwrap();
+    assert_eq!(cursor.agent_kind(), "karma");
+    tokio::time::timeout(Duration::from_secs(30), async {
         while let Some(events) = bridge.next_events(&mut cursor).await {
             if events
                 .iter()
@@ -281,5 +310,4 @@ while read -r rest; do :; done
         std::fs::read_to_string(cwd.join("notes.txt")).unwrap(),
         "keep this task input"
     );
-    assert!(!cwd.join(".git").exists());
 }

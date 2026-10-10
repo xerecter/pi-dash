@@ -74,6 +74,15 @@ pub fn load_all(paths: &Paths) -> Result<(Config, Credentials)> {
 }
 
 pub fn write_config(paths: &Paths, config: &Config) -> Result<()> {
+    config.validate_agents()?;
+    write_config_unchecked(paths, config)
+}
+
+/// Persist a config during destructive cleanup (runner removal only). This
+/// deliberately permits legacy non-Karma agent entries to remain on disk so
+/// an operator can remove them one at a time; no normal configuration path
+/// should call it.
+pub(crate) fn write_config_unchecked(paths: &Paths, config: &Config) -> Result<()> {
     paths.ensure()?;
     let s = toml::to_string_pretty(config)?;
     write_private(&paths.config_path(), s.as_bytes())
@@ -108,7 +117,23 @@ pub fn mutate_config<F>(paths: &Paths, mutate: F) -> Result<Config>
 where
     F: FnOnce(&mut Config) -> Result<()>,
 {
-    mutate_config_or_init(paths, || None, mutate)
+    mutate_config_or_init_with_validation(
+        paths,
+        || None,
+        mutate,
+        |cfg| cfg.validate().map_err(anyhow::Error::new),
+    )
+}
+
+/// Remove a runner from a legacy config without requiring unrelated runner
+/// entries to already use Karma. This is intentionally narrower than
+/// [`mutate_config`]: it skips validation only after the caller has performed
+/// a destructive cleanup mutation, allowing recovery from retired agents.
+pub(crate) fn mutate_config_for_cleanup<F>(paths: &Paths, mutate: F) -> Result<Config>
+where
+    F: FnOnce(&mut Config) -> Result<()>,
+{
+    mutate_config_or_init_with_validation(paths, || None, mutate, |_cfg| Ok(()))
 }
 
 /// Same contract as [`mutate_config`] but tolerates a missing
@@ -125,6 +150,22 @@ pub fn mutate_config_or_init<I, M>(paths: &Paths, init: I, mutate: M) -> Result<
 where
     I: FnOnce() -> Option<Config>,
     M: FnOnce(&mut Config) -> Result<()>,
+{
+    mutate_config_or_init_with_validation(paths, init, mutate, |cfg| {
+        cfg.validate().map_err(anyhow::Error::new)
+    })
+}
+
+fn mutate_config_or_init_with_validation<I, M, V>(
+    paths: &Paths,
+    init: I,
+    mutate: M,
+    validate: V,
+) -> Result<Config>
+where
+    I: FnOnce() -> Option<Config>,
+    M: FnOnce(&mut Config) -> Result<()>,
+    V: FnOnce(&Config) -> Result<()>,
 {
     paths.ensure()?;
     let lock_path = config_lock_path(paths);
@@ -168,9 +209,8 @@ where
         }
     };
     mutate(&mut cfg)?;
-    cfg.validate()
-        .with_context(|| "config invalid after mutate_config closure")?;
-    write_config(paths, &cfg)?;
+    validate(&cfg).with_context(|| "config invalid after mutate_config closure")?;
+    write_config_unchecked(paths, &cfg)?;
     Ok(cfg)
 }
 
@@ -582,6 +622,36 @@ model_default = "o4-mini"
         assert!(after.runners.iter().all(|r| r.runner_id != target));
         let names: Vec<_> = after.runners.iter().map(|r| r.name.as_str()).collect();
         assert_eq!(names, vec!["a", "c"]);
+    }
+
+    #[test]
+    fn cleanup_can_remove_one_legacy_agent_without_rewriting_the_other() {
+        let tmp = tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let mut first = sample_runner("first", tmp.path().join("first"));
+        let mut second = sample_runner("second", tmp.path().join("second"));
+        first.agent.kind = crate::config::schema::AgentKind::Codex;
+        second.agent.kind = crate::config::schema::AgentKind::Codex;
+        let cfg = Config {
+            version: 2,
+            daemon: DaemonConfig::default(),
+            runners: vec![first.clone(), second.clone()],
+            cli: None,
+        };
+        write_config_unchecked(&paths, &cfg).unwrap();
+
+        let remaining = mutate_config_for_cleanup(&paths, |cfg| {
+            cfg.runners
+                .retain(|runner| runner.runner_id != first.runner_id);
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(remaining.runners.len(), 1);
+        assert_eq!(
+            remaining.runners[0].agent.kind,
+            crate::config::schema::AgentKind::Codex
+        );
+        assert_eq!(load_config(&paths).unwrap().runners[0].name, "second");
     }
 
     #[test]

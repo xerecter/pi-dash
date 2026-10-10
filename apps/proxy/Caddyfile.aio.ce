@@ -17,6 +17,12 @@
         reverse_proxy localhost:3004
     }
 
+	handle /auth/device/* {
+        root * /app/web
+        try_files {path} {path}/ /index.html
+        file_server
+    }
+
 	handle /auth/* {
         reverse_proxy localhost:3004
     }

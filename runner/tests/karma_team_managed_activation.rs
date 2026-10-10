@@ -1,4 +1,4 @@
-//! Second-project enrollment must activate inside the existing daemon.
+//! A second Karma runner can activate inside the existing daemon.
 
 use std::process::Stdio;
 use std::time::Duration;
@@ -14,7 +14,7 @@ use karma_team::ipc::{
 use karma_team::util::paths::Paths;
 
 #[tokio::test]
-async fn enrollment_activates_second_project_without_restarting_the_daemon() {
+async fn karma_runner_activation_adds_second_project_without_restarting_the_daemon() {
     let root = tempfile::tempdir().unwrap();
     let paths = Paths::resolve(
         Some(root.path().join("config")),
@@ -27,9 +27,8 @@ async fn enrollment_activates_second_project_without_restarting_the_daemon() {
             "name": name, "runner_id": uuid::Uuid::new_v4(),
             "project_slug": name, "workspace_slug": "test",
             "workspace": {"working_dir": root.path().join(name)},
-            "codex": {"binary": env!("CARGO_BIN_EXE_karma-team"),
-                "codex_home": root.path().join("engine-home"),
-                "path_prepend": root.path(), "model_token_file": root.path().join("model.token")},
+            "agent": {"kind": "karma"},
+            "karma": {"binary": env!("CARGO_BIN_EXE_karma-team")},
         }))
         .unwrap()
     };
@@ -78,36 +77,14 @@ async fn enrollment_activates_second_project_without_restarting_the_daemon() {
     .unwrap();
 
     for _ in 0..2 {
-        let result = tokio::process::Command::new(env!("CARGO_BIN_EXE_karma-team"))
-            .env("KARMA_TEAM_CONFIG_DIR", &paths.config_dir)
-            .env("KARMA_TEAM_DATA_DIR", &paths.data_dir)
-            .args([
-                "__managed",
-                "enroll",
-                "--workspace",
-                "test",
-                "--project",
-                "SECOND",
-                "--engine",
-            ])
-            .arg(env!("CARGO_BIN_EXE_karma-team"))
-            .arg("--codex-home")
-            .arg(root.path().join("engine-home"))
-            .arg("--working-dir")
-            .arg(root.path().join("SECOND"))
-            .arg("--path-prepend")
-            .arg(root.path())
-            .arg("--model-token-file")
-            .arg(root.path().join("model.token"))
-            .kill_on_drop(true)
-            .output()
+        assert!(matches!(
+            ipc.call(Request::RunnerActivateLocal {
+                runner: "SECOND".into()
+            })
             .await
-            .unwrap();
-        assert!(
-            result.status.success(),
-            "{}",
-            String::from_utf8_lossy(&result.stderr)
-        );
+            .unwrap(),
+            Response::Ack
+        ));
         assert!(daemon.try_wait().unwrap().is_none());
         assert_eq!(daemon.id(), pid);
         let Response::Status(after) = ipc.call(Request::StatusGet).await.unwrap() else {

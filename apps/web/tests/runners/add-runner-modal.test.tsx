@@ -7,6 +7,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { CliInstallConfig } from "@/services/cli-install.service";
 
 const {
   apiBaseUrl,
@@ -16,6 +17,7 @@ const {
   listDevMachines,
   createRunnerOnMachine,
   getCreateRunnerOnMachineStatus,
+  installConfigState,
 } = vi.hoisted(() => ({
   apiBaseUrl: { value: "http://localhost:8000" },
   listPods: vi.fn(),
@@ -24,7 +26,14 @@ const {
   listDevMachines: vi.fn(),
   createRunnerOnMachine: vi.fn(),
   getCreateRunnerOnMachineStatus: vi.fn(),
+  installConfigState: {
+    data: undefined as CliInstallConfig | undefined,
+    error: undefined as Error | undefined,
+    mutate: vi.fn(),
+  },
 }));
+
+vi.mock("@/hooks/use-cli-install-config", () => ({ useCliInstallConfig: () => installConfigState }));
 
 vi.mock("@karma-team/constants", () => ({
   get API_BASE_URL() {
@@ -64,12 +73,14 @@ vi.mock("@karma-team/propel/button", () => ({
   Button: ({
     children,
     loading: _loading,
+    prependIcon: _icon,
     variant: _variant,
     size: _size,
     ...props
   }: {
     children: React.ReactNode;
     loading?: boolean;
+    prependIcon?: React.ReactNode;
     variant?: string;
     size?: string;
   } & React.ButtonHTMLAttributes<HTMLButtonElement>) => <button {...props}>{children}</button>,
@@ -147,6 +158,15 @@ const CONNECTED_MACHINE = {
 describe("AddRunnerModal", () => {
   beforeEach(() => {
     apiBaseUrl.value = "http://localhost:8000";
+    installConfigState.data = {
+      service_url: "http://172.16.13.81:28000",
+      install_sh_url: "http://172.16.13.81:28000/api/cli/install.sh",
+      install_ps1_url: "http://172.16.13.81:28000/api/cli/install.ps1",
+      windows_msi_url: null,
+      available_targets: ["x86_64-unknown-linux-gnu"],
+    };
+    installConfigState.error = undefined;
+    installConfigState.mutate.mockReset();
     listPods.mockReset().mockResolvedValue(PODS);
     listProjects.mockReset().mockResolvedValue(PROJECTS);
     listDevMachines.mockReset().mockResolvedValue([]);
@@ -189,7 +209,8 @@ describe("AddRunnerModal", () => {
     );
     expect(command.textContent).not.toContain("karma-team auth login");
     expect(command.textContent).toContain("karma-team runner add");
-    expect(command.textContent).toContain("--url http://localhost:8000");
+    expect(command.textContent).toContain("--url http://172.16.13.81:28000");
+    expect(command.textContent).not.toContain("http://localhost:8000");
     expect(command.textContent).toContain("--workspace acme");
     expect(command.textContent).toContain("--project BROWSERX");
     expect(command.textContent).toContain("--pod pod-a");
@@ -259,7 +280,7 @@ describe("AddRunnerModal", () => {
     expect(command.textContent).not.toContain("'\\''");
   });
 
-  it("warns when the command URL falls back to the browser origin", async () => {
+  it("uses the runtime service URL even when the API base URL is empty", async () => {
     apiBaseUrl.value = "";
     const user = userEvent.setup();
     renderModal();
@@ -271,10 +292,35 @@ describe("AddRunnerModal", () => {
     const command = await screen.findByText(
       (_content: string, node: Element | null) => node?.tagName.toLowerCase() === "pre"
     );
-    expect(command.textContent).toContain(`--url ${window.location.origin}`);
-    expect(
-      screen.getByText("Using the current browser origin as the cloud URL because VITE_API_BASE_URL is not configured.")
-    ).toBeInTheDocument();
+    expect(command.textContent).toContain("--url http://172.16.13.81:28000");
+    expect(command.textContent).not.toContain(`--url ${window.location.origin}`);
+  });
+
+  it("waits for the service URL before displaying a runner command", async () => {
+    installConfigState.data = undefined;
+    const user = userEvent.setup();
+    renderModal();
+    await screen.findByRole("option", { name: "BrowserX" });
+    await user.selectOptions(screen.getAllByTestId("select")[1], "BROWSERX");
+    await user.click(screen.getByRole("button", { name: "Generate Runner" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent("Loading CLI installation configuration");
+    expect(document.querySelector("pre")).not.toBeInTheDocument();
+  });
+
+  it("offers retry instead of generating a command with an incorrect service URL", async () => {
+    installConfigState.data = undefined;
+    installConfigState.error = new Error("Unavailable");
+    const user = userEvent.setup();
+    renderModal();
+    await screen.findByRole("option", { name: "BrowserX" });
+    await user.selectOptions(screen.getAllByTestId("select")[1], "BROWSERX");
+    await user.click(screen.getByRole("button", { name: "Generate Runner" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent("Could not load CLI installation configuration");
+    expect(document.querySelector("pre")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Retry" }));
+    expect(installConfigState.mutate).toHaveBeenCalledOnce();
   });
 
   it("creates the runner remotely on a connected dev machine", async () => {

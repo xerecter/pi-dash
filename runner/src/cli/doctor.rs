@@ -45,9 +45,14 @@ pub async fn execute(paths: &Paths, runner_filter: Option<&str>) -> Result<Repor
     // Per-runner checks (agent binary, agent auth) walk every configured
     // runner so multi-runner installs get every agent path verified. With
     // `--runner <name>`, only that runner is checked. Pre-`configure`
-    // installs (no config on disk) fall through to a single Codex probe so
+    // installs (no config on disk) fall through to a single Karma probe so
     // `karma-team doctor` keeps working immediately after install.
     let cfg = file::load_config_opt(paths)?;
+    if let Some(config) = cfg.as_ref() {
+        for runner in &config.runners {
+            runner.agent.kind.ensure_supported()?
+        }
+    }
     let runners: Vec<&crate::config::schema::RunnerConfig> = match cfg.as_ref() {
         Some(c) => match runner_filter {
             Some(name) => match c.runners.iter().find(|r| r.name == name) {
@@ -71,12 +76,12 @@ pub async fn execute(paths: &Paths, runner_filter: Option<&str>) -> Result<Repor
     // than a bare `codex` that hides which runner ran).
     let multi = runners.len() > 1 || runner_filter.is_some();
     if runners.is_empty() {
-        // No config — historical default. Probe Codex unattended so
+        // No config. Probe Karma unattended so
         // operators get useful feedback before `karma-team configure` runs.
         run_agent_checks(
             &mut checks,
             None,
-            crate::config::schema::AgentKind::Codex,
+            crate::config::schema::AgentKind::Karma,
             "codex",
             "claude",
             "cursor-agent",
@@ -457,7 +462,7 @@ mod tests {
         (dir, paths)
     }
 
-    fn runner(name: &str, codex_binary: &str) -> RunnerConfig {
+    fn runner(name: &str, karma_binary: &str) -> RunnerConfig {
         RunnerConfig {
             name: name.to_string(),
             runner_id: Uuid::new_v4(),
@@ -468,16 +473,16 @@ mod tests {
                 working_dir: PathBuf::from("/tmp/karma-team-doctor-test"),
             },
             agent: Default::default(),
-            codex: CodexSection {
-                binary: codex_binary.to_string(),
-                ..Default::default()
-            },
+            codex: CodexSection::default(),
             claude_code: ClaudeCodeSection::default(),
             cursor_agent: CursorAgentSection::default(),
             openclaw: OpenClawSection::default(),
             grok: GrokSection::default(),
             muse_code: MuseCodeSection::default(),
-            karma: crate::config::schema::KarmaSection::default(),
+            karma: crate::config::schema::KarmaSection {
+                binary: karma_binary.to_string(),
+                ..Default::default()
+            },
             approval_policy: Default::default(),
         }
     }
@@ -502,10 +507,10 @@ mod tests {
     async fn execute_with_two_runners_tags_each_runner_in_check_names() {
         let (_dir, paths) = temp_paths();
         let cfg = cfg_with(vec![
-            // Use deliberately missing binaries so the codex check fails
+            // Use deliberately missing binaries so the karma check fails
             // and we don't depend on whatever's on $PATH in CI.
-            runner("alpha", "codex-not-installed-alpha"),
-            runner("beta", "codex-not-installed-beta"),
+            runner("alpha", "karma-not-installed-alpha"),
+            runner("beta", "karma-not-installed-beta"),
         ]);
         crate::config::file::write_config(&paths, &cfg).unwrap();
 
@@ -513,19 +518,19 @@ mod tests {
         let names: Vec<String> = report.checks.iter().map(|c| c.name.clone()).collect();
         // Both per-runner agent checks must appear, tagged.
         assert!(
-            names.iter().any(|n| n == "codex@alpha"),
-            "expected codex@alpha in {names:?}",
+            names.iter().any(|n| n == "karma@alpha"),
+            "expected karma@alpha in {names:?}",
         );
         assert!(
-            names.iter().any(|n| n == "codex@beta"),
-            "expected codex@beta in {names:?}",
+            names.iter().any(|n| n == "karma@beta"),
+            "expected karma@beta in {names:?}",
         );
     }
 
     #[tokio::test]
     async fn execute_with_single_runner_keeps_untagged_check_names() {
         let (_dir, paths) = temp_paths();
-        let cfg = cfg_with(vec![runner("solo", "codex-not-installed")]);
+        let cfg = cfg_with(vec![runner("solo", "karma-not-installed")]);
         crate::config::file::write_config(&paths, &cfg).unwrap();
 
         let report = execute(&paths, None).await.unwrap();
@@ -533,11 +538,11 @@ mod tests {
         // Single-runner installs keep the bare name so existing scripts
         // and snapshots don't break.
         assert!(
-            names.iter().any(|n| n == "codex"),
-            "expected bare `codex` in {names:?}",
+            names.iter().any(|n| n == "karma"),
+            "expected bare `karma` in {names:?}",
         );
         assert!(
-            !names.iter().any(|n| n.starts_with("codex@")),
+            !names.iter().any(|n| n.starts_with("karma@")),
             "did not expect tagged names in single-runner: {names:?}",
         );
     }
@@ -546,24 +551,24 @@ mod tests {
     async fn execute_with_runner_filter_restricts_checks_to_that_runner() {
         let (_dir, paths) = temp_paths();
         let cfg = cfg_with(vec![
-            runner("alpha", "codex-not-installed-alpha"),
-            runner("beta", "codex-not-installed-beta"),
+            runner("alpha", "karma-not-installed-alpha"),
+            runner("beta", "karma-not-installed-beta"),
         ]);
         crate::config::file::write_config(&paths, &cfg).unwrap();
 
         let report = execute(&paths, Some("beta")).await.unwrap();
         let names: Vec<String> = report.checks.iter().map(|c| c.name.clone()).collect();
         assert!(
-            names.iter().any(|n| n == "codex@beta"),
-            "expected codex@beta in {names:?}",
+            names.iter().any(|n| n == "karma@beta"),
+            "expected karma@beta in {names:?}",
         );
         // Filter should suppress the other runner entirely. With one
-        // runner remaining, we still tag it (`codex@beta`) because the
+        // runner remaining, we still tag it (`karma@beta`) because the
         // filter is the user's explicit selection — disambiguation
         // matters more than terseness here.
         assert!(
-            !names.iter().any(|n| n == "codex@alpha"),
-            "did not expect codex@alpha in {names:?}",
+            !names.iter().any(|n| n == "karma@alpha"),
+            "did not expect karma@alpha in {names:?}",
         );
     }
 
@@ -571,8 +576,8 @@ mod tests {
     async fn execute_with_unknown_runner_filter_errors_with_known_names() {
         let (_dir, paths) = temp_paths();
         let cfg = cfg_with(vec![
-            runner("alpha", "codex-not-installed-alpha"),
-            runner("beta", "codex-not-installed-beta"),
+            runner("alpha", "karma-not-installed-alpha"),
+            runner("beta", "karma-not-installed-beta"),
         ]);
         crate::config::file::write_config(&paths, &cfg).unwrap();
 

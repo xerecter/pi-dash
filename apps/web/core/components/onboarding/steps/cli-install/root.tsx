@@ -11,7 +11,11 @@ import { Button } from "@karma-team/propel/button";
 import { Tabs } from "@karma-team/propel/tabs";
 import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 import { EOnboardingSteps } from "@karma-team/types";
+import { CliInstallConfigStatus } from "@/components/runners/cli-install-config-status";
+import { getCliInstallCommands } from "@/helpers/cli-install";
+import { copyCliCommand } from "@/helpers/copy-cli-command";
 // hooks
+import { useCliInstallConfig } from "@/hooks/use-cli-install-config";
 import { usePlatformOS } from "@/hooks/use-platform-os";
 // local components
 import { CommonOnboardingHeader } from "../common";
@@ -31,84 +35,12 @@ type TInstallCommand = {
   hint?: string;
 };
 
-const RELEASE_BASE = "https://github.com/xerecter/karma-team/releases/latest/download";
-
-/**
- * These point at the `install.sh` / `install.ps1` *wrappers*, not the
- * `karma-team-installer.*` scripts underneath them. The wrappers install the
- * binary and then run `karma-team auth login`, so a user who pastes one of
- * these lands connected rather than holding an unauthenticated binary.
- */
-const PLATFORMS: Record<TPlatformKey, { label: string; commands: TInstallCommand[] }> = {
-  unix: {
-    label: "macOS / Linux",
-    commands: [
-      {
-        id: "unix-sh",
-        shell: "Terminal",
-        command: `curl --proto '=https' --tlsv1.2 -LsSf ${RELEASE_BASE}/install.sh | sh`,
-      },
-    ],
-  },
-  windows: {
-    label: "Windows",
-    commands: [
-      {
-        id: "windows-powershell",
-        shell: "PowerShell",
-        command: `irm ${RELEASE_BASE}/install.ps1 | iex`,
-      },
-      {
-        id: "windows-cmd",
-        shell: "Command Prompt",
-        hint: "Using Command Prompt instead?",
-        command: `powershell -c "irm ${RELEASE_BASE}/install.ps1 | iex"`,
-      },
-    ],
-  },
-};
-
-/**
- * `navigator.clipboard` is only exposed on secure origins, so a self-hosted
- * instance served over plain HTTP would otherwise fail silently here. Fall
- * back to a detached textarea + `execCommand` before giving up.
- *
- * The fallback is keyed on `writeText` *failing*, not merely being absent: it
- * can be present and still reject — the document not being focused when the
- * promise settles, or a `clipboard-write` Permissions-Policy denial in an
- * embedded context — and the textarea path handles those too.
- */
-async function copyToClipboard(value: string): Promise<void> {
-  if (navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(value);
-      return;
-    } catch {
-      // fall through to the textarea path
-    }
-  }
-
-  const textarea = document.createElement("textarea");
-  textarea.value = value;
-  textarea.setAttribute("readonly", "");
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
-  document.body.appendChild(textarea);
-  textarea.select();
-
-  try {
-    if (!document.execCommand("copy")) throw new Error("copy command was rejected");
-  } finally {
-    document.body.removeChild(textarea);
-  }
-}
-
 function CommandBlock({ command }: { command: TInstallCommand }) {
   const [hasCopied, setHasCopied] = useState(false);
 
   const handleCopy = async () => {
     try {
-      await copyToClipboard(command.command);
+      await copyCliCommand(command.command);
       setHasCopied(true);
       window.setTimeout(() => setHasCopied(false), 2000);
     } catch {
@@ -149,6 +81,28 @@ function CommandBlock({ command }: { command: TInstallCommand }) {
 
 export function CliInstallStep({ handleStepChange }: Props) {
   const { platform } = usePlatformOS();
+  const { data: installConfig, error: installConfigError, mutate: reloadInstallConfig } = useCliInstallConfig();
+  const installCommands = installConfig ? getCliInstallCommands(installConfig) : null;
+  const platforms: Record<TPlatformKey, { label: string; commands: TInstallCommand[] }> = {
+    unix: {
+      label: "macOS / Linux",
+      commands: installCommands ? [{ id: "unix-sh", shell: "Terminal", command: installCommands.unix }] : [],
+    },
+    windows: {
+      label: "Windows",
+      commands: installCommands
+        ? [
+            { id: "windows-powershell", shell: "PowerShell", command: installCommands.powershell },
+            {
+              id: "windows-cmd",
+              shell: "Command Prompt",
+              hint: "Using Command Prompt instead?",
+              command: installCommands.cmd,
+            },
+          ]
+        : [],
+    },
+  };
   // Preselect the tab matching the browser's OS, but leave it switchable —
   // people routinely set up a runner on a machine other than the one they
   // are reading this on.
@@ -170,32 +124,36 @@ export function CliInstallStep({ handleStepChange }: Props) {
       <div className="flex gap-2 text-warning-primary">
         <AlertTriangle className="mt-0.5 size-4 shrink-0" />
         <p className="text-body-sm-medium">
-          Important: karma-team CLI has to be installed on the dev machine together with AI agents like Claude and Codex
-          to make karma-team work end to end.
+          Important: install the karma-team CLI and the Karma agent on the dev machine to make karma-team work end to
+          end.
         </p>
       </div>
 
-      <Tabs
-        value={selectedPlatform}
-        onValueChange={(value) => setSelectedPlatform(value as TPlatformKey)}
-        className="h-auto gap-6"
-      >
-        <Tabs.List>
-          {Object.entries(PLATFORMS).map(([key, { label }]) => (
-            <Tabs.Trigger key={key} value={key}>
-              {label}
-            </Tabs.Trigger>
-          ))}
-          <Tabs.Indicator />
-        </Tabs.List>
-        {Object.entries(PLATFORMS).map(([key, { commands }]) => (
-          <Tabs.Content key={key} value={key} className="flex flex-col gap-6">
-            {commands.map((command) => (
-              <CommandBlock key={command.id} command={command} />
+      {!installConfig ? (
+        <CliInstallConfigStatus error={installConfigError} onRetry={() => void reloadInstallConfig()} />
+      ) : (
+        <Tabs
+          value={selectedPlatform}
+          onValueChange={(value) => setSelectedPlatform(value as TPlatformKey)}
+          className="h-auto gap-6"
+        >
+          <Tabs.List>
+            {Object.entries(platforms).map(([key, { label }]) => (
+              <Tabs.Trigger key={key} value={key}>
+                {label}
+              </Tabs.Trigger>
             ))}
-          </Tabs.Content>
-        ))}
-      </Tabs>
+            <Tabs.Indicator />
+          </Tabs.List>
+          {Object.entries(platforms).map(([key, { commands: platformCommands }]) => (
+            <Tabs.Content key={key} value={key} className="flex flex-col gap-6">
+              {platformCommands.map((command) => (
+                <CommandBlock key={command.id} command={command} />
+              ))}
+            </Tabs.Content>
+          ))}
+        </Tabs>
+      )}
 
       <div className="space-y-3">
         <Button variant="ghost" size="xl" className="w-full text-tertiary" onClick={continueToProfile}>

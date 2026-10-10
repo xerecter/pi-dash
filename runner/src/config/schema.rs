@@ -133,7 +133,7 @@ pub struct RunnerConfig {
     pub pod_id: Option<Uuid>,
     pub workspace: WorkspaceSection,
     /// Which agent CLI the daemon drives for assigned runs. Defaults to
-    /// `codex` so existing deployments are unaffected.
+    /// `karma`; other agent implementations are retained but disabled.
     #[serde(default)]
     pub agent: AgentSection,
     #[serde(default)]
@@ -249,14 +249,13 @@ pub struct AgentSection {
 }
 
 /// Which agent CLI the runner drives for assigned runs. Serialised as a
-/// lowercase string (`"codex"` / `"claude_code"`) so the config file stays
+/// lowercase string (for example `"karma"`) so the config file stays
 /// human-friendly. `ValueEnum` lets `--agent` accept the kebab-case spelling
-/// on the CLI (`codex`, `claude-code`).
+/// on the CLI (`karma`; legacy values remain parseable for clear rejection).
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Default, PartialEq, Eq, clap::ValueEnum)]
 #[serde(rename_all = "snake_case")]
 pub enum AgentKind {
-    /// OpenAI Codex via `codex app-server`. Default for backward compatibility.
-    #[default]
+    /// OpenAI Codex via `codex app-server` (retained, currently unsupported).
     Codex,
     /// Anthropic Claude Code via `claude --print --output-format stream-json`.
     ClaudeCode,
@@ -277,10 +276,21 @@ pub enum AgentKind {
     /// CLI (`karma --print --input-format stream-json --output-format
     /// stream-json`). The runner drives it through the Claude Code bridge
     /// unchanged; only the executable differs.
+    #[default]
     Karma,
 }
 
 impl AgentKind {
+    /// Enforce the CLI's support policy without removing legacy adapters.
+    pub fn ensure_supported(self) -> anyhow::Result<()> {
+        anyhow::ensure!(
+            self == Self::Karma,
+            "unsupported agent '{}'; only the karma agent is supported",
+            self.wire_name()
+        );
+        Ok(())
+    }
+
     /// How long the supervisor's stall watchdog waits for a fresh
     /// bridge event before declaring the agent stuck. Tuned per agent
     /// because the protocols have very different "natural quiet"
@@ -332,6 +342,22 @@ impl AgentKind {
             AgentKind::Grok => "Grok",
             AgentKind::MuseCode => "Muse Code",
             AgentKind::Karma => "Karma",
+        }
+    }
+
+    /// Stable lowercase label for logs and telemetry. Matches the cloud's
+    /// `agent_kind` values (`codex`, `claude_code`, `cursor_agent`, `openclaw`,
+    /// `grok`, `muse_code`, `karma`) so a local run log and the run's
+    /// `agent_metadata.agent_kind` agree.
+    pub fn wire_name(self) -> &'static str {
+        match self {
+            AgentKind::Codex => "codex",
+            AgentKind::ClaudeCode => "claude_code",
+            AgentKind::CursorAgent => "cursor_agent",
+            AgentKind::OpenClaw => "openclaw",
+            AgentKind::Grok => "grok",
+            AgentKind::MuseCode => "muse_code",
+            AgentKind::Karma => "karma",
         }
     }
 
@@ -594,6 +620,20 @@ pub(crate) fn canonical_for_compare(path: &Path) -> PathBuf {
 }
 
 impl Config {
+    /// Check support at both persistence and daemon entry points. Reading old
+    /// configs remains possible so operators can inspect and remove runners.
+    pub fn validate_agents(&self) -> Result<(), ConfigError> {
+        for runner in &self.runners {
+            if runner.agent.kind.ensure_supported().is_err() {
+                return Err(ConfigError::UnsupportedAgent {
+                    runner: runner.name.clone(),
+                    kind: runner.agent.kind,
+                });
+            }
+        }
+        Ok(())
+    }
+
     /// First configured runner, or `None` for a freshly enrolled connection
     /// that has no runners yet. Callers that need a panic-on-absent
     /// invariant should validate first via [`Config::validate`] which
@@ -617,6 +657,7 @@ impl Config {
     /// hold the WS open before any runners have been added. The daemon
     /// stays connected and the user runs ``karma-team runner add`` later.
     pub fn validate(&self) -> Result<(), ConfigError> {
+        self.validate_agents()?;
         if self.runners.len() > MAX_RUNNERS_PER_DAEMON {
             return Err(ConfigError::TooManyRunners {
                 count: self.runners.len(),
@@ -716,6 +757,10 @@ impl Config {
 #[derive(Debug)]
 pub enum ConfigError {
     NoRunners,
+    UnsupportedAgent {
+        runner: String,
+        kind: AgentKind,
+    },
     TooManyRunners {
         count: usize,
         cap: usize,
@@ -756,6 +801,11 @@ pub enum ConfigError {
 impl std::fmt::Display for ConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            ConfigError::UnsupportedAgent { runner, kind } => write!(
+                f,
+                "configuration error: runner {runner:?}: unsupported agent '{}'; only the karma agent is supported",
+                kind.wire_name()
+            ),
             ConfigError::NoRunners => write!(
                 f,
                 "configuration error: no [[runner]] block in config.toml. \
@@ -1030,6 +1080,22 @@ mod tests {
             AgentKind::Karma.default_binary(),
             KarmaSection::default().binary
         );
+    }
+
+    #[test]
+    fn agent_kind_wire_name_matches_run_labels() {
+        // These labels must equal what the run reports to the cloud via
+        // `AgentCursor::agent_kind` (see agent/mod.rs), so an operator can
+        // correlate the local transcript header with the cloud run metadata.
+        // Note this is intentionally NOT the config-file serde spelling
+        // (`AgentKind::OpenClaw` serialises as `open_claw` in config.toml).
+        assert_eq!(AgentKind::Codex.wire_name(), "codex");
+        assert_eq!(AgentKind::ClaudeCode.wire_name(), "claude_code");
+        assert_eq!(AgentKind::CursorAgent.wire_name(), "cursor_agent");
+        assert_eq!(AgentKind::OpenClaw.wire_name(), "openclaw");
+        assert_eq!(AgentKind::Grok.wire_name(), "grok");
+        assert_eq!(AgentKind::MuseCode.wire_name(), "muse_code");
+        assert_eq!(AgentKind::Karma.wire_name(), "karma");
     }
 
     #[test]

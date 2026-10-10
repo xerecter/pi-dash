@@ -258,3 +258,48 @@ async fn bridge_translates_result_error_to_failed() {
     }
     assert!(saw_failed, "expected a Failed event from result.error");
 }
+
+/// Regression: the runner always requests `--permission-mode bypassPermissions`.
+/// claude/karma refuse that mode under root unless `IS_SANDBOX` is set, so the
+/// spawn path must export `IS_SANDBOX=1` whenever bypass is on. Without it, a
+/// root-hosted daemon's runs die before emitting `system/init`.
+#[tokio::test]
+async fn bypass_permissions_exports_is_sandbox() {
+    #[cfg(unix)]
+    use std::os::unix::fs::PermissionsExt;
+
+    let dir = tempfile::tempdir().unwrap();
+    let script = dir.path().join("fake-claude.sh");
+    std::fs::write(
+        &script,
+        r#"#!/bin/sh
+printf '%s' "${IS_SANDBOX:-unset}" > "$PWD/is_sandbox.txt"
+(cat >/dev/null) &
+printf '%s\n' '{"type":"system","subtype":"init","session_id":"sess_env_001"}'
+printf '%s\n' '{"type":"result","subtype":"success","session_id":"sess_env_001","result":"ok"}'
+sleep 0.1
+"#,
+    )
+    .unwrap();
+    #[cfg(unix)]
+    std::fs::set_permissions(&script, std::fs::Permissions::from_mode(0o700)).unwrap();
+
+    // `Bridge::spawn` uses `bypass_permissions: true`.
+    let mut bridge = Bridge::spawn(script.to_str().unwrap(), dir.path(), None)
+        .await
+        .expect("spawn fake claude");
+    let payload = RunPayload {
+        run_id: Uuid::new_v4(),
+        prompt: "hi".into(),
+        model: None,
+    };
+    let mut cursor = bridge.run(&payload, dir.path()).await.expect("run setup");
+    let _ = drain_until_completed(&mut bridge, &mut cursor).await;
+    bridge.shutdown(Duration::from_secs(5)).await.ok();
+
+    assert_eq!(
+        std::fs::read_to_string(dir.path().join("is_sandbox.txt")).unwrap(),
+        "1",
+        "bypassPermissions spawn must export IS_SANDBOX=1"
+    );
+}

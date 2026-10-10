@@ -155,6 +155,7 @@ async fn bootstrap(args: BootstrapArgs, paths: &Paths) -> Result<()> {
 }
 
 async fn enroll(args: EnrollArgs, paths: &Paths) -> Result<()> {
+    AgentKind::Codex.ensure_supported()?;
     let cfg = file::load_config(paths)
         .context("loading config.toml — run `__managed bootstrap` first")?;
     let cloud_url = cfg.daemon.cloud_url.clone();
@@ -235,16 +236,20 @@ async fn enroll(args: EnrollArgs, paths: &Paths) -> Result<()> {
 }
 
 fn remove(args: RemoveArgs, paths: &Paths) -> Result<()> {
-    let mut cfg = file::load_config(paths).context("loading config.toml")?;
-    let before = cfg.runners.len();
-    cfg.runners
-        .retain(|r| r.project_slug.as_deref() != Some(args.project.as_str()));
-    if cfg.runners.len() == before {
+    let mut removed = 0usize;
+    file::mutate_config_for_cleanup(paths, |cfg| {
+        let before = cfg.runners.len();
+        cfg.runners
+            .retain(|r| r.project_slug.as_deref() != Some(args.project.as_str()));
+        removed = before.saturating_sub(cfg.runners.len());
+        Ok(())
+    })
+    .context("rewriting config.toml")?;
+    if removed == 0 {
         println!("{{\"ok\":true,\"removed\":0}}");
         return Ok(());
     }
-    file::write_config(paths, &cfg).context("rewriting config.toml")?;
-    println!("{{\"ok\":true,\"removed\":{}}}", before - cfg.runners.len());
+    println!("{{\"ok\":true,\"removed\":{removed}}}");
     Ok(())
 }
 
@@ -281,6 +286,7 @@ fn set_managed_codex_fields(paths: &Paths, args: &EnrollArgs) -> Result<()> {
 }
 
 fn set_engine_paths(paths: &Paths, args: &EnginePathsArgs, project: Option<&str>) -> Result<()> {
+    AgentKind::Codex.ensure_supported()?;
     file::mutate_config(paths, |cfg| {
         if project.is_some_and(|project| {
             !cfg.runners

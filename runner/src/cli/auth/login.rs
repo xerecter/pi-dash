@@ -28,8 +28,7 @@ use crate::util::paths::Paths;
 pub struct Args {
     /// karma-team cloud base URL (e.g. `https://karma-team.example.com` or
     /// `http://localhost:8000` for a local instance).
-    /// Optional if this host already has a `config.toml`; we reuse the
-    /// existing `[daemon].cloud_url` in that case.
+    /// Defaults to the existing `[daemon].cloud_url`, then KARMA_TEAM_API_URL.
     #[arg(long)]
     pub url: Option<String>,
 
@@ -186,6 +185,14 @@ async fn login_and_bind_workspace(args: &Args, paths: &Paths) -> Result<LoginOut
 }
 
 fn resolve_cloud_url(args: &Args, paths: &Paths) -> Result<String> {
+    resolve_cloud_url_with_env(
+        args,
+        paths,
+        std::env::var("KARMA_TEAM_API_URL").ok().as_deref(),
+    )
+}
+
+fn resolve_cloud_url_with_env(args: &Args, paths: &Paths, api_url: Option<&str>) -> Result<String> {
     if let Some(u) = &args.url {
         return Ok(u.trim_end_matches('/').to_string());
     }
@@ -195,10 +202,15 @@ fn resolve_cloud_url(args: &Args, paths: &Paths) -> Result<String> {
             return Ok(cfg.daemon.cloud_url.trim_end_matches('/').to_string());
         }
     }
+    if let Some(url) = api_url.filter(|url| !url.trim().is_empty()) {
+        return Ok(url.trim().trim_end_matches('/').to_string());
+    }
     if std::io::stdin().is_terminal() {
         return prompt_for_cloud_url();
     }
-    anyhow::bail!("no cloud URL configured — pass --url <http-or-https-url>");
+    anyhow::bail!(
+        "no cloud URL configured — pass --url <http-or-https-url> or set KARMA_TEAM_API_URL"
+    );
 }
 
 fn prompt_for_cloud_url() -> Result<String> {
@@ -461,4 +473,59 @@ fn pick_workspace(workspaces: &[WorkspaceRow]) -> Result<&WorkspaceRow> {
         anyhow::bail!("selection {idx} out of range");
     }
     Ok(&workspaces[idx - 1])
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn args(url: Option<&str>) -> Args {
+        Args {
+            url: url.map(str::to_owned),
+            no_browser: true,
+            workspace: None,
+            device_code: None,
+        }
+    }
+
+    #[test]
+    fn login_url_uses_environment_on_a_fresh_install() {
+        let root = tempfile::tempdir().unwrap();
+        let paths = Paths::resolve(
+            Some(root.path().join("config")),
+            Some(root.path().join("data")),
+        )
+        .unwrap();
+        assert_eq!(
+            resolve_cloud_url_with_env(&args(None), &paths, Some("https://self-hosted.example/"))
+                .unwrap(),
+            "https://self-hosted.example"
+        );
+        assert!(!paths.config_path().exists());
+    }
+
+    #[test]
+    fn explicit_url_and_existing_configuration_keep_precedence_over_environment() {
+        let root = tempfile::tempdir().unwrap();
+        let paths = Paths::resolve(
+            Some(root.path().join("config")),
+            Some(root.path().join("data")),
+        )
+        .unwrap();
+        runner_ops::write_cli_token(&paths, "https://configured.example/", "test-token").unwrap();
+        assert_eq!(
+            resolve_cloud_url_with_env(&args(None), &paths, Some("https://environment.example/"))
+                .unwrap(),
+            "https://configured.example"
+        );
+        assert_eq!(
+            resolve_cloud_url_with_env(
+                &args(Some("https://explicit.example/")),
+                &paths,
+                Some("https://environment.example/"),
+            )
+            .unwrap(),
+            "https://explicit.example"
+        );
+    }
 }

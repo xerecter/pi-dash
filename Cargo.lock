@@ -1134,6 +1134,51 @@ dependencies = [
 ]
 
 [[package]]
+name = "karma-team"
+version = "0.1.23"
+dependencies = [
+ "anyhow",
+ "axoupdater",
+ "bytes",
+ "chrono",
+ "clap",
+ "crossterm",
+ "directories",
+ "fs2",
+ "futures-util",
+ "http",
+ "karma-team-ipc",
+ "nix 0.29.0",
+ "rand 0.8.6",
+ "ratatui",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "thiserror 2.0.18",
+ "tokio",
+ "tokio-tungstenite",
+ "tokio-util",
+ "toml",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+ "uuid",
+]
+
+[[package]]
+name = "karma-team-ipc"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "serde_json",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1379,51 +1424,6 @@ name = "percent-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b4f627cb1b25917193a259e49bdad08f671f8d9708acfd5fe0a8c1455d87220"
-
-[[package]]
-name = "karma-team"
-version = "0.1.23"
-dependencies = [
- "anyhow",
- "axoupdater",
- "bytes",
- "chrono",
- "clap",
- "crossterm",
- "directories",
- "fs2",
- "futures-util",
- "http",
- "nix 0.29.0",
- "karma-team-ipc",
- "rand 0.8.6",
- "ratatui",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "tempfile",
- "thiserror 2.0.18",
- "tokio",
- "tokio-tungstenite",
- "tokio-util",
- "toml",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
- "uuid",
-]
-
-[[package]]
-name = "karma-team-ipc"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "serde",
- "serde_json",
- "tokio",
- "uuid",
-]
 
 [[package]]
 name = "pin-project-lite"

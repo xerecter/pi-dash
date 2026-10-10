@@ -29,6 +29,20 @@ class _FakeRedis:
         return self.consumers
 
 
+class _JustIdSensitiveRedis(_FakeRedis):
+    """Model redis-py's XAUTOCLAIM parser for ``JUSTID``.
+
+    With ``justid=True`` redis-py returns only the claimed-id array and drops
+    the continuation cursor.  The outbox must request the full response so
+    the cursor can be advanced and the loop can terminate.
+    """
+
+    def xautoclaim(self, **kwargs):
+        if kwargs.get("justid"):
+            raise AssertionError("claim_pending must preserve XAUTOCLAIM cursor")
+        return (b"0-0", [[b"1-0", {b"payload": b"{}"}]], [])
+
+
 @pytest.mark.unit
 def test_claim_pending_deletes_old_consumer_after_full_handoff(monkeypatch):
     client = _FakeRedis(
@@ -116,6 +130,21 @@ def test_claim_pending_keeps_scanning_empty_nonterminal_pages(monkeypatch):
             "consumer-old",
         )
     ]
+
+
+@pytest.mark.unit
+def test_claim_pending_requests_cursor_with_full_xautoclaim_response(monkeypatch):
+    """The redis-py JUSTID parser drops XAUTOCLAIM's continuation cursor."""
+    client = _JustIdSensitiveRedis()
+    monkeypatch.setattr(outbox, "redis_instance", lambda: client)
+
+    claimed = outbox.claim_pending_for_new_session(
+        "runner-1",
+        old_consumer=None,
+        new_consumer="consumer-new",
+    )
+
+    assert claimed == 1
 
 
 @pytest.mark.unit

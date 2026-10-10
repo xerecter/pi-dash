@@ -17,21 +17,11 @@ import type { TBadgeVariant } from "@karma-team/ui";
 import { AlertModalCore, Badge } from "@karma-team/ui";
 import { PageHead } from "@/components/core/page-title";
 import { AddRunnerModal } from "@/components/runners/add-runner-modal";
+import { CliInstallConfigStatus } from "@/components/runners/cli-install-config-status";
+import { getCliInstallCommands } from "@/helpers/cli-install";
+import { copyCliCommand } from "@/helpers/copy-cli-command";
 import { useWorkspace } from "@/hooks/store/use-workspace";
-
-// Installers point at the GitHub Releases ``latest`` channel. The wrapper
-// installers (install.sh / install.ps1) download the cargo-dist installer,
-// drop ``karma-team`` on PATH, and immediately start device-code login. See
-// runner/README.md for the full matrix (tag-pinned, bare installers, etc.).
-const INSTALL_CMD_UNIX = `curl --proto '=https' --tlsv1.2 -LsSf \\
-  https://github.com/xerecter/karma-team/releases/latest/download/install.sh | sh`;
-const INSTALL_CMD_WINDOWS = `irm https://github.com/xerecter/karma-team/releases/latest/download/install.ps1 | iex`;
-const WINDOWS_MSI_URL =
-  "https://github.com/xerecter/karma-team/releases/latest/download/karma-team-x86_64-pc-windows-msvc.msi";
-const INSTALL_CMD_WINDOWS_MSI = `$ProgressPreference = "SilentlyContinue"
-$msi = Join-Path $env:TEMP "karma-team-x86_64-pc-windows-msvc.msi"
-Invoke-WebRequest -Uri "${WINDOWS_MSI_URL}" -OutFile $msi
-Start-Process msiexec.exe -Wait -ArgumentList "/i \`"$msi\`""`;
+import { useCliInstallConfig } from "@/hooks/use-cli-install-config";
 
 const service = new RunnerService();
 
@@ -73,6 +63,8 @@ function formatDateTime(value: string | null, fallback: string): string {
 const AiDevMachinesPage = observer(function AiDevMachinesPage() {
   const { currentWorkspace } = useWorkspace();
   const { t } = useTranslation();
+  const { data: installConfig, error: installConfigError, mutate: reloadInstallConfig } = useCliInstallConfig();
+  const installCommands = installConfig ? getCliInstallCommands(installConfig) : null;
 
   const workspaceId = currentWorkspace?.id;
   const workspaceSlug = currentWorkspace?.slug;
@@ -312,18 +304,26 @@ const AiDevMachinesPage = observer(function AiDevMachinesPage() {
         <h2 className="text-14 font-semibold text-primary">{t("Install the karma-team CLI")}</h2>
         <p className="text-13 text-secondary">
           {t(
-            "Run an installer on the machine that will host your AI agent. The wrapper commands download the latest signed binary, drop `karma-team` on your PATH, and walk you through the device-code login."
+            "Run an installer on the machine that will host your AI agent. The installer downloads karma-team from this service, adds it to your PATH, and starts device-code login."
           )}
         </p>
 
-        <InstallCommand label={t("macOS / Linux")} command={INSTALL_CMD_UNIX} />
-        <InstallCommand label={t("Windows (PowerShell)")} command={INSTALL_CMD_WINDOWS} />
-        <InstallCommand
-          label={t("Windows (MSI)")}
-          command={INSTALL_CMD_WINDOWS_MSI}
-          href={WINDOWS_MSI_URL}
-          hrefLabel={t("Download MSI")}
-        />
+        {installConfig && installCommands ? (
+          <>
+            <InstallCommand label={t("macOS / Linux")} command={installCommands.unix} />
+            <InstallCommand label={t("Windows (PowerShell)")} command={installCommands.powershell} />
+            {installConfig.windows_msi_url && installCommands.msi && (
+              <InstallCommand
+                label={t("Windows (MSI)")}
+                command={installCommands.msi}
+                href={installConfig.windows_msi_url}
+                hrefLabel={t("Download MSI")}
+              />
+            )}
+          </>
+        ) : (
+          <CliInstallConfigStatus error={installConfigError} onRetry={() => void reloadInstallConfig()} />
+        )}
 
         <p className="text-12 text-secondary">
           {t(
@@ -409,7 +409,7 @@ function InstallCommand({ label, command, href, hrefLabel }: InstallCommandProps
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(command);
+      await copyCliCommand(command);
       setJustCopied(true);
       window.setTimeout(() => setJustCopied(false), 2000);
     } catch {

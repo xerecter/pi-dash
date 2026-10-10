@@ -19,6 +19,50 @@ struct Manifest {
     executable: PathBuf,
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unsupported_constructed_packages_cannot_modify_a_runner() {
+        let root = tempfile::tempdir().unwrap();
+        let mut runner: RunnerConfig = serde_json::from_value(serde_json::json!({
+            "name": "custom",
+            "runner_id": uuid::Uuid::new_v4(),
+            "workspace_slug": "test",
+            "project_slug": "TASKS",
+            "agent": { "kind": "karma" },
+            "workspace": { "working_dir": root.path() },
+        }))
+        .unwrap();
+        let before = serde_json::to_value(&runner).unwrap();
+        for protocol in [
+            AgentKind::Codex,
+            AgentKind::ClaudeCode,
+            AgentKind::CursorAgent,
+            AgentKind::OpenClaw,
+            AgentKind::Grok,
+            AgentKind::MuseCode,
+        ] {
+            let package = AgentPackage {
+                protocol,
+                executable: root.path().join("supplied-engine"),
+            };
+            assert_eq!(
+                package
+                    .apply_to_runner(&mut runner)
+                    .unwrap_err()
+                    .to_string(),
+                format!(
+                    "unsupported agent '{}'; only the karma agent is supported",
+                    protocol.wire_name()
+                )
+            );
+            assert_eq!(serde_json::to_value(&runner).unwrap(), before);
+        }
+    }
+}
+
 /// A validated local entry point compatible with one of karma-team's bridges.
 ///
 /// `protocol` describes the CLI/wire contract, not the package's vendor. For
@@ -43,6 +87,7 @@ impl AgentPackage {
                 manifest.version
             );
         }
+        manifest.protocol.ensure_supported()?;
         if manifest.executable.as_os_str().is_empty() {
             bail!("agent package executable must not be empty");
         }
@@ -82,6 +127,7 @@ impl AgentPackage {
     /// its existing approval, cancellation and task-directory behavior.
     /// No cloud identity, workspace, policy, credential or model is changed.
     pub fn apply_to_runner(&self, runner: &mut RunnerConfig) -> Result<()> {
+        self.protocol.ensure_supported()?;
         // A desktop host owns these fields and would overwrite a manual edit.
         // Do not silently mix a third-party package with its model credential.
         if runner.codex.codex_home.is_some()

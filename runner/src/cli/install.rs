@@ -20,6 +20,7 @@ pub struct Args {
 }
 
 pub async fn run(args: Args, paths: &Paths) -> Result<()> {
+    validate_agent_config(paths)?;
     let svc = crate::service::detect();
     let enrolled = machine_is_configured(paths);
 
@@ -41,6 +42,15 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     println!();
     println!("Service unit refreshed and daemon restarted.");
     println!();
+    Ok(())
+}
+
+/// Validate before writing or activating the service unit. Existing configs
+/// selecting a retired agent must not leave a stopped/replaced service behind.
+fn validate_agent_config(paths: &Paths) -> Result<()> {
+    if paths.config_path().exists() {
+        crate::config::file::load_config(paths)?.validate_agents()?;
+    }
     Ok(())
 }
 

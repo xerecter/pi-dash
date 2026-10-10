@@ -45,8 +45,8 @@ pub struct Args {
     #[arg(long)]
     pub working_dir: Option<PathBuf>,
 
-    /// Which agent CLI this runner drives (``codex`` or ``claude-code``).
-    /// Defaults to ``AgentKind::default()`` when omitted.
+    /// Which agent CLI this runner drives. Only karma is currently supported
+    /// and is used when omitted.
     #[arg(long, value_enum)]
     pub agent: Option<AgentKind>,
 
@@ -72,6 +72,8 @@ pub struct Args {
 }
 
 pub async fn run(args: Args, paths: &Paths) -> Result<()> {
+    let agent_kind = args.agent.unwrap_or_default();
+    agent_kind.ensure_supported()?;
     eprintln!(
         "Warning: `karma-team connect` is deprecated and hidden from normal help. \
          For new runners, run `karma-team auth login --url <URL>` and then \
@@ -89,7 +91,9 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     // need to know which path we took (e.g. to skip the service install
     // on subsequent enrollments — the unit is already there).
     let existing_config = if paths.config_path().exists() {
-        Some(file::load_config(paths).context("loading existing config.toml")?)
+        let config = file::load_config(paths).context("loading existing config.toml")?;
+        config.validate_agents()?;
+        Some(config)
     } else {
         None
     };
@@ -190,7 +194,6 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
         .clone()
         .unwrap_or_else(|| paths.runner_dir(resp.runner_id).join("workspace"));
 
-    let agent_kind = args.agent.unwrap_or_default();
     let (codex, claude_code, cursor_agent, openclaw, grok, muse_code, karma) =
         crate::cli::runner_ops::agent_sections_for(
             agent_kind,
@@ -479,6 +482,9 @@ pub async fn enroll_additional_runner(
     }
     let mut cfg = file::load_config(paths)
         .map_err(|e| EnrollAdditionalError::LoadConfigFailed(format!("{e:#}")))?;
+    if let Err(e) = cfg.validate_agents() {
+        return Err(EnrollAdditionalError::LoadConfigFailed(format!("{e}")));
+    }
 
     if let Some(new_wd) = working_dir.as_ref() {
         assert_no_workspace_collision(&cfg.runners, new_wd)

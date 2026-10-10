@@ -1528,7 +1528,7 @@ impl RunnerLoop {
                     let runner_name = self.runner_config.name.clone();
                     let paths_for_strip = self.paths.clone();
                     let strip_result = tokio::task::spawn_blocking(move || {
-                        crate::config::file::mutate_config(&paths_for_strip, |cfg| {
+                        crate::config::file::mutate_config_for_cleanup(&paths_for_strip, |cfg| {
                             cfg.runners.retain(|r| r.runner_id != target_runner_id);
                             Ok(())
                         })
@@ -2807,6 +2807,7 @@ impl AssignWorker {
             prompt_preview: prompt.chars().take(160).collect(),
             started_at: Utc::now(),
             repo_url,
+            agent_kind: Some(self.runner_config.agent.kind.wire_name().to_string()),
         })
         .await?;
 
@@ -2820,6 +2821,17 @@ impl AssignWorker {
                 events: 0,
             }))
             .await;
+
+        // Record which agent CLI this run will drive — in the daemon log
+        // (`journalctl --user-unit karma-team`) and in the transcript header
+        // below — so an operator can confirm the invoked tool after the fact.
+        tracing::info!(
+            %run_id,
+            agent = self.runner_config.agent.kind.wire_name(),
+            binary = agent_binary_for(&self.runner_config),
+            workspace = %workspace_path.display(),
+            "starting run",
+        );
 
         // Bridge to the configured agent (Codex or Claude Code). `AgentBridge`
         // hides which CLI is actually being driven from the rest of this
@@ -3240,13 +3252,19 @@ impl AssignWorker {
                 params,
                 run_id,
             } => {
-                hist.append(&HistoryEntry::CodexEvent {
-                    ts: Utc::now(),
-                    method: method.clone(),
-                    params: params.clone(),
-                })
-                .await
-                .ok();
+                let history_event = match self.runner_config.agent.kind {
+                    AgentKind::Karma => HistoryEntry::KarmaEvent {
+                        ts: Utc::now(),
+                        method: method.clone(),
+                        params: params.clone(),
+                    },
+                    _ => HistoryEntry::CodexEvent {
+                        ts: Utc::now(),
+                        method: method.clone(),
+                        params: params.clone(),
+                    },
+                };
+                hist.append(&history_event).await.ok();
                 // Only lifecycle-ish events are mirrored to cloud; raw deltas stay local.
                 tracing::trace!(%run_id, method, "agent event");
                 Ok(None)

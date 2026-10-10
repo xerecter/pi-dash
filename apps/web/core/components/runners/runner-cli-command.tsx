@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "@karma-team/i18n";
 import { Button } from "@karma-team/propel/button";
 import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
+import { copyCliCommand } from "@/helpers/copy-cli-command";
 
 type Props = {
   cloudUrl: string;
@@ -19,7 +20,6 @@ type Props = {
   agent?: string;
   model?: string;
   reasoningEffort?: string;
-  isUsingBrowserOrigin?: boolean;
 };
 
 type TShell = "posix" | "powershell" | "cmd";
@@ -81,18 +81,8 @@ function oneLineCommand(command: string, shell: TShell, args: Array<[string, str
 }
 
 export function RunnerCliCommand(props: Props) {
-  const {
-    cloudUrl,
-    workspaceSlug,
-    projectIdentifier,
-    podName,
-    name,
-    workingDir,
-    agent,
-    model,
-    reasoningEffort,
-    isUsingBrowserOrigin,
-  } = props;
+  const { cloudUrl, workspaceSlug, projectIdentifier, podName, name, workingDir, agent, model, reasoningEffort } =
+    props;
   const { t } = useTranslation();
   const [justCopied, setJustCopied] = useState(false);
   const [shell, setShell] = useState<TShell>("posix");
@@ -121,7 +111,7 @@ export function RunnerCliCommand(props: Props) {
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(command);
+      await copyCliCommand(command);
       setJustCopied(true);
       window.setTimeout(() => setJustCopied(false), 2000);
     } catch {
@@ -157,11 +147,6 @@ export function RunnerCliCommand(props: Props) {
       <pre className="font-mono mt-2 rounded border border-subtle bg-layer-1 p-2 text-11 whitespace-pre-wrap text-primary select-all">
         {command}
       </pre>
-      {isUsingBrowserOrigin && (
-        <p className="mt-2 text-12 text-secondary">
-          {t("Using the current browser origin as the cloud URL because VITE_API_BASE_URL is not configured.")}
-        </p>
-      )}
       <div className="mt-2">
         <Button size="sm" onClick={copy}>
           {justCopied ? t("Copied!") : t("Copy command")}

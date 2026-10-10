@@ -9,6 +9,7 @@ use crate::util::paths::Paths;
 pub struct Args {}
 
 pub async fn run(_args: Args, paths: &Paths) -> Result<()> {
+    validate_agent_config(paths)?;
     println!("restarting daemon...");
     let outcome =
         crate::service::reload::restart_and_verify_with_progress(paths, |msg| eprintln!("{msg}"))
@@ -22,4 +23,13 @@ pub async fn run(_args: Args, paths: &Paths) -> Result<()> {
         outcome.summary,
         outcome.detail.unwrap_or_default()
     )
+}
+
+/// Validate before `restart_and_verify_with_progress` can rewrite a unit or
+/// start the service. Missing config remains the service helper's concern.
+fn validate_agent_config(paths: &Paths) -> Result<()> {
+    if paths.config_path().exists() {
+        crate::config::file::load_config(paths)?.validate_agents()?;
+    }
+    Ok(())
 }

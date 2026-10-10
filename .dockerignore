@@ -39,6 +39,9 @@ coverage/
 test-results/
 
 # Caches and build artifacts
+target/
+**/target/
+deployments/cli/artifacts/
 .cache/
 **/.cache/
 storybook-static/

@@ -22,6 +22,10 @@ vi.mock("@karma-team/constants", () => ({
   },
 }));
 
+vi.mock("@/hooks/use-cli-install-config", () => ({
+  useCliInstallConfig: () => ({ data: { service_url: "http://localhost:8000" }, mutate: vi.fn() }),
+}));
+
 vi.mock("@karma-team/services", () => ({
   PodService: class {
     list = listPods;
