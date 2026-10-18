@@ -471,9 +471,8 @@ impl AgentBridge {
                 Ok(AgentBridge::MuseCode(b))
             }
             AgentKind::Karma => {
-                // Karma requires a Git worktree before it emits stream-JSON.
-                // Bootstrap only Git metadata and an empty commit; existing
-                // workspace files remain untracked.
+                // Karma's --worktree requires a valid base commit. Empty
+                // repositories have an unborn HEAD, so prepare it first.
                 crate::workspace::git::ensure_worktree_base(cwd).await?;
                 let b = crate::karma::bridge::Bridge::spawn_with_resume_options(
                     &runner.karma.binary,

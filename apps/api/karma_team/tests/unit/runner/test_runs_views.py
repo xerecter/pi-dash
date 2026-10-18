@@ -12,7 +12,7 @@ from uuid import uuid4
 import pytest
 from rest_framework import status
 
-from karma_team.db.models import User, Workspace, WorkspaceMember
+from karma_team.db.models import ProjectMember, User, Workspace, WorkspaceMember
 from karma_team.runner.models import (
     AgentRun,
     AgentRunStatus,
@@ -240,8 +240,12 @@ def _add_online_runner(workspace, project, *, owner=None, name="rnr"):
 
     from karma_team.runner.models import Runner, RunnerStatus
 
+    runner_owner = owner or workspace.owner
+    ProjectMember.objects.get_or_create(
+        project=project, member=runner_owner, defaults={"role": 20}
+    )
     return Runner.objects.create(
-        owner=owner or workspace.owner,
+        owner=runner_owner,
         workspace=workspace,
         pod=Pod.default_for_project(project),
         name=name,
@@ -534,6 +538,7 @@ def _make_in_progress_issue_with_paused_run(workspace):
             workspace=workspace,
             created_by=workspace.owner,
         )
+        ProjectMember.objects.create(project=project, member=workspace.owner, role=20)
         in_progress = State.objects.create(name="In Progress", project=project, group="started")
         State.objects.create(name="Todo", project=project, group="unstarted")
         issue = Issue.objects.create(

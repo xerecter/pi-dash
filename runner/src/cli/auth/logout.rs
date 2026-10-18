@@ -42,21 +42,31 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
             .timeout(Duration::from_secs(15))
             .build()?;
         let url = format!("{cloud_url}/api/v1/auth/revoke/");
-        let resp = client
-            .post(&url)
-            .header("X-Api-Key", &token)
-            .json(&serde_json::json!({}))
-            .send()
-            .await
-            .with_context(|| format!("POST {url}"))?;
-        // 200 or 401 are both acceptable: the cloud either revoked it
-        // for us (200) or the token was already invalid (401). Anything
-        // else, we surface but still clear locally so the user isn't
-        // stuck with a half-state.
-        let status = resp.status();
-        if !status.is_success() && status.as_u16() != 401 {
-            let body = resp.text().await.unwrap_or_default();
-            tracing::warn!("revoke endpoint returned HTTP {status}: {body}");
+        let mut tokens: Vec<String> = cfg
+            .as_ref()
+            .and_then(|c| c.cli.as_ref())
+            .map(|cli| cli.workspace_tokens.values().cloned().collect())
+            .unwrap_or_default();
+        tokens.push(token);
+        tokens.sort();
+        tokens.dedup();
+        for token in tokens {
+            let resp = client
+                .post(&url)
+                .header("X-Api-Key", token)
+                .json(&serde_json::json!({}))
+                .send()
+                .await
+                .with_context(|| format!("POST {url}"))?;
+            // 200 or 401 are both acceptable: the cloud either revoked it
+            // for us (200) or the token was already invalid (401). Anything
+            // else, we surface but still clear locally so the user isn't
+            // stuck with a half-state.
+            let status = resp.status();
+            if !status.is_success() && status.as_u16() != 401 {
+                let body = resp.text().await.unwrap_or_default();
+                tracing::warn!("revoke endpoint returned HTTP {status}: {body}");
+            }
         }
     }
 

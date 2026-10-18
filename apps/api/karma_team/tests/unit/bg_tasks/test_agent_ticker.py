@@ -14,11 +14,19 @@ from crum import impersonate
 from django.utils import timezone
 
 from karma_team.bgtasks.agent_ticker import fire_tick, scan_due_tickers
-from karma_team.db.models import Issue, Project, State
+from karma_team.db.models import Issue, Project, ProjectMember, State, User, WorkspaceMember
+from karma_team.db.models.issue import IssueAssignee
 from karma_team.orchestration import scheduling
 from karma_team.prompting.seed import seed_default_template
-from karma_team.db.models.issue_agent_ticker import IssueAgentTicker
-from karma_team.runner.models import AgentRun, AgentRunStatus
+from karma_team.db.models.issue_agent_ticker import IssueAgentTicker, TickerDisarmReason
+from karma_team.runner.models import (
+    AgentRun,
+    AgentRunStatus,
+    DevMachine,
+    MachineToken,
+    Runner,
+    RunnerStatus,
+)
 
 
 @pytest.fixture
@@ -85,6 +93,9 @@ def issue(workspace, project, states, create_user):
 def runner_for_workspace(db, workspace, project, create_user):
     from karma_team.runner.models import Pod, Runner, RunnerStatus
 
+    ProjectMember.objects.get_or_create(
+        workspace=workspace, project=project, member=create_user, defaults={"role": 20}
+    )
     pod = Pod.default_for_project(project)
     return Runner.objects.create(
         owner=create_user,
@@ -385,6 +396,130 @@ def test_fire_tick_skips_when_state_not_in_progress(
 
     sched.refresh_from_db()
     assert sched.used == 0
+    assert sched.enabled is False
+    assert sched.next_run_at is None
+    assert sched.disarm_reason == TickerDisarmReason.LEFT_TICKING_STATE
+
+
+@pytest.mark.unit
+def test_fire_tick_keeps_bounce_disarmed_when_assignee_runner_not_yet_bound(
+    seeded, issue, states, runner_for_workspace
+):
+    """A missing member runner can bounce an issue while dispatching a
+    pending tick. Rolling back the budget must not revive the stale entry."""
+    member = User.objects.create(username="new-project-member", email="member@example.com")
+    WorkspaceMember.objects.create(workspace=issue.workspace, member=member, role=15)
+    ProjectMember.objects.create(
+        workspace=issue.workspace, project=issue.project, member=member, role=15
+    )
+    IssueAssignee.objects.create(
+        workspace=issue.workspace, project=issue.project, issue=issue, assignee=member
+    )
+    _make_prior_run(issue, runner_for_workspace)
+    sched = _make_due_schedule(issue, used=4)
+    sched.pending_entry = True
+    sched.save(update_fields=["pending_entry"])
+
+    assert fire_tick(str(sched.id)) is False
+
+    issue.refresh_from_db()
+    sched.refresh_from_db()
+    assert issue.state == states["paused"]
+    assert sched.used == 4
+    assert sched.enabled is False
+    assert sched.pending_entry is False
+    assert sched.next_run_at is None
+    assert sched.disarm_reason == TickerDisarmReason.LEFT_TICKING_STATE
+    assert AgentRun.objects.filter(work_item=issue).count() == 1
+
+
+@pytest.mark.unit
+def test_fire_tick_queues_for_member_machine_until_project_runner_binds(
+    seeded, issue, states, runner_for_workspace
+):
+    from karma_team.runner.services import matcher
+
+    member = User.objects.create(username="syncing-member", email="syncing@example.com")
+    WorkspaceMember.objects.create(workspace=issue.workspace, member=member, role=15)
+    ProjectMember.objects.create(
+        workspace=issue.workspace, project=issue.project, member=member, role=15
+    )
+    IssueAssignee.objects.create(
+        workspace=issue.workspace, project=issue.project, issue=issue, assignee=member
+    )
+    machine = DevMachine.objects.create(owner=member, host_label="member-host")
+    MachineToken.objects.create(
+        user=member,
+        workspace=issue.workspace,
+        dev_machine=machine,
+        host_label="member-host",
+        token_hash="syncing-member-token-hash",
+    )
+    parent = _make_prior_run(issue, runner_for_workspace)
+    sched = _make_due_schedule(issue)
+
+    assert fire_tick(str(sched.id)) is True
+
+    issue.refresh_from_db()
+    assert issue.state == states["in_progress"]
+    run = AgentRun.objects.get(work_item=issue, parent_run=parent)
+    assert run.status == AgentRunStatus.QUEUED
+    assert run.runner_id is None
+
+    member_runner = Runner.objects.create(
+        owner=member,
+        workspace=issue.workspace,
+        pod=runner_for_workspace.pod,
+        dev_machine=machine,
+        name="syncing-member-runner",
+        status=RunnerStatus.ONLINE,
+        last_heartbeat_at=timezone.now(),
+    )
+    with mock.patch("karma_team.runner.services.pubsub.send_to_runner"):
+        assert matcher.drain_pod(member_runner.pod) == 1
+    run.refresh_from_db()
+    assert run.status == AgentRunStatus.ASSIGNED
+    assert run.runner_id == member_runner.id
+    assert run.owner_id == member.id
+
+
+@pytest.mark.unit
+def test_fire_tick_hands_other_creators_issue_to_assignee_runner(
+    seeded, issue, runner_for_workspace
+):
+    from karma_team.runner.services import matcher
+
+    member = User.objects.create(username="runner-member", email="runner-member@example.com")
+    WorkspaceMember.objects.create(workspace=issue.workspace, member=member, role=15)
+    ProjectMember.objects.create(
+        workspace=issue.workspace, project=issue.project, member=member, role=15
+    )
+    IssueAssignee.objects.create(
+        workspace=issue.workspace, project=issue.project, issue=issue, assignee=member
+    )
+    member_runner = Runner.objects.create(
+        owner=member,
+        workspace=issue.workspace,
+        pod=runner_for_workspace.pod,
+        name="member-runner",
+        status=RunnerStatus.ONLINE,
+        last_heartbeat_at=timezone.now(),
+    )
+    parent = _make_prior_run(issue, runner_for_workspace)
+    sched = _make_due_schedule(issue)
+    sched.pending_entry = True
+    sched.save(update_fields=["pending_entry"])
+
+    assert fire_tick(str(sched.id)) is True
+    run = AgentRun.objects.get(work_item=issue, parent_run=parent)
+    assert run.status == AgentRunStatus.QUEUED
+    assert run.pinned_runner_id is None
+    with mock.patch("karma_team.runner.services.pubsub.send_to_runner"):
+        assert matcher.drain_pod(member_runner.pod) == 1
+    run.refresh_from_db()
+    assert run.status == AgentRunStatus.ASSIGNED
+    assert run.runner_id == member_runner.id
+    assert run.owner_id == member.id
 
 
 @pytest.mark.unit

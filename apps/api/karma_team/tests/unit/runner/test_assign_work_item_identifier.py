@@ -46,6 +46,7 @@ def _run(workspace, owner, work_item=None):
 def test_assign_msg_carries_work_item_identifier(db, workspace, create_user, project, issue):
     msg = _build_assign_msg(_run(workspace, create_user, work_item=issue))
     assert msg["work_item_identifier"] == f"{project.identifier}-{issue.sequence_id}"
+    assert msg["project_name"] == project.name
     assert msg["work_item_id"] == str(issue.id)
 
 
@@ -53,4 +54,5 @@ def test_assign_msg_carries_work_item_identifier(db, workspace, create_user, pro
 def test_assign_msg_without_work_item_has_no_identifier(db, workspace, create_user):
     msg = _build_assign_msg(_run(workspace, create_user))
     assert msg["work_item_identifier"] is None
+    assert msg["project_name"] is None
     assert msg["work_item_id"] is None

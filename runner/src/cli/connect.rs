@@ -97,8 +97,6 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     } else {
         None
     };
-    let is_first_enrollment = existing_config.is_none();
-
     // Adding a second runner should target the SAME cloud as the first;
     // pointing one host at two distinct clouds isn't supported (the
     // supervisor multiplexes one HTTP transport across runners). Refuse
@@ -152,17 +150,75 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     .await
     .context("writing runner credentials failed")?;
 
-    // Re-enrollment after revive: the cloud reused the same Runner row
-    // and minted a fresh refresh token. The local config already has a
-    // matching `[[runner]]` block; rotating credentials.toml above is
-    // the only thing required, and appending another block would create
-    // a duplicate runner_id that the supervisor would reject. Skip the
-    // append and the rest of the first-enrollment scaffolding.
-    let already_configured = existing_config
-        .as_ref()
-        .map(|cfg| cfg.runners.iter().any(|r| r.runner_id == resp.runner_id))
-        .unwrap_or(false);
-    if already_configured {
+    // Keep workspaces outside the runner-owned runtime tree. Reconciliation
+    // is allowed to delete `data/runners/<id>` but must never delete a user
+    // checkout or project source directory.
+    let working_dir = args.working_dir.clone().unwrap_or_else(|| {
+        crate::cli::runner_ops::default_working_dir(
+            paths,
+            &resp.project_identifier,
+            &resp.runner_name,
+            resp.runner_id,
+        )
+    });
+
+    let (codex, claude_code, cursor_agent, openclaw, grok, muse_code, karma) =
+        crate::cli::runner_ops::agent_sections_for(
+            agent_kind,
+            args.model.as_deref(),
+            args.reasoning_effort.as_deref(),
+        );
+    let new_runner_block = RunnerConfig {
+        name: resp.runner_name.clone(),
+        runner_id: resp.runner_id,
+        workspace_slug: Some(resp.workspace_slug.clone()),
+        project_slug: Some(resp.project_identifier.clone()),
+        project_id: resp.project_id,
+        binding_source: resp.binding_source,
+        pod_id: resp.pod_id,
+        workspace: WorkspaceSection { working_dir },
+        agent: AgentSection { kind: agent_kind },
+        codex,
+        claude_code,
+        cursor_agent,
+        openclaw,
+        grok,
+        muse_code,
+        karma,
+        approval_policy: Default::default(),
+    };
+
+    // Bootstrap only if config is still absent when we acquire the host-wide
+    // config lock. Otherwise mutate the latest version, since ProjectSync,
+    // runner add/remove or auth login may have written it during enrollment.
+    let bootstrap_url = args.url.clone();
+    let init_config = move || {
+        Some(Config {
+            version: 2,
+            daemon: DaemonConfig {
+                cloud_url: bootstrap_url,
+                dev_machine_id: None,
+                log_level: "info".to_string(),
+                log_retention_days: 14,
+                agent_observability_v1: false,
+                auto_update: true,
+            },
+            runners: vec![],
+            cli: None,
+        })
+    };
+    let persisted = persist_connect_runner(
+        paths,
+        &args.url,
+        new_runner_block,
+        args.working_dir.is_some(),
+        init_config,
+    )?;
+    // A concurrent retry may have already persisted this runner. Do not
+    // treat that as first enrollment (or overwrite any local runner config).
+    let is_first_enrollment = persisted.is_first_runner;
+
+    if !persisted.inserted {
         println!(
             "Re-enrolled runner {} ({}) — local config left as-is, refresh token rotated.",
             resp.runner_name, resp.runner_id
@@ -183,64 +239,6 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
         }
         return Ok(());
     }
-
-    // working_dir falls back to a per-runner sandbox under
-    // data_dir/runners/<rid>/workspace when the operator didn't pass
-    // ``--working-dir``. The sandbox path runs but is rarely what
-    // anyone wants — most operators want the runner pointed at a real
-    // project repo on disk.
-    let working_dir = args
-        .working_dir
-        .clone()
-        .unwrap_or_else(|| paths.runner_dir(resp.runner_id).join("workspace"));
-
-    let (codex, claude_code, cursor_agent, openclaw, grok, muse_code, karma) =
-        crate::cli::runner_ops::agent_sections_for(
-            agent_kind,
-            args.model.as_deref(),
-            args.reasoning_effort.as_deref(),
-        );
-    let new_runner_block = RunnerConfig {
-        name: resp.runner_name.clone(),
-        runner_id: resp.runner_id,
-        workspace_slug: Some(resp.workspace_slug.clone()),
-        project_slug: Some(resp.project_identifier.clone()),
-        pod_id: None,
-        workspace: WorkspaceSection { working_dir },
-        agent: AgentSection { kind: agent_kind },
-        codex,
-        claude_code,
-        cursor_agent,
-        openclaw,
-        grok,
-        muse_code,
-        karma,
-        approval_policy: Default::default(),
-    };
-
-    // Either append to existing or build fresh. ``write_config`` is
-    // truncating so we always pass the merged result, never just the
-    // new block.
-    let config = match existing_config {
-        Some(mut cfg) => {
-            cfg.runners.push(new_runner_block);
-            cfg
-        }
-        None => Config {
-            version: 2,
-            daemon: DaemonConfig {
-                cloud_url: args.url.clone(),
-                dev_machine_id: None,
-                log_level: "info".to_string(),
-                log_retention_days: 14,
-                agent_observability_v1: false,
-                auto_update: true,
-            },
-            runners: vec![new_runner_block],
-            cli: None,
-        },
-    };
-    file::write_config(paths, &config)?;
 
     // Legacy machine-scoped credentials are no longer used by the
     // HTTP transport, but a minimal file keeps older CLI surfaces from
@@ -480,12 +478,13 @@ pub async fn enroll_additional_runner(
     if !paths.config_path().exists() {
         return Err(EnrollAdditionalError::NoExistingConfig);
     }
-    let mut cfg = file::load_config(paths)
+    let cfg = file::load_config(paths)
         .map_err(|e| EnrollAdditionalError::LoadConfigFailed(format!("{e:#}")))?;
     if let Err(e) = cfg.validate_agents() {
         return Err(EnrollAdditionalError::LoadConfigFailed(format!("{e}")));
     }
 
+    let working_dir_was_explicit = working_dir.is_some();
     if let Some(new_wd) = working_dir.as_ref() {
         assert_no_workspace_collision(&cfg.runners, new_wd)
             .map_err(|e| EnrollAdditionalError::WorkspaceCollision(format!("{e:#}")))?;
@@ -513,21 +512,22 @@ pub async fn enroll_additional_runner(
     .await
     .map_err(|e| EnrollAdditionalError::WriteCredentials(format!("{e:#}")))?;
 
-    // Re-enrollment of an existing runner row (cloud-side ``revive``):
-    // credentials.toml has already been rotated above. Return the
-    // existing config block instead of pushing a duplicate.
-    if let Some(existing) = cfg.runners.iter().find(|r| r.runner_id == resp.runner_id) {
-        return Ok(existing.clone());
-    }
-
-    let working_dir =
-        working_dir.unwrap_or_else(|| paths.runner_dir(resp.runner_id).join("workspace"));
+    let working_dir = working_dir.unwrap_or_else(|| {
+        crate::cli::runner_ops::default_working_dir(
+            paths,
+            &resp.project_identifier,
+            &resp.runner_name,
+            resp.runner_id,
+        )
+    });
     let new_runner = RunnerConfig {
         name: resp.runner_name.clone(),
         runner_id: resp.runner_id,
         workspace_slug: Some(resp.workspace_slug.clone()),
         project_slug: Some(resp.project_identifier.clone()),
-        pod_id: None,
+        project_id: resp.project_id,
+        binding_source: resp.binding_source,
+        pod_id: resp.pod_id,
         workspace: WorkspaceSection { working_dir },
         agent: Default::default(),
         codex: Default::default(),
@@ -539,10 +539,15 @@ pub async fn enroll_additional_runner(
         karma: Default::default(),
         approval_policy: Default::default(),
     };
-    cfg.runners.push(new_runner.clone());
-    file::write_config(paths, &cfg)
-        .map_err(|e| EnrollAdditionalError::WriteConfig(format!("{e:#}")))?;
-    Ok(new_runner)
+    let persisted = persist_connect_runner(
+        paths,
+        &cfg.daemon.cloud_url,
+        new_runner,
+        working_dir_was_explicit,
+        || None,
+    )
+    .map_err(|e| EnrollAdditionalError::WriteConfig(format!("{e:#}")))?;
+    Ok(persisted.runner)
 }
 
 /// Friendly error surface for the TUI / CLI runner-remove flow.
@@ -587,7 +592,7 @@ pub async fn revoke_additional_runner(
     if !paths.config_path().exists() {
         return Err(RemoveAdditionalError::NoExistingConfig);
     }
-    let mut cfg = file::load_config(paths)
+    let cfg = file::load_config(paths)
         .map_err(|e| RemoveAdditionalError::LoadConfigFailed(format!("{e:#}")))?;
     let idx = cfg
         .runners
@@ -615,16 +620,99 @@ pub async fn revoke_additional_runner(
             .map_err(map_revoke_error)?;
     }
 
-    cfg.runners.remove(idx);
-    file::write_config(paths, &cfg)
+    let removed_working_dir = remove_connect_runner(paths, runner_id)
         .map_err(|e| RemoveAdditionalError::WriteConfig(format!("{e:#}")))?;
-    let runner_data = paths.runner_dir(runner_id);
-    if runner_data.exists() {
-        // Best effort: a stranded directory is annoying but not fatal;
-        // the runner is already gone cloud-side.
-        let _ = std::fs::remove_dir_all(&runner_data);
-    }
+    // Best effort: a stranded runtime directory is annoying but not fatal;
+    // the runner is already gone cloud-side. Preserve legacy workspaces that
+    // were configured below the runner data tree.
+    let _ = paths.remove_runner_runtime_dir(runner_id, removed_working_dir.as_deref());
     Ok(())
+}
+
+struct PersistedConnectRunner {
+    runner: RunnerConfig,
+    inserted: bool,
+    is_first_runner: bool,
+}
+
+/// Apply one legacy enrollment response under the host-wide configuration
+/// lock. Enrollment is a network round trip, so the config loaded before it
+/// returns may be stale: ProjectSync, `runner add`, or teardown can all have
+/// changed the file in the meantime. Read-modify-write under the lock keeps
+/// those changes and makes retries idempotent by immutable runner ID.
+fn persist_connect_runner<I>(
+    paths: &Paths,
+    cloud_url: &str,
+    new_runner: RunnerConfig,
+    check_workspace_collision: bool,
+    init: I,
+) -> Result<PersistedConnectRunner>
+where
+    I: FnOnce() -> Option<Config>,
+{
+    let expected_url = cloud_url.to_string();
+    let runner_id = new_runner.runner_id;
+    let mut inserted = false;
+    let mut is_first_runner = false;
+    let config = file::mutate_config_or_init(paths, init, |config| {
+        if !config.daemon.cloud_url.is_empty() && config.daemon.cloud_url != expected_url {
+            anyhow::bail!(
+                "this machine is already enrolled with cloud {} — refusing to add a runner pointing at {}",
+                config.daemon.cloud_url,
+                expected_url
+            );
+        }
+        if config.daemon.cloud_url.is_empty() {
+            config.daemon.cloud_url = expected_url.clone();
+        }
+
+        if config
+            .runners
+            .iter()
+            .any(|runner| runner.runner_id == runner_id)
+        {
+            // The response can be replayed after a timeout or process crash.
+            // Leave the existing runner's local settings untouched.
+            is_first_runner = false;
+            return Ok(());
+        }
+        if check_workspace_collision {
+            assert_no_workspace_collision(&config.runners, &new_runner.workspace.working_dir)?;
+        }
+        is_first_runner = config.runners.is_empty();
+        config.runners.push(new_runner.clone());
+        inserted = true;
+        Ok(())
+    })?;
+    let runner = config
+        .runners
+        .into_iter()
+        .find(|runner| runner.runner_id == runner_id)
+        .ok_or_else(|| anyhow::anyhow!("runner {runner_id} missing after config mutation"))?;
+    Ok(PersistedConnectRunner {
+        runner,
+        inserted,
+        is_first_runner,
+    })
+}
+
+fn remove_connect_runner(paths: &Paths, runner_id: uuid::Uuid) -> Result<Option<PathBuf>> {
+    let mut working_dir = None;
+    file::mutate_config_for_cleanup(paths, |config| {
+        // Use immutable identity rather than a stale name/index captured
+        // before the network revoke. Concurrent writers may reorder or remove
+        // other runner entries while that request is in flight.
+        working_dir = config
+            .runners
+            .iter()
+            .find(|runner| runner.runner_id == runner_id)
+            .map(|runner| runner.workspace.working_dir.clone());
+        config
+            .runners
+            .retain(|runner| runner.runner_id != runner_id);
+        Ok(())
+    })?;
+    Ok(working_dir)
 }
 
 /// Hook left for symmetry with future ``karma-team connect --read-stdin`` flows.
@@ -646,9 +734,38 @@ mod tests {
     use super::*;
     use crate::config::schema::{
         AgentSection, ApprovalPolicySection, ClaudeCodeSection, CodexSection, CursorAgentSection,
-        RunnerConfig, WorkspaceSection,
+        DaemonConfig, RunnerConfig, WorkspaceSection,
     };
     use std::path::PathBuf;
+    use tempfile::tempdir;
+
+    fn test_paths(root: &std::path::Path) -> Paths {
+        Paths {
+            config_dir: root.join("config"),
+            data_dir: root.join("data"),
+            runtime_dir: root.join("runtime"),
+        }
+    }
+
+    fn write_test_config(paths: &Paths, runners: Vec<RunnerConfig>) {
+        file::write_config(
+            paths,
+            &Config {
+                version: 2,
+                daemon: DaemonConfig {
+                    cloud_url: "https://cloud.example".into(),
+                    dev_machine_id: None,
+                    log_level: "info".into(),
+                    log_retention_days: 14,
+                    agent_observability_v1: false,
+                    auto_update: true,
+                },
+                runners,
+                cli: None,
+            },
+        )
+        .unwrap();
+    }
 
     #[test]
     fn validate_cloud_url_allows_http_and_https() {
@@ -667,6 +784,8 @@ mod tests {
             runner_id: uuid::Uuid::new_v4(),
             workspace_slug: Some("ws".into()),
             project_slug: Some("p".into()),
+            project_id: None,
+            binding_source: None,
             pod_id: None,
             workspace: WorkspaceSection { working_dir: wd },
             agent: AgentSection::default(),
@@ -725,5 +844,73 @@ mod tests {
     fn workspace_collision_allows_first_enrollment() {
         // No existing runners → nothing can collide.
         assert!(assert_no_workspace_collision(&[], std::path::Path::new("/tmp/repo")).is_ok());
+    }
+
+    #[test]
+    fn connect_persistence_merges_with_latest_config_under_lock() {
+        let tmp = tempdir().unwrap();
+        let paths = test_paths(tmp.path());
+        let existing = runner_with_wd("existing", tmp.path().join("existing"));
+        write_test_config(&paths, vec![existing.clone()]);
+        let added = runner_with_wd("added", tmp.path().join("added"));
+
+        let result =
+            persist_connect_runner(&paths, "https://cloud.example", added.clone(), true, || {
+                None
+            })
+            .unwrap();
+
+        assert!(result.inserted);
+        let latest = file::load_config(&paths).unwrap();
+        assert_eq!(latest.runners.len(), 2);
+        assert!(
+            latest
+                .runners
+                .iter()
+                .any(|r| r.runner_id == existing.runner_id)
+        );
+        assert!(
+            latest
+                .runners
+                .iter()
+                .any(|r| r.runner_id == added.runner_id)
+        );
+    }
+
+    #[test]
+    fn connect_persistence_replay_by_runner_id_preserves_local_settings() {
+        let tmp = tempdir().unwrap();
+        let paths = test_paths(tmp.path());
+        let existing = runner_with_wd("existing", tmp.path().join("original"));
+        write_test_config(&paths, vec![existing.clone()]);
+        let mut replay = existing.clone();
+        replay.name = "cloud-renamed".into();
+        replay.workspace.working_dir = tmp.path().join("would-overwrite");
+
+        let result =
+            persist_connect_runner(&paths, "https://cloud.example", replay, true, || None).unwrap();
+
+        assert!(!result.inserted);
+        assert_eq!(result.runner.name, "existing");
+        assert_eq!(
+            result.runner.workspace.working_dir,
+            tmp.path().join("original")
+        );
+        assert_eq!(file::load_config(&paths).unwrap().runners.len(), 1);
+    }
+
+    #[test]
+    fn connect_removal_by_id_preserves_other_latest_runners() {
+        let tmp = tempdir().unwrap();
+        let paths = test_paths(tmp.path());
+        let remove = runner_with_wd("remove", tmp.path().join("remove"));
+        let keep = runner_with_wd("keep", tmp.path().join("keep"));
+        write_test_config(&paths, vec![remove.clone(), keep.clone()]);
+
+        remove_connect_runner(&paths, remove.runner_id).unwrap();
+
+        let latest = file::load_config(&paths).unwrap();
+        assert_eq!(latest.runners.len(), 1);
+        assert_eq!(latest.runners[0].runner_id, keep.runner_id);
     }
 }

@@ -12,7 +12,6 @@ import type {
   UseFieldArrayRemove,
   UseFormGetValues,
   UseFormSetValue,
-  UseFormWatch,
 } from "react-hook-form";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 // icons
@@ -55,76 +54,24 @@ type FormValues = {
 type InviteMemberFormProps = {
   index: number;
   remove: UseFieldArrayRemove;
-  control: Control<FormValues, any>;
+  control: Control<FormValues>;
   setValue: UseFormSetValue<FormValues>;
   getValues: UseFormGetValues<FormValues>;
-  watch: UseFormWatch<FormValues>;
-  field: FieldArrayWithId<FormValues, "emails", "id">;
   fields: FieldArrayWithId<FormValues, "emails", "id">[];
-  errors: any;
-  isInvitationDisabled: boolean;
-  setIsInvitationDisabled: (value: boolean) => void;
 };
 
 // services
 const workspaceService = new WorkspaceService();
-const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-
-const placeholderEmails = [
-  "charlie.taylor@frstflt.com",
-  "octave.chanute@frstflt.com",
-  "george.spratt@frstflt.com",
-  "frank.coffyn@frstflt.com",
-  "amos.root@frstflt.com",
-  "edward.deeds@frstflt.com",
-  "charles.m.manly@frstflt.com",
-  "glenn.curtiss@frstflt.com",
-  "thomas.selfridge@frstflt.com",
-  "albert.zahm@frstflt.com",
-];
 const InviteMemberInput = observer(function InviteMemberInput(props: InviteMemberFormProps) {
-  const {
-    control,
-    index,
-    fields,
-    remove,
-    errors,
-    isInvitationDisabled,
-    setIsInvitationDisabled,
-    setValue,
-    getValues,
-    watch,
-  } = props;
+  const { control, index, fields, remove, setValue, getValues } = props;
 
   const [referenceElement, setReferenceElement] = useState<HTMLButtonElement | null>(null);
   const [popperElement, setPopperElement] = useState<HTMLDivElement | null>(null);
 
   const { t } = useTranslation();
 
-  const email = watch(`emails.${index}.email`);
-
   const emailOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.value === "") {
-      const validEmail = fields.map((_, i) => emailRegex.test(getValues(`emails.${i}.email`))).includes(true);
-      if (validEmail) {
-        setIsInvitationDisabled(false);
-      } else {
-        setIsInvitationDisabled(true);
-      }
-
-      if (getValues(`emails.${index}.role_active`)) {
-        setValue(`emails.${index}.role_active`, false);
-      }
-    } else {
-      if (!getValues(`emails.${index}.role_active`)) {
-        setValue(`emails.${index}.role_active`, true);
-      }
-      if (isInvitationDisabled && emailRegex.test(event.target.value)) {
-        setIsInvitationDisabled(false);
-      } else if (!isInvitationDisabled && !emailRegex.test(event.target.value)) {
-        setIsInvitationDisabled(true);
-      }
-    }
+    setValue(`emails.${index}.role_active`, event.target.value.trim().length > 0);
   };
 
   const { styles, attributes } = usePopper(referenceElement, popperElement, {
@@ -146,12 +93,6 @@ const InviteMemberInput = observer(function InviteMemberInput(props: InviteMembe
           <Controller
             control={control}
             name={`emails.${index}.email`}
-            rules={{
-              pattern: {
-                value: emailRegex,
-                message: "Invalid Email ID",
-              },
-            }}
             render={({ field: { value, onChange, ref } }) => (
               <Input
                 id={`emails.${index}.email`}
@@ -163,8 +104,7 @@ const InviteMemberInput = observer(function InviteMemberInput(props: InviteMembe
                   onChange(event);
                 }}
                 ref={ref}
-                hasError={Boolean(errors.emails?.[index]?.email)}
-                placeholder={placeholderEmails[index % placeholderEmails.length]}
+                placeholder="Email or username"
                 className="w-full border-strong text-11 placeholder:text-placeholder sm:text-13"
                 autoComplete="off"
               />
@@ -244,6 +184,7 @@ const InviteMemberInput = observer(function InviteMemberInput(props: InviteMembe
         {fields.length > 1 && (
           <button
             type="button"
+            aria-label="Remove account"
             className="absolute right-0 hidden place-items-center self-center rounded-sm group-hover:grid"
             onClick={() => remove(index)}
           >
@@ -251,12 +192,6 @@ const InviteMemberInput = observer(function InviteMemberInput(props: InviteMembe
           </button>
         )}
       </div>
-      {email && !emailRegex.test(email) && (
-        <div className="mx-8 my-1">
-          <span className="text-13">🤥</span>{" "}
-          <span className="mt-1 text-11 text-danger-primary">That doesn{"'"}t look like an email address.</span>
-        </div>
-      )}
     </div>
   );
 });
@@ -264,16 +199,16 @@ const InviteMemberInput = observer(function InviteMemberInput(props: InviteMembe
 export function InviteMembers(props: Props) {
   const { finishOnboarding, workspace } = props;
 
-  const [isInvitationDisabled, setIsInvitationDisabled] = useState(true);
-
   const {
     control,
     watch,
     getValues,
     setValue,
     handleSubmit,
-    formState: { isSubmitting, errors, isValid },
+    formState: { isSubmitting, isValid },
   } = useForm<FormValues>();
+
+  const isInvitationDisabled = !watch("emails")?.some(({ email }) => email.trim().length > 0);
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -287,13 +222,13 @@ export function InviteMembers(props: Props) {
   const onSubmit = async (formData: FormValues) => {
     if (!workspace) return;
 
-    let payload = { ...formData };
-    payload = { emails: payload.emails.filter((email) => email.email !== "") };
+    const emails = formData.emails.filter(({ email }) => email.trim().length > 0);
+    if (emails.length === 0) return;
 
     await workspaceService
       .inviteWorkspace(workspace.slug, {
-        emails: payload.emails.map((email) => ({
-          email: email.email,
+        emails: emails.map((email) => ({
+          email: email.email.trim(),
           role: email.role,
         })),
       })
@@ -352,20 +287,15 @@ export function InviteMembers(props: Props) {
           >
             <div className="w-full py-4 text-13">
               <div className="group relative mx-8 grid grid-cols-10 gap-4 py-2">
-                <div className="col-span-6 px-1 text-13 font-medium text-secondary">Email</div>
+                <div className="col-span-6 px-1 text-13 font-medium text-secondary">Email or username</div>
                 <div className="col-span-4 px-1 text-13 font-medium text-secondary">Role</div>
               </div>
               <div className="mb-3 space-y-3 sm:space-y-4">
                 {fields.map((field, index) => (
                   <InviteMemberInput
-                    watch={watch}
                     getValues={getValues}
                     setValue={setValue}
-                    isInvitationDisabled={isInvitationDisabled}
-                    setIsInvitationDisabled={(value: boolean) => setIsInvitationDisabled(value)}
                     control={control}
-                    errors={errors}
-                    field={field}
                     fields={fields}
                     index={index}
                     remove={remove}

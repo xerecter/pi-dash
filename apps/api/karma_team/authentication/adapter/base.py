@@ -10,8 +10,7 @@ from io import BytesIO
 
 import requests
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
+from django.db.models import Q
 
 # Django imports
 from django.utils import timezone
@@ -62,29 +61,24 @@ class Adapter:
         raise NotImplementedError
 
     def sanitize_email(self, email):
-        # Check if email is present
+        # ``email`` is the historical API field name. Karma account
+        # identifiers are not required to have an email-address shape.
         if not email:
-            self.logger.error("Email is not present")
+            self.logger.error("Account identifier is not present")
             raise AuthenticationException(
                 error_code=AUTHENTICATION_ERROR_CODES["INVALID_EMAIL"],
                 error_message="INVALID_EMAIL",
                 payload={"email": email},
             )
 
-        # Sanitize email
         email = str(email).lower().strip()
-
-        # validate email
-        try:
-            validate_email(email)
-        except ValidationError:
-            self.logger.warning(f"Email is not valid: {email}")
+        if not email:
+            self.logger.error("Account identifier is not present")
             raise AuthenticationException(
                 error_code=AUTHENTICATION_ERROR_CODES["INVALID_EMAIL"],
                 error_message="INVALID_EMAIL",
                 payload={"email": email},
             )
-        # Return email
         return email
 
     def validate_password(self, email):
@@ -103,9 +97,9 @@ class Adapter:
         """Check if sign up is enabled or not and raise exception if not enabled"""
 
         # Get configuration value
-        (ENABLE_SIGNUP,) = get_configuration_value([
-            {"key": "ENABLE_SIGNUP", "default": os.environ.get("ENABLE_SIGNUP", "1")}
-        ])
+        (ENABLE_SIGNUP,) = get_configuration_value(
+            [{"key": "ENABLE_SIGNUP", "default": os.environ.get("ENABLE_SIGNUP", "1")}]
+        )
 
         # Check if sign up is disabled and invite is present or not
         if ENABLE_SIGNUP == "0" and not WorkspaceMemberInvite.objects.filter(email=email).exists():
@@ -294,7 +288,7 @@ class Adapter:
         email = self.sanitize_email(email)
 
         # Check if the user is present
-        user = User.objects.filter(email=email).first()
+        user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
         # Check if sign up case or login
         is_signup = bool(user)
         # If user is not present, create a new user

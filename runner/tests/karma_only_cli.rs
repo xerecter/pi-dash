@@ -46,6 +46,22 @@ fn runner_add_defaults_to_karma() {
     assert_eq!(args.agent, AgentKind::Karma);
 }
 
+#[test]
+fn service_runtime_override_is_parsed_for_hidden_daemon_entrypoint() {
+    let runtime = "/run/user/1000/karma-team";
+    let cli = Cli::try_parse_from(["karma-team", "--runtime-dir", runtime, "__run", "--offline"])
+        .unwrap();
+
+    assert_eq!(
+        cli.runtime_dir.as_deref(),
+        Some(std::path::Path::new(runtime))
+    );
+    let Some(Command::Run(args)) = cli.command else {
+        panic!("hidden daemon entrypoint expected");
+    };
+    assert!(args.offline);
+}
+
 #[tokio::test]
 async fn runner_add_rejects_other_agents_before_authentication() {
     for kind in disabled_agents() {

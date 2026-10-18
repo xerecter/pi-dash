@@ -2,9 +2,10 @@
 //!
 //! Mints, inspects, and revokes the `[cli].token` written to
 //! `~/.config/karma-team/config.toml`. Strictly the user-identity side: it
-//! does not touch `[[runner]]` blocks or `credentials.toml`. Runner
-//! credentials are minted separately by `karma-team runner add`, which uses
-//! the CLI token populated here to authorise itself to the cloud.
+//! does not directly write `[[runner]]` blocks or `credentials.toml`.
+//! Successful login starts the daemon; its project reconciler uses the bound
+//! machine token to ensure automatic runners. `karma-team runner add` uses the
+//! same token when an operator explicitly requests an additional runner.
 
 use anyhow::Result;
 use clap::{Args as ClapArgs, Subcommand};

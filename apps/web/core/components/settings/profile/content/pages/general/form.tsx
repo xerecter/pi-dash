@@ -374,7 +374,7 @@ export const GeneralProfileSettingsForm = observer(function GeneralProfileSettin
                     <Input
                       id="email"
                       name="email"
-                      type="email"
+                      type="text"
                       value={value}
                       ref={ref}
                       hasError={Boolean(errors.email)}

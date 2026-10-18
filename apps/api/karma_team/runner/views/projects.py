@@ -16,6 +16,8 @@ Two access modes:
 
 from __future__ import annotations
 
+import uuid
+
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -24,8 +26,14 @@ from karma_team.api.middleware.api_authentication import APIKeyAuthentication
 from karma_team.authentication.session import BaseSessionAuthentication
 from karma_team.db.models.project import Project
 from karma_team.db.models.workspace import WorkspaceMember
-from karma_team.runner.authentication import RunnerAccessTokenAuthentication
-from karma_team.runner.models import Pod
+from karma_team.runner.authentication import (
+    MachineTokenAuthentication,
+    RunnerAccessTokenAuthentication,
+)
+from karma_team.runner.models import Pod, ProjectDeletionTombstone, Runner
+from karma_team.runner.services.project_visibility import (
+    projects_visible_to_machine_token,
+)
 
 
 def _serialize_projects(workspace_id) -> list[dict]:
@@ -122,3 +130,111 @@ class ProjectListEndpoint(APIView):
         for wid in ws_ids:
             out.extend(_serialize_projects(wid))
         return Response(out)
+
+
+def _authenticated_machine(request, dev_machine_id):
+    """Return the machine represented by the bearer token, if it matches."""
+
+    token = getattr(request, "auth_machine_token", None)
+    if token is None or token.dev_machine_id is None:
+        return None
+    if str(token.dev_machine_id) != str(dev_machine_id):
+        return None
+    machine = token.dev_machine
+    if machine is None or machine.owner_id != token.user_id:
+        return None
+    return machine
+
+
+def _machine_project_snapshot(machine, token):
+    active_projects = list(
+        projects_visible_to_machine_token(Project.objects.all(), token).order_by(
+            "identifier"
+        )
+    )
+    visible_project_ids = [project.id for project in active_projects]
+    default_pods_by_project = {
+        pod.project_id: pod
+        for pod in Pod.objects.filter(
+            project_id__in=visible_project_ids,
+            is_default=True,
+            deleted_at__isnull=True,
+        ).order_by("project_id", "created_at")
+    }
+    projects = []
+    for project in active_projects:
+        default_pod = default_pods_by_project.get(project.id)
+        projects.append(
+            {
+                "id": str(project.id),
+                "identifier": project.identifier,
+                "name": project.name,
+                "default_pod_id": str(default_pod.id) if default_pod else None,
+                "default_pod_slug": default_pod.name if default_pod else "",
+            }
+        )
+
+    bindings = []
+    for runner in (
+        Runner.objects.select_related("pod__project")
+        .filter(
+            dev_machine_id=machine.id,
+            workspace_id=token.workspace_id,
+            revoked_at__isnull=True,
+            pod__deleted_at__isnull=True,
+            pod__project__deleted_at__isnull=True,
+            pod__project_id__in=visible_project_ids,
+        )
+        .order_by("created_at", "id")
+    ):
+        project = runner.pod.project
+        bindings.append(
+            {
+                "runner_id": str(runner.id),
+                "runner_name": runner.name,
+                "project_id": str(project.id),
+                "project_identifier": project.identifier,
+                "pod_id": str(runner.pod_id),
+                "pod_slug": runner.pod.name,
+                "binding_source": runner.binding_source,
+            }
+        )
+
+    workspace = token.workspace
+    return {
+        "complete": True,
+        "snapshot_id": str(uuid.uuid4()),
+        "workspace_id": str(workspace.id) if workspace else None,
+        "workspace_slug": workspace.slug if workspace else "",
+        "projects": projects,
+        "bindings": bindings,
+        # Project visibility is not deletion authority: membership and
+        # privacy changes can make an active project disappear from
+        # ``projects`` without deleting it.  Daemons may tear down local
+        # resources only for these explicit, workspace-scoped tombstones.
+        "deleted_project_ids": [
+            str(project_id)
+            for project_id in ProjectDeletionTombstone.objects.filter(
+                workspace_id=token.workspace_id,
+            )
+            .order_by("project_id")
+            .values_list("project_id", flat=True)
+        ],
+    }
+
+
+class MachineProjectBindingSnapshotEndpoint(APIView):
+    """Return visible desired state plus explicit project tombstones."""
+
+    authentication_classes = [MachineTokenAuthentication]
+    permission_classes: list = []
+    throttle_classes: list = []
+
+    def get(self, request, dev_machine_id):
+        machine = _authenticated_machine(request, dev_machine_id)
+        if machine is None:
+            return Response(
+                {"error": "dev_machine_mismatch"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return Response(_machine_project_snapshot(machine, request.auth_machine_token))

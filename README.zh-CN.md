@@ -131,21 +131,20 @@ curl --proto '=https' --tlsv1.2 -LsSf \
 
 如需固定到特定版本（或安装预发布版本），将 `latest` 替换为对应标签即可，例如 `.../releases/download/karma-team-v0.1.4/karma-team-installer.sh`。预发布版本不会包含在 `/latest/` 中，因此上面的一行命令始终提供最近的稳定版本。完整的版本固定方法——封装脚本、裸安装程序、Windows 各变体——详见 [`runner/README.md`](./runner/README.md#installing-a-specific-version-pinning--prereleases)。
 
-随后对该机器进行认证并注册一个 runner。标准流程为两条命令：
+随后对该机器进行认证并绑定账号。标准流程只需一条命令：
 
 ```bash
 # 1. 基于浏览器的设备码登录（类似 `gh auth login` / `stripe login`）。
 #    会在 ~/.config/karma-team/config.toml 中存储 CLI 令牌。
 karma-team auth login --url https://your-karma-team-instance.com
 
-# 2. 将本主机注册为 runner。使用步骤 1 中的令牌——无需
-#    粘贴 enrollment-token。在第一个 runner 上，会安装操作系统
-#    服务（Linux 上为 systemd 用户单元，macOS 上为 launchd agent，Windows
-#    上为按用户的计划任务）并启动守护进程。
-karma-team runner add --project <project-id>
 ```
 
-当尚不存在 runner 时，`karma-team auth login` 会内联提示添加一个 runner，因此一台全新的开发笔记本仅需一条命令即可完成上线。之后可使用 `karma-team runner add --project <other-project-id>` 添加更多 runner。
+`karma-team auth login` 会持久化账号、workspace 与开发机器绑定，并在本地尚无
+runner 时照常安装和启动服务。Daemon 会立即读取该 workspace 的云端 project，
+为每个尚未绑定的 project 幂等创建一个独立 runner；之后新增或删除 project
+也会在后台自动对账。只有在需要额外 runner 或非默认 pod 时，才需要手动执行
+`karma-team runner add --project <other-project-id>`。
 
 Runner 守护进程在后台运行，轮询分配的任务，将其派发给你的 AI 智能体，并把结果回报给平台。
 

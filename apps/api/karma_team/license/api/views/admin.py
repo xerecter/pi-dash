@@ -10,8 +10,7 @@ from zxcvbn import zxcvbn
 # Django imports
 from django.http import HttpResponseRedirect
 from django.views import View
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
+from django.db.models import Q
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import logout
@@ -47,7 +46,7 @@ class InstanceAdminEndpoint(BaseAPIView):
     @invalidate_cache(path="/api/instances/", user=False)
     # Create an instance admin
     def post(self, request):
-        email = request.data.get("email", False)
+        email = str(request.data.get("email") or "").strip().lower()
         role = request.data.get("role", 20)
 
         if not email:
@@ -61,7 +60,9 @@ class InstanceAdminEndpoint(BaseAPIView):
             )
 
         # Fetch the user
-        user = User.objects.get(email=email)
+        user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
+        if user is None:
+            return Response({"error": "Account does not exist"}, status=status.HTTP_404_NOT_FOUND)
 
         instance_admin = InstanceAdmin.objects.create(instance=instance, user=user, role=role)
         serializer = InstanceAdminSerializer(instance_admin)
@@ -117,7 +118,7 @@ class InstanceAdminSignUpEndpoint(View):
             return HttpResponseRedirect(url)
 
         # Get the email and password from all the user
-        email = request.POST.get("email", False)
+        email = str(request.POST.get("email") or "").strip().lower()
         password = request.POST.get("password", False)
         first_name = request.POST.get("first_name", False)
         last_name = request.POST.get("last_name", "")
@@ -146,31 +147,9 @@ class InstanceAdminSignUpEndpoint(View):
             )
             return HttpResponseRedirect(url)
 
-        # Validate the email
-        email = email.strip().lower()
-        try:
-            validate_email(email)
-        except ValidationError:
-            exc = AuthenticationException(
-                error_code=AUTHENTICATION_ERROR_CODES["INVALID_ADMIN_EMAIL"],
-                error_message="INVALID_ADMIN_EMAIL",
-                payload={
-                    "email": email,
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "company_name": company_name,
-                    "is_telemetry_enabled": is_telemetry_enabled,
-                },
-            )
-            url = urljoin(
-                base_host(request=request, is_admin=True),
-                "?" + urlencode(exc.get_error_dict()),
-            )
-            return HttpResponseRedirect(url)
-
         # Check if already a user exists or not
         # Existing user
-        if User.objects.filter(email=email).exists():
+        if User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).exists():
             exc = AuthenticationException(
                 error_code=AUTHENTICATION_ERROR_CODES["ADMIN_USER_ALREADY_EXIST"],
                 error_message="ADMIN_USER_ALREADY_EXIST",
@@ -258,7 +237,7 @@ class InstanceAdminSignInEndpoint(View):
             return HttpResponseRedirect(url)
 
         # Get email and password
-        email = request.POST.get("email", False)
+        email = str(request.POST.get("email") or "").strip().lower()
         password = request.POST.get("password", False)
 
         # return error if the email and password is not present
@@ -274,24 +253,8 @@ class InstanceAdminSignInEndpoint(View):
             )
             return HttpResponseRedirect(url)
 
-        # Validate the email
-        email = email.strip().lower()
-        try:
-            validate_email(email)
-        except ValidationError:
-            exc = AuthenticationException(
-                error_code=AUTHENTICATION_ERROR_CODES["INVALID_ADMIN_EMAIL"],
-                error_message="INVALID_ADMIN_EMAIL",
-                payload={"email": email},
-            )
-            url = urljoin(
-                base_host(request=request, is_admin=True),
-                "?" + urlencode(exc.get_error_dict()),
-            )
-            return HttpResponseRedirect(url)
-
         # Fetch the user
-        user = User.objects.filter(email=email).first()
+        user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
 
         # Error out if the user is not present
         if not user:

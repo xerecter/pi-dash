@@ -822,6 +822,51 @@ def _resolve_creator_for_trigger(issue: Issue, *, triggered_by: str, actor=None)
     return None
 
 
+def _has_pending_auto_project_binding(issue: Issue, run_creator) -> bool:
+    """An enrolled member's daemon can create the missing project runner soon."""
+    from karma_team.core.permissions import ROLE_GUEST
+    from karma_team.db.models import ProjectMember, WorkspaceMember
+    from karma_team.db.models.issue import IssueAssignee
+    from karma_team.runner.models import MachineToken, RunnerProvisioning
+
+    assignee_ids = set(IssueAssignee.objects.filter(issue=issue).values_list("assignee_id", flat=True))
+    candidate_ids = assignee_ids or {
+        getattr(run_creator, "id", None),
+        issue.created_by_id,
+    }
+    candidate_ids.discard(None)
+    if not candidate_ids:
+        return False
+
+    memberships = WorkspaceMember.objects.filter(
+        workspace_id=issue.workspace_id, member_id__in=candidate_ids, is_active=True
+    ).values_list("member_id", "role")
+    for owner_id, role in memberships:
+        project_member = ProjectMember.objects.filter(
+            workspace_id=issue.workspace_id,
+            project_id=issue.project_id,
+            member_id=owner_id,
+            is_active=True,
+        ).exists()
+        if role < ROLE_GUEST or not project_member:
+            continue
+        # A token for any *current* workspace is enough: the daemon exchanges
+        # it for this workspace's token before reconciling its project list.
+        valid_workspaces = WorkspaceMember.objects.filter(
+            member_id=owner_id, is_active=True
+        ).values("workspace_id")
+        if MachineToken.objects.filter(
+            user_id=owner_id,
+            workspace_id__in=valid_workspaces,
+            revoked_at__isnull=True,
+            dev_machine__owner_id=owner_id,
+            dev_machine__revoked_at__isnull=True,
+            dev_machine__provisioning=RunnerProvisioning.MANUAL,
+        ).exists():
+            return True
+    return False
+
+
 def preflight_eligibility_or_bounce(issue: Issue, *, run_creator, pod, triggered_by: str) -> bool:
     """Return True if dispatch can proceed; False if the issue was bounced.
 
@@ -891,6 +936,10 @@ def preflight_eligibility_or_bounce(issue: Issue, *, run_creator, pod, triggered
 
     creator_id = getattr(run_creator, "id", None)
     if pod_has_runner_for_issue_principal(pod, issue, creator_id):
+        return True
+    if _has_pending_auto_project_binding(issue, run_creator):
+        # The binding sync runs periodically. Queue the run now; the new
+        # runner's session/heartbeat drains it as soon as it comes online.
         return True
     _bounce_issue_no_eligible_runner(issue, triggered_by=triggered_by)
     return False

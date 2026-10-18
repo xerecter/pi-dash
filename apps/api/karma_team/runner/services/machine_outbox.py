@@ -51,6 +51,7 @@ _VALID_TYPES = frozenset({
     "ping",
     "create_runner",
     "config_push",
+    "remove_runner",
 })
 
 # Types that must never sit in the offline buffer: a machine that is
@@ -220,6 +221,93 @@ def drain_offline_into_live(dev_machine_id: UUID | str) -> int:
         moved += 1
     client.delete(okey)
     return moved
+
+
+def claim_pending_for_new_session(
+    dev_machine_id: UUID | str,
+    old_consumer: Optional[str],
+    new_consumer: str,
+    min_idle_ms: int = 0,
+) -> int:
+    """Reassign every pending machine message to ``new_consumer``.
+
+    The daemon only ACKs ``create_runner`` after its result is published.
+    If result publication fails or the process exits first, that entry stays
+    in the group PEL. A replacement machine session uses a new consumer name,
+    so it must XAUTOCLAIM the entire PEL before its initial ``STREAMS 0`` read
+    or the old consumer would retain the command forever.
+
+    ``old_consumer`` is optional because clean shutdowns revoke the session
+    row before a later open can discover it; XAUTOCLAIM still scans entries
+    held by every old consumer. It is used only for best-effort cleanup after
+    the full paginated handoff succeeds.
+    """
+    client = redis_instance()
+    if client is None:
+        return 0
+    sk = stream_key(dev_machine_id)
+    gn = group_name(dev_machine_id)
+    cursor = "0-0"
+    claimed = 0
+    while True:
+        try:
+            result = client.xautoclaim(
+                name=sk,
+                groupname=gn,
+                consumername=new_consumer,
+                min_idle_time=min_idle_ms,
+                start_id=cursor,
+                count=200,
+            )
+        except Exception:
+            logger.exception(
+                "xautoclaim failed for dev machine %s", dev_machine_id
+            )
+            return claimed
+        if not result:
+            return claimed
+        # redis-py returns (next_cursor, claimed_entries[, deleted_ids]).
+        # JUSTID cannot be used because its parser drops the continuation
+        # cursor, preventing a correct paginated PEL scan.
+        next_cursor = result[0]
+        claimed_entries = result[1] if len(result) > 1 else []
+        if isinstance(next_cursor, bytes):
+            next_cursor = next_cursor.decode()
+        claimed += len(claimed_entries)
+        if next_cursor == "0-0":
+            if old_consumer:
+                delete_consumer(dev_machine_id, old_consumer, client=client)
+            return claimed
+        cursor = next_cursor
+
+
+def delete_consumer(
+    dev_machine_id: UUID | str,
+    consumer: Optional[str],
+    *,
+    client=None,
+) -> int:
+    """Delete an idle machine consumer after its PEL was handed off."""
+    if not consumer:
+        return 0
+    client = client or redis_instance()
+    if client is None:
+        return 0
+    try:
+        return int(
+            client.xgroup_delconsumer(
+                stream_key(dev_machine_id),
+                group_name(dev_machine_id),
+                consumer,
+            )
+        )
+    except Exception:
+        logger.exception(
+            "xgroup delconsumer failed for dev machine %s consumer %s",
+            dev_machine_id,
+            consumer,
+        )
+        return 0
 
 
 def mark_pel_drained(session_id: UUID | str) -> None:

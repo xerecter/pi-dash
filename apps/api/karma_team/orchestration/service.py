@@ -543,6 +543,25 @@ def _pinned_runner_for(parent: AgentRun, target_pod: Optional[Pod] = None) -> Op
         return None
     if target_pod is not None and runner.pod_id != target_pod.id:
         return None
+    if parent.work_item_id is not None:
+        from karma_team.db.models import ProjectMember, WorkspaceMember
+        from karma_team.db.models.issue import IssueAssignee
+
+        if not (
+            WorkspaceMember.objects.filter(
+                workspace_id=runner.workspace_id, member_id=runner.owner_id, is_active=True
+            ).exists()
+            and ProjectMember.objects.filter(
+                workspace_id=runner.workspace_id,
+                project_id=parent.work_item.project_id,
+                member_id=runner.owner_id,
+                is_active=True,
+            ).exists()
+        ):
+            return None
+        assignees = IssueAssignee.objects.filter(issue_id=parent.work_item_id)
+        if assignees.exists() and not assignees.filter(assignee_id=runner.owner_id).exists():
+            return None
     return runner
 
 
@@ -652,11 +671,7 @@ def complete_project_move_handoff(run_id) -> Optional[AgentRun]:
         # Issue moves lock issue → run. Use the same order here so a second
         # project move racing the cancellation acknowledgement cannot
         # deadlock this callback.
-        work_item_id = (
-            AgentRun.objects.filter(pk=run_id)
-            .values_list("work_item_id", flat=True)
-            .first()
-        )
+        work_item_id = AgentRun.objects.filter(pk=run_id).values_list("work_item_id", flat=True).first()
         if work_item_id is None:
             return None
 
@@ -669,12 +684,7 @@ def complete_project_move_handoff(run_id) -> Optional[AgentRun]:
         if issue is None:
             return None
 
-        source = (
-            AgentRun.objects.select_for_update(of=("self",))
-            .select_related("created_by")
-            .filter(pk=run_id)
-            .first()
-        )
+        source = AgentRun.objects.select_for_update(of=("self",)).select_related("created_by").filter(pk=run_id).first()
         if source is None or not source.is_terminal:
             return None
 

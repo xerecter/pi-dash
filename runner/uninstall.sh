@@ -33,6 +33,90 @@ while [ "$#" -gt 0 ]; do
   shift
 done
 
+path_owner_uid() {
+  stat -c '%u' "$1" 2>/dev/null || stat -f '%u' "$1" 2>/dev/null
+}
+
+passwd_home_for_uid() {
+  user_uid=$1
+  if command -v getent >/dev/null 2>&1; then
+    getent passwd "$user_uid" 2>/dev/null | awk -F: 'NR == 1 { print $6; exit }'
+  elif [ -r /etc/passwd ]; then
+    awk -F: -v user_uid="$user_uid" '$3 == user_uid { print $6; exit }' /etc/passwd
+  fi
+}
+
+runtime_base_is_usable() {
+  runtime_base=$1
+  runtime_uid=$2
+  [ -d "$runtime_base" ] &&
+    [ "$(path_owner_uid "$runtime_base" || true)" = "$runtime_uid" ] &&
+    [ -r "$runtime_base" ] && [ -w "$runtime_base" ] && [ -x "$runtime_base" ]
+}
+
+# Keep uninstall scoped to the effective user even when `su`/`sudo -u`
+# preserved root's environment. In particular, never stop services through or
+# remove files from another UID's XDG runtime directory.
+normalize_user_environment() {
+  effective_uid=$(id -u)
+  case "$effective_uid" in
+    '' | *[!0-9]*)
+      echo "Could not determine the effective user ID." >&2
+      exit 1
+      ;;
+  esac
+
+  home_owner=''
+  if [ -n "${HOME:-}" ] && [ -d "$HOME" ]; then
+    home_owner=$(path_owner_uid "$HOME" || true)
+  fi
+
+  if [ "$effective_uid" = 0 ]; then
+    elevated_from=${SUDO_USER:-${DOAS_USER:-}}
+    if { [ -n "$elevated_from" ] && [ "$elevated_from" != root ]; } ||
+      { [ -n "$home_owner" ] && [ "$home_owner" != 0 ]; }; then
+      echo "Refusing to uninstall a per-user karma-team CLI as root for another user." >&2
+      echo "Open that user's login shell first (for example: sudo -iu ${elevated_from:-USER}), then run the uninstaller without sudo." >&2
+      exit 1
+    fi
+  elif [ -z "${HOME:-}" ] || [ "${HOME#/}" = "$HOME" ] || [ "$home_owner" != "$effective_uid" ]; then
+    resolved_home=$(passwd_home_for_uid "$effective_uid" || true)
+    if [ -z "$resolved_home" ] || [ "${resolved_home#/}" = "$resolved_home" ] ||
+      [ ! -d "$resolved_home" ] ||
+      [ "$(path_owner_uid "$resolved_home" || true)" != "$effective_uid" ]; then
+      echo "HOME does not belong to effective uid $effective_uid, and its account home could not be resolved safely." >&2
+      echo "Start a login shell for the target user (for example: sudo -iu USER)." >&2
+      exit 1
+    fi
+    printf 'Warning: replacing inherited HOME=%s with %s for uid %s.\n' "${HOME:-<unset>}" "$resolved_home" "$effective_uid" >&2
+    HOME=$resolved_home
+    export HOME
+  fi
+
+  case "$(uname -s 2>/dev/null || printf unknown)" in
+    Linux)
+      inherited_runtime=${XDG_RUNTIME_DIR:-}
+      if [ -n "$inherited_runtime" ] && ! runtime_base_is_usable "$inherited_runtime" "$effective_uid"; then
+        printf 'Warning: ignoring XDG_RUNTIME_DIR=%s because it is not owned and usable by uid %s.\n' "$inherited_runtime" "$effective_uid" >&2
+        unset XDG_RUNTIME_DIR
+        case "${DBUS_SESSION_BUS_ADDRESS:-}" in
+          *"$inherited_runtime"*) unset DBUS_SESSION_BUS_ADDRESS ;;
+        esac
+      fi
+
+      if [ -z "${XDG_RUNTIME_DIR:-}" ]; then
+        standard_runtime="/run/user/$effective_uid"
+        if runtime_base_is_usable "$standard_runtime" "$effective_uid"; then
+          XDG_RUNTIME_DIR=$standard_runtime
+          export XDG_RUNTIME_DIR
+        fi
+      fi
+      ;;
+  esac
+}
+
+normalize_user_environment
+
 HOME_DIR=${HOME:-}
 if [ -z "$HOME_DIR" ]; then
   echo "HOME is not set; refusing to guess which user's karma-team files to remove." >&2
@@ -436,7 +520,17 @@ if [ -d "$DATA_DIR" ] && [ ! -L "$DATA_DIR" ]; then
 fi
 
 if [ -n "$RUNTIME_BASE" ] && [ -z "$DATA_OVERRIDE" ]; then
-  remove_tree "$RUNTIME_BASE/karma-team"
+  # Only clean the canonical per-user Linux runtime location. XDG_RUNTIME_DIR
+  # is caller-controlled; accepting an arbitrary owned directory such as
+  # $HOME would make this remove an unrelated $HOME/karma-team checkout.
+  # Non-standard runtime roots are left intact rather than risking user data.
+  expected_runtime_base="/run/user/$(id -u)"
+  if [ "$RUNTIME_BASE" = "$expected_runtime_base" ] &&
+    runtime_base_is_usable "$RUNTIME_BASE" "$(id -u)"; then
+    remove_tree "$RUNTIME_BASE/karma-team"
+  else
+    printf 'Skipping non-standard runtime cleanup: %s/karma-team\n' "$RUNTIME_BASE" >&2
+  fi
 fi
 
 remove_tree "$CACHE_DIR"

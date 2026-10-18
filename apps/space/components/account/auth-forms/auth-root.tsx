@@ -36,7 +36,7 @@ export const AuthRoot = observer(function AuthRoot() {
   const error_code = searchParams.get("error_code") || undefined;
   const nextPath = searchParams.get("next_path") || undefined;
   // states
-  const [authMode, setAuthMode] = useState<EAuthModes>(EAuthModes.SIGN_UP);
+  const [authMode, setAuthMode] = useState<EAuthModes>(EAuthModes.SIGN_IN);
   const [authStep, setAuthStep] = useState<EAuthSteps>(EAuthSteps.EMAIL);
   const [email, setEmail] = useState(emailParam ? emailParam.toString() : "");
   const [errorInfo, setErrorInfo] = useState<TAuthErrorInfo | undefined>(undefined);
@@ -89,24 +89,25 @@ export const AuthRoot = observer(function AuthRoot() {
 
   // submit handler- email verification
   const handleEmailVerification = async (data: IEmailCheckData) => {
-    setEmail(data.email);
+    const normalizedEmail = data.email.trim();
+    setEmail(normalizedEmail);
+    setErrorInfo(undefined);
+
+    // First-time Karma users do not have a local account to look up yet.
+    if (authMode === EAuthModes.SIGN_IN) {
+      setIsPasswordAutoset(false);
+      setAuthStep(EAuthSteps.PASSWORD);
+      return;
+    }
 
     await authService
-      .emailCheck(data)
+      .emailCheck({ email: normalizedEmail })
       .then(async (response) => {
-        let currentAuthMode: EAuthModes = response.existing ? EAuthModes.SIGN_IN : EAuthModes.SIGN_UP;
         if (response.existing) {
-          currentAuthMode = EAuthModes.SIGN_IN;
-          setAuthMode(() => EAuthModes.SIGN_IN);
-        } else {
-          currentAuthMode = EAuthModes.SIGN_UP;
-          setAuthMode(() => EAuthModes.SIGN_UP);
-        }
-
-        if (currentAuthMode === EAuthModes.SIGN_IN) {
+          setAuthMode(EAuthModes.SIGN_IN);
           if (isSMTPConfigured && isMagicLoginEnabled && response.status === "MAGIC_CODE") {
             setAuthStep(EAuthSteps.UNIQUE_CODE);
-            generateEmailUniqueCode(data.email);
+            generateEmailUniqueCode(normalizedEmail);
           } else if (isEmailPasswordEnabled) {
             setIsPasswordAutoset(false);
             setAuthStep(EAuthSteps.PASSWORD);
@@ -117,7 +118,7 @@ export const AuthRoot = observer(function AuthRoot() {
         } else {
           if (isSMTPConfigured && isMagicLoginEnabled && response.status === "MAGIC_CODE") {
             setAuthStep(EAuthSteps.UNIQUE_CODE);
-            generateEmailUniqueCode(data.email);
+            generateEmailUniqueCode(normalizedEmail);
           } else if (isEmailPasswordEnabled) {
             setAuthStep(EAuthSteps.PASSWORD);
           } else {
@@ -155,7 +156,21 @@ export const AuthRoot = observer(function AuthRoot() {
         <AuthHeader authMode={authMode} />
         {isOAuthEnabled && <OAuthOptions options={oAuthOptions} compact={authStep === EAuthSteps.PASSWORD} />}
 
-        {authStep === EAuthSteps.EMAIL && <AuthEmailForm defaultEmail={email} onSubmit={handleEmailVerification} />}
+        {authStep === EAuthSteps.EMAIL && (
+          <>
+            <AuthEmailForm defaultEmail={email} onSubmit={handleEmailVerification} />
+            <button
+              type="button"
+              className="text-13 font-medium text-accent-primary"
+              onClick={() => {
+                setAuthMode(authMode === EAuthModes.SIGN_IN ? EAuthModes.SIGN_UP : EAuthModes.SIGN_IN);
+                setErrorInfo(undefined);
+              }}
+            >
+              {authMode === EAuthModes.SIGN_IN ? "Create account" : "Sign in"}
+            </button>
+          </>
+        )}
         {authStep === EAuthSteps.UNIQUE_CODE && (
           <AuthUniqueCodeForm
             mode={authMode}
@@ -178,10 +193,6 @@ export const AuthRoot = observer(function AuthRoot() {
             handleEmailClear={() => {
               setEmail("");
               setAuthStep(EAuthSteps.EMAIL);
-            }}
-            handleAuthStep={(step: EAuthSteps) => {
-              if (step === EAuthSteps.UNIQUE_CODE) generateEmailUniqueCode(email);
-              setAuthStep(step);
             }}
           />
         )}

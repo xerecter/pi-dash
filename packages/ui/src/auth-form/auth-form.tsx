@@ -93,7 +93,7 @@ export function AuthForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (onSubmit && isFormValid) {
-      onSubmit(formData);
+      onSubmit({ ...formData, email: formData.email.trim() });
     }
   };
 
@@ -103,7 +103,7 @@ export function AuthForm({
   };
 
   const isFormValid = useMemo(() => {
-    const hasEmail = formData.email.length > 0;
+    const hasEmail = formData.email.trim().length > 0;
     const hasPassword = formData.password.length > 0;
 
     if (mode === "sign-in") {
@@ -136,11 +136,11 @@ export function AuthForm({
       <AuthInput
         id="email"
         name="email"
-        type="email"
-        label="Email"
+        type="text"
+        label="Email or username"
         value={formData.email}
         onChange={handleInputChange("email")}
-        placeholder="name@company.com"
+        placeholder="Email or username"
         error={emailError}
         disabled={disabled}
         // autoComplete="email"

@@ -63,6 +63,12 @@ class _FakeRedis:
     def publish(self, *_args):
         return 0
 
+    def xautoclaim(self, **_kwargs):
+        return (b"0-0", [])
+
+    def xgroup_delconsumer(self, *_args):
+        return 0
+
 
 @pytest.fixture(autouse=True)
 def _fake_redis(monkeypatch):
@@ -133,6 +139,71 @@ def test_second_open_evicts_prior_session(db, api_client, dev_machine, machine_t
     prior = MachineSession.objects.get(id=first.data["session_id"])
     assert prior.revoked_at is not None
     assert prior.revoked_reason == "evicted_by_new_session"
+
+
+@pytest.mark.unit
+def test_open_claims_pending_before_publish_and_drain(
+    db, api_client, dev_machine, machine_token, monkeypatch
+):
+    _bearer(api_client, machine_token)
+    url = reverse("runner:machine-session-open", kwargs={"dev_machine_id": dev_machine.id})
+    first = api_client.post(url, {}, format="json")
+    assert first.status_code == 201, first.data
+
+    calls = []
+    monkeypatch.setattr(
+        machine_outbox,
+        "clear_session_marker",
+        lambda *_args, **_kwargs: calls.append("clear"),
+    )
+    monkeypatch.setattr(
+        machine_outbox,
+        "claim_pending_for_new_session",
+        lambda *_args, **_kwargs: calls.append("claim"),
+    )
+    monkeypatch.setattr(
+        machine_outbox,
+        "publish_session_eviction",
+        lambda *_args, **_kwargs: calls.append("publish"),
+    )
+    monkeypatch.setattr(
+        machine_outbox,
+        "drain_offline_into_live",
+        lambda *_args, **_kwargs: calls.append("drain"),
+    )
+
+    second = api_client.post(url, {}, format="json")
+
+    assert second.status_code == 201, second.data
+    assert calls == ["clear", "claim", "publish", "drain"]
+
+
+@pytest.mark.unit
+def test_first_open_claims_pending_without_prior_active_session(
+    db, api_client, dev_machine, machine_token, monkeypatch
+):
+    _bearer(api_client, machine_token)
+    url = reverse("runner:machine-session-open", kwargs={"dev_machine_id": dev_machine.id})
+    claim_calls = []
+
+    def record_claim(machine_id, old_consumer, new_consumer):
+        claim_calls.append((machine_id, old_consumer, new_consumer))
+        return 0
+
+    monkeypatch.setattr(
+        machine_outbox,
+        "claim_pending_for_new_session",
+        record_claim,
+    )
+
+    response = api_client.post(url, {}, format="json")
+
+    assert response.status_code == 201, response.data
+    assert len(claim_calls) == 1
+    machine_id, old_consumer, new_consumer = claim_calls[0]
+    assert machine_id == dev_machine.id
+    assert old_consumer is None
+    assert new_consumer == machine_outbox.consumer_name(response.data["session_id"])
 
 
 @pytest.mark.unit

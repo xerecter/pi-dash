@@ -51,24 +51,35 @@ export const AuthFormRoot = observer(function AuthFormRoot(props: TAuthFormRoot)
 
   // submit handler- email verification
   const handleEmailVerification = async (data: IEmailCheckData) => {
-    setEmail(data.email);
+    const normalizedEmail = data.email.trim();
+    setEmail(normalizedEmail);
     setErrorInfo(undefined);
+
+    // Karma authentication accepts account names as well as email-shaped
+    // identifiers. Skip the local email-existence probe for sign-in so an
+    // account name can proceed directly to the password form.
+    if (currentAuthMode === EAuthModes.SIGN_IN) {
+      setAuthMode(EAuthModes.SIGN_IN);
+      setIsExistingEmail(true);
+      setAuthStep(EAuthSteps.PASSWORD);
+      return;
+    }
+
     await authService
-      .emailCheck(data)
+      .emailCheck({ email: normalizedEmail })
       .then(async (response) => {
         if (response.existing) {
           if (currentAuthMode === EAuthModes.SIGN_UP) setAuthMode(EAuthModes.SIGN_IN);
           if (response.status === "MAGIC_CODE") {
             setAuthStep(EAuthSteps.UNIQUE_CODE);
-            generateEmailUniqueCode(data.email);
+            generateEmailUniqueCode(normalizedEmail);
           } else if (response.status === "CREDENTIAL") {
             setAuthStep(EAuthSteps.PASSWORD);
           }
         } else {
-          if (currentAuthMode === EAuthModes.SIGN_IN) setAuthMode(EAuthModes.SIGN_UP);
           if (response.status === "MAGIC_CODE") {
             setAuthStep(EAuthSteps.UNIQUE_CODE);
-            generateEmailUniqueCode(data.email);
+            generateEmailUniqueCode(normalizedEmail);
           } else if (response.status === "CREDENTIAL") {
             setAuthStep(EAuthSteps.PASSWORD);
           }
@@ -125,10 +136,6 @@ export const AuthFormRoot = observer(function AuthFormRoot(props: TAuthFormRoot)
         isSMTPConfigured={isSMTPConfigured}
         email={email}
         handleEmailClear={handleEmailClear}
-        handleAuthStep={(step: EAuthSteps) => {
-          if (step === EAuthSteps.UNIQUE_CODE) generateEmailUniqueCode(email);
-          setAuthStep(step);
-        }}
         nextPath={nextPath || undefined}
       />
     );

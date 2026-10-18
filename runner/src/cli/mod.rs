@@ -54,6 +54,11 @@ pub struct Cli {
     #[arg(long, global = true, env = "KARMA_TEAM_DATA_DIR")]
     pub data_dir: Option<std::path::PathBuf>,
 
+    /// Internal service-only override that pins daemon IPC to the runtime
+    /// selected when the service definition was installed.
+    #[arg(long, global = true, hide = true)]
+    pub runtime_dir: Option<std::path::PathBuf>,
+
     /// Log level filter (trace|debug|info|warn|error).
     #[arg(long, global = true, env = "KARMA_TEAM_LOG", default_value = "info")]
     pub log: String,
@@ -62,8 +67,8 @@ pub struct Cli {
 #[derive(Debug, Subcommand)]
 pub enum Command {
     /// Authenticate this host as a user (`auth login` / `status` /
-    /// `logout`). Mints a CLI token used by `karma-team` commands and by
-    /// `karma-team runner add` to register runners.
+    /// `logout`). Binds the machine and starts automatic project-runner
+    /// synchronization; the token also authorizes manual runner commands.
     Auth(auth::AuthArgs),
 
     /// Deprecated compatibility path for one-time enrollment tokens.
@@ -152,7 +157,11 @@ pub enum Command {
 
 pub async fn run(cli: Cli) -> Result<()> {
     crate::util::logging::init(&cli.log)?;
-    let paths = crate::util::paths::Paths::resolve(cli.config_dir.clone(), cli.data_dir.clone())?;
+    let paths = crate::util::paths::Paths::resolve_with_runtime(
+        cli.config_dir.clone(),
+        cli.data_dir.clone(),
+        cli.runtime_dir.clone(),
+    )?;
     tracing::debug!(?paths, "resolved runner paths");
 
     let Some(command) = cli.command else {

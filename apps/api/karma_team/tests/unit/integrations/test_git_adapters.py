@@ -46,6 +46,70 @@ def test_parse_gitlab_nested_repository_and_merge_request(settings):
     assert review.external_iid == "17"
 
 
+def test_parse_http_gitlab_repository_preserves_configured_scheme(settings):
+    settings.GITLAB_ALLOWED_HOSTS = ["http://gitlab.example.com"]
+
+    repo = parse_repository_url("http://gitlab.example.com/platform/backend/api.git")
+
+    assert repo.provider == "gitlab"
+    assert repo.host_url == "http://gitlab.example.com"
+    assert repo.namespace == "platform/backend"
+    assert repo.name == "api"
+    assert repo.full_name == "platform/backend/api"
+
+
+def test_parse_gitlab_ssh_repository_uses_http_allowlisted_host(settings):
+    settings.GITLAB_ALLOWED_HOSTS = ["http://gitlab.example.com"]
+
+    repo = parse_repository_url("git@gitlab.example.com:team/web.git")
+
+    assert repo.provider == "gitlab"
+    assert repo.host_url == "http://gitlab.example.com"
+    assert repo.clone_url == "git@gitlab.example.com:team/web.git"
+
+
+def test_parse_gitlab_ssh_url_uses_https_when_both_schemes_are_allowlisted(settings):
+    settings.GITLAB_ALLOWED_HOSTS = [
+        "http://gitlab.example.com",
+        "https://gitlab.example.com",
+    ]
+
+    repo = parse_repository_url("ssh://git@gitlab.example.com/team/web.git")
+
+    assert repo.provider == "gitlab"
+    assert repo.host_url == "https://gitlab.example.com"
+    assert repo.clone_url == "ssh://git@gitlab.example.com/team/web.git"
+
+
+@pytest.mark.parametrize("scheme", ["http", "https"])
+def test_parse_self_managed_gitlab_merge_request_for_configured_deployment_host(settings, scheme):
+    settings.GITLAB_ALLOWED_HOSTS = [
+        "http://gitlab.laiyeai.com",
+        "https://gitlab.laiyeai.com",
+    ]
+
+    review = parse_code_review_url(
+        f"{scheme}://gitlab.laiyeai.com/xuhaoxuan/kt-test2/-/merge_requests/2"
+    )
+
+    assert review is not None
+    assert review.provider == "gitlab"
+    assert review.host_url == f"{scheme}://gitlab.laiyeai.com"
+    assert review.namespace == "xuhaoxuan"
+    assert review.repo_name == "kt-test2"
+    assert review.external_iid == "2"
+
+
+def test_parse_http_merge_request_keeps_legacy_https_allowlist_compatibility(settings):
+    settings.GITLAB_ALLOWED_HOSTS = ["https://gitlab.example.com"]
+
+    review = parse_code_review_url("http://gitlab.example.com/acme/web/-/merge_requests/17")
+
+    assert review is not None
+    assert review.host_url == "https://gitlab.example.com"
+    assert review.url == "https://gitlab.example.com/acme/web/-/merge_requests/17"
+
+
 def test_gitlab_rejects_unconfigured_hosts_but_generic_repository_is_allowed(settings):
     settings.GITLAB_ALLOWED_HOSTS = []
     settings.GITLAB_HOST = "https://gitlab.com"
@@ -124,20 +188,28 @@ def test_gitlab_account_verify_rejects_unconfigured_hosts_before_http(settings, 
     settings.GITLAB_ALLOWED_HOSTS = []
     request = mocker.patch("karma_team.integrations.git.adapters.gitlab.requests.request")
 
-    with pytest.raises(GitProviderPermissionError, match="GitLab host (is not allowed|must use HTTPS)"):
+    with pytest.raises(GitProviderPermissionError, match="GitLab host is not allowed"):
         GitLabAdapter().verify_provider_account({"token": "token", "host_url": host_url})
 
     request.assert_not_called()
 
 
-def test_gitlab_account_verify_rejects_insecure_allowlisted_host_before_http(settings, mocker):
+def test_gitlab_account_verify_allows_allowlisted_http_host(settings, mocker):
     settings.GITLAB_ALLOWED_HOSTS = ["http://gitlab.example.com"]
     request = mocker.patch("karma_team.integrations.git.adapters.gitlab.requests.request")
+    response = mocker.Mock(status_code=200, headers={}, text="")
+    response.json.return_value = {"id": 3, "username": "http-self-managed"}
+    response.raise_for_status.return_value = None
+    request.return_value = response
 
-    with pytest.raises(GitProviderPermissionError, match="must use HTTPS"):
-        GitLabAdapter().verify_provider_account({"token": "token", "host_url": "http://gitlab.example.com"})
+    identity = GitLabAdapter().verify_provider_account(
+        {"token": "token", "host_url": "http://gitlab.example.com"}
+    )
 
-    request.assert_not_called()
+    assert identity["username"] == "http-self-managed"
+    request.assert_called_once()
+    assert request.call_args.args[:2] == ("GET", "http://gitlab.example.com/api/v4/user")
+    assert request.call_args.kwargs["allow_redirects"] is False
 
 
 def test_gitlab_account_verify_rejects_redirects(settings, mocker):

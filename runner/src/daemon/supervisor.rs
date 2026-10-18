@@ -2,6 +2,7 @@ use anyhow::Result;
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::{Duration, Instant};
 use tokio::sync::{RwLock, mpsc, oneshot, watch};
 
@@ -20,7 +21,7 @@ use crate::config::schema::{
     AgentKind, Config, Credentials, DaemonConfig, RunnerConfig, canonical_for_compare,
 };
 use crate::daemon::run_event_mirror::RunEventMirror;
-use crate::daemon::runner_instance::RunnerInstance;
+use crate::daemon::runner_instance::{RunnerInstance, RunnerTeardownOutcome};
 use crate::daemon::runner_out::RunnerOut;
 use crate::daemon::state::StateHandle;
 use crate::history::index::{RunSummary, RunsIndex};
@@ -97,10 +98,18 @@ impl Supervisor {
 
         let mut instances: Vec<RunnerInstance> = Vec::new();
         for runner_cfg in &config.runners {
+            let machine_token = match machine_token_for_runner(&config, runner_cfg) {
+                Ok(token) => token,
+                Err(error) if !opts.offline => {
+                    tracing::warn!(runner = %runner_cfg.name, error = %error, "runner awaits workspace credential discovery");
+                    continue;
+                }
+                Err(_) => None,
+            };
             let inst = build_runner_instance(
                 runner_cfg.clone(),
                 transport.as_ref(),
-                shared_machine_token.as_deref(),
+                machine_token,
                 &paths,
                 &config.daemon,
             )
@@ -162,6 +171,7 @@ impl Supervisor {
             daemon_state: state.clone(),
             instances: ipc_instances.clone(),
             activation_lock: Arc::new(tokio::sync::Mutex::new(())),
+            accepting_mutations: Arc::new(AtomicBool::new(true)),
         };
 
         let ipc = IpcServer {
@@ -170,10 +180,12 @@ impl Supervisor {
                 .as_ref()
                 .map(|p| p.state.clone())
                 .unwrap_or_else(|| state.clone()),
+            daemon_state: state.clone(),
             paths: paths.clone(),
             instances: ipc_instances,
             spawn_ctx: spawn_ctx.clone(),
-        };
+        }
+        .prepare()?;
         let ipc_handle = tokio::spawn(async move {
             if let Err(e) = ipc.run().await {
                 tracing::error!("ipc server exited: {e:#}");
@@ -221,6 +233,39 @@ impl Supervisor {
             }
         };
 
+        // Project reconciliation is machine-scoped and intentionally lives
+        // beside (rather than inside) the per-runner assignment loops. It is
+        // available with zero configured runners as long as the account has a
+        // machine token and identity.
+        let project_sync_handle = match (
+            transport.clone(),
+            shared_machine_token.clone(),
+            config.daemon.dev_machine_id,
+            config
+                .cli
+                .as_ref()
+                .and_then(|cli| cli.workspace_slug.clone()),
+        ) {
+            (Some(shared), Some(token), Some(dev_machine_id), Some(workspace_slug)) => {
+                let client = MachineClient::new(shared, dev_machine_id, token);
+                let sync = crate::daemon::project_sync::ProjectSync::new(
+                    client,
+                    spawn_ctx.clone(),
+                    state.clone(),
+                    workspace_slug,
+                );
+                Some(tokio::spawn(async move { sync.run().await }))
+            }
+            _ => {
+                if !opts.offline {
+                    tracing::info!(
+                        "project sync disabled (missing dev_machine_id, mt_ token, or workspace binding)"
+                    );
+                }
+                None
+            }
+        };
+
         let shutdown = state.shutdown_notified();
         let sig = crate::util::signal::shutdown();
         tokio::select! {
@@ -231,6 +276,26 @@ impl Supervisor {
                 if let Err(e) = r { tracing::warn!("signal watcher failed: {e:#}"); }
             }
         }
+
+        // Freeze every source that can hot-add/remove runners before taking
+        // the in-flight snapshot below. The gate is closed while holding the
+        // same activation mutex used by runtime mutations, so an operation
+        // already inside its critical section completes first and no later
+        // operation can enter. Abort and await the external ingress tasks as
+        // well: this prevents ProjectSync, machine control, or IPC from
+        // changing the registry while shutdown is draining it.
+        spawn_ctx.freeze_mutations().await;
+        state.shutdown();
+        if let Some(handle) = machine_handle {
+            handle.abort();
+            let _ = handle.await;
+        }
+        if let Some(handle) = project_sync_handle {
+            handle.abort();
+            let _ = handle.await;
+        }
+        ipc_handle.abort();
+        let _ = ipc_handle.await;
 
         // Drain in-flight runs before tearing down: send RunFailed with
         // DaemonRestart so the cloud transitions each run to FAILED via
@@ -258,10 +323,6 @@ impl Supervisor {
         for h in refresh_handles {
             h.abort();
         }
-        if let Some(h) = machine_handle {
-            h.abort();
-        }
-        ipc_handle.abort();
         Ok(())
     }
 }
@@ -305,13 +366,56 @@ pub(crate) struct RunnerSpawnCtx {
     daemon_state: StateHandle,
     instances: Arc<std::sync::RwLock<HashMap<uuid::Uuid, RunnerInstance>>>,
     activation_lock: Arc<tokio::sync::Mutex<()>>,
+    /// Closed under `activation_lock` before shutdown drains the runner
+    /// registry. Every hot-add/remove path re-checks it while holding the same
+    /// lock, so the drain observes a stable set of runner instances.
+    accepting_mutations: Arc<AtomicBool>,
 }
 
 impl RunnerSpawnCtx {
+    #[cfg(test)]
+    pub(crate) fn for_project_sync_test(paths: Paths, config: &Config) -> Self {
+        Self {
+            transport: None,
+            shared_machine_token: config.cli.as_ref().and_then(|cli| cli.token.clone()),
+            paths,
+            daemon: config.daemon.clone(),
+            mailboxes: Arc::new(RwLock::new(HashMap::new())),
+            hello_runners: Arc::new(RwLock::new(HashMap::new())),
+            daemon_state: StateHandle::new(config.clone()),
+            instances: Arc::new(std::sync::RwLock::new(HashMap::new())),
+            activation_lock: Arc::new(tokio::sync::Mutex::new(())),
+            accepting_mutations: Arc::new(AtomicBool::new(true)),
+        }
+    }
+
+    pub(crate) async fn freeze_mutations(&self) {
+        let _activation = self.activation_lock.lock().await;
+        self.accepting_mutations.store(false, Ordering::SeqCst);
+    }
+
+    fn ensure_accepting_mutations(&self) -> Result<()> {
+        anyhow::ensure!(
+            self.accepting_mutations.load(Ordering::SeqCst),
+            "daemon is shutting down; runner mutations are disabled"
+        );
+        Ok(())
+    }
+
     pub(crate) async fn activate_configured(&self, name: &str) -> Result<()> {
         let cfg = crate::config::file::load_config(&self.paths)?;
         cfg.validate()
             .map_err(|e| anyhow::anyhow!("invalid config: {e}"))?;
+        self.check_config_identity(&cfg)?;
+        let runner = cfg
+            .runners
+            .into_iter()
+            .find(|r| r.name == name)
+            .ok_or_else(|| anyhow::anyhow!("no configured runner named {name:?}"))?;
+        self.add_runner(runner).await
+    }
+
+    pub(crate) fn check_config_identity(&self, cfg: &Config) -> Result<()> {
         if cfg.daemon.cloud_url != self.daemon.cloud_url
             || cfg.daemon.dev_machine_id != self.daemon.dev_machine_id
             || cfg.cli.as_ref().and_then(|cli| cli.token.as_deref())
@@ -319,12 +423,7 @@ impl RunnerSpawnCtx {
         {
             anyhow::bail!("daemon identity changed; restart before activating a runner");
         }
-        let runner = cfg
-            .runners
-            .into_iter()
-            .find(|r| r.name == name)
-            .ok_or_else(|| anyhow::anyhow!("no configured runner named {name:?}"))?;
-        self.add_runner(runner).await
+        Ok(())
     }
 
     pub(crate) fn cloud_url(&self) -> String {
@@ -339,6 +438,7 @@ impl RunnerSpawnCtx {
     /// process, and the graceful drain and IPC registry include hot-added runners.
     pub(crate) async fn add_runner(&self, runner_cfg: RunnerConfig) -> Result<()> {
         let _activation = self.activation_lock.lock().await;
+        self.ensure_accepting_mutations()?;
         if self
             .instances
             .read()
@@ -347,10 +447,22 @@ impl RunnerSpawnCtx {
         {
             return Ok(());
         }
+        let cfg = if self.transport.is_some() {
+            let cfg = crate::config::file::load_config(&self.paths)?;
+            self.check_config_identity(&cfg)?;
+            Some(cfg)
+        } else {
+            None
+        };
+        let machine_token = cfg
+            .as_ref()
+            .map(|cfg| machine_token_for_runner(cfg, &runner_cfg))
+            .transpose()?
+            .flatten();
         let inst = build_runner_instance(
             runner_cfg,
             self.transport.as_ref(),
-            self.shared_machine_token.as_deref(),
+            machine_token,
             &self.paths,
             &self.daemon,
         )
@@ -378,6 +490,190 @@ impl RunnerSpawnCtx {
         tracing::info!(runner_id = %inst.runner_id, name = %inst.name, "activated runner in running daemon");
         Ok(())
     }
+
+    pub(crate) fn configured_runners(&self) -> Result<Vec<RunnerConfig>> {
+        Ok(crate::config::file::load_config(&self.paths)?.runners)
+    }
+
+    pub(crate) fn local_runner_states(
+        &self,
+    ) -> Result<Vec<crate::daemon::project_sync::LocalRunnerState>> {
+        let configured = self.configured_runners()?;
+        let live = self.instances.read().expect("runner registry poisoned");
+        Ok(configured
+            .into_iter()
+            .map(|runner| crate::daemon::project_sync::LocalRunnerState {
+                runner_id: runner.runner_id,
+                workspace_slug: runner.workspace_slug,
+                project_id: runner.project_id,
+                project_slug: runner.project_slug,
+                binding_source: runner.binding_source,
+                live: live.contains_key(&runner.runner_id),
+            })
+            .collect())
+    }
+
+    /// Apply cloud-owned project identity changes to already-running
+    /// instances without restarting their assignment/chat workers. The
+    /// persisted config is updated first by ProjectSync; this method mirrors
+    /// that authoritative state into the live registry and the shared state
+    /// handle consumed by Hello, HTTP reconnect, IPC status, and new runs.
+    pub(crate) fn refresh_project_metadata(&self, configured: &[RunnerConfig]) -> usize {
+        let by_id: HashMap<uuid::Uuid, &RunnerConfig> = configured
+            .iter()
+            .map(|runner| (runner.runner_id, runner))
+            .collect();
+        let mut refreshed = 0;
+        let mut instances = self.instances.write().expect("runner registry poisoned");
+        for (runner_id, instance) in instances.iter_mut() {
+            let Some(configured_runner) = by_id.get(runner_id) else {
+                continue;
+            };
+            let project_changed = instance.config.project_slug != configured_runner.project_slug
+                || instance.config.project_id != configured_runner.project_id;
+            instance.config.project_slug = configured_runner.project_slug.clone();
+            instance.config.project_id = configured_runner.project_id;
+            instance.config.binding_source = configured_runner.binding_source;
+            instance.config.pod_id = configured_runner.pod_id;
+            instance
+                .state
+                .set_project_slug(configured_runner.project_slug.clone());
+            if project_changed {
+                refreshed += 1;
+            }
+        }
+        refreshed
+    }
+
+    /// Deliver the same teardown envelope used by the IPC remove command and
+    /// wait until the live actor has stopped workers, removed runtime data,
+    /// and stripped the config entry.  The ordering is deliberate: keeping
+    /// the config entry until runtime cleanup succeeds means a process crash
+    /// can reactivate and retry the runner instead of leaving an undiscoverable
+    /// orphan under `data/runners/<id>`.
+    pub(crate) async fn remove_runner(&self, runner_id: uuid::Uuid) -> Result<()> {
+        let _activation = self.activation_lock.lock().await;
+        self.ensure_accepting_mutations()?;
+
+        // Read before deleting anything so a legacy working directory nested
+        // inside the runner runtime tree remains protected during cleanup.
+        let configured_working_dir =
+            load_configured_runner_working_dir(&self.paths, runner_id).await?;
+        let live = self
+            .instances
+            .read()
+            .expect("runner registry poisoned")
+            .get(&runner_id)
+            .map(|inst| {
+                (
+                    inst.mailbox_tx.clone(),
+                    inst.teardown_complete_tx.subscribe(),
+                )
+            });
+        self.mailboxes.write().await.remove(&runner_id);
+        self.hello_runners.write().await.remove(&runner_id);
+
+        if let Some((mailbox, completion_rx)) = live {
+            let envelope = crate::cloud::protocol::Envelope::for_runner(
+                runner_id,
+                ServerMsg::RemoveRunner {
+                    runner_id,
+                    reason: Some("project no longer exists in cloud".to_string()),
+                },
+            );
+            if mailbox
+                .send(InboundEnvelope {
+                    stream_id: None,
+                    env: envelope,
+                })
+                .await
+                .is_err()
+            {
+                // A closed mailbox proves the actor no longer owns runtime
+                // resources. Evict the stale registry entry so the next
+                // at-least-once delivery can take the inactive cleanup path
+                // instead of retrying the same dead sender forever.
+                self.instances
+                    .write()
+                    .expect("runner registry poisoned")
+                    .remove(&runner_id);
+                // The receiver is dropped only after RunnerLoop exits.  Its
+                // completion channel therefore contains the authoritative
+                // result for a normal exit; a still-pending value indicates
+                // an abnormal task loss and must remain retryable/unacked.
+                return match completion_rx.borrow().clone() {
+                    RunnerTeardownOutcome::Succeeded => Ok(()),
+                    RunnerTeardownOutcome::Failed(detail) => {
+                        Err(anyhow::anyhow!("runner teardown failed: {detail}"))
+                    }
+                    RunnerTeardownOutcome::Pending => Err(anyhow::anyhow!(
+                        "runner loop exited before teardown completed"
+                    )),
+                };
+            }
+            return await_runner_teardown(completion_rx).await;
+        }
+
+        // No actor owns this runner.  Cleanup remains idempotent and follows
+        // the same crash-safe ordering as the live path: runtime first,
+        // config second.  A failed cleanup leaves the config discoverable for
+        // the next ProjectSync/MachineControl retry.
+        remove_runner_data_dir_preserving(
+            &self.paths,
+            runner_id,
+            configured_working_dir.as_deref(),
+        )?;
+        let _ = strip_runner_config(&self.paths, runner_id).await?;
+        Ok(())
+    }
+}
+
+async fn await_runner_teardown(
+    mut completion_rx: watch::Receiver<RunnerTeardownOutcome>,
+) -> Result<()> {
+    loop {
+        let outcome = completion_rx.borrow().clone();
+        match outcome {
+            RunnerTeardownOutcome::Pending => {}
+            RunnerTeardownOutcome::Succeeded => return Ok(()),
+            RunnerTeardownOutcome::Failed(detail) => {
+                return Err(anyhow::anyhow!("runner teardown failed: {detail}"));
+            }
+        }
+        completion_rx.changed().await.map_err(|_| {
+            anyhow::anyhow!("runner teardown completion channel closed while pending")
+        })?;
+    }
+}
+
+async fn load_configured_runner_working_dir(
+    paths: &Paths,
+    runner_id: uuid::Uuid,
+) -> Result<Option<std::path::PathBuf>> {
+    let paths = paths.clone();
+    tokio::task::spawn_blocking(move || {
+        let cfg = crate::config::file::load_config(&paths)?;
+        Ok::<_, anyhow::Error>(
+            cfg.runners
+                .into_iter()
+                .find(|runner| runner.runner_id == runner_id)
+                .map(|runner| runner.workspace.working_dir),
+        )
+    })
+    .await
+    .map_err(|err| anyhow::anyhow!("runner config read task failed: {err}"))?
+}
+
+async fn strip_runner_config(paths: &Paths, runner_id: uuid::Uuid) -> Result<Config> {
+    let paths = paths.clone();
+    tokio::task::spawn_blocking(move || {
+        crate::config::file::mutate_config_for_cleanup(&paths, |cfg| {
+            cfg.runners.retain(|runner| runner.runner_id != runner_id);
+            Ok(())
+        })
+    })
+    .await
+    .map_err(|err| anyhow::anyhow!("runner config cleanup task failed: {err}"))?
 }
 
 /// Handles of the tasks that drive one runner. `None` entries mean the
@@ -387,6 +683,22 @@ struct SpawnedInstanceTasks {
     runner_loop: Option<tokio::task::JoinHandle<()>>,
     http_loop: Option<tokio::task::JoinHandle<()>>,
     refresh: Option<tokio::task::JoinHandle<()>>,
+}
+
+struct TeardownCompletionGuard {
+    runner_id: uuid::Uuid,
+    tx: watch::Sender<RunnerTeardownOutcome>,
+}
+
+impl Drop for TeardownCompletionGuard {
+    fn drop(&mut self) {
+        if matches!(*self.tx.borrow(), RunnerTeardownOutcome::Pending) {
+            self.tx.send_replace(RunnerTeardownOutcome::Failed(format!(
+                "runner loop {} exited before teardown completed",
+                self.runner_id
+            )));
+        }
+    }
 }
 
 /// The binary this runner's configured agent kind will actually launch.
@@ -442,14 +754,22 @@ async fn spawn_instance_tasks(inst: &RunnerInstance, ctx: &RunnerSpawnCtx) -> Sp
     let inst_out = inst.out.clone();
     let inst_ack_tx = inst.ack_tx.clone();
     let inst_remove_tx = inst.remove_tx.clone();
+    let inst_teardown_complete_tx = inst.teardown_complete_tx.clone();
+    let inst_client = inst.client.clone();
+    let inst_chat_sessions = inst.chat_sessions.clone();
     let live_mailboxes = ctx.mailboxes.clone();
     let live_hello_runners = ctx.hello_runners.clone();
+    let live_instances = ctx.instances.clone();
     let daemon_paths = ctx.paths.clone();
     // The working dir reported to the cloud is this runner's single, exclusive
     // work dir.
     let attach_working_dir = resolve_working_dir(inst);
     let inst_chat_active = inst.chat_active.clone();
     let h = tokio::spawn(async move {
+        let _completion_guard = TeardownCompletionGuard {
+            runner_id: runner_paths.runner_id,
+            tx: inst_teardown_complete_tx.clone(),
+        };
         let run = RunnerLoop {
             runner_paths,
             paths: daemon_paths,
@@ -460,8 +780,12 @@ async fn spawn_instance_tasks(inst: &RunnerInstance, ctx: &RunnerSpawnCtx) -> Sp
             inbound: mailbox_rx,
             ack_tx: inst_ack_tx,
             remove_tx: inst_remove_tx,
+            teardown_complete_tx: inst_teardown_complete_tx,
+            client: inst_client,
+            local_chat_sessions: inst_chat_sessions,
             live_mailboxes,
             live_hello_runners,
+            live_instances,
             current_run: None,
             current_chat: None,
             local_chat_active: inst_chat_active,
@@ -518,8 +842,9 @@ async fn spawn_instance_tasks(inst: &RunnerInstance, ctx: &RunnerSpawnCtx) -> Sp
         tasks.http_loop = Some(http_handle);
 
         let refresh_state = inst.state.clone();
+        let refresh_teardown = inst.remove_tx.subscribe();
         let refresh_handle = tokio::spawn(async move {
-            refresh_loop(client, refresh_state).await;
+            refresh_loop(client, refresh_state, refresh_teardown).await;
         });
         tasks.refresh = Some(refresh_handle);
     }
@@ -615,6 +940,10 @@ async fn hello_emitter(
         let current_runners: Vec<HelloRunner> =
             { runners.read().await.values().cloned().collect() };
         for (out, state, project_slug) in current_runners {
+            // StateHandle is the live source of project identity after a
+            // cloud rename. Keep the tuple's legacy fallback for tests and
+            // old callers that do not populate it.
+            let project_slug = state.project_slug_now().or(project_slug);
             let hello = ClientMsg::Hello {
                 runner_id: out.runner_id(),
                 version: crate::RUNNER_VERSION.to_string(),
@@ -632,6 +961,33 @@ async fn hello_emitter(
             let _ = out.send(hello).await;
         }
     }
+}
+
+fn machine_token_for_runner<'a>(cfg: &'a Config, runner: &RunnerConfig) -> Result<Option<&'a str>> {
+    let Some(cli) = cfg.cli.as_ref().filter(|cli| {
+        cli.token
+            .as_deref()
+            .is_some_and(|token| token.starts_with("mt_"))
+    }) else {
+        return Ok(None);
+    };
+    let primary_workspace = cli.workspace_slug.as_deref().or_else(|| {
+        cfg.runners
+            .first()
+            .and_then(|runner| runner.workspace_slug.as_deref())
+    });
+    let workspace = runner.workspace_slug.as_deref();
+    let token = cli.machine_token_for_workspace(if workspace == primary_workspace {
+        None
+    } else {
+        workspace
+    });
+    anyhow::ensure!(
+        token.is_some(),
+        "no machine credential for workspace {:?}",
+        runner.workspace_slug
+    );
+    Ok(token)
 }
 
 async fn load_runner_credentials(
@@ -660,6 +1016,22 @@ async fn load_runner_credentials(
 /// normalized to an absolute path.
 fn resolve_working_dir(inst: &RunnerInstance) -> Option<std::path::PathBuf> {
     Some(canonical_for_compare(&inst.config.workspace.working_dir))
+}
+
+/// Remove only the runner-specific runtime tree. The configured working
+/// directory is intentionally outside this path and is never deleted by
+/// cloud/project reconciliation.
+#[cfg(test)]
+fn remove_runner_data_dir(paths: &Paths, runner_id: uuid::Uuid) -> Result<()> {
+    remove_runner_data_dir_preserving(paths, runner_id, None)
+}
+
+fn remove_runner_data_dir_preserving(
+    paths: &Paths,
+    runner_id: uuid::Uuid,
+    working_dir: Option<&std::path::Path>,
+) -> Result<()> {
+    paths.remove_runner_runtime_dir(runner_id, working_dir)
 }
 
 fn attach_body_for_instance(
@@ -702,7 +1074,11 @@ fn attach_body_for_instance(
     }
 }
 
-async fn refresh_loop(client: RunnerCloudClient, state: StateHandle) {
+async fn refresh_loop(
+    client: RunnerCloudClient,
+    state: StateHandle,
+    mut teardown_rx: watch::Receiver<bool>,
+) {
     // Acquire the shutdown Notify ONCE and pin it across the whole loop
     // so a `notify_one()` that fires between iterations isn't dropped on
     // the floor. Re-acquiring per-iteration would race: each iteration
@@ -712,6 +1088,9 @@ async fn refresh_loop(client: RunnerCloudClient, state: StateHandle) {
     let shutdown_fut = shutdown.notified();
     tokio::pin!(shutdown_fut);
     loop {
+        if *teardown_rx.borrow() {
+            return;
+        }
         let sleep_for = match client.access_token_exp().await {
             Some(exp) => {
                 let now = Utc::now();
@@ -726,10 +1105,26 @@ async fn refresh_loop(client: RunnerCloudClient, state: StateHandle) {
         tokio::select! {
             biased;
             _ = &mut shutdown_fut => return,
+            changed = teardown_rx.changed() => {
+                if changed.is_err() || *teardown_rx.borrow() {
+                    return;
+                }
+            }
             _ = tokio::time::sleep(sleep_for) => {}
         }
-        if let Err(e) = client.refresh().await {
-            tracing::error!(runner_id = %client.runner_id(), "scheduled refresh failed: {e:#}");
+        tokio::select! {
+            biased;
+            _ = &mut shutdown_fut => return,
+            changed = teardown_rx.changed() => {
+                if changed.is_err() || *teardown_rx.borrow() {
+                    return;
+                }
+            }
+            result = client.refresh() => {
+                if let Err(e) = result {
+                    tracing::error!(runner_id = %client.runner_id(), "scheduled refresh failed: {e:#}");
+                }
+            }
         }
     }
 }
@@ -799,8 +1194,18 @@ struct RunnerLoop {
     /// background tasks can stop even if they were not already blocked
     /// on the signal.
     remove_tx: tokio::sync::watch::Sender<bool>,
+    teardown_complete_tx: watch::Sender<RunnerTeardownOutcome>,
+    /// Client refresh uses a detached single-flight task which can still be
+    /// rotating credentials after its caller is cancelled.  Teardown waits
+    /// for that writer to go idle before deleting this runner's runtime tree.
+    client: Option<RunnerCloudClient>,
+    /// Local IPC chat is a separate execution lane from `current_chat`.
+    /// Closing this registry prevents new sessions and joins/shuts down every
+    /// bridge before runtime/config removal completes.
+    local_chat_sessions: crate::ipc::chat::ChatRegistry,
     live_mailboxes: Arc<RwLock<HashMap<uuid::Uuid, mpsc::Sender<InboundEnvelope>>>>,
     live_hello_runners: Arc<RwLock<HelloRunnerMap>>,
+    live_instances: Arc<std::sync::RwLock<HashMap<uuid::Uuid, RunnerInstance>>>,
     /// In-flight run, if any. Replaced on each Assign and cleared as soon as
     /// the worker task signals completion via `done_rx` — driven by
     /// `tokio::select!` so a new Assign isn't rejected while we wait for the
@@ -973,7 +1378,7 @@ impl RunnerLoop {
                 }
             };
             let Some(frame) = frame else { break };
-            let stream_id = frame.stream_id.clone();
+            let mut stream_id = frame.stream_id.clone();
             let frame = frame.env;
             let mut should_break = false;
 
@@ -1062,6 +1467,7 @@ impl RunnerLoop {
                 ServerMsg::Assign {
                     run_id,
                     work_item_identifier,
+                    project_name,
                     prompt,
                     repo_url,
                     expected_codex_model,
@@ -1169,6 +1575,7 @@ impl RunnerLoop {
                             .run(
                                 run_id,
                                 work_item_identifier,
+                                project_name,
                                 prompt,
                                 repo_url,
                                 expected_codex_model,
@@ -1476,22 +1883,15 @@ impl RunnerLoop {
                         "cloud removed runner {runner_id}: {}",
                         reason.as_deref().unwrap_or("(no reason)"),
                     );
-                    if let Some(run) = &self.current_run {
-                        run.cancel.cancel();
-                    }
-                    // B4: tear down the chat lane too. RemoveRunner previously
-                    // cancelled only the run lane, leaving the chat worker (and
-                    // its bridge) to be aborted when the RunnerLoop exits, with
-                    // no terminal `ChatClosed` for the client.
-                    if let Some(chat) = &self.current_chat {
-                        let _ = chat.tx.send(ChatCommand::Shutdown).await;
-                    }
                     // Tell the heartbeat task to exit before we drop
                     // out of the loop. Without this it would keep
                     // emitting frames carrying this runner's id and
                     // the cloud would drop each one with an
                     // `unknown rid` warning until the daemon restarts.
-                    let _ = self.remove_tx.send(true);
+                    // This is a teardown latch, not a best-effort notification.
+                    // `send_replace` records the value even for offline runners
+                    // that currently have no HTTP/refresh watch receiver.
+                    self.remove_tx.send_replace(true);
                     self.live_mailboxes
                         .write()
                         .await
@@ -1500,47 +1900,64 @@ impl RunnerLoop {
                         .write()
                         .await
                         .remove(&self.runner_paths.runner_id);
-                    // Best-effort cleanup of this runner's local data
-                    // dir. The on-disk state is keyed by runner_id and
-                    // is dead weight once the cloud-side row is gone.
-                    let runner_dir = self.runner_paths.base_dir().to_path_buf();
-                    if runner_dir.exists()
-                        && let Err(e) = std::fs::remove_dir_all(&runner_dir)
-                    {
-                        tracing::warn!(
-                            "failed to delete {:?}: {e:#} (file removal is best-effort)",
-                            runner_dir,
-                        );
-                    }
-                    // Strip the matching `[[runner]]` block from
-                    // config.toml under the host-wide config lock so a
-                    // concurrent `karma-team runner add` can't lose its
-                    // write. Without this the next daemon restart would
-                    // re-Hello for the dead runner_id and the cloud
-                    // would tear it down again on every boot.
-                    //
-                    // The systemd unit (`karma-team.service`) hosts every
-                    // runner under one process, so we deliberately
-                    // never touch it here — only `karma-team uninstall`
-                    // does. If this was the last runner, log a hint
-                    // so the operator knows they can remove the unit.
                     let target_runner_id = self.runner_paths.runner_id;
                     let runner_name = self.runner_config.name.clone();
-                    let paths_for_strip = self.paths.clone();
-                    let strip_result = tokio::task::spawn_blocking(move || {
-                        crate::config::file::mutate_config_for_cleanup(&paths_for_strip, |cfg| {
-                            cfg.runners.retain(|r| r.runner_id != target_runner_id);
-                            Ok(())
-                        })
-                    })
+                    let teardown_result = async {
+                        // Capture the persisted path before cleanup so legacy
+                        // working copies nested below the runtime root remain
+                        // protected.  If config cannot be read, fail closed:
+                        // deleting first could destroy an unknown checkout.
+                        let teardown_working_dir =
+                            load_configured_runner_working_dir(&self.paths, target_runner_id)
+                                .await?
+                                .unwrap_or_else(|| {
+                                    self.runner_config.workspace.working_dir.clone()
+                                });
+
+                        // Stop both detached resource owners before removing
+                        // their filesystem root.  HTTP/refresh observe the
+                        // latched remove signal above; an in-flight refresh is
+                        // explicitly joined because it may rotate credentials
+                        // from a spawned single-flight task.  Local IPC chat
+                        // has its own registry and must be closed separately
+                        // from the cloud `current_chat` lane.
+                        if let Some(client) = &self.client {
+                            client.wait_for_refresh_idle().await;
+                        }
+                        self.local_chat_sessions.shutdown_all().await?;
+
+                        // Cancel both execution lanes and wait for their final
+                        // persistence before deleting runtime data.  Only
+                        // after that succeeds do we remove the discoverable
+                        // config entry; a crash in either earlier phase leaves
+                        // enough state for ProjectSync to retry.
+                        finish_runner_teardown(
+                            &self.paths,
+                            target_runner_id,
+                            Some(&teardown_working_dir),
+                            &mut self.current_run,
+                            &mut self.current_chat,
+                        )
+                        .await?;
+                        strip_runner_config(&self.paths, target_runner_id).await
+                    }
                     .await;
-                    match strip_result {
-                        Ok(Ok(post)) => {
+
+                    // Keep the instance registered while teardown is in
+                    // progress. Concurrent/repeated remove calls then find the
+                    // live owner and wait on the same completion outcome,
+                    // instead of racing it with independent cleanup.
+                    self.live_instances
+                        .write()
+                        .expect("runner registry poisoned")
+                        .remove(&target_runner_id);
+                    match teardown_result {
+                        Ok(post) => {
                             tracing::info!(
                                 runner = %runner_name,
                                 runner_id = %target_runner_id,
                                 remaining = post.runners.len(),
-                                "stripped [[runner]] block from config.toml",
+                                "runner teardown completed and config entry was removed",
                             );
                             if post.runners.is_empty() {
                                 tracing::warn!(
@@ -1550,21 +1967,22 @@ impl RunnerLoop {
                                      no longer need the daemon on this host.",
                                 );
                             }
+                            self.teardown_complete_tx
+                                .send_replace(RunnerTeardownOutcome::Succeeded);
                         }
-                        Ok(Err(e)) => {
-                            tracing::warn!(
+                        Err(error) => {
+                            let detail = format!("{error:#}");
+                            tracing::error!(
                                 runner = %runner_name,
                                 runner_id = %target_runner_id,
-                                "failed to strip [[runner]] block from \
-                                 config.toml: {e:#}. Run \
-                                 `karma-team runner remove --local-only \
-                                 --yes {runner_name}` to clean it up by \
-                                 hand; otherwise the next daemon restart \
-                                 will re-Hello this id.",
+                                %detail,
+                                "runner teardown failed; config retained for retry",
                             );
-                        }
-                        Err(join_err) => {
-                            tracing::warn!("config-strip task panicked: {join_err:#}",);
+                            self.teardown_complete_tx
+                                .send_replace(RunnerTeardownOutcome::Failed(detail));
+                            // At-least-once runner streams must not ACK a
+                            // teardown that failed before config removal.
+                            stream_id = None;
                         }
                     }
                     should_break = true;
@@ -1598,6 +2016,38 @@ async fn wait_chat_done(current: &mut Option<CurrentChat>) {
         }
         None => std::future::pending().await,
     }
+}
+
+/// Stop runner-owned workers and remove their runtime tree only after every
+/// worker has completed its final persistence step. `AssignWorker` writes the
+/// runs index while unwinding cancellation, so deleting first would allow that
+/// final save to recreate `data/runners/<runner_id>` after a successful
+/// RemoveRunner operation.
+async fn finish_runner_teardown(
+    paths: &Paths,
+    runner_id: uuid::Uuid,
+    working_dir: Option<&std::path::Path>,
+    current_run: &mut Option<CurrentRun>,
+    current_chat: &mut Option<CurrentChat>,
+) -> Result<()> {
+    let mut run = current_run.take();
+    if let Some(run) = &run {
+        run.cancel.cancel();
+    }
+
+    let mut chat = current_chat.take();
+    if let Some(chat) = &chat {
+        let _ = chat.tx.send(ChatCommand::Shutdown).await;
+    }
+
+    if let Some(run) = &mut run {
+        let _ = (&mut run.done_rx).await;
+    }
+    if let Some(chat) = &mut chat {
+        let _ = (&mut chat.done_rx).await;
+    }
+
+    remove_runner_data_dir_preserving(paths, runner_id, working_dir)
 }
 
 fn chat_resume_id(local_session_id: Option<&str>, local_thread_id: Option<&str>) -> Option<String> {
@@ -2687,6 +3137,7 @@ impl AssignWorker {
         &mut self,
         run_id: uuid::Uuid,
         issue_identifier: Option<String>,
+        project_name: Option<String>,
         prompt: String,
         repo_url: Option<String>,
         expected_codex_model: Option<String>,
@@ -2694,6 +3145,7 @@ impl AssignWorker {
         self.handle_assign(
             run_id,
             issue_identifier,
+            project_name,
             prompt,
             repo_url,
             expected_codex_model,
@@ -2705,21 +3157,31 @@ impl AssignWorker {
         &mut self,
         run_id: uuid::Uuid,
         issue_identifier: Option<String>,
+        project_name: Option<String>,
         prompt: String,
         repo_url: Option<String>,
         expected_codex_model: Option<String>,
     ) -> Result<()> {
         // Scope the run id (and issue key) over everything this run does so
         // every agent subprocess the bridges spawn (and re-spawn per turn)
-        // inherits `KARMA_TEAM_RUN_ID` / `KARMA_TEAM_ISSUE_IDENTIFIER` — see
-        // `util::shell::RUN_ENV`.
+        // inherits the run, work item, and workspace identity — see
+        // `util::shell::RUN_ENV`. Login defaults may belong to another workspace.
         crate::util::shell::RUN_ENV
             .scope(
                 crate::util::shell::RunEnv {
                     run_id,
-                    issue_identifier,
+                    issue_identifier: issue_identifier.clone(),
+                    workspace_slug: self.runner_config.workspace_slug.clone(),
+                    project_id: self.runner_config.project_id,
                 },
-                self.handle_assign_inner(run_id, prompt, repo_url, expected_codex_model),
+                self.handle_assign_inner(
+                    run_id,
+                    issue_identifier,
+                    project_name,
+                    prompt,
+                    repo_url,
+                    expected_codex_model,
+                ),
             )
             .await
     }
@@ -2727,14 +3189,78 @@ impl AssignWorker {
     async fn handle_assign_inner(
         &mut self,
         run_id: uuid::Uuid,
+        work_item_identifier: Option<String>,
+        project_name: Option<String>,
         prompt: String,
         repo_url: Option<String>,
         expected_codex_model: Option<String>,
     ) -> Result<()> {
-        // Resolve the directory the agent runs in: this runner's single,
-        // exclusive `workspace.working_dir`. Clone-bootstrap it once if a repo
-        // url is provided (`resolve` tolerates a non-git task folder too).
-        let workspace_path = {
+        // Karma owns the project root; repository bootstrap and the agent
+        // session both happen from the dedicated operation directory. Other
+        // agent bridges retain the historical runner workspace behavior.
+        let runtime_project_slug = self.state.project_slug_now();
+        let workspace_path = if self.runner_config.agent.kind == AgentKind::Karma {
+            let project_name = project_name
+                .as_deref()
+                .filter(|name| !name.trim().is_empty())
+                .or(runtime_project_slug.as_deref())
+                .or(self.runner_config.project_slug.as_deref())
+                .unwrap_or(self.runner_config.name.as_str());
+            let operation_dir = match crate::karma::project::prepare_operation_dir(
+                &self.runner_config.karma.binary,
+                project_name,
+                &self.runner_config.name,
+                work_item_identifier.as_deref(),
+                run_id,
+            )
+            .await
+            {
+                Ok(path) => path,
+                Err(e) => {
+                    self.send(ClientMsg::RunFailed {
+                        run_id,
+                        reason: FailureReason::WorkspaceSetup,
+                        detail: Some(format!("preparing Karma project workspace: {e:#}")),
+                        ended_at: Utc::now(),
+                        tokens: None,
+                        model: None,
+                    })
+                    .await;
+                    self.state.set_current_run(None).await;
+                    return Ok(());
+                }
+            };
+            // Bootstrap the repository inside the isolated operation
+            // directory. Karma's bridge starts the session directly from
+            // this already-bound checkout.
+            match crate::workspace::resolve(&operation_dir, repo_url.as_deref()).await {
+                Ok(crate::workspace::Resolution::ExistingRepo(path))
+                | Ok(crate::workspace::Resolution::Cloned(path))
+                | Ok(crate::workspace::Resolution::Directory(path)) => path,
+                Err(e) => {
+                    let reason = match &e {
+                        crate::workspace::ResolveError::Clone(_) => FailureReason::GitAuth,
+                        crate::workspace::ResolveError::NonEmptyNonRepo(_)
+                        | crate::workspace::ResolveError::UnsupportedScheme(_)
+                        | crate::workspace::ResolveError::Io(_) => FailureReason::WorkspaceSetup,
+                    };
+                    self.send(ClientMsg::RunFailed {
+                        run_id,
+                        reason,
+                        detail: Some(format!("preparing Karma repository: {e}")),
+                        ended_at: Utc::now(),
+                        tokens: None,
+                        model: None,
+                    })
+                    .await;
+                    self.state.set_current_run(None).await;
+                    return Ok(());
+                }
+            }
+        } else {
+            // Resolve the directory the agent runs in: this runner's single,
+            // exclusive `workspace.working_dir`. Clone-bootstrap it once if a
+            // repo url is provided (`resolve` tolerates a non-git task folder).
             let wd = self.runner_config.workspace.working_dir.clone();
             match crate::workspace::resolve(&wd, repo_url.as_deref()).await {
                 Ok(crate::workspace::Resolution::ExistingRepo(p))
@@ -2767,7 +3293,9 @@ impl AssignWorker {
                 }
             }
         };
-        if let Some(project_ref) = self.runner_config.project_slug.as_deref()
+        if let Some(project_ref) = runtime_project_slug
+            .as_deref()
+            .or(self.runner_config.project_slug.as_deref())
             && let Err(err) = crate::cli::context::write_context_for_project(
                 &self.daemon_paths,
                 &workspace_path,
@@ -3495,6 +4023,10 @@ fn uuid_or(s: &str) -> uuid::Uuid {
 #[path = "tests/issue_run_agent_env.rs"]
 mod issue_run_agent_env_tests;
 
+#[cfg(all(test, unix))]
+#[path = "tests/karma_workspace_retention.rs"]
+mod karma_workspace_retention_tests;
+
 #[cfg(test)]
 mod tests {
     //! In-module tests: cover the Supervisor's *internal* helpers that
@@ -3531,6 +4063,8 @@ mod tests {
             runner_id: uuid::Uuid::new_v4(),
             workspace_slug: Some("acme".into()),
             project_slug: Some(project_slug.into()),
+            project_id: None,
+            binding_source: None,
             pod_id: None,
             workspace: WorkspaceSection { working_dir },
             agent: AgentSection::default(),
@@ -3543,6 +4077,155 @@ mod tests {
             karma: crate::config::schema::KarmaSection::default(),
             approval_policy: ApprovalPolicySection::default(),
         }
+    }
+
+    #[tokio::test]
+    async fn runner_credentials_follow_workspace_and_support_legacy_default() {
+        use crate::config::schema::CliSection;
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let primary = runner_config("primary", "WEB", tmp.path().join("primary"));
+        let mut secondary = runner_config("secondary", "WEB", tmp.path().join("secondary"));
+        secondary.workspace_slug = Some("shared".into());
+        let config = Config {
+            version: 2,
+            daemon: DaemonConfig::default(),
+            cli: Some(CliSection {
+                token: Some("mt_primary".into()),
+                workspace_tokens: [("shared".into(), "mt_shared".into())].into(),
+                ..Default::default()
+            }),
+            runners: vec![primary.clone(), secondary.clone()],
+        };
+        assert_eq!(
+            machine_token_for_runner(&config, &primary).unwrap(),
+            Some("mt_primary")
+        );
+        let token = machine_token_for_runner(&config, &secondary).unwrap();
+        assert_eq!(token, Some("mt_shared"));
+        let credentials = load_runner_credentials(
+            &paths.for_runner(secondary.runner_id),
+            &secondary.name,
+            token,
+        )
+        .await
+        .unwrap();
+        let client = RunnerCloudClient::new(
+            secondary.runner_id,
+            credentials,
+            SharedHttpTransport::new("http://127.0.0.1:1".into()).unwrap(),
+        );
+        assert_eq!(client.ensure_access_token().await.unwrap().raw, "mt_shared");
+        let mut missing = secondary.clone();
+        missing.workspace_slug = Some("unknown".into());
+        assert!(machine_token_for_runner(&config, &missing).is_err());
+    }
+
+    #[test]
+    fn inactive_runner_cleanup_removes_only_runner_specific_data() {
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let target = uuid::Uuid::new_v4();
+        let unrelated = uuid::Uuid::new_v4();
+        let target_dir = paths.for_runner(target).base_dir().to_path_buf();
+        let unrelated_dir = paths.for_runner(unrelated).base_dir().to_path_buf();
+        std::fs::create_dir_all(&target_dir).unwrap();
+        std::fs::create_dir_all(&unrelated_dir).unwrap();
+        std::fs::write(target_dir.join("credentials.toml"), "secret").unwrap();
+        std::fs::write(unrelated_dir.join("history.jsonl"), "keep").unwrap();
+
+        remove_runner_data_dir(&paths, target).unwrap();
+
+        assert!(!target_dir.exists());
+        assert!(unrelated_dir.exists());
+        assert!(unrelated_dir.join("history.jsonl").exists());
+    }
+
+    #[test]
+    fn concurrent_runner_data_cleanup_is_idempotent() {
+        // A cloud RemoveRunner frame and the snapshot reconciler can clean the
+        // same runner concurrently. Every caller must observe success even if
+        // another caller removes the tree between its metadata check and
+        // `remove_dir_all`.
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = Arc::new(paths_for(tmp.path()));
+        let runner_id = uuid::Uuid::new_v4();
+        let runner_dir = paths.for_runner(runner_id).base_dir().to_path_buf();
+        std::fs::create_dir_all(runner_dir.join("nested")).unwrap();
+        for index in 0..256 {
+            std::fs::write(
+                runner_dir.join("nested").join(format!("state-{index}")),
+                b"state",
+            )
+            .unwrap();
+        }
+
+        let workers = 16;
+        let barrier = Arc::new(std::sync::Barrier::new(workers));
+        let handles: Vec<_> = (0..workers)
+            .map(|_| {
+                let paths = Arc::clone(&paths);
+                let barrier = Arc::clone(&barrier);
+                std::thread::spawn(move || {
+                    barrier.wait();
+                    remove_runner_data_dir(&paths, runner_id)
+                })
+            })
+            .collect();
+
+        for handle in handles {
+            handle
+                .join()
+                .expect("cleanup worker panicked")
+                .expect("duplicate cleanup must be a no-op");
+        }
+        assert!(!runner_dir.exists());
+    }
+
+    #[tokio::test]
+    async fn runner_teardown_deletes_data_only_after_worker_finishes() {
+        // A cancelled AssignWorker persists RunsIndex as its final action.
+        // If RemoveRunner deletes the runtime tree before waiting for that
+        // worker, RunsIndex::save recreates the supposedly released runner
+        // directory after teardown has completed.
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let runner_id = uuid::Uuid::new_v4();
+        let runner_paths = paths.for_runner(runner_id);
+        runner_paths.ensure().unwrap();
+
+        let cancel = tokio_util::sync::CancellationToken::new();
+        let worker_cancel = cancel.clone();
+        let worker_paths = runner_paths.clone();
+        let (done_tx, done_rx) = oneshot::channel();
+        let worker = tokio::spawn(async move {
+            worker_cancel.cancelled().await;
+            let mut index = RunsIndex::default();
+            index.upsert(RunSummary {
+                run_id: uuid::Uuid::new_v4(),
+                work_item_id: None,
+                status: "cancelled".into(),
+                started_at: Utc::now(),
+                ended_at: Some(Utc::now()),
+                title: None,
+            });
+            index.save(&worker_paths).unwrap();
+            let _ = done_tx.send(());
+        });
+        let mut current_run = Some(CurrentRun {
+            run_id: uuid::Uuid::new_v4(),
+            cancel,
+            done_rx,
+        });
+        let mut current_chat = None;
+
+        finish_runner_teardown(&paths, runner_id, None, &mut current_run, &mut current_chat)
+            .await
+            .unwrap();
+        worker.await.unwrap();
+
+        assert!(current_run.is_none());
+        assert!(!runner_paths.base_dir().exists());
     }
 
     #[test]
@@ -3596,6 +4279,7 @@ mod tests {
             worker
                 .run(
                     uuid::Uuid::new_v4(),
+                    None,
                     None,
                     "Summarize these notes".into(),
                     None,
@@ -3958,6 +4642,495 @@ mod tests {
         ];
         expected.sort_by_key(|(id, _)| *id);
         assert_eq!(received, expected);
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn hello_emitter_reads_project_slug_after_runtime_rename() {
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let (out_tx, mut out_rx) = mpsc::channel::<Envelope<ClientMsg>>(4);
+        let inst = RunnerInstance::new(
+            runner_config("laptop-web", "OLD_WEB", tmp.path().join("wd-web")),
+            &paths,
+            out_tx,
+        );
+        let runners: Arc<RwLock<HelloRunnerMap>> = Arc::new(RwLock::new(
+            std::iter::once((
+                inst.runner_id,
+                (
+                    inst.out.clone(),
+                    inst.state.clone(),
+                    inst.config.project_slug.clone(),
+                ),
+            ))
+            .collect(),
+        ));
+        inst.state.set_project_slug(Some("WEB".into()));
+
+        let connected = Arc::new(Notify::new());
+        let task = tokio::spawn(hello_emitter(
+            runners,
+            connected.clone(),
+            StateHandle::new(crate::config::schema::Config {
+                version: 2,
+                daemon: Default::default(),
+                runners: vec![],
+                cli: None,
+            }),
+        ));
+        connected.notify_one();
+
+        let env = tokio::time::timeout(Duration::from_secs(2), out_rx.recv())
+            .await
+            .expect("timed out waiting for Hello")
+            .expect("channel closed before Hello arrived");
+        task.abort();
+        match env.body {
+            ClientMsg::Hello { project_slug, .. } => {
+                assert_eq!(project_slug.as_deref(), Some("WEB"));
+            }
+            other => panic!("expected Hello, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn spawn_context_refreshes_live_instance_project_metadata() {
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let (out_tx, _out_rx) = mpsc::channel::<Envelope<ClientMsg>>(4);
+        let inst = RunnerInstance::new(
+            runner_config("laptop-web", "OLD_WEB", tmp.path().join("wd-web")),
+            &paths,
+            out_tx,
+        );
+        let runner_id = inst.runner_id;
+        let state = inst.state.clone();
+        let mut renamed = inst.config.clone();
+        let project_id = uuid::Uuid::new_v4();
+        renamed.project_slug = Some("WEB".into());
+        renamed.project_id = Some(project_id);
+
+        let ctx = RunnerSpawnCtx {
+            transport: None,
+            shared_machine_token: None,
+            paths,
+            daemon: Default::default(),
+            mailboxes: Arc::new(RwLock::new(HashMap::new())),
+            hello_runners: Arc::new(RwLock::new(HashMap::new())),
+            daemon_state: StateHandle::new(Config {
+                version: 2,
+                daemon: Default::default(),
+                runners: vec![],
+                cli: None,
+            }),
+            instances: Arc::new(std::sync::RwLock::new(HashMap::from([(runner_id, inst)]))),
+            activation_lock: Arc::new(tokio::sync::Mutex::new(())),
+            accepting_mutations: Arc::new(AtomicBool::new(true)),
+        };
+
+        assert_eq!(ctx.refresh_project_metadata(&[renamed]), 1);
+        assert_eq!(state.project_slug_now().as_deref(), Some("WEB"));
+        let instances = ctx.instances.read().expect("runner registry poisoned");
+        let live = instances.get(&runner_id).expect("live runner");
+        assert_eq!(live.config.project_slug.as_deref(), Some("WEB"));
+        assert_eq!(live.config.project_id, Some(project_id));
+    }
+
+    #[tokio::test]
+    async fn shutdown_freeze_rejects_late_runner_activation() {
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        paths.ensure().unwrap();
+        let runner = runner_config("late-runner", "LATE", tmp.path().join("wd-late"));
+        let runner_id = runner.runner_id;
+        let ctx = RunnerSpawnCtx {
+            transport: None,
+            shared_machine_token: None,
+            paths,
+            daemon: Default::default(),
+            mailboxes: Arc::new(RwLock::new(HashMap::new())),
+            hello_runners: Arc::new(RwLock::new(HashMap::new())),
+            daemon_state: StateHandle::new(Config {
+                version: 2,
+                daemon: Default::default(),
+                runners: vec![],
+                cli: None,
+            }),
+            instances: Arc::new(std::sync::RwLock::new(HashMap::new())),
+            activation_lock: Arc::new(tokio::sync::Mutex::new(())),
+            accepting_mutations: Arc::new(AtomicBool::new(true)),
+        };
+
+        // Freeze must serialize behind a mutation already in its critical
+        // section, then permanently reject work that arrives afterwards.
+        let mutation_guard = ctx.activation_lock.lock().await;
+        let freeze_ctx = ctx.clone();
+        let freeze = tokio::spawn(async move { freeze_ctx.freeze_mutations().await });
+        tokio::task::yield_now().await;
+        assert!(ctx.accepting_mutations.load(Ordering::SeqCst));
+        drop(mutation_guard);
+        freeze.await.unwrap();
+
+        let error = ctx.add_runner(runner).await.unwrap_err().to_string();
+
+        assert!(error.contains("shutting down"), "{error}");
+        assert!(
+            !ctx.instances
+                .read()
+                .expect("runner registry poisoned")
+                .contains_key(&runner_id)
+        );
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn concurrent_live_remove_waits_for_teardown_and_is_idempotent() {
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        paths.ensure().unwrap();
+        let working_dir = tmp.path().join("wd");
+        std::fs::create_dir_all(&working_dir).unwrap();
+        std::fs::write(working_dir.join("checkout-marker"), b"preserve").unwrap();
+        let runner = runner_config("remove-once", "WEB", working_dir.clone());
+        let runner_id = runner.runner_id;
+        let config = Config {
+            version: 2,
+            daemon: Default::default(),
+            runners: vec![runner.clone()],
+            cli: None,
+        };
+        crate::config::file::write_config(&paths, &config).unwrap();
+
+        let (out_tx, _out_rx) = mpsc::channel::<Envelope<ClientMsg>>(4);
+        let inst = RunnerInstance::new(runner, &paths, out_tx);
+        let runner_dir = inst.paths.base_dir().to_path_buf();
+        inst.paths.ensure().unwrap();
+        std::fs::write(runner_dir.join("owned-by-live-loop"), b"keep-until-done").unwrap();
+
+        let mailbox_rx = inst.take_mailbox_rx().await.unwrap();
+        let mailboxes = Arc::new(RwLock::new(HashMap::from([(
+            runner_id,
+            inst.mailbox_tx.clone(),
+        )])));
+        let hello_runners = Arc::new(RwLock::new(HashMap::new()));
+        let instances = Arc::new(std::sync::RwLock::new(HashMap::from([(
+            runner_id,
+            inst.clone(),
+        )])));
+        let cancel = tokio_util::sync::CancellationToken::new();
+        let worker_cancel = cancel.clone();
+        let cancel_observed = Arc::new(Notify::new());
+        let worker_cancel_observed = cancel_observed.clone();
+        let release_worker = Arc::new(Notify::new());
+        let worker_release = release_worker.clone();
+        let (done_tx, done_rx) = oneshot::channel();
+        let worker = tokio::spawn(async move {
+            worker_cancel.cancelled().await;
+            worker_cancel_observed.notify_one();
+            worker_release.notified().await;
+            let _ = done_tx.send(());
+        });
+        let runner_loop = RunnerLoop {
+            runner_paths: inst.paths.clone(),
+            paths: paths.clone(),
+            runner_config: inst.config.clone(),
+            out: inst.out.clone(),
+            state: inst.state.clone(),
+            approvals: inst.approvals.clone(),
+            inbound: mailbox_rx,
+            ack_tx: inst.ack_tx.clone(),
+            remove_tx: inst.remove_tx.clone(),
+            teardown_complete_tx: inst.teardown_complete_tx.clone(),
+            client: None,
+            local_chat_sessions: inst.chat_sessions.clone(),
+            live_mailboxes: mailboxes.clone(),
+            live_hello_runners: hello_runners.clone(),
+            live_instances: instances.clone(),
+            current_run: Some(CurrentRun {
+                run_id: uuid::Uuid::new_v4(),
+                cancel,
+                done_rx,
+            }),
+            current_chat: None,
+            local_chat_active: inst.chat_active.clone(),
+        };
+        let runner_loop_task = tokio::spawn(runner_loop.run());
+        let ctx = RunnerSpawnCtx {
+            transport: None,
+            shared_machine_token: None,
+            paths: paths.clone(),
+            daemon: Default::default(),
+            mailboxes,
+            hello_runners,
+            daemon_state: StateHandle::new(config.clone()),
+            instances,
+            activation_lock: Arc::new(tokio::sync::Mutex::new(())),
+            accepting_mutations: Arc::new(AtomicBool::new(true)),
+        };
+
+        let first_ctx = ctx.clone();
+        let first = tokio::spawn(async move { first_ctx.remove_runner(runner_id).await });
+        let second_ctx = ctx.clone();
+        let second = tokio::spawn(async move { second_ctx.remove_runner(runner_id).await });
+        tokio::time::timeout(Duration::from_secs(2), cancel_observed.notified())
+            .await
+            .expect("runner worker was not cancelled");
+        tokio::task::yield_now().await;
+
+        assert!(
+            runner_dir.exists(),
+            "runtime must remain until the worker finishes"
+        );
+        assert!(
+            crate::config::file::load_config(&paths)
+                .unwrap()
+                .runners
+                .iter()
+                .any(|runner| runner.runner_id == runner_id),
+            "config must remain discoverable until runtime cleanup completes"
+        );
+        assert!(!first.is_finished(), "remove returned before teardown");
+        assert!(
+            !second.is_finished(),
+            "concurrent remove returned before teardown"
+        );
+
+        release_worker.notify_one();
+        tokio::time::timeout(Duration::from_secs(2), first)
+            .await
+            .expect("first remove timed out")
+            .unwrap()
+            .unwrap();
+        tokio::time::timeout(Duration::from_secs(2), second)
+            .await
+            .expect("second remove timed out")
+            .unwrap()
+            .unwrap();
+        worker.await.unwrap();
+        runner_loop_task.await.unwrap().unwrap();
+
+        assert!(!runner_dir.exists());
+        assert!(working_dir.join("checkout-marker").exists());
+        assert!(
+            crate::config::file::load_config(&paths)
+                .unwrap()
+                .runners
+                .is_empty()
+        );
+        assert!(
+            !ctx.instances
+                .read()
+                .expect("runner registry poisoned")
+                .contains_key(&runner_id)
+        );
+
+        // A redelivered command after the actor has exited is a no-op success.
+        ctx.remove_runner(runner_id).await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn teardown_failure_keeps_config_and_inactive_retry_succeeds() {
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        paths.ensure().unwrap();
+        let working_dir = tmp.path().join("wd");
+        std::fs::create_dir_all(&working_dir).unwrap();
+        std::fs::write(working_dir.join("checkout-marker"), b"preserve").unwrap();
+        let runner = runner_config("retry-remove", "WEB", working_dir.clone());
+        let runner_id = runner.runner_id;
+        let config = Config {
+            version: 2,
+            daemon: Default::default(),
+            runners: vec![runner.clone()],
+            cli: None,
+        };
+        crate::config::file::write_config(&paths, &config).unwrap();
+
+        let (out_tx, _out_rx) = mpsc::channel::<Envelope<ClientMsg>>(4);
+        let inst = RunnerInstance::new(runner, &paths, out_tx);
+        let runner_dir = inst.paths.base_dir().to_path_buf();
+        std::fs::create_dir_all(runner_dir.parent().unwrap()).unwrap();
+        std::fs::write(&runner_dir, b"not-a-directory").unwrap();
+        let mailbox_rx = inst.take_mailbox_rx().await.unwrap();
+        let mailboxes = Arc::new(RwLock::new(HashMap::from([(
+            runner_id,
+            inst.mailbox_tx.clone(),
+        )])));
+        let hello_runners = Arc::new(RwLock::new(HashMap::new()));
+        let instances = Arc::new(std::sync::RwLock::new(HashMap::from([(
+            runner_id,
+            inst.clone(),
+        )])));
+        let runner_loop = RunnerLoop {
+            runner_paths: inst.paths.clone(),
+            paths: paths.clone(),
+            runner_config: inst.config.clone(),
+            out: inst.out.clone(),
+            state: inst.state.clone(),
+            approvals: inst.approvals.clone(),
+            inbound: mailbox_rx,
+            ack_tx: inst.ack_tx.clone(),
+            remove_tx: inst.remove_tx.clone(),
+            teardown_complete_tx: inst.teardown_complete_tx.clone(),
+            client: None,
+            local_chat_sessions: inst.chat_sessions.clone(),
+            live_mailboxes: mailboxes.clone(),
+            live_hello_runners: hello_runners.clone(),
+            live_instances: instances.clone(),
+            current_run: None,
+            current_chat: None,
+            local_chat_active: inst.chat_active.clone(),
+        };
+        let runner_loop_task = tokio::spawn(runner_loop.run());
+        let ctx = RunnerSpawnCtx {
+            transport: None,
+            shared_machine_token: None,
+            paths: paths.clone(),
+            daemon: Default::default(),
+            mailboxes,
+            hello_runners,
+            daemon_state: StateHandle::new(config),
+            instances,
+            activation_lock: Arc::new(tokio::sync::Mutex::new(())),
+            accepting_mutations: Arc::new(AtomicBool::new(true)),
+        };
+
+        let error = ctx.remove_runner(runner_id).await.unwrap_err().to_string();
+        assert!(error.contains("runner teardown failed"), "{error}");
+        runner_loop_task.await.unwrap().unwrap();
+        assert!(runner_dir.is_file());
+        assert!(working_dir.join("checkout-marker").exists());
+        assert!(
+            crate::config::file::load_config(&paths)
+                .unwrap()
+                .runners
+                .iter()
+                .any(|runner| runner.runner_id == runner_id)
+        );
+        assert!(
+            !ctx.instances
+                .read()
+                .expect("runner registry poisoned")
+                .contains_key(&runner_id)
+        );
+
+        std::fs::remove_file(&runner_dir).unwrap();
+        ctx.remove_runner(runner_id).await.unwrap();
+        assert!(
+            crate::config::file::load_config(&paths)
+                .unwrap()
+                .runners
+                .is_empty()
+        );
+        assert!(working_dir.join("checkout-marker").exists());
+    }
+
+    #[tokio::test]
+    async fn closed_live_mailbox_is_evicted_and_inactive_retry_succeeds() {
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        paths.ensure().unwrap();
+        let working_dir = tmp.path().join("wd");
+        std::fs::create_dir_all(&working_dir).unwrap();
+        std::fs::write(working_dir.join("checkout-marker"), b"preserve").unwrap();
+        let runner = runner_config("closed-mailbox", "WEB", working_dir.clone());
+        let runner_id = runner.runner_id;
+        let config = Config {
+            version: 2,
+            daemon: Default::default(),
+            runners: vec![runner.clone()],
+            cli: None,
+        };
+        crate::config::file::write_config(&paths, &config).unwrap();
+
+        let (out_tx, _out_rx) = mpsc::channel::<Envelope<ClientMsg>>(4);
+        let inst = RunnerInstance::new(runner, &paths, out_tx);
+        let runner_dir = inst.paths.base_dir().to_path_buf();
+        inst.paths.ensure().unwrap();
+        std::fs::write(runner_dir.join("orphaned-runtime"), b"retry-me").unwrap();
+        let mailbox_rx = inst.take_mailbox_rx().await.unwrap();
+        drop(mailbox_rx);
+
+        let ctx = RunnerSpawnCtx {
+            transport: None,
+            shared_machine_token: None,
+            paths: paths.clone(),
+            daemon: Default::default(),
+            mailboxes: Arc::new(RwLock::new(HashMap::from([(
+                runner_id,
+                inst.mailbox_tx.clone(),
+            )]))),
+            hello_runners: Arc::new(RwLock::new(HashMap::new())),
+            daemon_state: StateHandle::new(config),
+            instances: Arc::new(std::sync::RwLock::new(HashMap::from([(
+                runner_id,
+                inst.clone(),
+            )]))),
+            activation_lock: Arc::new(tokio::sync::Mutex::new(())),
+            accepting_mutations: Arc::new(AtomicBool::new(true)),
+        };
+
+        let error = ctx.remove_runner(runner_id).await.unwrap_err().to_string();
+        assert!(error.contains("before teardown completed"), "{error}");
+        assert!(runner_dir.exists(), "first failure must retain runtime");
+        assert!(
+            crate::config::file::load_config(&paths)
+                .unwrap()
+                .runners
+                .iter()
+                .any(|runner| runner.runner_id == runner_id),
+            "first failure must retain config for retry"
+        );
+        assert!(
+            !ctx.instances
+                .read()
+                .expect("runner registry poisoned")
+                .contains_key(&runner_id),
+            "dead actor must not block the inactive retry path"
+        );
+
+        ctx.remove_runner(runner_id).await.unwrap();
+        assert!(!runner_dir.exists());
+        assert!(
+            crate::config::file::load_config(&paths)
+                .unwrap()
+                .runners
+                .is_empty()
+        );
+        assert!(working_dir.join("checkout-marker").exists());
+    }
+
+    #[tokio::test]
+    async fn refresh_loop_exits_when_runner_teardown_is_latched() {
+        let tmp = tempfile::tempdir().unwrap();
+        let runner_id = uuid::Uuid::new_v4();
+        let credentials = CredentialsHandle::new(
+            tmp.path().join("credentials.toml"),
+            RunnerCredentials {
+                runner_id,
+                name: "runner".into(),
+                refresh_token: "rt_test".into(),
+                refresh_token_generation: 1,
+            },
+        );
+        let transport = SharedHttpTransport::new("http://127.0.0.1:1".into()).unwrap();
+        let client = RunnerCloudClient::new(runner_id, credentials, transport);
+        let state = StateHandle::new(Config {
+            version: 2,
+            daemon: Default::default(),
+            runners: vec![],
+            cli: None,
+        });
+        let (remove_tx, remove_rx) = watch::channel(false);
+        let task = tokio::spawn(refresh_loop(client, state, remove_rx));
+
+        // A removed runner must not leave its token-refresh task sleeping for
+        // the default 60-second interval (or holding a refresh future) until
+        // the whole daemon exits.
+        remove_tx.send(true).unwrap();
+        tokio::time::timeout(Duration::from_secs(1), task)
+            .await
+            .expect("refresh loop did not stop after runner teardown")
+            .expect("refresh loop task panicked");
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

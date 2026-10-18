@@ -945,6 +945,8 @@ mod tests {
             runner_id: Uuid::new_v4(),
             workspace_slug: Some("acme".into()),
             project_slug: Some("TEST".into()),
+            project_id: None,
+            binding_source: None,
             pod_id: None,
             workspace: WorkspaceSection {
                 working_dir: PathBuf::from("/tmp/karma-team-test"),

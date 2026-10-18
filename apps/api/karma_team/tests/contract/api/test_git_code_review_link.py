@@ -64,6 +64,22 @@ def test_attach_gitlab_merge_request(api_key_client, workspace, review_project, 
     assert link.url == "https://gitlab.com/platform/backend/api/-/merge_requests/17"
 
 
+def test_attach_self_managed_http_gitlab_merge_request(api_key_client, workspace, review_project, issue, settings):
+    settings.GITLAB_ALLOWED_HOSTS = ["http://gitlab.laiyeai.com"]
+    url = "http://gitlab.laiyeai.com/xuhaoxuan/kt-test2/-/merge_requests/2"
+
+    response = api_key_client.post(
+        _list_url(workspace.slug, review_project.id, issue.id),
+        {"url": url},
+        format="json",
+    )
+
+    assert response.status_code == http_status.HTTP_201_CREATED
+    assert response.data["provider"] == "gitlab"
+    assert response.data["host_url"] == "http://gitlab.laiyeai.com"
+    assert response.data["url"] == url
+
+
 def test_attach_github_pull_request_uses_neutral_shape(api_key_client, workspace, review_project, issue):
     response = api_key_client.post(
         _list_url(workspace.slug, review_project.id, issue.id),

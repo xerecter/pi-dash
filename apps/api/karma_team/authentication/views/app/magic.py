@@ -3,7 +3,7 @@
 # See the LICENSE file for details.
 
 # Django imports
-from django.core.validators import validate_email
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views import View
 
@@ -47,11 +47,17 @@ class MagicGenerateEndpoint(APIView):
 
         email = request.data.get("email", "").strip().lower()
         try:
-            validate_email(email)
+            if not email:
+                raise AuthenticationException(
+                    error_code=AUTHENTICATION_ERROR_CODES["EMAIL_REQUIRED"],
+                    error_message="EMAIL_REQUIRED",
+                )
             adapter = MagicCodeProvider(request=request, key=email)
             key, token = adapter.initiate()
-            # If the smtp is configured send through here
-            magic_link.delay(email, key, token)
+            # Keep the account identifier as the magic-code key, but deliver
+            # to the stored address when the caller supplied a username.
+            user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
+            magic_link.delay(user.email if user and user.email else email, key, token)
             return Response({"key": str(key)}, status=status.HTTP_200_OK)
         except AuthenticationException as e:
             params = e.get_error_dict()
@@ -79,7 +85,7 @@ class MagicSignInEndpoint(View):
             return HttpResponseRedirect(url)
 
         # Existing User
-        existing_user = User.objects.filter(email=email).first()
+        existing_user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
 
         if not existing_user:
             exc = AuthenticationException(
@@ -149,7 +155,7 @@ class MagicSignUpEndpoint(View):
             )
             return HttpResponseRedirect(url)
         # Existing user
-        existing_user = User.objects.filter(email=email).first()
+        existing_user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
         if existing_user:
             exc = AuthenticationException(
                 error_code=AUTHENTICATION_ERROR_CODES["USER_ALREADY_EXIST"],

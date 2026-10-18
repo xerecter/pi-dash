@@ -38,8 +38,8 @@ async fn run_errors_when_config_missing() {
         "error should mention config.toml: {msg}",
     );
     assert!(
-        msg.contains("karma-team auth login") && msg.contains("karma-team runner add"),
-        "error should point at the auth login + runner add flow: {msg}",
+        msg.contains("karma-team auth login") && msg.contains("automatic project synchronization"),
+        "error should point at account binding and automatic project sync: {msg}",
     );
 }
 

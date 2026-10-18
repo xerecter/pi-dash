@@ -4,12 +4,9 @@
 
 """Matcher-level eligibility for *issue-backed* runs in a shared pod.
 
-``filter_runs_usable_by_runner`` accepts a run for a PRIVATE runner when
-``runner.owner`` is the run's ``created_by``/``owner``, the issue's
-``created_by``, or one of ``issue.assignees``. ``test_drain_pod`` covers
-only the free-form (no ``work_item``) case; this module pins the
-issue-backed clauses — in particular that assignment is what lets a
-second member's runner take work they did not create.
+Assigned local work is dispatched to a current assignee's PRIVATE runner.
+Unassigned work retains creator/owner eligibility. Assignment lets a second
+member process work they did not create without the creator stealing it.
 
 Scenario throughout: one project, one default pod, two members (Alice
 and Luke) who each registered a private runner into that pod.
@@ -25,11 +22,14 @@ from crum import impersonate
 from django.db import transaction
 from django.utils import timezone
 
-from karma_team.db.models import Issue, State, User, WorkspaceMember
+from karma_team.db.models import Issue, ProjectMember, State, User, Workspace, WorkspaceMember
 from karma_team.db.models.issue import IssueAssignee
+from karma_team.orchestration.scheduling import _has_pending_auto_project_binding
 from karma_team.runner.models import (
     AgentRun,
     AgentRunStatus,
+    DevMachine,
+    MachineToken,
     Pod,
     Runner,
     RunnerStatus,
@@ -43,13 +43,16 @@ def pod(project):
 
 
 @pytest.fixture
-def alice(create_user):
+def alice(create_user, workspace, project):
     """Workspace owner from the conftest fixture; the issue creator."""
+    ProjectMember.objects.get_or_create(
+        workspace=workspace, project=project, member=create_user, defaults={"role": 20}
+    )
     return create_user
 
 
 @pytest.fixture
-def luke(db, workspace):
+def luke(db, workspace, project):
     suffix = uuid4().hex[:6]
     user = User.objects.create(
         email=f"luke-{suffix}@example.com",
@@ -59,6 +62,12 @@ def luke(db, workspace):
     user.set_password("pw")
     user.save()
     WorkspaceMember.objects.create(workspace=workspace, member=user, role=15)
+    ProjectMember.objects.create(
+        workspace=workspace,
+        project=project,
+        member=user,
+        role=15,
+    )
     return user
 
 
@@ -86,9 +95,7 @@ def luke_runner(luke, workspace, pod):
 @pytest.fixture
 def backlog(project, create_user):
     with impersonate(create_user):
-        return State.objects.create(
-            name="Backlog", project=project, group="backlog", default=True, sequence=100
-        )
+        return State.objects.create(name="Backlog", project=project, group="backlog", default=True, sequence=100)
 
 
 @pytest.fixture(autouse=True)
@@ -140,7 +147,7 @@ def _visible_to(runner, run):
 
 
 # ---------------------------------------------------------------------------
-# Row 1: created by Alice, assigned to Luke -> both runners eligible
+# Row 1: created by Alice, assigned to Luke -> Luke's runners only
 # ---------------------------------------------------------------------------
 
 
@@ -151,23 +158,137 @@ def test_assignee_runner_is_eligible_for_issue_it_did_not_create(
     issue = _issue(workspace, project, backlog, creator=alice, assignees=[luke])
     run = _queued_run(workspace, pod, issue)
 
-    assert _visible_to(alice_runner, run) is True, "creator's runner must be eligible"
+    assert _visible_to(alice_runner, run) is False, "assigned work belongs to the assignee"
     assert _visible_to(luke_runner, run) is True, "assignee's runner must be eligible"
 
 
 @pytest.mark.unit
 def test_assigned_issue_is_actually_assigned_by_drain_pod(
-    db, workspace, project, pod, backlog, alice, luke, luke_runner
+    db, workspace, project, pod, backlog, alice, luke, alice_runner, luke_runner
 ):
-    """Luke's runner alone in the pod: assignment alone must be enough."""
+    """Even a fresher creator runner must not take Luke's assigned work."""
     issue = _issue(workspace, project, backlog, creator=alice, assignees=[luke])
     run = _queued_run(workspace, pod, issue)
+    alice_runner.last_heartbeat_at = timezone.now()
+    alice_runner.save(update_fields=["last_heartbeat_at"])
 
     assert matcher.drain_pod(pod) == 1
     run.refresh_from_db()
     assert run.runner_id == luke_runner.id
     assert run.status == AgentRunStatus.ASSIGNED
     assert run.owner_id == luke.id, "billing follows the machine, not created_by"
+
+
+@pytest.mark.unit
+def test_assigned_issue_waits_when_only_creator_has_a_runner(
+    db, workspace, project, pod, backlog, alice, luke, alice_runner
+):
+    issue = _issue(workspace, project, backlog, creator=alice, assignees=[luke])
+    run = _queued_run(workspace, pod, issue)
+    assert matcher.pod_has_runner_for_issue_principal(pod, issue, alice.id) is False
+    assert matcher.drain_for_runner(alice_runner) is False
+    run.refresh_from_db()
+    assert run.status == AgentRunStatus.QUEUED
+
+
+@pytest.mark.unit
+def test_removed_project_member_cannot_take_assigned_issue(
+    db, workspace, project, pod, backlog, alice, luke, luke_runner
+):
+    issue = _issue(workspace, project, backlog, creator=alice, assignees=[luke])
+    run = _queued_run(workspace, pod, issue)
+    ProjectMember.objects.filter(project=project, member=luke).update(is_active=False)
+
+    assert matcher.pod_has_runner_for_issue_principal(pod, issue, alice.id) is False
+    assert matcher.drain_for_runner(luke_runner) is False
+    run.refresh_from_db()
+    assert run.status == AgentRunStatus.QUEUED
+
+
+@pytest.mark.unit
+def test_removed_workspace_member_cannot_take_assigned_issue(
+    db, workspace, project, pod, backlog, alice, luke, luke_runner
+):
+    issue = _issue(workspace, project, backlog, creator=alice, assignees=[luke])
+    run = _queued_run(workspace, pod, issue)
+    WorkspaceMember.objects.filter(workspace=workspace, member=luke).update(is_active=False)
+
+    assert matcher.pod_has_runner_for_issue_principal(pod, issue, alice.id) is False
+    assert matcher.drain_for_runner(luke_runner) is False
+    run.refresh_from_db()
+    assert run.status == AgentRunStatus.QUEUED
+
+
+@pytest.mark.unit
+def test_pending_machine_binding_requires_active_project_membership_and_token(
+    db, workspace, project, backlog, alice, luke
+):
+    issue = _issue(workspace, project, backlog, creator=alice, assignees=[luke])
+    other_workspace = Workspace.objects.create(
+        name="Machine home", slug=f"machine-home-{uuid4().hex[:8]}", owner=luke
+    )
+    home_membership = WorkspaceMember.objects.create(
+        workspace=other_workspace, member=luke, role=20
+    )
+    machine = DevMachine.objects.create(owner=luke, host_label="other-workspace-host")
+    token = MachineToken.objects.create(
+        user=luke,
+        workspace=other_workspace,
+        dev_machine=machine,
+        host_label="other-workspace-host",
+        token_hash="other-workspace-machine-token-hash",
+    )
+    project_member = ProjectMember.objects.get(project=project, member=luke)
+    project.network = 0
+    project.save(update_fields=["network"])
+
+    assert _has_pending_auto_project_binding(issue, alice) is True
+    project.network = 2
+    project.save(update_fields=["network"])
+    project_member.is_active = False
+    project_member.save(update_fields=["is_active"])
+    assert _has_pending_auto_project_binding(issue, alice) is False
+    project_member.is_active = True
+    project_member.save(update_fields=["is_active"])
+    token.revoke()
+    assert _has_pending_auto_project_binding(issue, alice) is False
+    token.revoked_at = None
+    token.save(update_fields=["revoked_at"])
+    home_membership.is_active = False
+    home_membership.save(update_fields=["is_active"])
+    assert _has_pending_auto_project_binding(issue, alice) is False
+
+
+@pytest.mark.unit
+def test_reassignment_moves_execution_to_new_assignees_runner(
+    db, workspace, project, pod, backlog, alice, luke, alice_runner, luke_runner
+):
+    from karma_team.orchestration.service import _pinned_runner_for
+
+    issue = _issue(workspace, project, backlog, creator=alice, assignees=[alice])
+    previous = _queued_run(workspace, pod, issue)
+    previous.runner = alice_runner
+    previous.status = AgentRunStatus.COMPLETED
+    previous.save(update_fields=["runner", "status"])
+    IssueAssignee.objects.filter(issue=issue).delete()
+    IssueAssignee.objects.create(issue=issue, assignee=luke, workspace=workspace, project=project)
+
+    assert _pinned_runner_for(previous, pod) is None
+    run = _queued_run(workspace, pod, issue)
+    assert _visible_to(alice_runner, run) is False
+    assert matcher.drain_for_runner(luke_runner) is True
+    run.refresh_from_db()
+    assert run.runner_id == luke_runner.id
+
+
+@pytest.mark.unit
+def test_multiple_current_assignees_can_each_serve_the_issue(
+    db, workspace, project, pod, backlog, alice, luke, alice_runner, luke_runner
+):
+    issue = _issue(workspace, project, backlog, creator=alice, assignees=[alice, luke])
+    run = _queued_run(workspace, pod, issue)
+    assert _visible_to(alice_runner, run) is True
+    assert _visible_to(luke_runner, run) is True
 
 
 # ---------------------------------------------------------------------------
@@ -265,9 +386,7 @@ def test_removing_assignee_revokes_eligibility_while_still_queued(
 
 
 @pytest.mark.unit
-def test_preflight_ignores_soft_deleted_assignee(
-    db, workspace, project, pod, backlog, alice, luke, luke_runner
-):
+def test_preflight_ignores_soft_deleted_assignee(db, workspace, project, pod, backlog, alice, luke, luke_runner):
     """The creation-time preflight must agree with the dispatch gate."""
     issue = _issue(workspace, project, backlog, creator=alice, assignees=[luke])
     assert matcher.pod_has_runner_for_issue_principal(pod, issue, alice.id) is True

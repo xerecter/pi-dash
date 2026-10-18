@@ -29,7 +29,9 @@ from rest_framework.views import APIView
 from karma_team.api.middleware.api_authentication import APIKeyAuthentication
 from karma_team.authentication.services.cli_tokens import deactivate_api_token
 from karma_team.authentication.session import BaseSessionAuthentication
+from karma_team.db.models.project import Project
 from karma_team.runner.authentication import (
+    MachineTokenAuthentication,
     RunnerAccessTokenAuthentication,
     RunnerRefreshTokenAuthentication,
 )
@@ -38,6 +40,7 @@ from karma_team.runner.models import (
     MachineToken,
     Pod,
     Runner,
+    RunnerBindingSource,
     RunnerForceRefresh,
     RunnerProvisioning,
     RunnerStatus,
@@ -45,7 +48,11 @@ from karma_team.runner.models import (
 from karma_team.runner.serializers import RunnerEnrollRequestSerializer
 from karma_team.runner.services import tokens
 from karma_team.runner.services.permissions import is_workspace_member
+from karma_team.runner.services.project_visibility import (
+    projects_visible_to_machine_token,
+)
 from karma_team.runner.services.pubsub import close_runner_session, send_to_runner
+from karma_team.runner.services.runner_delete import delete_runner as delete_runner_svc
 
 logger = logging.getLogger(__name__)
 
@@ -237,9 +244,11 @@ def _managed_cap_error(*, user, pod, workspace_id):
     existing = (
         Runner.objects.filter(
             owner=user,
-            pod=pod,
+            pod__project_id=pod.project_id,
+            pod__deleted_at__isnull=True,
             workspace_id=workspace_id,
             provisioning=RunnerProvisioning.DESKTOP_BUNDLED,
+            revoked_at__isnull=True,
         )
         .exclude(status=RunnerStatus.REVOKED)
         .count()
@@ -506,15 +515,34 @@ class RunnerSelfRevokeEndpoint(APIView):
     The web UI's `RunnerDetailEndpoint.delete` covers operator-driven
     teardown via session auth; this is the symmetric machine-token path
     so the daemon can `karma-team runner remove <name>` cleanly without
-    requiring the user to click through the cloud UI. Idempotent: a
-    second DELETE on an already-revoked runner returns 204.
+    requiring the user to click through the cloud UI. Deletion is
+    state-idempotent: once the row is gone, a repeated DELETE returns 404 and
+    the caller may treat that as the desired already-absent state.
     """
 
-    authentication_classes = [RunnerAccessTokenAuthentication]
+    authentication_classes = [MachineTokenAuthentication, RunnerAccessTokenAuthentication]
     permission_classes: list = []
     throttle_classes: list = []
 
     def delete(self, request, runner_id):
+        machine_token = getattr(request, "auth_machine_token", None)
+        if machine_token is not None:
+            runner = Runner.objects.filter(pk=runner_id).first()
+            if runner is None:
+                return Response({"error": "not_found"}, status=status.HTTP_404_NOT_FOUND)
+            if (
+                machine_token.dev_machine_id is None
+                or runner.dev_machine_id != machine_token.dev_machine_id
+                or runner.owner_id != machine_token.user_id
+                or runner.workspace_id != machine_token.workspace_id
+            ):
+                return Response(
+                    {"error": "not_found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            delete_runner_svc(runner, purge_local=True)
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
         auth_runner = getattr(request, "auth_runner", None)
         if auth_runner is None or str(auth_runner.id) != str(runner_id):
             return Response(
@@ -579,6 +607,16 @@ class RunnerCreateEndpoint(APIView):
         host_label = (request.data.get("host_label") or "").strip()[:255]
         body_name = (request.data.get("name") or "").strip()[:128]
         pod_name = (request.data.get("pod") or "").strip()
+        creation_request_id_raw = str(request.data.get("request_id") or "").strip()
+        creation_request_id: Optional[_uuid.UUID] = None
+        if creation_request_id_raw:
+            try:
+                creation_request_id = _uuid.UUID(creation_request_id_raw)
+            except (TypeError, ValueError, AttributeError):
+                return Response(
+                    {"error": "invalid_request_id"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         if not project_identifier:
             return Response(
@@ -661,24 +699,6 @@ class RunnerCreateEndpoint(APIView):
                 )
             workspace = memberships[0].workspace
 
-        project = Project.objects.filter(workspace_id=workspace.id, identifier=project_identifier).first()
-        if project is None:
-            return Response(
-                {"error": "project_not_found"},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-
-        pod: Optional[Pod] = None
-        if pod_name:
-            pod = Pod.objects.filter(project=project, name=pod_name, deleted_at__isnull=True).first()
-        if pod is None:
-            pod = Pod.default_for_project_id(project.id)
-        if pod is None:
-            return Response(
-                {"error": "project_has_no_default_pod"},
-                status=status.HTTP_409_CONFLICT,
-            )
-
         # Mint the runner row, retrying on auto-name collisions when no
         # name was supplied. Two `karma-team runner add` calls running
         # concurrently can both compute the same ``runner_NNN`` default;
@@ -687,10 +707,13 @@ class RunnerCreateEndpoint(APIView):
         attempts = 0
         last_exc: Optional[IntegrityError] = None
         runner: Optional[Runner] = None
+        project: Optional[Project] = None
+        pod: Optional[Pod] = None
         machine_minted: Optional[tokens.MintedToken] = None
+        response_status = status.HTTP_201_CREATED
+        dev_machine: Optional[DevMachine] = None
         while attempts < _MAX_AUTO_NAME_RETRIES:
             attempts += 1
-            name = body_name or _next_auto_runner_name(pod)
             try:
                 with transaction.atomic():
                     dev_machine = _get_or_create_dev_machine(
@@ -698,6 +721,91 @@ class RunnerCreateEndpoint(APIView):
                         dev_machine_id=dev_machine_id,
                         host_label=host_label,
                     )
+                    if creation_request_id is not None and dev_machine is None:
+                        return Response(
+                            {"error": "request_id_requires_dev_machine"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    if creation_request_id is not None:
+                        runner = (
+                            # Only lock the durable idempotency winner.  The
+                            # select_related joins are response hydration, not
+                            # part of the lock contract.  Locking their rows as
+                            # well would create a mixed DevMachine ->
+                            # Runner/Project lock set that can deadlock with
+                            # project deletion's Project -> Runner order.
+                            Runner.objects.select_for_update(of=("self",))
+                            .select_related("pod__project", "workspace")
+                            .filter(
+                                dev_machine=dev_machine,
+                                creation_request_id=creation_request_id,
+                                owner_id=request.user.id,
+                                workspace_id=workspace.id,
+                            )
+                            .first()
+                        )
+                        if runner is not None:
+                            project = runner.pod.project
+                            pod = runner.pod
+                            workspace = runner.workspace
+                            response_status = status.HTTP_200_OK
+                            break
+                        if Runner.objects.filter(
+                            dev_machine=dev_machine,
+                            creation_request_id=creation_request_id,
+                        ).exists():
+                            return Response(
+                                {"error": "idempotency_scope_conflict"},
+                                status=status.HTTP_409_CONFLICT,
+                            )
+                    # Lock in the same order as automatic binding:
+                    # DevMachine -> Project -> Pod -> Runner. Resolving the
+                    # active project and pod inside this transaction prevents
+                    # a project delete from committing between validation and
+                    # the runner insert.
+                    project = (
+                        Project.objects.select_for_update()
+                        .filter(
+                            workspace_id=workspace.id,
+                            identifier=project_identifier,
+                            deleted_at__isnull=True,
+                        )
+                        .first()
+                    )
+                    if project is None:
+                        return Response(
+                            {"error": "project_not_found"},
+                            status=status.HTTP_404_NOT_FOUND,
+                        )
+
+                    pod = None
+                    if pod_name:
+                        pod = (
+                            Pod.objects.select_for_update()
+                            .filter(
+                                project_id=project.id,
+                                name=pod_name,
+                                deleted_at__isnull=True,
+                            )
+                            .first()
+                        )
+                    if pod is None:
+                        pod = (
+                            Pod.objects.select_for_update()
+                            .filter(
+                                project_id=project.id,
+                                is_default=True,
+                                deleted_at__isnull=True,
+                            )
+                            .first()
+                        )
+                    if pod is None:
+                        return Response(
+                            {"error": "project_has_no_default_pod"},
+                            status=status.HTTP_409_CONFLICT,
+                        )
+
+                    name = body_name or _next_auto_runner_name(pod)
                     # Provisioning is inherited from the machine, never read
                     # from the body: a client must not be able to claim it is
                     # karma-team-managed and thereby take pinned desktop work.
@@ -719,6 +827,10 @@ class RunnerCreateEndpoint(APIView):
                             .first()
                         )
                         if runner is not None:
+                            if creation_request_id is not None and runner.creation_request_id is None:
+                                runner.creation_request_id = creation_request_id
+                                runner.save(update_fields=["creation_request_id", "updated_at"])
+                            response_status = status.HTTP_200_OK
                             break
                         cap_error = _managed_cap_error(user=request.user, pod=pod, workspace_id=workspace.id)
                         if cap_error is not None:
@@ -731,6 +843,7 @@ class RunnerCreateEndpoint(APIView):
                         name=name,
                         host_label=host_label,
                         provisioning=provisioning,
+                        creation_request_id=creation_request_id,
                         enrolled_at=timezone.now(),
                     )
                     if auth_machine_token is None and host_label:
@@ -749,6 +862,35 @@ class RunnerCreateEndpoint(APIView):
                 )
             except IntegrityError as exc:
                 last_exc = exc
+                if creation_request_id is not None and dev_machine is not None:
+                    # The conditional unique constraint is the final arbiter
+                    # if a concurrent process wins despite the machine lock
+                    # (for example around legacy machine creation). Always
+                    # prefer that durable winner over classifying a name race.
+                    runner = (
+                        Runner.objects.select_related("pod__project", "workspace")
+                        .filter(
+                            dev_machine_id=dev_machine.id,
+                            creation_request_id=creation_request_id,
+                            owner_id=request.user.id,
+                            workspace_id=workspace.id,
+                        )
+                        .first()
+                    )
+                    if runner is not None:
+                        project = runner.pod.project
+                        pod = runner.pod
+                        workspace = runner.workspace
+                        response_status = status.HTTP_200_OK
+                        break
+                    if Runner.objects.filter(
+                        dev_machine_id=dev_machine.id,
+                        creation_request_id=creation_request_id,
+                    ).exists():
+                        return Response(
+                            {"error": "idempotency_scope_conflict"},
+                            status=status.HTTP_409_CONFLICT,
+                        )
                 if body_name:
                     # Caller named it explicitly — don't retry.
                     return Response(
@@ -757,7 +899,7 @@ class RunnerCreateEndpoint(APIView):
                     )
                 # Auto-name path: retry with a freshly recomputed name.
                 continue
-        if runner is None:
+        if runner is None or project is None or pod is None:
             logger.warning(
                 "RunnerCreateEndpoint: gave up after %s auto-name attempts: %s",
                 _MAX_AUTO_NAME_RETRIES,
@@ -784,7 +926,183 @@ class RunnerCreateEndpoint(APIView):
         }
         if machine_minted is not None:
             body["machine_token"] = machine_minted.raw
-        return Response(body, status=status.HTTP_201_CREATED)
+        return Response(body, status=response_status)
+
+
+def _auto_binding_name(project_identifier: str, machine_id: _uuid.UUID, project_id: _uuid.UUID) -> str:
+    """Keep generated names distinct across workspaces on the same daemon."""
+
+    project_part = re.sub(r"[^A-Za-z0-9_-]+", "-", project_identifier).strip("-") or "project"
+    machine_part = _uuid.UUID(str(machine_id)).hex[:8]
+    return f"auto_{project_part[:50]}_{machine_part}_{project_id.hex[:8]}"
+
+
+def _machine_for_binding_request(request, dev_machine_id) -> Optional[DevMachine]:
+    token = getattr(request, "auth_machine_token", None)
+    if token is None or token.dev_machine_id is None:
+        return None
+    if str(token.dev_machine_id) != str(dev_machine_id):
+        return None
+    machine = token.dev_machine
+    if machine is None or machine.owner_id != token.user_id or machine.revoked_at is not None:
+        return None
+    return machine
+
+
+def _binding_response(runner: Runner, *, created: bool) -> dict:
+    project = runner.pod.project
+    return {
+        "runner_id": str(runner.id),
+        "runner_name": runner.name,
+        "project_id": str(project.id),
+        "project_identifier": project.identifier,
+        "pod_id": str(runner.pod_id),
+        "pod_slug": runner.pod.name,
+        "workspace_slug": runner.workspace.slug,
+        "binding_source": runner.binding_source,
+        "refresh_token": "",
+        "access_token": "",
+        "machine_token_minted": False,
+        "protocol_version": 4,
+        "created": created,
+    }
+
+
+class MachineProjectBindingEnsureEndpoint(APIView):
+    """Idempotently ensure one default-pod runner for a machine/project."""
+
+    authentication_classes = [MachineTokenAuthentication]
+    permission_classes: list = []
+    throttle_classes: list = []
+
+    def post(self, request, dev_machine_id):
+        machine = _machine_for_binding_request(request, dev_machine_id)
+        if machine is None:
+            return Response(
+                {"error": "dev_machine_mismatch"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        token = request.auth_machine_token
+        try:
+            project_id = _uuid.UUID(str(request.data.get("project_id")))
+        except (TypeError, ValueError, AttributeError):
+            return Response(
+                {"error": "project_id_required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        with transaction.atomic():
+            locked_machine = (
+                DevMachine.objects.select_for_update()
+                .filter(pk=machine.id, owner_id=token.user_id, revoked_at__isnull=True)
+                .first()
+            )
+            if locked_machine is None:
+                return Response(
+                    {"error": "dev_machine_mismatch"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+            project = (
+                projects_visible_to_machine_token(
+                    Project.objects.select_for_update(of=("self",)),
+                    token,
+                )
+                .filter(
+                    pk=project_id,
+                )
+                .first()
+            )
+            if project is None:
+                return Response(
+                    {"error": "project_not_found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            pod = (
+                Pod.objects.select_for_update()
+                .filter(
+                    project_id=project.id,
+                    is_default=True,
+                    deleted_at__isnull=True,
+                )
+                .first()
+            )
+            if pod is None:
+                return Response(
+                    {"error": "project_has_no_default_pod"},
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            existing = (
+                Runner.objects.select_related("pod__project", "workspace")
+                .filter(
+                    dev_machine=locked_machine,
+                    workspace_id=token.workspace_id,
+                    pod__project_id=project.id,
+                    revoked_at__isnull=True,
+                    pod__deleted_at__isnull=True,
+                    pod__project__deleted_at__isnull=True,
+                )
+                .order_by("created_at", "id")
+                .first()
+            )
+            if existing is not None:
+                return Response(_binding_response(existing, created=False), status=status.HTTP_200_OK)
+
+            provisioning = locked_machine.provisioning
+            if provisioning == RunnerProvisioning.DESKTOP_BUNDLED:
+                cap_error = _managed_cap_error(
+                    user=token.user,
+                    pod=pod,
+                    workspace_id=token.workspace_id,
+                )
+                if cap_error is not None:
+                    return cap_error
+
+            name = _auto_binding_name(project.identifier, locked_machine.id, project.id)
+            # Runner names are unique within a pod. Machine and project
+            # suffixes also distinguish local runners across workspaces.
+            # Retain a bounded fallback for a pre-existing manual runner
+            # with the same generated name.
+            for attempt in range(100):
+                candidate = name if attempt == 0 else f"{name[:115]}_{attempt + 1}"
+                try:
+                    # Keep a failed uniqueness attempt inside a savepoint so
+                    # the surrounding machine-lock transaction remains usable
+                    # when we re-read a concurrent winner.
+                    with transaction.atomic():
+                        runner = Runner.objects.create(
+                            owner_id=token.user_id,
+                            workspace_id=token.workspace_id,
+                            dev_machine=locked_machine,
+                            pod=pod,
+                            name=candidate,
+                            host_label=locked_machine.host_label,
+                            provisioning=provisioning,
+                            binding_source=RunnerBindingSource.AUTO_PROJECT_SYNC,
+                            enrolled_at=timezone.now(),
+                        )
+                    runner = Runner.objects.select_related("pod__project", "workspace").get(pk=runner.pk)
+                    return Response(_binding_response(runner, created=True), status=status.HTTP_201_CREATED)
+                except IntegrityError:
+                    winner = (
+                        Runner.objects.select_related("pod__project", "workspace")
+                        .filter(
+                            dev_machine=locked_machine,
+                            workspace_id=token.workspace_id,
+                            pod__project_id=project.id,
+                            revoked_at__isnull=True,
+                            pod__deleted_at__isnull=True,
+                            pod__project__deleted_at__isnull=True,
+                        )
+                        .order_by("created_at", "id")
+                        .first()
+                    )
+                    if winner is not None:
+                        return Response(_binding_response(winner, created=False), status=status.HTTP_200_OK)
+            return Response(
+                {"error": "could_not_allocate_runner_name"},
+                status=status.HTTP_409_CONFLICT,
+            )
 
 
 def _next_auto_runner_name(pod: Pod) -> str:

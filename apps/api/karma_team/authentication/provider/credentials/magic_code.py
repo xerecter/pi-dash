@@ -7,6 +7,7 @@ import json
 import os
 import secrets
 
+from django.db.models import Q
 
 # Module imports
 from karma_team.authentication.adapter.credential import CredentialAdapter
@@ -67,7 +68,7 @@ class MagicCodeProvider(CredentialAdapter):
 
             if data["current_attempt"] > 2:
                 email = str(self.key).replace("magic_", "", 1)
-                if User.objects.filter(email=email).exists():
+                if User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).exists():
                     raise AuthenticationException(
                         error_code=AUTHENTICATION_ERROR_CODES["EMAIL_CODE_ATTEMPT_EXHAUSTED_SIGN_IN"],
                         error_message="EMAIL_CODE_ATTEMPT_EXHAUSTED_SIGN_IN",
@@ -119,7 +120,7 @@ class MagicCodeProvider(CredentialAdapter):
                 return
             else:
                 email = str(self.key).replace("magic_", "", 1)
-                if User.objects.filter(email=email).exists():
+                if User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).exists():
                     raise AuthenticationException(
                         error_code=AUTHENTICATION_ERROR_CODES["INVALID_MAGIC_CODE_SIGN_IN"],
                         error_message="INVALID_MAGIC_CODE_SIGN_IN",
@@ -133,7 +134,7 @@ class MagicCodeProvider(CredentialAdapter):
                     )
         else:
             email = str(self.key).replace("magic_", "", 1)
-            if User.objects.filter(email=email).exists():
+            if User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).exists():
                 raise AuthenticationException(
                     error_code=AUTHENTICATION_ERROR_CODES["EXPIRED_MAGIC_CODE_SIGN_IN"],
                     error_message="EXPIRED_MAGIC_CODE_SIGN_IN",

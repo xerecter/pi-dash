@@ -117,7 +117,13 @@ struct SessionRuntime {
 /// IPC connections for a runner share one map.
 #[derive(Clone, Default)]
 pub struct ChatRegistry {
-    sessions: Arc<Mutex<HashMap<Uuid, Arc<ChatSession>>>>,
+    state: Arc<Mutex<ChatRegistryState>>,
+}
+
+#[derive(Default)]
+struct ChatRegistryState {
+    closed: bool,
+    sessions: HashMap<Uuid, Arc<ChatSession>>,
 }
 
 impl ChatRegistry {
@@ -125,24 +131,72 @@ impl ChatRegistry {
         Self::default()
     }
 
-    async fn get_or_create(&self, id: Uuid) -> Arc<ChatSession> {
-        let mut map = self.sessions.lock().await;
-        map.entry(id)
+    async fn get_or_create(&self, id: Uuid) -> Result<Arc<ChatSession>> {
+        let mut state = self.state.lock().await;
+        if state.closed {
+            anyhow::bail!("runner is being removed; local chat is closed")
+        }
+        Ok(state
+            .sessions
+            .entry(id)
             .or_insert_with(|| {
                 Arc::new(ChatSession {
                     rt: Mutex::new(SessionRuntime::default()),
                     cancel: Notify::new(),
                 })
             })
-            .clone()
+            .clone())
     }
 
     async fn get(&self, id: Uuid) -> Option<Arc<ChatSession>> {
-        self.sessions.lock().await.get(&id).cloned()
+        self.state.lock().await.sessions.get(&id).cloned()
     }
 
     async fn remove(&self, id: Uuid) -> Option<Arc<ChatSession>> {
-        self.sessions.lock().await.remove(&id)
+        self.state.lock().await.sessions.remove(&id)
+    }
+
+    async fn is_closed(&self) -> bool {
+        self.state.lock().await.closed
+    }
+
+    /// Atomically stop admission, detach every local session, cancel active
+    /// turns, wait for their per-session critical sections, and terminate all
+    /// agent bridges.  Draining under the same lock as `get_or_create` closes
+    /// the create-vs-remove race; waiting for each runtime lock ensures a turn
+    /// that was admitted immediately before close cannot outlive teardown.
+    pub(crate) async fn shutdown_all(&self) -> Result<()> {
+        let sessions: Vec<(Uuid, Arc<ChatSession>)> = {
+            let mut state = self.state.lock().await;
+            state.closed = true;
+            state.sessions.drain().collect()
+        };
+
+        // `notify_one` leaves a permit when the turn has not installed its
+        // cancellation waiter yet.  This matters for an admission that won
+        // the registry lock immediately before the atomic close above.
+        for (_, session) in &sessions {
+            session.cancel.notify_one();
+        }
+
+        let mut failures = Vec::new();
+        for (chat_session_id, session) in sessions {
+            let mut rt = session.rt.lock().await;
+            if let Some(bridge) = rt.bridge.take()
+                && let Err(error) = bridge.shutdown(Duration::from_secs(5)).await
+            {
+                failures.push(format!("{chat_session_id}: {error:#}"));
+            }
+            rt.started_sent = false;
+        }
+        if failures.is_empty() {
+            Ok(())
+        } else {
+            anyhow::bail!(
+                "failed to shut down local chat bridge(s): {}",
+                failures.join("; ")
+            )
+        }
     }
 }
 
@@ -173,6 +227,9 @@ impl Drop for LocalTurnGuard {
 pub(crate) fn try_begin_local_turn(
     inst: &RunnerInstance,
 ) -> std::result::Result<LocalTurnGuard, String> {
+    if *inst.remove_tx.borrow() {
+        return Err("runner is being removed; local chat is closed".to_string());
+    }
     if inst.state.rx_in_flight.borrow().is_some() {
         return Err("a managed issue run is using this runner's working copy".to_string());
     }
@@ -224,9 +281,33 @@ pub(crate) async fn handle_warm<S: ChatSink>(
     args: WarmArgs,
     sink: &mut S,
 ) -> Result<Response> {
-    let session = inst.chat_sessions.get_or_create(args.chat_session_id).await;
+    let session = match inst.chat_sessions.get_or_create(args.chat_session_id).await {
+        Ok(session) => session,
+        Err(error) => {
+            sink.emit(Response::ChatEvent {
+                chat_session_id: args.chat_session_id,
+                bridge_seq: 0,
+                kind: "chat_warm_failed".into(),
+                payload: serde_json::json!({ "detail": error.to_string() }),
+            })
+            .await?;
+            return Ok(Response::Ack);
+        }
+    };
     let mut rt = session.rt.lock().await;
     let chat_session_id = args.chat_session_id;
+    if inst.chat_sessions.is_closed().await {
+        sink.emit(Response::ChatEvent {
+            chat_session_id,
+            bridge_seq: rt.bridge_seq,
+            kind: "chat_warm_failed".into(),
+            payload: serde_json::json!({
+                "detail": "runner is being removed; local chat is closed",
+            }),
+        })
+        .await?;
+        return Ok(Response::Ack);
+    }
 
     let resume_id = chat_resume_id(
         args.local_session_id.as_deref(),
@@ -306,8 +387,26 @@ pub(crate) async fn handle_send<S: ChatSink>(
         }
     };
 
-    let session = inst.chat_sessions.get_or_create(chat_session_id).await;
+    let session = match inst.chat_sessions.get_or_create(chat_session_id).await {
+        Ok(session) => session,
+        Err(error) => {
+            return Ok(Response::ChatFailed {
+                chat_session_id,
+                code: "runner_removed".into(),
+                detail: Some(error.to_string()),
+                failed_at: Utc::now(),
+            });
+        }
+    };
     let mut rt = session.rt.lock().await;
+    if inst.chat_sessions.is_closed().await {
+        return Ok(Response::ChatFailed {
+            chat_session_id,
+            code: "runner_removed".into(),
+            detail: Some("runner is being removed; local chat is closed".into()),
+            failed_at: Utc::now(),
+        });
+    }
 
     let resume_id = chat_resume_id(
         args.local_session_id.as_deref(),
@@ -947,6 +1046,8 @@ mod tests {
             runner_id: Uuid::new_v4(),
             workspace_slug: Some("ws".into()),
             project_slug: Some("PROJ".into()),
+            project_id: None,
+            binding_source: None,
             pod_id: None,
             workspace: WorkspaceSection {
                 working_dir: std::env::temp_dir().join("karma-team-chat-drive-test"),
@@ -1218,6 +1319,61 @@ mod tests {
         drop(g1);
         assert!(!inst.chat_active.load(Ordering::SeqCst));
         let _g2 = try_begin_local_turn(&inst).expect("claim after release");
+    }
+
+    #[tokio::test]
+    async fn registry_shutdown_atomically_closes_admission_and_waits_for_sessions() {
+        let registry = ChatRegistry::new();
+        let session = registry
+            .get_or_create(Uuid::new_v4())
+            .await
+            .expect("initial session");
+        // Model an admitted warm/send handler that already owns the session
+        // runtime when project removal begins.
+        let runtime_guard = session.rt.lock().await;
+        let closing_registry = registry.clone();
+        let shutdown = tokio::spawn(async move { closing_registry.shutdown_all().await });
+
+        tokio::time::timeout(Duration::from_secs(1), async {
+            while !registry.is_closed().await {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .expect("registry never closed admission");
+        assert!(
+            registry.get_or_create(Uuid::new_v4()).await.is_err(),
+            "no session may enter after teardown closes the registry"
+        );
+        assert!(
+            !shutdown.is_finished(),
+            "teardown must wait for an already-admitted session"
+        );
+
+        drop(runtime_guard);
+        tokio::time::timeout(Duration::from_secs(1), shutdown)
+            .await
+            .expect("registry shutdown timed out")
+            .unwrap()
+            .unwrap();
+        assert!(registry.state.lock().await.sessions.is_empty());
+    }
+
+    #[tokio::test]
+    async fn local_turn_guard_refuses_after_runner_removal_is_latched() {
+        let inst = offline_instance();
+        // Offline instances do not retain a watch receiver. `send_replace`
+        // still latches the teardown value, which is the behavior this guard
+        // test needs to exercise.
+        inst.remove_tx.send_replace(true);
+
+        let error = match try_begin_local_turn(&inst) {
+            Ok(_) => panic!("local turn unexpectedly started during removal"),
+            Err(error) => error,
+        };
+
+        assert!(error.contains("being removed"), "{error}");
+        assert!(!inst.chat_active.load(Ordering::SeqCst));
     }
 
     #[tokio::test]

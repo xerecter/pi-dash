@@ -5,6 +5,8 @@
 # Python imports
 import os
 
+from django.db.models import Q
+
 # Module imports
 from karma_team.authentication.adapter.credential import CredentialAdapter
 from karma_team.authentication.adapter.error import (
@@ -24,12 +26,14 @@ class EmailProvider(CredentialAdapter):
         self.code = code
         self.is_signup = is_signup
 
-        (ENABLE_EMAIL_PASSWORD,) = get_configuration_value([
-            {
-                "key": "ENABLE_EMAIL_PASSWORD",
-                "default": os.environ.get("ENABLE_EMAIL_PASSWORD"),
-            }
-        ])
+        (ENABLE_EMAIL_PASSWORD,) = get_configuration_value(
+            [
+                {
+                    "key": "ENABLE_EMAIL_PASSWORD",
+                    "default": os.environ.get("ENABLE_EMAIL_PASSWORD"),
+                }
+            ]
+        )
 
         if ENABLE_EMAIL_PASSWORD == "0":
             raise AuthenticationException(
@@ -40,26 +44,28 @@ class EmailProvider(CredentialAdapter):
     def set_user_data(self):
         if self.is_signup:
             # Check if the user already exists
-            if User.objects.filter(email=self.key).exists():
+            if User.objects.filter(Q(email__iexact=self.key) | Q(username__iexact=self.key)).exists():
                 self.logger.warning("User already exists")
                 raise AuthenticationException(
                     error_message="USER_ALREADY_EXIST",
                     error_code=AUTHENTICATION_ERROR_CODES["USER_ALREADY_EXIST"],
                 )
 
-            super().set_user_data({
-                "email": self.key,
-                "user": {
-                    "avatar": "",
-                    "first_name": "",
-                    "last_name": "",
-                    "provider_id": "",
-                    "is_password_autoset": False,
-                },
-            })
+            super().set_user_data(
+                {
+                    "email": self.key,
+                    "user": {
+                        "avatar": "",
+                        "first_name": "",
+                        "last_name": "",
+                        "provider_id": "",
+                        "is_password_autoset": False,
+                    },
+                }
+            )
             return
         else:
-            user = User.objects.filter(email=self.key).first()
+            user = User.objects.filter(Q(email__iexact=self.key) | Q(username__iexact=self.key)).first()
 
             # User does not exists
             if not user:
@@ -83,14 +89,16 @@ class EmailProvider(CredentialAdapter):
                     payload={"email": self.key},
                 )
 
-            super().set_user_data({
-                "email": self.key,
-                "user": {
-                    "avatar": "",
-                    "first_name": "",
-                    "last_name": "",
-                    "provider_id": "",
-                    "is_password_autoset": False,
-                },
-            })
+            super().set_user_data(
+                {
+                    "email": self.key,
+                    "user": {
+                        "avatar": "",
+                        "first_name": "",
+                        "last_name": "",
+                        "provider_id": "",
+                        "is_password_autoset": False,
+                    },
+                }
+            )
             return

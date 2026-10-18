@@ -136,21 +136,21 @@ On Windows, download and run the MSI installer:
 
 To pin to a specific version (or install a prerelease), swap `latest` for the tag, e.g. `.../releases/download/karma-team-v0.1.4/karma-team-installer.sh`. Prereleases are excluded from `/latest/`, so the one-liners above always serve the last stable release. Full pinning recipes — wrapper, bare installer, Windows variants — are in [`runner/README.md`](./runner/README.md#installing-a-specific-version-pinning--prereleases).
 
-Then authenticate the machine and register a runner. The standard flow is two commands:
+Then authenticate and bind the machine. The standard flow is one command:
 
 ```bash
 # 1. Browser-based device-code login (like `gh auth login` / `stripe login`).
 #    Stores a CLI token at ~/.config/karma-team/config.toml.
 karma-team auth login --url https://your-karma-team-instance.com
 
-# 2. Register this host as a runner. Uses the token from step 1 — no
-#    enrollment-token paste needed. On the first runner, installs the OS
-#    service (systemd user unit on Linux, launchd agent on macOS, or a
-#    per-user scheduled task on Windows) and starts the daemon.
-karma-team runner add --project <project-id>
 ```
 
-`karma-team auth login` prompts to add a runner inline when no runner exists yet, so a fresh dev laptop can be onboarded with a single command. Add more runners later with `karma-team runner add --project <other-project-id>`.
+`karma-team auth login` persists the account/workspace/dev-machine binding,
+installs and starts the service even with zero runners, and lets the daemon
+automatically create one runner for every active cloud project. New and deleted
+projects are reconciled in the background. Use `karma-team runner add --project
+<other-project-id>` only for an intentional additional runner or non-default
+pod.
 
 The runner daemon runs in the background, polls for assigned tasks, dispatches them to your AI agent, and reports results back to the platform.
 

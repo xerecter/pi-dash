@@ -54,11 +54,8 @@ export const InvitationFields = observer(function InvitationFields(props: TInvit
               control={control}
               name={`emails.${index}.email`}
               rules={{
-                required: t("We need an email address to invite them."),
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: t("Email is invalid"),
-                },
+                required: t("We need an email or username to invite them."),
+                validate: (value) => value.trim().length > 0 || t("We need an email or username to invite them."),
               }}
               render={({ field: { value, onChange, ref } }) => (
                 <>
@@ -70,7 +67,7 @@ export const InvitationFields = observer(function InvitationFields(props: TInvit
                     onChange={onChange}
                     ref={ref}
                     hasError={Boolean(errors.emails?.[index]?.email)}
-                    placeholder={t("name@company.com")}
+                    placeholder={t("Email or username")}
                     className="w-full text-caption-sm-regular sm:text-body-xs-regular"
                   />
                   {errors.emails?.[index]?.email && (
@@ -96,11 +93,11 @@ export const InvitationFields = observer(function InvitationFields(props: TInvit
                     className="w-24 flex-grow"
                     input
                   >
-                    {Object.entries(ROLE).map(([key, value]) => {
+                    {Object.entries(ROLE).map(([key, roleLabel]) => {
                       if (currentWorkspaceRole && currentWorkspaceRole >= parseInt(key))
                         return (
                           <CustomSelect.Option key={key} value={parseInt(key)}>
-                            {value}
+                            {roleLabel}
                           </CustomSelect.Option>
                         );
                     })}

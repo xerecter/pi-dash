@@ -88,10 +88,22 @@ def account_credential(account: GitProviderAccount) -> dict:
 
 
 def _provider_account_queryset(*, workspace: Workspace, provider: str, host_url: str):
+    normalized_host_url = normalize_host_url(host_url)
+    host_variants = {normalized_host_url}
+    # SSH clone URLs do not carry an HTTP scheme. GitLab parsing therefore
+    # defaults the provider host to HTTPS, while an API account for an
+    # internal GitLab deployment may have been registered over HTTP. The
+    # scheme does not identify a different GitLab installation here; match
+    # both forms while keeping the configured host and port intact.
+    if provider == GitProviderAccount.Provider.GITLAB:
+        if normalized_host_url.startswith("http://"):
+            host_variants.add(f"https://{normalized_host_url[7:]}")
+        elif normalized_host_url.startswith("https://"):
+            host_variants.add(f"http://{normalized_host_url[8:]}")
     return GitProviderAccount.objects.filter(
         workspace=workspace,
         provider=provider,
-        host_url=normalize_host_url(host_url),
+        host_url__in=host_variants,
         status__in=[GitProviderAccount.Status.CONNECTED, GitProviderAccount.Status.DEGRADED],
     )
 
@@ -253,6 +265,12 @@ def upsert_repository(remote: RemoteRepository, *, host_url: str) -> GitReposito
 
 
 def canonical_clone_url(remote: RemoteRepository, raw_url: str) -> str:
+    # Clone authentication belongs to the runner host. Replacing an SSH URL
+    # with the provider's HTTP URL would bypass its SSH keys and instead ask
+    # a non-interactive daemon for an HTTP username/password. Preserve the
+    # selected transport, including custom SSH users, ports, and host aliases.
+    if raw_url and not raw_url.lower().startswith(("http://", "https://")):
+        return raw_url
     return remote.clone_url_http or raw_url or remote.web_url
 
 

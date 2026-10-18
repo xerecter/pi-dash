@@ -121,7 +121,7 @@ export const SetPasswordForm = observer(function SetPasswordForm() {
             <Input
               id="email"
               name="email"
-              type="email"
+              type="text"
               value={user?.email}
               //hasError={Boolean(errors.email)}
               placeholder={t("name@company.com")}

@@ -47,6 +47,235 @@ use super::view::{FocusPath, KeyHandled, View, ViewCompletion, ViewCtx};
 use super::views::{ApprovalsTab, GeneralTab, RunnerStatusTab, RunsTab};
 use crate::util::paths::Paths;
 
+/// Compare the TUI's edit buffer with its immutable baseline. This deliberately
+/// uses the serialized representation so newly-added config fields participate
+/// without requiring a hand-maintained `PartialEq` implementation for every
+/// nested agent section.
+fn tui_config_differs(
+    baseline: &crate::config::schema::Config,
+    working: &crate::config::schema::Config,
+) -> bool {
+    serde_json::to_value(baseline).ok() != serde_json::to_value(working).ok()
+}
+
+/// Merge a TUI edit into the latest config under the host-wide config lock.
+///
+/// Runner membership and cloud-owned identity always come from `latest`.
+/// This prevents a long-lived TUI from deleting a runner hot-added by
+/// ProjectSync or resurrecting one that was removed in the meantime. Only
+/// fields exposed by the TUI are copied when they actually changed from the
+/// baseline the user started editing.
+fn merge_tui_config(
+    baseline: &crate::config::schema::Config,
+    working: &crate::config::schema::Config,
+    latest: &crate::config::schema::Config,
+) -> crate::config::schema::Config {
+    let mut merged = latest.clone();
+    if baseline.daemon.log_level != working.daemon.log_level {
+        merged.daemon.log_level = working.daemon.log_level.clone();
+    }
+    if baseline.daemon.log_retention_days != working.daemon.log_retention_days {
+        merged.daemon.log_retention_days = working.daemon.log_retention_days;
+    }
+    if baseline.daemon.agent_observability_v1 != working.daemon.agent_observability_v1 {
+        merged.daemon.agent_observability_v1 = working.daemon.agent_observability_v1;
+    }
+    if baseline.daemon.auto_update != working.daemon.auto_update {
+        merged.daemon.auto_update = working.daemon.auto_update;
+    }
+
+    for baseline_runner in &baseline.runners {
+        let Some(working_runner) = working
+            .runners
+            .iter()
+            .find(|runner| runner.runner_id == baseline_runner.runner_id)
+        else {
+            continue;
+        };
+        if !tui_runner_editable_fields_differ(baseline_runner, working_runner) {
+            continue;
+        }
+        if let Some(latest_runner) = merged
+            .runners
+            .iter_mut()
+            .find(|runner| runner.runner_id == baseline_runner.runner_id)
+        {
+            merge_runner_editable_fields(baseline_runner, working_runner, latest_runner);
+        }
+    }
+    merged
+}
+
+fn tui_runner_editable_fields_differ(
+    baseline: &crate::config::schema::RunnerConfig,
+    working: &crate::config::schema::RunnerConfig,
+) -> bool {
+    serde_json::json!({
+        "name": &baseline.name,
+        "working_dir": &baseline.workspace.working_dir,
+        "agent_kind": baseline.agent.kind,
+        "codex_binary": &baseline.codex.binary,
+        "codex_model": &baseline.codex.model_default,
+        "claude_binary": &baseline.claude_code.binary,
+        "claude_model": &baseline.claude_code.model_default,
+        "cursor_binary": &baseline.cursor_agent.binary,
+        "cursor_model": &baseline.cursor_agent.model_default,
+        "openclaw_binary": &baseline.openclaw.binary,
+        "openclaw_model": &baseline.openclaw.model_default,
+        "grok_binary": &baseline.grok.binary,
+        "grok_model": &baseline.grok.model_default,
+        "muse_binary": &baseline.muse_code.binary,
+        "muse_model": &baseline.muse_code.model_default,
+        "karma_binary": &baseline.karma.binary,
+        "karma_model": &baseline.karma.model_default,
+        "approval_readonly": baseline.approval_policy.auto_approve_readonly_shell,
+        "approval_writes": baseline.approval_policy.auto_approve_workspace_writes,
+        "approval_network": baseline.approval_policy.auto_approve_network,
+    }) != serde_json::json!({
+        "name": &working.name,
+        "working_dir": &working.workspace.working_dir,
+        "agent_kind": working.agent.kind,
+        "codex_binary": &working.codex.binary,
+        "codex_model": &working.codex.model_default,
+        "claude_binary": &working.claude_code.binary,
+        "claude_model": &working.claude_code.model_default,
+        "cursor_binary": &working.cursor_agent.binary,
+        "cursor_model": &working.cursor_agent.model_default,
+        "openclaw_binary": &working.openclaw.binary,
+        "openclaw_model": &working.openclaw.model_default,
+        "grok_binary": &working.grok.binary,
+        "grok_model": &working.grok.model_default,
+        "muse_binary": &working.muse_code.binary,
+        "muse_model": &working.muse_code.model_default,
+        "karma_binary": &working.karma.binary,
+        "karma_model": &working.karma.model_default,
+        "approval_readonly": working.approval_policy.auto_approve_readonly_shell,
+        "approval_writes": working.approval_policy.auto_approve_workspace_writes,
+        "approval_network": working.approval_policy.auto_approve_network,
+    })
+}
+
+fn merge_runner_editable_fields(
+    baseline: &crate::config::schema::RunnerConfig,
+    working: &crate::config::schema::RunnerConfig,
+    latest: &mut crate::config::schema::RunnerConfig,
+) {
+    macro_rules! merge_field {
+        ($baseline:expr, $working:expr, $latest:expr) => {
+            if $baseline != $working {
+                $latest = $working.clone();
+            }
+        };
+    }
+
+    merge_field!(baseline.name, working.name, latest.name);
+    merge_field!(
+        baseline.workspace.working_dir,
+        working.workspace.working_dir,
+        latest.workspace.working_dir
+    );
+    merge_field!(baseline.agent.kind, working.agent.kind, latest.agent.kind);
+    merge_field!(
+        baseline.codex.binary,
+        working.codex.binary,
+        latest.codex.binary
+    );
+    merge_field!(
+        baseline.codex.model_default,
+        working.codex.model_default,
+        latest.codex.model_default
+    );
+    merge_field!(
+        baseline.claude_code.binary,
+        working.claude_code.binary,
+        latest.claude_code.binary
+    );
+    merge_field!(
+        baseline.claude_code.model_default,
+        working.claude_code.model_default,
+        latest.claude_code.model_default
+    );
+    merge_field!(
+        baseline.cursor_agent.binary,
+        working.cursor_agent.binary,
+        latest.cursor_agent.binary
+    );
+    merge_field!(
+        baseline.cursor_agent.model_default,
+        working.cursor_agent.model_default,
+        latest.cursor_agent.model_default
+    );
+    merge_field!(
+        baseline.openclaw.binary,
+        working.openclaw.binary,
+        latest.openclaw.binary
+    );
+    merge_field!(
+        baseline.openclaw.model_default,
+        working.openclaw.model_default,
+        latest.openclaw.model_default
+    );
+    merge_field!(
+        baseline.grok.binary,
+        working.grok.binary,
+        latest.grok.binary
+    );
+    merge_field!(
+        baseline.grok.model_default,
+        working.grok.model_default,
+        latest.grok.model_default
+    );
+    merge_field!(
+        baseline.muse_code.binary,
+        working.muse_code.binary,
+        latest.muse_code.binary
+    );
+    merge_field!(
+        baseline.muse_code.model_default,
+        working.muse_code.model_default,
+        latest.muse_code.model_default
+    );
+    merge_field!(
+        baseline.karma.binary,
+        working.karma.binary,
+        latest.karma.binary
+    );
+    merge_field!(
+        baseline.karma.model_default,
+        working.karma.model_default,
+        latest.karma.model_default
+    );
+    merge_field!(
+        baseline.approval_policy.auto_approve_readonly_shell,
+        working.approval_policy.auto_approve_readonly_shell,
+        latest.approval_policy.auto_approve_readonly_shell
+    );
+    merge_field!(
+        baseline.approval_policy.auto_approve_workspace_writes,
+        working.approval_policy.auto_approve_workspace_writes,
+        latest.approval_policy.auto_approve_workspace_writes
+    );
+    merge_field!(
+        baseline.approval_policy.auto_approve_network,
+        working.approval_policy.auto_approve_network,
+        latest.approval_policy.auto_approve_network
+    );
+}
+
+fn persist_tui_config(
+    paths: &Paths,
+    baseline: &crate::config::schema::Config,
+    working: &crate::config::schema::Config,
+) -> anyhow::Result<crate::config::schema::Config> {
+    let baseline = baseline.clone();
+    let working = working.clone();
+    crate::config::file::mutate_config(paths, |latest| {
+        let merged = merge_tui_config(&baseline, &working, latest);
+        *latest = merged;
+        Ok(())
+    })
+}
+
 /// Public re-export so `cli/tui.rs` keeps using `tui::app::Tab`.
 pub type Tab = TabKind;
 
@@ -60,6 +289,10 @@ pub struct AppData {
     pub runs: Vec<crate::history::index::RunSummary>,
     pub approvals: Vec<crate::approval::router::ApprovalRecord>,
     pub config_loaded: Option<crate::config::schema::Config>,
+    /// Snapshot from which the current TUI edits were made. `config_loaded`
+    /// is refreshed from disk on every poll, so it cannot also serve as the
+    /// three-way-merge base while the user is editing.
+    pub config_edit_baseline: Option<crate::config::schema::Config>,
     pub config_working: Option<crate::config::schema::Config>,
     /// Set whenever the most recent `set_text_value` call returned an
     /// error so the user can see what's wrong without losing their
@@ -99,6 +332,7 @@ impl AppData {
             runs: Vec::new(),
             approvals: Vec::new(),
             config_loaded: None,
+            config_edit_baseline: None,
             config_working: None,
             config_edit_error: None,
             config_error: None,
@@ -477,7 +711,16 @@ impl App {
                     Ok(Some(cfg)) => {
                         self.data.config_loaded = Some(cfg.clone());
                         self.data.config_error = None;
-                        if self.data.config_working.is_none() {
+                        let has_edits = self
+                            .data
+                            .config_edit_baseline
+                            .as_ref()
+                            .zip(self.data.config_working.as_ref())
+                            .is_some_and(|(baseline, working)| {
+                                tui_config_differs(baseline, working)
+                            });
+                        if self.data.config_working.is_none() || !has_edits {
+                            self.data.config_edit_baseline = Some(cfg.clone());
                             self.data.config_working = Some(cfg);
                         }
                         self.data.sync_picker_to_ipc();
@@ -486,6 +729,7 @@ impl App {
                     }
                     Ok(None) => {
                         self.data.config_loaded = None;
+                        self.data.config_edit_baseline = None;
                         self.data.config_working = None;
                         self.data.config_error = None;
                         self.general.on_config_missing(&self.data);
@@ -562,6 +806,7 @@ impl App {
                 self.data.reload_outcome = Some(reload.clone());
                 if reload.ok {
                     self.data.config_loaded = Some(cfg.clone());
+                    self.data.config_edit_baseline = Some(cfg.clone());
                     self.data.config_working = Some(cfg);
                     self.data.config_error = None;
                     self.data.sync_picker_to_ipc();
@@ -599,10 +844,17 @@ impl App {
                 // config on its next start. On write failure, surface
                 // the error and *don't* quit, so the user can fix and
                 // retry instead of silently losing edits.
-                if let Some(cfg) = self.data.config_working.clone() {
-                    match crate::config::file::write_config(&self.data.paths, &cfg) {
-                        Ok(()) => {
-                            self.data.config_loaded = Some(cfg);
+                if let Some(working) = self.data.config_working.clone() {
+                    let baseline = self
+                        .data
+                        .config_edit_baseline
+                        .clone()
+                        .unwrap_or_else(|| working.clone());
+                    match persist_tui_config(&self.data.paths, &baseline, &working) {
+                        Ok(cfg) => {
+                            self.data.config_loaded = Some(cfg.clone());
+                            self.data.config_edit_baseline = Some(cfg.clone());
+                            self.data.config_working = Some(cfg);
                             self.data.config_edit_error = None;
                             self.quit = true;
                         }
@@ -616,8 +868,16 @@ impl App {
                 }
             }
             AppEvent::DiscardConfigEdits => {
-                if let Some(loaded) = self.data.config_loaded.clone() {
-                    self.data.config_working = Some(loaded);
+                match crate::config::file::load_config(&self.data.paths) {
+                    Ok(latest) => {
+                        self.data.config_loaded = Some(latest.clone());
+                        self.data.config_edit_baseline = Some(latest.clone());
+                        self.data.config_working = Some(latest);
+                    }
+                    Err(error) => {
+                        self.data.config_edit_error =
+                            Some(format!("reload before discard failed: {error:#}"));
+                    }
                 }
                 self.data.config_edit_error = None;
                 self.frame.schedule_frame();
@@ -774,16 +1034,26 @@ impl App {
     }
 
     fn spawn_save_config(&mut self) {
-        let Some(cfg) = self.data.config_working.clone() else {
+        let Some(working) = self.data.config_working.clone() else {
             return;
         };
+        let baseline = self
+            .data
+            .config_edit_baseline
+            .clone()
+            .unwrap_or_else(|| working.clone());
         let paths = self.data.paths.clone();
         let tx = self.event_tx.clone();
-        if let Err(e) = crate::config::file::write_config(&paths, &cfg) {
-            self.data.config_edit_error = Some(format!("save failed: {e:#}"));
-            return;
-        }
-        self.data.config_loaded = Some(cfg);
+        let cfg = match persist_tui_config(&paths, &baseline, &working) {
+            Ok(cfg) => cfg,
+            Err(e) => {
+                self.data.config_edit_error = Some(format!("save failed: {e:#}"));
+                return;
+            }
+        };
+        self.data.config_loaded = Some(cfg.clone());
+        self.data.config_edit_baseline = Some(cfg.clone());
+        self.data.config_working = Some(cfg);
         self.data.config_edit_error = None;
         tokio::spawn(async move {
             let outcome = crate::service::reload::restart_and_verify(&paths).await;
@@ -1314,4 +1584,84 @@ pub async fn run(paths: Paths, initial_tab: TabKind) -> Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod config_merge_tests {
+    use super::*;
+    use crate::config::schema::{
+        AgentSection, ApprovalPolicySection, ClaudeCodeSection, CodexSection, Config,
+        CursorAgentSection, DaemonConfig, GrokSection, KarmaSection, MuseCodeSection,
+        OpenClawSection, RunnerBindingSource, RunnerConfig, WorkspaceSection,
+    };
+    use std::path::PathBuf;
+    use uuid::Uuid;
+
+    fn runner(id: Uuid, name: &str, project: &str) -> RunnerConfig {
+        RunnerConfig {
+            name: name.into(),
+            runner_id: id,
+            workspace_slug: Some("acme".into()),
+            project_slug: Some(project.into()),
+            project_id: Some(Uuid::new_v4()),
+            binding_source: Some(RunnerBindingSource::AutoProjectSync),
+            pod_id: Some(Uuid::new_v4()),
+            workspace: WorkspaceSection {
+                working_dir: PathBuf::from(format!("/workspace/{name}")),
+            },
+            agent: AgentSection::default(),
+            codex: CodexSection::default(),
+            claude_code: ClaudeCodeSection::default(),
+            cursor_agent: CursorAgentSection::default(),
+            openclaw: OpenClawSection::default(),
+            grok: GrokSection::default(),
+            muse_code: MuseCodeSection::default(),
+            karma: KarmaSection::default(),
+            approval_policy: ApprovalPolicySection::default(),
+        }
+    }
+
+    fn config(runners: Vec<RunnerConfig>) -> Config {
+        Config {
+            version: 2,
+            daemon: DaemonConfig::default(),
+            runners,
+            cli: None,
+        }
+    }
+
+    #[test]
+    fn merge_keeps_latest_runner_membership_and_cloud_metadata() {
+        let id_a = Uuid::new_v4();
+        let id_b = Uuid::new_v4();
+        let baseline = config(vec![runner(id_a, "a", "old-project")]);
+        let mut working = baseline.clone();
+        working.runners[0].karma.model_default = Some("user-model".into());
+        let mut latest_a = runner(id_a, "cloud-a", "renamed-project");
+        latest_a.project_id = Some(Uuid::new_v4());
+        let latest = config(vec![latest_a, runner(id_b, "b", "new-project")]);
+
+        let merged = merge_tui_config(&baseline, &working, &latest);
+        assert_eq!(merged.runners.len(), 2);
+        let a = merged.runners.iter().find(|r| r.runner_id == id_a).unwrap();
+        assert_eq!(a.name, "cloud-a");
+        assert_eq!(a.project_slug.as_deref(), Some("renamed-project"));
+        assert_eq!(a.project_id, latest.runners[0].project_id);
+        assert_eq!(a.karma.model_default.as_deref(), Some("user-model"));
+        assert!(merged.runners.iter().any(|r| r.runner_id == id_b));
+    }
+
+    #[test]
+    fn merge_does_not_resurrect_runner_removed_while_tui_was_open() {
+        let id_a = Uuid::new_v4();
+        let id_b = Uuid::new_v4();
+        let baseline = config(vec![runner(id_a, "a", "project-a")]);
+        let mut working = baseline.clone();
+        working.runners[0].karma.model_default = Some("user-model".into());
+        let latest = config(vec![runner(id_b, "b", "project-b")]);
+
+        let merged = merge_tui_config(&baseline, &working, &latest);
+        assert_eq!(merged.runners.len(), 1);
+        assert_eq!(merged.runners[0].runner_id, id_b);
+    }
 }

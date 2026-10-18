@@ -173,6 +173,28 @@ class Pod(models.Model):
         return cls.objects.filter(project_id=project_id, is_default=True).first()
 
 
+class ProjectDeletionTombstone(models.Model):
+    """Durable evidence that a cloud project was deleted.
+
+    Project rows are soft-deleted first but may be hard-deleted by retention
+    cleanup later. ProjectSync clients can remain offline longer than that
+    retention window, so deletion evidence must outlive the Project row.
+    ``project_id`` is the immutable reconciliation key and primary key, making
+    repeated/concurrent deletion bookkeeping naturally idempotent.
+    """
+
+    project_id = models.UUIDField(primary_key=True, editable=False)
+    workspace_id = models.UUIDField(db_index=True, editable=False)
+    # ``default`` (rather than ``auto_now_add``) lets the data migration
+    # preserve the original Project.deleted_at while still timestamping new
+    # tombstones automatically.
+    deleted_at = models.DateTimeField(default=timezone.now, editable=False)
+
+    class Meta:
+        db_table = "runner_project_deletion_tombstone"
+        ordering = ("project_id",)
+
+
 class RunnerStatus(models.TextChoices):
     ONLINE = "online", "Online"
     OFFLINE = "offline", "Offline"
@@ -199,6 +221,19 @@ class RunnerProvisioning(models.TextChoices):
 
     MANUAL = "manual", "Enrolled by the user"
     DESKTOP_BUNDLED = "desktop_bundled", "Provisioned by karma-team Desktop"
+
+
+class RunnerBindingSource(models.TextChoices):
+    """What created the project binding for a runner.
+
+    ``provisioning`` describes who controls a machine (for example, the
+    desktop app). This separate field records why a runner was attached to a
+    project, which lets the project-sync reconciler distinguish its own
+    idempotent bindings from ordinary user-created runners.
+    """
+
+    MANUAL = "manual", "Bound by the user"
+    AUTO_PROJECT_SYNC = "auto_project_sync", "Bound by project sync"
 
 
 class AgentRunStatus(models.TextChoices):
@@ -425,6 +460,16 @@ class Runner(models.Model):
         default=RunnerProvisioning.MANUAL,
         db_index=True,
     )
+    binding_source = models.CharField(
+        max_length=24,
+        choices=RunnerBindingSource.choices,
+        default=RunnerBindingSource.MANUAL,
+        db_index=True,
+    )
+    # Stable idempotency key for machine-control ``create_runner`` commands.
+    # CLI-created runners leave this null; a cloud command supplies its UUID
+    # so redelivery after a daemon/process restart returns the original row.
+    creation_request_id = models.UUIDField(null=True, blank=True)
     visibility = models.PositiveSmallIntegerField(
         choices=Visibility.choices,
         default=Visibility.PRIVATE,
@@ -482,6 +527,25 @@ class Runner(models.Model):
             models.UniqueConstraint(
                 fields=["pod", "name"],
                 name="runner_unique_name_per_pod",
+            ),
+            models.UniqueConstraint(
+                fields=["dev_machine", "pod", "binding_source"],
+                condition=(
+                    models.Q(
+                        binding_source=RunnerBindingSource.AUTO_PROJECT_SYNC,
+                        revoked_at__isnull=True,
+                        dev_machine__isnull=False,
+                    )
+                ),
+                name="runner_one_active_auto_binding_per_machine_pod",
+            ),
+            models.UniqueConstraint(
+                fields=["dev_machine", "creation_request_id"],
+                condition=models.Q(
+                    dev_machine__isnull=False,
+                    creation_request_id__isnull=False,
+                ),
+                name="runner_unique_creation_request_per_machine",
             ),
         ]
         indexes = [

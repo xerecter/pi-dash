@@ -51,7 +51,11 @@ struct Inner {
     /// ``runner_snapshot()`` doesn't lock ``cfg`` on every poll. Empty
     /// string when the connection has no runners yet.
     name: String,
-    project_slug: Option<String>,
+    /// Current cloud project identifier. Unlike the immutable runner name,
+    /// project identifiers can be renamed in the cloud while this daemon is
+    /// still running, so this value is updated by machine-level reconciliation
+    /// and read by reconnect/Hello paths.
+    project_slug: std::sync::RwLock<Option<String>>,
     pod_id: Option<Uuid>,
     /// Cached at construction; the daemon doesn't reload `agent_observability_v1`
     /// at runtime in v1, so reading from `Inner` saves a `Mutex<Config>` lock
@@ -133,7 +137,7 @@ impl StateHandle {
             inner: Arc::new(Inner {
                 cfg: Mutex::new(cfg),
                 name,
-                project_slug,
+                project_slug: std::sync::RwLock::new(project_slug),
                 pod_id,
                 agent_observability_v1,
                 cloud_url: Mutex::new(cloud_url),
@@ -176,6 +180,36 @@ impl StateHandle {
 
     pub fn force_reconnect(&self) {
         self.reconnect.notify_waiters();
+    }
+
+    /// Update the project identifier used by runtime status and reconnect
+    /// metadata. This is deliberately separate from the persisted config:
+    /// project renames are cloud-owned and the sync layer updates both under
+    /// their respective locks.
+    pub fn set_project_slug(&self, project_slug: Option<String>) {
+        let mut current = self
+            .inner
+            .project_slug
+            .write()
+            .expect("project slug lock poisoned");
+        if *current == project_slug {
+            return;
+        }
+        *current = project_slug;
+        drop(current);
+        self.tick();
+    }
+
+    /// Return the project identifier currently visible to runtime protocols.
+    /// This synchronous snapshot lets `HttpLoop::current_attach_body` and the
+    /// Hello emitter refresh metadata without awaiting while constructing a
+    /// wire frame.
+    pub fn project_slug_now(&self) -> Option<String> {
+        self.inner
+            .project_slug
+            .read()
+            .expect("project slug lock poisoned")
+            .clone()
     }
 
     pub fn reconnect_notified(&self) -> Arc<tokio::sync::Notify> {
@@ -459,7 +493,7 @@ impl StateHandle {
         RunnerStatusSnapshot {
             runner_id: runner_id.unwrap_or_else(Uuid::nil),
             name: self.inner.name.clone(),
-            project_slug: self.inner.project_slug.clone(),
+            project_slug: self.project_slug_now(),
             pod_id: self.inner.pod_id,
             status,
             connected,
@@ -580,6 +614,24 @@ mod tests {
         );
         assert!(snap.last_session_open.is_none(), "no session opened yet");
         assert_eq!(snap.consecutive_bootstrap_failures, 0);
+    }
+
+    #[tokio::test]
+    async fn project_slug_can_be_refreshed_after_project_rename() {
+        let state = empty_state();
+        state.set_project_slug(Some("OLD_WEB".into()));
+        assert_eq!(
+            state.runner_snapshot().await.project_slug.as_deref(),
+            Some("OLD_WEB")
+        );
+
+        state.set_project_slug(Some("WEB".into()));
+
+        assert_eq!(
+            state.runner_snapshot().await.project_slug.as_deref(),
+            Some("WEB")
+        );
+        assert_eq!(state.project_slug_now().as_deref(), Some("WEB"));
     }
 
     #[tokio::test]

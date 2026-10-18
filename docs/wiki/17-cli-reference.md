@@ -37,7 +37,15 @@ karma-team auth login [--url <URL>] [--no-browser]
 | `--url <URL>`  | Cloud base URL (e.g. `https://karma-team.example.com`). Optional if config already has one. |
 | `--no-browser` | Don't try to open the verification URL automatically.                                       |
 
-Writes the CLI token to `config.toml`, then confirms the account and workspace and points you at the cloud URL. Registering a runner is a separate, explicit step — see `karma-team runner add`.
+Writes the shared machine token to `config.toml`, binds this installation to the
+selected account and workspace, and installs/starts the daemon service. The
+daemon immediately reconciles the workspace's active cloud projects and then
+keeps that set synchronized in the background, creating one isolated runner per
+otherwise-unbound project. You do not need to register projects manually.
+
+`karma-team runner add` remains available when you intentionally need an
+additional runner for a project or a non-default pod; see the optional manual
+path below.
 
 ### `karma-team auth status`
 
@@ -49,7 +57,10 @@ karma-team auth status
 
 ### `karma-team auth logout`
 
-Revoke the CLI token server-side and clear it locally. `[[runner]]` blocks are left intact — the daemon keeps running under its own identity.
+Revoke the shared dev-machine token server-side and clear it locally.
+`[[runner]]` blocks and their local runner state are left intact, but cloud
+requests cannot continue with the revoked token; run `karma-team auth login`
+again to reconnect this machine, or remove runners you no longer need.
 
 ```
 karma-team auth logout [--local-only]
@@ -75,7 +86,10 @@ karma-team config set default-project <PROJECT_IDENTIFIER_OR_UUID>
 
 ### `karma-team runner add`
 
-Register a new runner. Uses the CLI token from `karma-team auth login`.
+Register an additional runner manually. Normal project binding is performed by
+the daemon after `karma-team auth login`; use this command when you need an
+extra runner for a project or want to select a non-default pod. It uses the
+machine token from `karma-team auth login`.
 
 ```
 karma-team runner add --project <PROJECT> [--name <NAME>] [--workspace <SLUG>]

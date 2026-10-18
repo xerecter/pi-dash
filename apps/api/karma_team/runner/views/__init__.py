@@ -23,6 +23,7 @@ from .chat import (
 )
 from .desktop import DesktopEnrollEndpoint
 from .enrollment import (
+    MachineProjectBindingEnsureEndpoint,
     MachineTokenRedeemEndpoint,
     MachineTokenTicketEndpoint,
     RunnerCreateEndpoint,
@@ -34,7 +35,7 @@ from .enrollment import (
 )
 from .metrics import MetricsEndpoint
 from .pods import PodDetailEndpoint, PodListEndpoint
-from .projects import ProjectListEndpoint
+from .projects import MachineProjectBindingSnapshotEndpoint, ProjectListEndpoint
 from .register import HealthEndpoint
 from .run_endpoints import (
     RunAcceptEndpoint,
@@ -102,6 +103,8 @@ __all__ = [
     "ChatStartedEndpoint",
     "chat_event_stream",
     "MachineTokenRedeemEndpoint",
+    "MachineProjectBindingEnsureEndpoint",
+    "MachineProjectBindingSnapshotEndpoint",
     "MachineTokenTicketEndpoint",
     "DesktopEnrollEndpoint",
     "RunnerCreateEndpoint",

@@ -15,7 +15,7 @@ import { useTranslation } from "@karma-team/i18n";
 import { Button, getButtonStyling } from "@karma-team/propel/button";
 import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 import { Input } from "@karma-team/ui";
-import { cn, checkEmailValidity } from "@karma-team/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import useTimer from "@/hooks/use-timer";
 // services
@@ -59,7 +59,7 @@ export const ForgotPasswordForm = observer(function ForgotPasswordForm() {
   const handleForgotPassword = async (formData: TForgotPasswordFormValues) => {
     await authService
       .sendResetPasswordLink({
-        email: formData.email,
+        email: formData.email.trim(),
       })
       .then(() => {
         setToast({
@@ -86,25 +86,24 @@ export const ForgotPasswordForm = observer(function ForgotPasswordForm() {
       <form onSubmit={handleSubmit(handleForgotPassword)} className="space-y-4">
         <div className="space-y-1">
           <label className="text-13 font-medium text-tertiary" htmlFor="email">
-            {t("Email")}
+            {t("Email or username")}
           </label>
           <Controller
             control={control}
             name="email"
             rules={{
-              required: t("Email is required"),
-              validate: (value) => checkEmailValidity(value) || t("Email is invalid"),
+              validate: (value) => value.trim().length > 0 || t("Email or username is required"),
             }}
             render={({ field: { value, onChange, ref } }) => (
               <Input
                 id="email"
                 name="email"
-                type="email"
+                type="text"
                 value={value}
                 onChange={onChange}
                 ref={ref}
                 hasError={Boolean(errors.email)}
-                placeholder={t("name@company.com")}
+                placeholder={t("Email or username")}
                 className="h-10 w-full border border-strong !bg-surface-1 pr-12 placeholder:text-placeholder"
                 autoComplete="off"
                 disabled={resendTimerCode > 0}

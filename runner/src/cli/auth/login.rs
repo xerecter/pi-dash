@@ -10,9 +10,10 @@
 //!    error, or the grant expires.
 //! 4. Write the returned `APIToken` to `[cli].token` in `config.toml`.
 //!
-//! After a successful login we simply confirm the account/workspace and
-//! point the user at the cloud URL. Registering a runner is a separate,
-//! explicit step (`karma-team runner add`).
+//! After a successful login we persist the machine/workspace binding and
+//! start the daemon service. ProjectSync then creates and activates one runner
+//! per active cloud project; `karma-team runner add` remains available for
+//! additional manual runners and non-default pods.
 
 use anyhow::{Context, Result};
 use clap::Args as ClapArgs;
@@ -86,7 +87,7 @@ struct TokenError {
 }
 
 pub async fn run(args: Args, paths: &Paths) -> Result<()> {
-    let outcome = login_and_bind_workspace(&args, paths).await?;
+    let outcome = login_and_bind_workspace(&args, paths, true).await?;
 
     println!();
     println!("Start using karma-team at {}", outcome.cloud_url);
@@ -94,14 +95,24 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
 }
 
 pub async fn run_auth_only(args: Args, paths: &Paths) -> Result<()> {
-    login_and_bind_workspace(&args, paths).await.map(|_| ())
+    // `runner add` owns the service lifecycle after it persists the requested
+    // runner. Keeping this internal bootstrap auth-only avoids installing and
+    // restarting the same service twice in one command. Normal `auth login`
+    // passes `start_service=true` and starts ProjectSync with zero runners.
+    login_and_bind_workspace(&args, paths, false)
+        .await
+        .map(|_| ())
 }
 
 struct LoginOutcome {
     cloud_url: String,
 }
 
-async fn login_and_bind_workspace(args: &Args, paths: &Paths) -> Result<LoginOutcome> {
+async fn login_and_bind_workspace(
+    args: &Args,
+    paths: &Paths,
+    start_service: bool,
+) -> Result<LoginOutcome> {
     let cloud_url = resolve_cloud_url(args, paths)?;
     crate::cli::connect::validate_cloud_url(&cloud_url)?;
 
@@ -181,7 +192,45 @@ async fn login_and_bind_workspace(args: &Args, paths: &Paths) -> Result<LoginOut
     }
     println!("  Workspace: {}", machine_token.workspace_slug);
 
+    if start_service {
+        // Account binding is the daemon's complete onboarding step. The daemon
+        // may start with zero runners; ProjectSync discovers and creates project
+        // bindings in the background after the service comes up.
+        start_daemon_service(paths).await?;
+    }
+
     Ok(LoginOutcome { cloud_url })
+}
+
+async fn start_daemon_service(paths: &Paths) -> Result<()> {
+    let service = crate::service::detect();
+    service
+        .write_unit(paths)
+        .await
+        .context("writing daemon service unit after login")?;
+    service
+        .enable_and_start()
+        .await
+        .context("starting daemon service after login")?;
+    Ok(())
+}
+
+#[cfg(test)]
+async fn start_daemon_service_with<Write, WriteFut, Enable, EnableFut>(
+    write_unit: Write,
+    enable_and_start: Enable,
+) -> Result<()>
+where
+    Write: FnOnce() -> WriteFut,
+    WriteFut: std::future::Future<Output = Result<()>>,
+    Enable: FnOnce() -> EnableFut,
+    EnableFut: std::future::Future<Output = Result<()>>,
+{
+    write_unit().await.context("writing daemon service unit")?;
+    enable_and_start()
+        .await
+        .context("starting daemon service")?;
+    Ok(())
 }
 
 fn resolve_cloud_url(args: &Args, paths: &Paths) -> Result<String> {
@@ -478,6 +527,7 @@ fn pick_workspace(workspaces: &[WorkspaceRow]) -> Result<&WorkspaceRow> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{Arc, Mutex};
 
     fn args(url: Option<&str>) -> Args {
         Args {
@@ -527,5 +577,46 @@ mod tests {
             .unwrap(),
             "https://explicit.example"
         );
+    }
+
+    #[tokio::test]
+    async fn daemon_service_start_writes_unit_before_enabling_it() {
+        let events = Arc::new(Mutex::new(Vec::new()));
+        let write_events = Arc::clone(&events);
+        let enable_events = Arc::clone(&events);
+
+        start_daemon_service_with(
+            || async move {
+                write_events.lock().unwrap().push("write");
+                Ok(())
+            },
+            || async move {
+                enable_events.lock().unwrap().push("enable");
+                Ok(())
+            },
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(*events.lock().unwrap(), vec!["write", "enable"]);
+    }
+
+    #[tokio::test]
+    async fn daemon_service_start_does_not_enable_after_unit_write_fails() {
+        let enabled = Arc::new(Mutex::new(false));
+        let enable_flag = Arc::clone(&enabled);
+
+        let error = start_daemon_service_with(
+            || async { Err(anyhow::anyhow!("unit write failed")) },
+            || async move {
+                *enable_flag.lock().unwrap() = true;
+                Ok(())
+            },
+        )
+        .await
+        .unwrap_err();
+
+        assert!(format!("{error:#}").contains("unit write failed"));
+        assert!(!*enabled.lock().unwrap());
     }
 }

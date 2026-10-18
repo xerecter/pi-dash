@@ -83,7 +83,7 @@ pub fn write_config(paths: &Paths, config: &Config) -> Result<()> {
 /// an operator can remove them one at a time; no normal configuration path
 /// should call it.
 pub(crate) fn write_config_unchecked(paths: &Paths, config: &Config) -> Result<()> {
-    paths.ensure()?;
+    paths.ensure_config()?;
     let s = toml::to_string_pretty(config)?;
     write_private(&paths.config_path(), s.as_bytes())
 }
@@ -167,7 +167,7 @@ where
     M: FnOnce(&mut Config) -> Result<()>,
     V: FnOnce(&Config) -> Result<()>,
 {
-    paths.ensure()?;
+    paths.ensure_config()?;
     let lock_path = config_lock_path(paths);
     let mut lock_options = fs::OpenOptions::new();
     lock_options
@@ -215,7 +215,7 @@ where
 }
 
 pub fn write_credentials(paths: &Paths, creds: &Credentials) -> Result<()> {
-    paths.ensure()?;
+    paths.ensure_config()?;
     let s = toml::to_string_pretty(creds)?;
     write_private(&paths.credentials_path(), s.as_bytes())
 }
@@ -298,6 +298,8 @@ mod tests {
             runner_id: uuid::Uuid::new_v4(),
             workspace_slug: Some("acme".into()),
             project_slug: Some("TEST".into()),
+            project_id: None,
+            binding_source: None,
             pod_id: None,
             workspace: WorkspaceSection { working_dir },
             agent: Default::default(),
@@ -580,6 +582,41 @@ model_default = "o4-mini"
         assert!(after2.runners.is_empty());
         let reloaded = load_config(&paths).unwrap();
         assert!(reloaded.runners.is_empty());
+    }
+
+    #[test]
+    fn config_writes_and_mutations_ignore_an_unusable_runtime_dir() {
+        let tmp = tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        // A file where the daemon expects a directory deterministically makes
+        // the full daemon-level ensure fail, even when tests run as root.
+        std::fs::write(&paths.runtime_dir, "not a directory").unwrap();
+        assert!(paths.ensure().is_err());
+
+        let cfg = Config {
+            version: 2,
+            daemon: DaemonConfig {
+                cloud_url: "https://x".into(),
+                dev_machine_id: None,
+                log_level: "info".into(),
+                log_retention_days: 14,
+                agent_observability_v1: false,
+                auto_update: true,
+            },
+            runners: vec![sample_runner("t", tmp.path().join("wd"))],
+            cli: None,
+        };
+
+        write_config(&paths, &cfg).unwrap();
+        let after = mutate_config(&paths, |config| {
+            config.daemon.log_level = "debug".into();
+            Ok(())
+        })
+        .unwrap();
+
+        assert_eq!(after.daemon.log_level, "debug");
+        assert_eq!(load_config(&paths).unwrap().daemon.log_level, "debug");
+        assert!(paths.runtime_dir.is_file());
     }
 
     #[test]

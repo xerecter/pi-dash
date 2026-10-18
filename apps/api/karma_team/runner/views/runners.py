@@ -13,6 +13,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from karma_team.authentication.session import BaseSessionAuthentication
+from karma_team.db.models.project import Project
 from karma_team.runner.models import (
     AgentRun,
     DevMachine,
@@ -20,6 +21,7 @@ from karma_team.runner.models import (
     MachineToken,
     Pod,
     Runner,
+    RunnerBindingSource,
     RunnerStatus,
     Visibility,
 )
@@ -368,7 +370,7 @@ class RunnerDetailEndpoint(APIView):
         if not can_manage_runner(request.user, runner):
             return Response({"error": "forbidden"}, status=status.HTTP_403_FORBIDDEN)
 
-        updates: list[str] = []
+        new_name = None
         if "name" in request.data:
             new_name = (request.data.get("name") or "").strip()
             if not new_name:
@@ -376,52 +378,121 @@ class RunnerDetailEndpoint(APIView):
                     {"error": "name cannot be empty"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
-            runner.name = new_name
-            updates.append("name")
-        new_pod_id = request.data.get("pod") if "pod" in request.data else None
-        # Hold the pod lock for the duration of the runner save so a concurrent
-        # pod soft-delete cannot leave the runner pointing at an inactive pod.
-        if "pod" in request.data:
-            with transaction.atomic():
-                new_pod = Pod.objects.select_for_update().filter(pk=new_pod_id).first()
-                if new_pod is None:
-                    return Response(
-                        {"error": "pod does not exist or has been deleted"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                if new_pod.workspace_id != runner.workspace_id:
-                    return Response(
-                        {"error": "pod is in a different workspace"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-                # Refuse to move a runner that has a non-terminal run *bound*
-                # to it — either one it is actively serving (``runner=``) or
-                # one reserved for it (``pinned_runner=``, e.g. a queued or
-                # paused follow-up). A run's pod FK is immutable, so a move
-                # would strand that run in the old pod: the new pod's queue
-                # can't see it (``next_for_runner`` only scans the runner's
-                # current pod) and the old pod's drain skips pinned runs, so it
-                # never dispatches. Unpinned queued runs are NOT bound to this
-                # runner (any runner in the pod can take them), so they don't
-                # block. Only a real move is guarded — re-sending the current
-                # pod stays a no-op. Mirrors the issue-side reassignment guard,
-                # which also keys on NON_TERMINAL_STATUSES.
-                if new_pod.id != runner.pod_id and AgentRun.objects.filter(
-                    Q(runner=runner) | Q(pinned_runner=runner),
-                    status__in=NON_TERMINAL_STATUSES,
-                ).exists():
-                    return Response(
-                        {
-                            "error": "runner has an in-flight or queued run; wait for it to finish or cancel it first",
-                            "code": "runner_busy",
-                        },
-                        status=status.HTTP_409_CONFLICT,
-                    )
-                runner.pod = new_pod
+        target_pod_id = request.data.get("pod") if "pod" in request.data else runner.pod_id
+        target_pod_ref = (
+            Pod.objects.filter(pk=target_pod_id)
+            .values("project_id", "workspace_id")
+            .first()
+        )
+        if target_pod_ref is None:
+            return Response(
+                {"error": "pod does not exist or has been deleted"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if target_pod_ref["workspace_id"] != runner.workspace_id:
+            return Response(
+                {"error": "pod is in a different workspace"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Project deletion and runner mutation use the same lock hierarchy:
+        # Project -> Pod -> Runner. The lightweight target lookup above is
+        # deliberately revalidated under these locks, so it cannot authorize
+        # a write from stale pre-transaction state.
+        with transaction.atomic():
+            target_project = (
+                Project.objects.select_for_update()
+                .filter(
+                    pk=target_pod_ref["project_id"],
+                    workspace_id=runner.workspace_id,
+                    deleted_at__isnull=True,
+                )
+                .first()
+            )
+            if target_project is None:
+                return Response(
+                    {"error": "pod does not exist or has been deleted"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            new_pod = (
+                Pod.objects.select_for_update()
+                .filter(
+                    pk=target_pod_id,
+                    project_id=target_project.id,
+                    deleted_at__isnull=True,
+                )
+                .first()
+            )
+            if new_pod is None:
+                return Response(
+                    {"error": "pod does not exist or has been deleted"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            locked_runner = (
+                Runner.objects.select_for_update(of=("self",))
+                .select_related("pod__project", "dev_machine")
+                .filter(pk=runner.id)
+                .first()
+            )
+            if locked_runner is None or not can_view_runner(request.user, locked_runner):
+                return Response(
+                    {"error": "not found"},
+                    status=status.HTTP_404_NOT_FOUND,
+                )
+            if not can_manage_runner(request.user, locked_runner):
+                return Response(
+                    {"error": "forbidden"},
+                    status=status.HTTP_403_FORBIDDEN,
+                )
+
+            # Project-sync bindings are reconciler-owned. Allowing an operator
+            # to move one would bypass the machine/project ensure lock and the
+            # pod-scoped uniqueness constraint, so two automatic runners could
+            # end up attached to the same project on different pods. Re-sending
+            # the current pod remains an idempotent no-op.
+            if (
+                new_pod.id != locked_runner.pod_id
+                and locked_runner.binding_source == RunnerBindingSource.AUTO_PROJECT_SYNC
+            ):
+                return Response(
+                    {
+                        "error": "automatic project bindings cannot be moved",
+                        "code": "auto_project_binding_managed",
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            # Refuse to move a runner that has a non-terminal run *bound*
+            # to it — either one it is actively serving (``runner=``) or
+            # one reserved for it (``pinned_runner=``, e.g. a queued or
+            # paused follow-up). A run's pod FK is immutable, so a move
+            # would strand that run in the old pod. Unpinned queued runs are
+            # not bound to this runner, so they do not block. Re-sending the
+            # current pod remains a no-op.
+            if new_pod.id != locked_runner.pod_id and AgentRun.objects.filter(
+                Q(runner=locked_runner) | Q(pinned_runner=locked_runner),
+                status__in=NON_TERMINAL_STATUSES,
+            ).exists():
+                return Response(
+                    {
+                        "error": "runner has an in-flight or queued run; wait for it to finish or cancel it first",
+                        "code": "runner_busy",
+                    },
+                    status=status.HTTP_409_CONFLICT,
+                )
+
+            updates: list[str] = []
+            if new_name is not None:
+                locked_runner.name = new_name
+                updates.append("name")
+            if "pod" in request.data:
+                locked_runner.pod = new_pod
                 updates.append("pod")
-                runner.save(update_fields=list(set(updates + ["updated_at"])))
-        elif updates:
-            runner.save(update_fields=list(set(updates + ["updated_at"])))
+            if updates:
+                locked_runner.save(
+                    update_fields=list(set(updates + ["updated_at"]))
+                )
+            runner = locked_runner
         return Response(RunnerSerializer(runner).data)
 
     def delete(self, request, runner_id):

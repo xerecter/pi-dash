@@ -4,7 +4,7 @@
 
 use karma_team::cloud::protocol::{FailureReason, ServerMsg};
 use karma_team::util::shell::{
-    ISSUE_IDENTIFIER_ENV, RUN_ENV, RUN_ID_ENV, RunEnv, login_shell_command,
+    ISSUE_IDENTIFIER_ENV, RUN_ENV, RUN_ID_ENV, RUN_WORKSPACE_ENV, RunEnv, login_shell_command,
 };
 use std::ffi::OsString;
 use tokio::process::Command;
@@ -22,6 +22,8 @@ async fn command_in_run_scope(issue_identifier: Option<&str>) -> (Uuid, Command)
     let env = RunEnv {
         run_id,
         issue_identifier: issue_identifier.map(str::to_string),
+        workspace_slug: None,
+        project_id: None,
     };
     let cmd = RUN_ENV
         .scope(env, async {
@@ -46,6 +48,8 @@ async fn run_scope_without_identifier_does_not_export_it() {
     let (_, cmd) = command_in_run_scope(None).await;
     assert!(env_value(&cmd, RUN_ID_ENV).is_some());
     assert_eq!(env_value(&cmd, ISSUE_IDENTIFIER_ENV), None);
+    assert_eq!(env_value(&cmd, RUN_WORKSPACE_ENV), None);
+    assert_eq!(env_value(&cmd, "KARMA_TEAM_PROJECT_ID"), None);
 }
 
 #[tokio::test]

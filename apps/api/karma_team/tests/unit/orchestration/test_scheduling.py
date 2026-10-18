@@ -12,7 +12,7 @@ import pytest
 from crum import impersonate
 from django.utils import timezone
 
-from karma_team.db.models import Issue, Project, State
+from karma_team.db.models import Issue, Project, ProjectMember, State
 from karma_team.db.models.issue_agent_ticker import (
     IssueAgentTicker,
     TickerDisarmReason,
@@ -85,6 +85,9 @@ def runner_for_workspace(db, workspace, project, create_user):
     from karma_team.runner.models import Pod, Runner, RunnerStatus
 
     pod = Pod.default_for_project(project)
+    ProjectMember.objects.get_or_create(
+        project=project, member=create_user, defaults={"role": 20}
+    )
     return Runner.objects.create(
         owner=create_user,
         workspace=workspace,

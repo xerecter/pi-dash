@@ -6,8 +6,7 @@
 import os
 
 # Django imports
-from django.core.validators import validate_email
-from django.core.exceptions import ValidationError
+from django.db.models import Q
 
 # Third party imports
 from rest_framework import status
@@ -54,7 +53,7 @@ class EmailCheckSpaceEndpoint(APIView):
         smtp_configured = bool(EMAIL_HOST)
         is_magic_login_enabled = ENABLE_MAGIC_LINK_LOGIN == "1"
 
-        email = request.data.get("email", False)
+        email = str(request.data.get("email") or "").strip().lower()
 
         # Return error if email is not present
         if not email:
@@ -64,18 +63,9 @@ class EmailCheckSpaceEndpoint(APIView):
             )
             return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
 
-        email = str(email).lower().strip()
-        # Validate email
-        try:
-            validate_email(email)
-        except ValidationError:
-            exc = AuthenticationException(
-                error_code=AUTHENTICATION_ERROR_CODES["INVALID_EMAIL"],
-                error_message="INVALID_EMAIL",
-            )
-            return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
-        # Check if a user already exists with the given email
-        existing_user = User.objects.filter(email=email).first()
+        # ``email`` is the legacy request key. Accept either a Karma username
+        # or an email-shaped account identifier.
+        existing_user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
 
         # If existing user
         if existing_user:

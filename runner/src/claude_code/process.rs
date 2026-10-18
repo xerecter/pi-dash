@@ -51,9 +51,7 @@ pub struct SpawnArgs<'a> {
     /// When `true`, pass `--permission-mode bypassPermissions`. Always `true`
     /// for MVP; wiring a real permission prompt needs an MCP bridge.
     pub bypass_permissions: bool,
-    /// Ask Karma to create/use an isolated git worktree. This is intentionally
-    /// opt-in: Claude Code does not understand Karma's worktree flag, while
-    /// the Karma wrapper requires it for cloud-synced sessions.
+    /// Ask Karma to use an isolated Git worktree. Claude Code does not use it.
     pub create_worktree: bool,
 }
 

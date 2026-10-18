@@ -6,7 +6,7 @@
 from typing import Any
 
 # Django imports
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 # Module imports
@@ -75,7 +75,18 @@ class SoftDeleteModel(models.Model):
             self.deleted_at = timezone.now()
             self.save(using=using)
 
-            soft_delete_related_objects.delay(self._meta.app_label, self._meta.model_name, self.pk, using=using)
+            app_label = self._meta.app_label
+            model_name = self._meta.model_name
+            instance_pk = self.pk
+            transaction.on_commit(
+                lambda: soft_delete_related_objects.delay(
+                    app_label,
+                    model_name,
+                    instance_pk,
+                    using=using,
+                ),
+                using=using,
+            )
 
         else:
             # Perform hard delete if soft deletion is not enabled

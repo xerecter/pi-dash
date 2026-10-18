@@ -5,18 +5,16 @@
  */
 
 import type { FormEvent } from "react";
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { observer } from "mobx-react";
 // icons
-import { CircleAlert, XCircle } from "lucide-react";
+import { XCircle } from "lucide-react";
 // types
 import { Button } from "@karma-team/propel/button";
 import type { IEmailCheckData } from "@karma-team/types";
 // ui
 import { Input, Spinner } from "@karma-team/ui";
 // helpers
-import { cn } from "@karma-team/utils";
-import { checkEmailValidity } from "@/helpers/string.helper";
 
 type TAuthEmailForm = {
   defaultEmail: string;
@@ -29,51 +27,37 @@ export const AuthEmailForm = observer(function AuthEmailForm(props: TAuthEmailFo
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [email, setEmail] = useState(defaultEmail);
 
-  const emailError = useMemo(
-    () => (email && !checkEmailValidity(email) ? { email: "Email is invalid" } : undefined),
-    [email]
-  );
-
   const handleFormSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (!email.trim() || isSubmitting) return;
     setIsSubmitting(true);
     const payload: IEmailCheckData = {
-      email: email,
+      email: email.trim(),
     };
-    await onSubmit(payload);
-    setIsSubmitting(false);
+    try {
+      await onSubmit(payload);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const isButtonDisabled = email.length === 0 || Boolean(emailError?.email) || isSubmitting;
-
-  const [isFocused, setIsFocused] = useState(true);
+  const isButtonDisabled = email.trim().length === 0 || isSubmitting;
   const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <form onSubmit={handleFormSubmit} className="mt-5 space-y-4">
       <div className="space-y-1">
         <label className="text-13 font-medium text-tertiary" htmlFor="email">
-          Email
+          Email or username
         </label>
-        <div
-          className={cn(
-            `relative flex items-center rounded-md border bg-surface-1`,
-            !isFocused && Boolean(emailError?.email) ? `border-danger-strong` : `border-subtle`
-          )}
-          onFocus={() => {
-            setIsFocused(true);
-          }}
-          onBlur={() => {
-            setIsFocused(false);
-          }}
-        >
+        <div className="relative flex items-center rounded-md border border-subtle bg-surface-1">
           <Input
             id="email"
             name="email"
-            type="email"
+            type="text"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="name@company.com"
+            placeholder="Email or username"
             className={`h-10 w-full border-0 disable-autofill-style placeholder:text-placeholder autofill:bg-danger-subtle focus:bg-none active:bg-transparent`}
             autoComplete="off"
             autoFocus
@@ -82,7 +66,7 @@ export const AuthEmailForm = observer(function AuthEmailForm(props: TAuthEmailFo
           {email.length > 0 && (
             <button
               type="button"
-              aria-label="Clear email"
+              aria-label="Clear email or username"
               onClick={() => {
                 setEmail("");
                 inputRef.current?.focus();
@@ -93,12 +77,6 @@ export const AuthEmailForm = observer(function AuthEmailForm(props: TAuthEmailFo
             </button>
           )}
         </div>
-        {emailError?.email && !isFocused && (
-          <p className="flex items-center gap-1 px-0.5 text-11 text-danger-primary">
-            <CircleAlert height={12} width={12} />
-            {emailError.email}
-          </p>
-        )}
       </div>
       <Button type="submit" variant="primary" className="w-full" size="xl" disabled={isButtonDisabled}>
         {isSubmitting ? <Spinner height="20px" width="20px" /> : "Continue"}

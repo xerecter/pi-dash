@@ -16,7 +16,7 @@ import pytest
 from crum import impersonate
 from django.utils import timezone
 
-from karma_team.db.models import Issue, Project, State
+from karma_team.db.models import Issue, Project, ProjectMember, State
 from karma_team.db.models.issue import IssueAssignee, IssueComment
 from karma_team.db.models.issue_agent_ticker import IssueAgentTicker
 from karma_team.db.models.user import User
@@ -41,12 +41,14 @@ from karma_team.runner.services import matcher
 @pytest.fixture
 def project(db, workspace, create_user):
     with impersonate(create_user):
-        return Project.objects.create(
+        project = Project.objects.create(
             name="Web",
             identifier="WEB",
             workspace=workspace,
             created_by=create_user,
         )
+    ProjectMember.objects.create(project=project, member=create_user, role=20)
+    return project
 
 
 @pytest.fixture
@@ -104,16 +106,18 @@ def user_a(create_user):
 
 
 @pytest.fixture
-def user_b(db, workspace):
+def user_b(db, workspace, project):
     u = _make_user("b")
     WorkspaceMember.objects.create(workspace=workspace, member=u, role=15)
+    ProjectMember.objects.create(project=project, member=u, role=15)
     return u
 
 
 @pytest.fixture
-def user_c(db, workspace):
+def user_c(db, workspace, project):
     u = _make_user("c")
     WorkspaceMember.objects.create(workspace=workspace, member=u, role=15)
+    ProjectMember.objects.create(project=project, member=u, role=15)
     return u
 
 

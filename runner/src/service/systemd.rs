@@ -1,58 +1,79 @@
 use anyhow::{Context, Result};
+use nix::unistd::{User, geteuid};
 use std::io::IsTerminal;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tokio::process::Command;
 
 use super::BootStartOutcome;
 use crate::util::paths::Paths;
 
 const UNIT_NAME: &str = "karma-team.service";
+const UNIT_VERSION_MARKER: &str = "# karma-team-managed-unit-version=2";
 
 /// Write the unit file and reload the systemd user manager. Does NOT enable
 /// or start the unit — that's a separate step so `karma-team install` can gate
 /// it on `karma-team configure` completing first.
 pub async fn write_unit(paths: &Paths) -> Result<()> {
+    let _lock = super::lock_service_definition(paths)?;
     let unit_path = unit_path()?;
-    if let Some(parent) = unit_path.parent() {
-        tokio::fs::create_dir_all(parent).await?;
-    }
     let exe = std::env::current_exe()?;
     let exe_str = super::validate_path_for_unit(&exe)?;
     let config_dir = super::validate_path_for_unit(&paths.config_dir)?;
     let data_dir = super::validate_path_for_unit(&paths.data_dir)?;
+    let runtime_dir = super::validate_path_for_unit(&paths.runtime_dir)?;
     // See `service::capture_install_time_path` for why we bake $PATH in.
     let path_env = super::capture_install_time_path();
-    let body = render_unit(exe_str, config_dir, data_dir, path_env.as_deref());
-    tokio::fs::write(&unit_path, body).await?;
+    let body = render_unit(
+        exe_str,
+        config_dir,
+        data_dir,
+        runtime_dir,
+        path_env.as_deref(),
+    );
+    super::atomic_write_service_file(&unit_path, &body)?;
+    paths.persist_runtime_dir()?;
     run_systemctl(&["daemon-reload"]).await?;
     println!("installed systemd unit at {}", unit_path.display());
     Ok(())
 }
 
-/// Render the user-unit body. Deliberately does NOT set `XDG_RUNTIME_DIR`:
-/// systemd's user manager already exports it as `/run/user/$UID`, and the
-/// daemon + CLI client both derive the socket path from that via
-/// `ProjectDirs`. Overriding it here once caused a double `karma-team/` path
-/// component and left the client unable to reach the daemon.
+/// Render the user-unit body. `HOME` and `XDG_RUNTIME_DIR` are explicit even
+/// though a healthy systemd user manager normally provides both. This keeps a
+/// manager whose environment was imported from `sudo`/root from launching the
+/// daemon against `/root` or `/run/user/0`. `%h` and `%t` are systemd's
+/// canonical home and per-user runtime-directory specifiers; importantly,
+/// `%t` is the *base* runtime directory, not a project-scoped
+/// `/run/user/$UID/karma-team` path, so `ProjectDirs` appends `karma-team`
+/// exactly once.
 ///
 /// `path_env`, when `Some`, is rendered as an `Environment=PATH=...` line
 /// so the daemon (and every subprocess it forks) inherits the operator's
 /// interactive PATH instead of `systemd --user`'s minimal default. See
 /// `service::capture_install_time_path` for the full rationale.
-fn render_unit(exe: &str, config_dir: &str, data_dir: &str, path_env: Option<&str>) -> String {
+fn render_unit(
+    exe: &str,
+    config_dir: &str,
+    data_dir: &str,
+    runtime_dir: &str,
+    path_env: Option<&str>,
+) -> String {
     let path_line = match path_env {
         Some(p) => format!("\nEnvironment=\"PATH={}\"", systemd_double_quoted_escape(p)),
         None => String::new(),
     };
     format!(
-        r#"[Unit]
+        r#"{UNIT_VERSION_MARKER}
+[Unit]
 Description=karma-team Runner
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart={exe} __run
+ExecStart={exe} --runtime-dir="{runtime_dir}" __run
+Environment="HOME=%h"
+Environment="XDG_RUNTIME_DIR=%t"
+Environment="DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus"
 Environment=KARMA_TEAM_CONFIG_DIR={config_dir}
 Environment=KARMA_TEAM_DATA_DIR={data_dir}{path_line}
 Restart=on-failure
@@ -60,7 +81,8 @@ RestartSec=5
 
 [Install]
 WantedBy=default.target
-"#
+"#,
+        runtime_dir = systemd_double_quoted_escape(runtime_dir)
     )
 }
 
@@ -89,6 +111,14 @@ fn systemd_double_quoted_escape(value: &str) -> String {
     out
 }
 
+fn unit_body_is_current(body: &str, expected_runtime: &str) -> bool {
+    let runtime_arg = format!(
+        "--runtime-dir=\"{}\"",
+        systemd_double_quoted_escape(expected_runtime)
+    );
+    body.contains(UNIT_VERSION_MARKER) && body.contains(&runtime_arg)
+}
+
 /// Enable the unit at boot/login and bring it up. `restart` (not `start`) so
 /// a re-configure against an already-running daemon forces it to reload the
 /// freshly-written `credentials.toml`. On a stopped unit `restart` just
@@ -110,14 +140,24 @@ pub async fn uninstall(_: &Paths) -> Result<()> {
     Ok(())
 }
 
-/// Self-heal for `karma-team restart`: rewrite the unit when it's gone.
+/// Self-heal for `karma-team restart`: rewrite a missing or legacy unit.
 ///
 /// `write_unit` already runs `daemon-reload`, so a unit rewritten here is
 /// visible to the manager by the time the caller reaches `enable_and_start`
 /// — which matters, because that step runs `systemctl --user enable`, and
 /// enable is what fails with "Unit file karma-team.service does not exist."
 pub(crate) async fn rewrite_unit_if_missing(paths: &Paths) -> Result<bool> {
-    super::rewrite_unit_if_absent(&unit_path()?, || write_unit(paths)).await
+    let path = unit_path()?;
+    let current = tokio::fs::read_to_string(&path).await.ok();
+    let expected_runtime = super::validate_path_for_unit(&paths.runtime_dir)?;
+    if current
+        .as_deref()
+        .is_some_and(|body| unit_body_is_current(body, expected_runtime))
+    {
+        return Ok(false);
+    }
+    write_unit(paths).await?;
+    Ok(true)
 }
 
 pub async fn start() -> Result<()> {
@@ -132,15 +172,16 @@ pub async fn stop() -> Result<()> {
 /// current user. Linger is what makes the user-level systemd manager (and
 /// therefore our user unit) start at boot rather than at first login.
 pub async fn is_linger_enabled() -> Result<bool> {
-    let user = std::env::var("USER").context("USER env not set")?;
+    let user = current_user_context()?;
     let out = Command::new("loginctl")
-        .args(["show-user", &user, "--property=Linger"])
+        .args(["show-user", &user.name, "--property=Linger"])
         .output()
         .await
         .context("invoking loginctl show-user")?;
     if !out.status.success() {
         anyhow::bail!(
-            "loginctl show-user {user} failed: {}",
+            "loginctl show-user {} failed: {}",
+            user.name,
             String::from_utf8_lossy(&out.stderr).trim()
         );
     }
@@ -151,14 +192,17 @@ pub async fn is_linger_enabled() -> Result<bool> {
 /// the caller's TTY, so any password prompt is surfaced to the user directly
 /// — we don't feed stdin or try to cache credentials ourselves.
 pub async fn enable_linger() -> Result<()> {
-    let user = std::env::var("USER").context("USER env not set")?;
+    let user = current_user_context()?;
     let status = Command::new("sudo")
-        .args(["loginctl", "enable-linger", &user])
+        .args(["loginctl", "enable-linger", &user.name])
         .status()
         .await
         .context("invoking sudo loginctl enable-linger")?;
     if !status.success() {
-        anyhow::bail!("sudo loginctl enable-linger {user} exited with {status}");
+        anyhow::bail!(
+            "sudo loginctl enable-linger {} exited with {status}",
+            user.name
+        );
     }
     Ok(())
 }
@@ -183,7 +227,7 @@ pub async fn ensure_linger() -> BootStartOutcome {
 }
 
 pub async fn status() -> Result<String> {
-    let out = Command::new("systemctl")
+    let out = user_systemctl_command()?
         .args(["--user", "is-active", UNIT_NAME])
         .output()
         .await
@@ -204,14 +248,14 @@ pub async fn diagnose_recent_exit() -> Option<String> {
 }
 
 fn unit_path() -> Result<PathBuf> {
-    let home = dirs_home()?;
-    Ok(home.join(".config/systemd/user").join(UNIT_NAME))
+    let user = current_user_context()?;
+    Ok(unit_path_in(&user.home))
 }
 
 async fn run_systemctl(args: &[&str]) -> Result<()> {
     let mut full = vec!["--user"];
     full.extend_from_slice(args);
-    let status = Command::new("systemctl")
+    let status = user_systemctl_command()?
         .args(&full)
         .status()
         .await
@@ -222,10 +266,55 @@ async fn run_systemctl(args: &[&str]) -> Result<()> {
     Ok(())
 }
 
-fn dirs_home() -> Result<PathBuf> {
-    std::env::var_os("HOME")
-        .map(PathBuf::from)
-        .context("HOME not set")
+#[derive(Debug)]
+struct SystemdUserContext {
+    name: String,
+    home: PathBuf,
+    runtime_dir: PathBuf,
+}
+
+/// Resolve identity from the effective uid rather than `$USER`/`$HOME`.
+///
+/// `sudo -u`, `su`, automation wrappers, and long-lived shells can all leave
+/// root's environment variables behind while changing the effective uid. The
+/// daemon is a per-user service, so the kernel/NSS identity is authoritative.
+fn current_user_context() -> Result<SystemdUserContext> {
+    let uid = geteuid();
+    let user = User::from_uid(uid)
+        .context("looking up effective systemd user")?
+        .with_context(|| format!("no passwd entry for effective uid {}", uid.as_raw()))?;
+    Ok(SystemdUserContext {
+        name: user.name,
+        home: user.dir,
+        runtime_dir: PathBuf::from(format!("/run/user/{}", uid.as_raw())),
+    })
+}
+
+fn unit_path_in(home: &Path) -> PathBuf {
+    home.join(".config/systemd/user").join(UNIT_NAME)
+}
+
+/// Construct `systemctl --user` with an environment tied to the effective
+/// user. Overwriting all identity/session variables prevents an inherited
+/// root bus (`/run/user/0/bus`) from making an install operate on the wrong
+/// user manager or fail with a permission error.
+fn user_systemctl_command() -> Result<Command> {
+    let user = current_user_context()?;
+    let mut command = Command::new("systemctl");
+    apply_user_manager_environment(&mut command, &user);
+    Ok(command)
+}
+
+fn apply_user_manager_environment(command: &mut Command, user: &SystemdUserContext) {
+    command
+        .env("HOME", &user.home)
+        .env("USER", &user.name)
+        .env("LOGNAME", &user.name)
+        .env("XDG_RUNTIME_DIR", &user.runtime_dir)
+        .env(
+            "DBUS_SESSION_BUS_ADDRESS",
+            format!("unix:path={}/bus", user.runtime_dir.display()),
+        );
 }
 
 #[cfg(test)]
@@ -233,21 +322,23 @@ mod tests {
     use super::*;
 
     #[test]
-    fn unit_body_does_not_set_xdg_runtime_dir() {
-        // Regression: setting XDG_RUNTIME_DIR to the project-scoped runtime
-        // dir caused `ProjectDirs::runtime_dir()` inside the daemon to append
-        // `karma-team/` a second time, producing a socket path the CLI client
-        // couldn't reach.
+    fn unit_body_sets_systemd_home_and_base_runtime_dir() {
+        // Regression: a manager environment imported from root made the
+        // daemon write below /run/user/0. The explicit runtime argument pins
+        // daemon IPC to the same path selected by the installing CLI.
         let body = render_unit(
             "/home/user/.cargo/bin/karma-team",
             "/home/user/.config/karma-team",
             "/home/user/.local/share/karma-team",
+            "/run/user/1000/karma-team",
             None,
         );
-        assert!(
-            !body.contains("XDG_RUNTIME_DIR"),
-            "unit body must not set XDG_RUNTIME_DIR; got:\n{body}"
-        );
+        assert!(body.starts_with(UNIT_VERSION_MARKER));
+        assert!(body.contains("Environment=\"HOME=%h\""));
+        assert!(body.contains("Environment=\"XDG_RUNTIME_DIR=%t\""));
+        assert!(body.contains("Environment=\"DBUS_SESSION_BUS_ADDRESS=unix:path=%t/bus\""));
+        assert!(body.contains("--runtime-dir=\"/run/user/1000/karma-team\""));
+        assert!(!body.contains("/run/user/0"));
     }
 
     #[test]
@@ -256,11 +347,30 @@ mod tests {
             "/bin/karma-team",
             "/etc/karma-team",
             "/var/lib/karma-team",
+            "/var/lib/karma-team/runtime",
             None,
         );
-        assert!(body.contains("ExecStart=/bin/karma-team __run"));
+        assert!(body.contains(
+            "ExecStart=/bin/karma-team --runtime-dir=\"/var/lib/karma-team/runtime\" __run"
+        ));
         assert!(body.contains("Environment=KARMA_TEAM_CONFIG_DIR=/etc/karma-team"));
         assert!(body.contains("Environment=KARMA_TEAM_DATA_DIR=/var/lib/karma-team"));
+    }
+
+    #[test]
+    fn legacy_or_mismatched_units_are_refreshed() {
+        let legacy = "[Service]\nExecStart=/bin/karma-team __run\n";
+        assert!(!unit_body_is_current(legacy, "/run/user/1000/karma-team"));
+
+        let current = render_unit(
+            "/bin/karma-team",
+            "/cfg",
+            "/data",
+            "/run/user/1000/karma-team",
+            None,
+        );
+        assert!(unit_body_is_current(&current, "/run/user/1000/karma-team"));
+        assert!(!unit_body_is_current(&current, "/run/user/1001/karma-team"));
     }
 
     #[test]
@@ -269,6 +379,7 @@ mod tests {
             "/bin/karma-team",
             "/etc/karma-team",
             "/var/lib/karma-team",
+            "/var/lib/karma-team/runtime",
             None,
         );
         assert!(
@@ -283,6 +394,7 @@ mod tests {
             "/bin/karma-team",
             "/etc/karma-team",
             "/var/lib/karma-team",
+            "/var/lib/karma-team/runtime",
             Some("/home/user/.local/bin:/usr/local/bin:/usr/bin"),
         );
         assert!(
@@ -305,5 +417,57 @@ mod tests {
         assert_eq!(systemd_double_quoted_escape("/back`tick"), "/back`tick");
         assert_eq!(systemd_double_quoted_escape("/quo\"ted"), "/quo\\\"ted");
         assert_eq!(systemd_double_quoted_escape("a\\b"), "a\\\\b");
+    }
+
+    #[test]
+    fn unit_path_is_scoped_to_resolved_user_home() {
+        assert_eq!(
+            unit_path_in(Path::new("/home/laiye")),
+            PathBuf::from("/home/laiye/.config/systemd/user/karma-team.service")
+        );
+    }
+
+    #[test]
+    fn systemctl_environment_overrides_inherited_root_session() {
+        let user = SystemdUserContext {
+            name: "laiye".to_owned(),
+            home: PathBuf::from("/home/laiye"),
+            runtime_dir: PathBuf::from("/run/user/1000"),
+        };
+        let mut command = Command::new("systemctl");
+        command
+            .env("HOME", "/root")
+            .env("USER", "root")
+            .env("LOGNAME", "root")
+            .env("XDG_RUNTIME_DIR", "/run/user/0")
+            .env("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/0/bus");
+
+        apply_user_manager_environment(&mut command, &user);
+
+        let env = command
+            .as_std()
+            .get_envs()
+            .map(|(key, value)| {
+                (
+                    key.to_string_lossy().into_owned(),
+                    value.map(|v| v.to_string_lossy().into_owned()),
+                )
+            })
+            .collect::<std::collections::HashMap<_, _>>();
+        assert_eq!(
+            env.get("HOME").and_then(Option::as_deref),
+            Some("/home/laiye")
+        );
+        assert_eq!(env.get("USER").and_then(Option::as_deref), Some("laiye"));
+        assert_eq!(env.get("LOGNAME").and_then(Option::as_deref), Some("laiye"));
+        assert_eq!(
+            env.get("XDG_RUNTIME_DIR").and_then(Option::as_deref),
+            Some("/run/user/1000")
+        );
+        assert_eq!(
+            env.get("DBUS_SESSION_BUS_ADDRESS")
+                .and_then(Option::as_deref),
+            Some("unix:path=/run/user/1000/bus")
+        );
     }
 }

@@ -139,6 +139,12 @@ def fire_tick(ticker_id: str) -> bool:
         # Registry-driven: only the registered ticking state for the
         # issue's state group fires.
         if not is_ticking_state(issue.state):
+            # The state transition normally disarms the ticker. Recover if
+            # the state changed without its signal (or an earlier dispatch
+            # rolled a disarm back), otherwise Beat retries this row forever.
+            from karma_team.orchestration.scheduling import TickerEvent, reconcile
+
+            reconcile(issue, TickerEvent.left_bucket())
             return False
 
         # Pre-claim skips. All three reasons (active run, no prior run,
@@ -168,6 +174,7 @@ def fire_tick(ticker_id: str) -> bool:
         # dispatch's own re-check). Without rollback the tick budget is
         # silently burned and the ticker may auto-disarm at cap on a
         # tick that never produced a run.
+        claimed_state_id = issue.state_id
         prev_used = ticker.used
         prev_next_run_at = ticker.next_run_at
         prev_enabled = ticker.enabled
@@ -250,12 +257,24 @@ def fire_tick(ticker_id: str) -> bool:
         # field for "we attempted a tick at this time," not a budget input.
         with transaction.atomic():
             rollback = (
-                IssueAgentTicker.objects.select_for_update()
+                IssueAgentTicker.objects.select_for_update(of=("self",))
+                .select_related("issue__state")
                 .filter(pk=ticker_id)
                 .first()
             )
             if rollback is not None:
                 rollback.used = prev_used
+                if rollback.issue.state_id != claimed_state_id:
+                    # Dispatch may have bounced the issue to Backlog. The
+                    # state-transition handler has already disarmed the
+                    # clock; restoring its old pending entry would rearm a
+                    # task that must not run in that state.
+                    rollback.save(update_fields=["used", "updated_at"])
+                    if not is_ticking_state(rollback.issue.state):
+                        from karma_team.orchestration.scheduling import TickerEvent, reconcile
+
+                        reconcile(rollback.issue, TickerEvent.left_bucket())
+                    return False
                 rollback.next_run_at = prev_next_run_at
                 rollback.enabled = prev_enabled
                 # Restore the captured pre-claim reason. fire_tick only

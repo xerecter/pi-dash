@@ -12,16 +12,17 @@
 //! - `create_runner` — register with the cloud (X-Api-Key path), write
 //!   the `[[runner]]` config block, hot-add the runner in-process, and
 //!   report the outcome back so the web modal's status poll completes.
+//! - `remove_runner` — idempotently remove one runner's config/runtime and
+//!   stop its live tasks after the corresponding cloud project is deleted.
 //! - `welcome` / `ping` / `config_push` — ack-only for now.
 
-use std::collections::HashSet;
 use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::{Context, Result};
 use uuid::Uuid;
 
-use crate::cli::runner_ops::{ApplyEnrollOptions, apply_enroll_response};
+use crate::cli::runner_ops::{ApplyEnrollOptions, EnrollDedupeMode, apply_enroll_response};
 use crate::cloud::http::{
     CreateRunnerRequest, MachineClient, PollMessage, TransportError, create_runner,
 };
@@ -33,8 +34,6 @@ use crate::daemon::supervisor::RunnerSpawnCtx;
 /// Server default; the open response's welcome frame can override it.
 const DEFAULT_LONG_POLL_SECS: u64 = 25;
 const BACKOFF_CAP_SECS: u64 = 30;
-/// Bound on the in-memory duplicate-delivery guard.
-const SEEN_CAP: usize = 256;
 
 pub(crate) struct MachineControl {
     client: MachineClient,
@@ -63,15 +62,6 @@ impl MachineControl {
         let shutdown_fut = shutdown.notified();
         tokio::pin!(shutdown_fut);
 
-        // At-least-once delivery guard: a message handled but not yet
-        // acked (crash / eviction between poll cycles) redelivers on the
-        // next session. Executing `create_runner` twice would mint a
-        // duplicate runner, so remember handled mids for this process's
-        // lifetime. (A daemon restart clears it — acceptable, because
-        // restart re-polls the PEL only for messages never acked, and
-        // the cloud-side result key means the operator sees the first
-        // outcome either way.)
-        let mut seen_mids: HashSet<String> = HashSet::new();
         let mut backoff_secs: u64 = 1;
 
         loop {
@@ -118,15 +108,10 @@ impl MachineControl {
                     Ok(resp) => {
                         backoff_secs = 1;
                         for msg in resp.messages {
-                            acks.push(msg.stream_id.clone());
-                            if !msg.mid.is_empty() && !seen_mids.insert(msg.mid.clone()) {
-                                tracing::debug!(mid = %msg.mid, "skipping duplicate machine message");
-                                continue;
+                            let stream_id = msg.stream_id.clone();
+                            if self.handle_message(msg).await {
+                                acks.push(stream_id);
                             }
-                            if seen_mids.len() > SEEN_CAP {
-                                seen_mids.clear();
-                            }
-                            self.handle_message(msg).await;
                         }
                     }
                     Err(TransportError::SessionEvicted { reason }) => {
@@ -151,20 +136,44 @@ impl MachineControl {
         }
     }
 
-    async fn handle_message(&self, msg: PollMessage) {
+    /// Handle one at-least-once machine command. ``true`` means the stream
+    /// entry may be ACKed on the next poll. A create result that was not
+    /// published stays pending so a later session can replay it; durable
+    /// request-id uniqueness makes that replay return the original runner.
+    async fn handle_message(&self, msg: PollMessage) -> bool {
         match serde_json::from_value::<MachineMsg>(msg.body) {
             Ok(MachineMsg::CreateRunner(cmd)) => self.handle_create_runner(cmd).await,
-            Ok(MachineMsg::Welcome { .. }) | Ok(MachineMsg::Ping {}) => {}
+            Ok(MachineMsg::RemoveRunner { runner_id, reason }) => {
+                tracing::info!(
+                    %runner_id,
+                    reason = reason.as_deref().unwrap_or("project deleted"),
+                    "machine-scoped runner removal received"
+                );
+                match self.spawn_ctx.remove_runner(runner_id).await {
+                    Ok(()) => should_ack_remove_result(true),
+                    Err(error) => {
+                        tracing::error!(
+                            %runner_id,
+                            %error,
+                            "machine-scoped runner removal failed; leaving command pending"
+                        );
+                        should_ack_remove_result(false)
+                    }
+                }
+            }
+            Ok(MachineMsg::Welcome { .. }) | Ok(MachineMsg::Ping {}) => true,
             Ok(MachineMsg::ConfigPush {}) => {
                 tracing::debug!("config_push received; not implemented yet — acked");
+                true
             }
             Err(e) => {
                 tracing::warn!(kind = %msg.kind, "unparseable machine message (acked): {e}");
+                true
             }
         }
     }
 
-    async fn handle_create_runner(&self, cmd: CreateRunnerCmd) {
+    async fn handle_create_runner(&self, cmd: CreateRunnerCmd) -> bool {
         let request_id = cmd.request_id.clone();
         tracing::info!(
             %request_id,
@@ -188,10 +197,14 @@ impl MachineControl {
             tracing::error!(%request_id, "create_runner failed: {e:#}");
         }
         if request_id.is_empty() {
-            return;
+            return true;
         }
-        if let Err(e) = self.client.post_command_result(&request_id, &body).await {
-            tracing::warn!(%request_id, "posting command result failed: {e}");
+        match self.client.post_command_result(&request_id, &body).await {
+            Ok(()) => should_ack_create_result(&request_id, true),
+            Err(e) => {
+                tracing::warn!(%request_id, "posting command result failed; leaving command pending: {e}");
+                should_ack_create_result(&request_id, false)
+            }
         }
     }
 
@@ -209,6 +222,7 @@ impl MachineControl {
             CreateRunnerRequest {
                 api_token: self.client.machine_token(),
                 dev_machine_id: &self.client.dev_machine_id(),
+                request_id: (!cmd.request_id.is_empty()).then_some(cmd.request_id.as_str()),
                 workspace_slug: (!cmd.workspace_slug.is_empty())
                     .then_some(cmd.workspace_slug.as_str()),
                 project: &cmd.project,
@@ -230,6 +244,7 @@ impl MachineControl {
             model: (!cmd.model.is_empty()).then_some(cmd.model.as_str()),
             reasoning_effort: (!cmd.reasoning_effort.is_empty())
                 .then_some(cmd.reasoning_effort.as_str()),
+            dedupe_mode: EnrollDedupeMode::RunnerAndProject,
         };
         let cloud_url = self.spawn_ctx.cloud_url();
         let applied = match apply_enroll_response(&self.spawn_ctx.paths, &resp, &cloud_url, options)
@@ -278,6 +293,14 @@ fn parse_agent_kind(raw: &str) -> Result<AgentKind> {
             .map_err(|_| anyhow::anyhow!("unknown agent kind {raw:?}"))?
     };
     kind.ensure_supported().map(|()| kind)
+}
+
+fn should_ack_create_result(request_id: &str, published: bool) -> bool {
+    request_id.is_empty() || published
+}
+
+fn should_ack_remove_result(succeeded: bool) -> bool {
+    succeeded
 }
 
 /// Errors that no amount of retrying fixes: the credential itself is
@@ -363,5 +386,41 @@ mod tests {
         )
         .unwrap();
         assert!(matches!(welcome, MachineMsg::Welcome { .. }));
+    }
+
+    #[test]
+    fn remove_runner_cmd_preserves_runner_identity() {
+        let runner_id = Uuid::new_v4();
+        let parsed: MachineMsg = serde_json::from_value(serde_json::json!({
+            "type": "remove_runner",
+            "runner_id": runner_id,
+            "reason": "project deleted",
+            "mid": "project-delete:project:runner"
+        }))
+        .unwrap();
+
+        match parsed {
+            MachineMsg::RemoveRunner {
+                runner_id: parsed_id,
+                reason,
+            } => {
+                assert_eq!(parsed_id, runner_id);
+                assert_eq!(reason.as_deref(), Some("project deleted"));
+            }
+            other => panic!("expected RemoveRunner, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn create_runner_result_must_publish_before_ack() {
+        assert!(should_ack_create_result("", false));
+        assert!(should_ack_create_result("request-id", true));
+        assert!(!should_ack_create_result("request-id", false));
+    }
+
+    #[test]
+    fn remove_runner_must_finish_before_ack() {
+        assert!(should_ack_remove_result(true));
+        assert!(!should_ack_remove_result(false));
     }
 }

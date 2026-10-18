@@ -205,42 +205,55 @@ pub fn load_cli_token(paths: &Paths) -> Result<Option<String>> {
 /// Preserves any pre-existing `[cli].workspace_slug` so a re-login
 /// (e.g. token refresh) doesn't wipe the host's workspace binding.
 pub fn write_cli_token(paths: &Paths, cloud_url: &str, token: &str) -> Result<()> {
-    let mut cfg = if paths.config_path().exists() {
-        file::load_config(paths)?
-    } else {
-        Config {
-            version: 2,
-            daemon: DaemonConfig {
-                cloud_url: cloud_url.to_string(),
-                dev_machine_id: None,
-                log_level: "info".to_string(),
-                log_retention_days: 14,
-                agent_observability_v1: false,
-                auto_update: true,
-            },
-            runners: vec![],
-            cli: None,
-        }
-    };
-    // Pre-existing config? Don't quietly rebind it to a different cloud.
-    if !cfg.daemon.cloud_url.is_empty() && cfg.daemon.cloud_url != cloud_url {
-        anyhow::bail!(
-            "this host is already enrolled with cloud {} — refusing to overwrite [cli] for a different cloud {}",
-            cfg.daemon.cloud_url,
-            cloud_url
-        );
-    }
-    if cfg.daemon.cloud_url.is_empty() {
-        cfg.daemon.cloud_url = cloud_url.to_string();
-    }
-    let preserved_workspace = cfg.cli.as_ref().and_then(|c| c.workspace_slug.clone());
-    let preserved_default_project = cfg.cli.as_ref().and_then(|c| c.default_project.clone());
-    cfg.cli = Some(CliSection {
-        token: Some(token.to_string()),
-        workspace_slug: preserved_workspace,
-        default_project: preserved_default_project,
-    });
-    file::write_config(paths, &cfg)?;
+    let initial_cloud_url = cloud_url.to_string();
+    file::mutate_config_or_init(
+        paths,
+        || {
+            Some(Config {
+                version: 2,
+                daemon: DaemonConfig {
+                    cloud_url: initial_cloud_url,
+                    dev_machine_id: None,
+                    log_level: "info".to_string(),
+                    log_retention_days: 14,
+                    agent_observability_v1: false,
+                    auto_update: true,
+                },
+                runners: vec![],
+                cli: None,
+            })
+        },
+        |cfg| {
+            // Perform the identity check while holding the host-wide lock;
+            // checking before the read-modify-write would race ProjectSync.
+            if !cfg.daemon.cloud_url.is_empty() && cfg.daemon.cloud_url != cloud_url {
+                anyhow::bail!(
+                    "this host is already enrolled with cloud {} — refusing to overwrite [cli] for a different cloud {}",
+                    cfg.daemon.cloud_url,
+                    cloud_url
+                );
+            }
+            if cfg.daemon.cloud_url.is_empty() {
+                cfg.daemon.cloud_url = cloud_url.to_string();
+            }
+            let preserved_workspace = cfg.cli.as_ref().and_then(|c| c.workspace_slug.clone());
+            let preserved_default_project =
+                cfg.cli.as_ref().and_then(|c| c.default_project.clone());
+            let workspace_tokens = cfg
+                .cli
+                .as_ref()
+                .filter(|cli| cli.token.as_deref() == Some(token))
+                .map(|cli| cli.workspace_tokens.clone())
+                .unwrap_or_default();
+            cfg.cli = Some(CliSection {
+                token: Some(token.to_string()),
+                workspace_slug: preserved_workspace,
+                default_project: preserved_default_project,
+                workspace_tokens,
+            });
+            Ok(())
+        },
+    )?;
     Ok(())
 }
 
@@ -286,11 +299,12 @@ pub fn write_cli_workspace(paths: &Paths, workspace_slug: &str) -> Result<()> {
             "no config.toml — `karma-team auth login` must write the CLI token before the workspace binding"
         );
     }
-    let mut cfg = file::load_config(paths)?;
-    let mut cli = cfg.cli.unwrap_or_default();
-    cli.workspace_slug = Some(workspace_slug.to_string());
-    cfg.cli = Some(cli);
-    file::write_config(paths, &cfg)?;
+    file::mutate_config(paths, |cfg| {
+        let mut cli = cfg.cli.take().unwrap_or_default();
+        cli.workspace_slug = Some(workspace_slug.to_string());
+        cfg.cli = Some(cli);
+        Ok(())
+    })?;
     Ok(())
 }
 
@@ -308,11 +322,12 @@ pub fn write_cli_default_project(paths: &Paths, project: &str) -> Result<()> {
             "no config.toml — run `karma-team auth login` before setting a default project"
         );
     }
-    let mut cfg = file::load_config(paths)?;
-    let mut cli = cfg.cli.unwrap_or_default();
-    cli.default_project = Some(project.to_string());
-    cfg.cli = Some(cli);
-    file::write_config(paths, &cfg)?;
+    file::mutate_config(paths, |cfg| {
+        let mut cli = cfg.cli.take().unwrap_or_default();
+        cli.default_project = Some(project.to_string());
+        cfg.cli = Some(cli);
+        Ok(())
+    })?;
     Ok(())
 }
 
@@ -323,11 +338,13 @@ pub fn clear_cli_token(paths: &Paths) -> Result<()> {
     if !paths.config_path().exists() {
         return Ok(());
     }
-    let mut cfg = file::load_config(paths)?;
-    if let Some(ref mut cli) = cfg.cli {
-        cli.token = None;
-    }
-    file::write_config(paths, &cfg)?;
+    file::mutate_config(paths, |cfg| {
+        if let Some(ref mut cli) = cfg.cli {
+            cli.token = None;
+            cli.workspace_tokens.clear();
+        }
+        Ok(())
+    })?;
     Ok(())
 }
 
@@ -346,6 +363,20 @@ pub struct ApplyEnrollOptions<'a> {
     pub agent_kind: AgentKind,
     pub model: Option<&'a str>,
     pub reasoning_effort: Option<&'a str>,
+    pub dedupe_mode: EnrollDedupeMode,
+}
+
+/// Controls how an automatic enrollment response is deduplicated locally.
+///
+/// Ensure calls represent the desired single automatic binding for a project,
+/// so a concurrently-persisted project runner satisfies them. Recovery calls
+/// replay a specific binding already present in an authoritative snapshot and
+/// therefore may only collapse the exact same runner id; another legitimate
+/// runner for the project must not swallow that binding.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EnrollDedupeMode {
+    RunnerAndProject,
+    RunnerOnly,
 }
 
 /// The exclusive working directory for a runner created without an explicit
@@ -434,7 +465,9 @@ pub async fn apply_enroll_response(
         runner_id: resp.runner_id,
         workspace_slug: Some(resp.workspace_slug.clone()),
         project_slug: Some(resp.project_identifier.clone()),
-        pod_id: None,
+        project_id: resp.project_id,
+        binding_source: resp.binding_source,
+        pod_id: resp.pod_id,
         workspace: WorkspaceSection { working_dir },
         agent: AgentSection {
             kind: options.agent_kind,
@@ -477,6 +510,11 @@ pub async fn apply_enroll_response(
     // --url <different>` that may be rewriting `[cli]` at the same time.
     let new_runner_for_closure = new_runner.clone();
     let runner_id = new_runner.runner_id;
+    let workspace_slug = new_runner.workspace_slug.clone();
+    let project_id = new_runner.project_id;
+    let project_slug = new_runner.project_slug.clone();
+    let dedupe_mode = options.dedupe_mode;
+    let mut selected_runner_id = runner_id;
     let mut is_first_runner = false;
     let cfg_after = file::mutate_config_or_init(paths, init_cfg, |cfg| {
         if !cfg.daemon.cloud_url.is_empty() && cfg.daemon.cloud_url != cloud_url {
@@ -489,6 +527,52 @@ pub async fn apply_enroll_response(
         if cfg.daemon.cloud_url.is_empty() {
             cfg.daemon.cloud_url = cloud_url.to_string();
         }
+        if let Some(existing) = cfg.runners.iter_mut().find(|r| r.runner_id == runner_id) {
+            // Re-applying an enrollment response after a crash is a no-op.
+            // Refresh display metadata when the cloud has the newer value,
+            // while preserving the operator's working directory and agent
+            // settings.
+            existing.workspace_slug = new_runner_for_closure.workspace_slug.clone();
+            existing.project_slug = new_runner_for_closure.project_slug.clone();
+            if project_id.is_some() {
+                existing.project_id = project_id;
+            }
+            if new_runner_for_closure.pod_id.is_some() {
+                existing.pod_id = new_runner_for_closure.pod_id;
+            }
+            if new_runner_for_closure.binding_source.is_some() {
+                existing.binding_source = new_runner_for_closure.binding_source;
+            }
+            selected_runner_id = existing.runner_id;
+            is_first_runner = false;
+            return Ok(());
+        }
+
+        // A different active runner already satisfies this project. This is
+        // important when an ensure request won a race with local persistence:
+        // do not add a second config block for the same project.
+        if dedupe_mode == EnrollDedupeMode::RunnerAndProject
+            && matches!(
+                new_runner_for_closure.binding_source,
+                Some(crate::config::schema::RunnerBindingSource::AutoProjectSync)
+            )
+            && project_id.is_some()
+            && let Some(existing) = cfg.runners.iter().find(|r| {
+                let same_workspace = r
+                    .workspace_slug
+                    .as_deref()
+                    .is_none_or(|workspace| Some(workspace) == workspace_slug.as_deref());
+                same_workspace
+                    && (r.project_id == project_id
+                        || (r.project_id.is_none()
+                            && r.project_slug.as_deref() == project_slug.as_deref()))
+            })
+        {
+            selected_runner_id = existing.runner_id;
+            is_first_runner = false;
+            return Ok(());
+        }
+
         is_first_runner = cfg.runners.is_empty();
         cfg.runners.push(new_runner_for_closure);
         Ok(())
@@ -497,9 +581,20 @@ pub async fn apply_enroll_response(
     let new_runner = cfg_after
         .runners
         .iter()
-        .find(|runner| runner.runner_id == runner_id)
+        .find(|runner| runner.runner_id == selected_runner_id)
         .cloned()
         .unwrap_or(new_runner);
+
+    // If a concurrent automatic ensure returned a second cloud row while a
+    // suitable local project runner was already present, the config mutation
+    // deliberately selected the existing row. Do not write credentials or a
+    // runner directory for the discarded response ID.
+    if selected_runner_id != resp.runner_id {
+        return Ok(AppliedRunner {
+            runner: new_runner,
+            is_first_runner,
+        });
+    }
 
     // Credentials write happens AFTER config so a config-write failure
     // (cloud-URL mismatch, validation error, IO) doesn't leave an orphan
@@ -521,10 +616,23 @@ pub async fn apply_enroll_response(
             .context("writing shared dev-machine token to [cli].token")?;
     }
     if resp.refresh_token.trim().is_empty() {
-        let has_machine_token = load_cli_token(paths)?
-            .as_deref()
-            .map(|token| token.starts_with("mt_"))
-            .unwrap_or(false);
+        let config = file::load_config(paths)?;
+        let has_machine_token = config.cli.as_ref().is_some_and(|cli| {
+            let primary_workspace = cli.workspace_slug.as_deref().or_else(|| {
+                config
+                    .runners
+                    .first()
+                    .and_then(|runner| runner.workspace_slug.as_deref())
+            });
+            cli.machine_token_for_workspace(
+                if primary_workspace == Some(resp.workspace_slug.as_str()) {
+                    None
+                } else {
+                    Some(&resp.workspace_slug)
+                },
+            )
+            .is_some()
+        });
         if !has_machine_token {
             anyhow::bail!(
                 "cloud did not return per-runner credentials and no dev-machine token is configured"
@@ -707,6 +815,7 @@ mod tests {
             agent_kind,
             model: None,
             reasoning_effort: None,
+            dedupe_mode: EnrollDedupeMode::RunnerAndProject,
         }
     }
 
@@ -721,6 +830,9 @@ mod tests {
             workspace_slug: "acme".into(),
             pod_slug: "default".into(),
             project_identifier: "WEB".into(),
+            project_id: None,
+            binding_source: None,
+            pod_id: None,
             long_poll_interval_secs: 25,
             protocol_version: 4,
             machine_token: None,
@@ -770,6 +882,61 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn machine_enrollment_accepts_legacy_default_but_requires_secondary_credential() {
+        for (workspace, cache_secondary, accepted) in [
+            ("acme", false, true),
+            ("shared", false, false),
+            ("shared", true, true),
+        ] {
+            let tmp = tempdir().unwrap();
+            let paths = paths_for(tmp.path());
+            let primary = sample_response("primary");
+            apply_enroll_response(
+                &paths,
+                &primary,
+                "https://example.com",
+                enroll_options(tmp.path().join("primary"), AgentKind::Karma),
+            )
+            .await
+            .unwrap();
+            write_cli_token(&paths, "https://example.com", "mt_primary").unwrap();
+            if cache_secondary {
+                file::mutate_config(&paths, |cfg| {
+                    cfg.cli
+                        .as_mut()
+                        .unwrap()
+                        .workspace_tokens
+                        .insert("shared".into(), "mt_shared".into());
+                    Ok(())
+                })
+                .unwrap();
+            }
+            let mut response = sample_response("member-project");
+            response.workspace_slug = workspace.into();
+            response.project_identifier = "MEMBER".into();
+            response.refresh_token.clear();
+            let result = apply_enroll_response(
+                &paths,
+                &response,
+                "https://example.com",
+                enroll_options(tmp.path().join("member-project"), AgentKind::Karma),
+            )
+            .await;
+            assert_eq!(
+                result.is_ok(),
+                accepted,
+                "workspace={workspace}, cached={cache_secondary}"
+            );
+            assert!(
+                !paths
+                    .for_runner(response.runner_id)
+                    .credentials_path()
+                    .exists()
+            );
+        }
+    }
+
+    #[tokio::test]
     async fn second_runner_appends_and_flags_not_first() {
         let tmp = tempdir().unwrap();
         let paths = paths_for(tmp.path());
@@ -795,6 +962,203 @@ mod tests {
         assert!(!applied.is_first_runner);
         let cfg = file::load_config(&paths).unwrap();
         assert_eq!(cfg.runners.len(), 2);
+    }
+
+    #[tokio::test]
+    async fn automatic_apply_is_idempotent_by_project_identity() {
+        let tmp = tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let project_id = Uuid::new_v4();
+        let mut first = sample_response("auto-web-1");
+        first.project_id = Some(project_id);
+        first.binding_source = Some(crate::config::schema::RunnerBindingSource::AutoProjectSync);
+        let mut second = sample_response("auto-web-2");
+        second.project_id = Some(project_id);
+        second.binding_source = Some(crate::config::schema::RunnerBindingSource::AutoProjectSync);
+
+        let first_applied = apply_enroll_response(
+            &paths,
+            &first,
+            "example.com",
+            enroll_options(tmp.path().join("wd1"), AgentKind::Karma),
+        )
+        .await
+        .unwrap();
+        let second_applied = apply_enroll_response(
+            &paths,
+            &second,
+            "example.com",
+            enroll_options(tmp.path().join("wd2"), AgentKind::Karma),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            first_applied.runner.runner_id,
+            second_applied.runner.runner_id
+        );
+        assert_eq!(first_applied.runner.runner_id, first.runner_id);
+        assert_eq!(file::load_config(&paths).unwrap().runners.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn automatic_apply_does_not_dedupe_against_another_workspace() {
+        let tmp = tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let mut other_workspace = sample_response("other-web");
+        other_workspace.workspace_slug = "other".into();
+        other_workspace.project_id = None;
+        other_workspace.binding_source = Some(crate::config::schema::RunnerBindingSource::Manual);
+        apply_enroll_response(
+            &paths,
+            &other_workspace,
+            "example.com",
+            enroll_options(tmp.path().join("other-wd"), AgentKind::Karma),
+        )
+        .await
+        .unwrap();
+
+        let mut current_workspace = sample_response("acme-web");
+        current_workspace.workspace_slug = "acme".into();
+        current_workspace.project_id = Some(Uuid::new_v4());
+        current_workspace.binding_source =
+            Some(crate::config::schema::RunnerBindingSource::AutoProjectSync);
+        let applied = apply_enroll_response(
+            &paths,
+            &current_workspace,
+            "example.com",
+            enroll_options(tmp.path().join("acme-wd"), AgentKind::Karma),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(applied.runner.runner_id, current_workspace.runner_id);
+        let cfg = file::load_config(&paths).unwrap();
+        assert_eq!(cfg.runners.len(), 2);
+        assert!(cfg.runners.iter().any(|runner| {
+            runner.runner_id == other_workspace.runner_id
+                && runner.workspace_slug.as_deref() == Some("other")
+        }));
+        assert!(cfg.runners.iter().any(|runner| {
+            runner.runner_id == current_workspace.runner_id
+                && runner.workspace_slug.as_deref() == Some("acme")
+        }));
+    }
+
+    #[tokio::test]
+    async fn automatic_recovery_is_idempotent_by_runner_identity_only() {
+        let tmp = tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let project_id = Uuid::new_v4();
+        let mut manual = sample_response("manual-web");
+        manual.project_id = Some(project_id);
+        manual.binding_source = Some(crate::config::schema::RunnerBindingSource::Manual);
+        let mut recovered = sample_response("auto-web-extra");
+        recovered.project_id = Some(project_id);
+        recovered.binding_source =
+            Some(crate::config::schema::RunnerBindingSource::AutoProjectSync);
+
+        apply_enroll_response(
+            &paths,
+            &manual,
+            "example.com",
+            enroll_options(tmp.path().join("manual-wd"), AgentKind::Karma),
+        )
+        .await
+        .unwrap();
+
+        for _ in 0..2 {
+            let applied = apply_enroll_response(
+                &paths,
+                &recovered,
+                "example.com",
+                ApplyEnrollOptions {
+                    working_dir: Some(tmp.path().join("recovered-wd")),
+                    agent_kind: AgentKind::Karma,
+                    model: None,
+                    reasoning_effort: None,
+                    dedupe_mode: EnrollDedupeMode::RunnerOnly,
+                },
+            )
+            .await
+            .unwrap();
+            assert_eq!(applied.runner.runner_id, recovered.runner_id);
+        }
+
+        let cfg = file::load_config(&paths).unwrap();
+        assert_eq!(cfg.runners.len(), 2);
+        assert!(
+            cfg.runners
+                .iter()
+                .any(|runner| runner.runner_id == manual.runner_id)
+        );
+        assert!(
+            cfg.runners
+                .iter()
+                .any(|runner| runner.runner_id == recovered.runner_id)
+        );
+    }
+
+    #[tokio::test]
+    async fn same_runner_id_refreshes_cloud_identity_but_preserves_local_settings() {
+        let tmp = tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let runner_id = Uuid::new_v4();
+        let original_working_dir = tmp.path().join("operator-worktree");
+        let mut original = sample_response("manual-web");
+        original.runner_id = runner_id;
+        original.workspace_slug = "old-workspace".into();
+        original.project_identifier = "OLD_WEB".into();
+        original.project_id = Some(Uuid::new_v4());
+        original.pod_id = Some(Uuid::new_v4());
+        original.binding_source = Some(crate::config::schema::RunnerBindingSource::Manual);
+        apply_enroll_response(
+            &paths,
+            &original,
+            "example.com",
+            enroll_options(original_working_dir.clone(), AgentKind::Karma),
+        )
+        .await
+        .unwrap();
+
+        let new_project_id = Uuid::new_v4();
+        let new_pod_id = Uuid::new_v4();
+        let mut authoritative = sample_response("auto-web");
+        authoritative.runner_id = runner_id;
+        authoritative.workspace_slug = "acme".into();
+        authoritative.project_identifier = "WEB".into();
+        authoritative.project_id = Some(new_project_id);
+        authoritative.pod_id = Some(new_pod_id);
+        authoritative.binding_source =
+            Some(crate::config::schema::RunnerBindingSource::AutoProjectSync);
+        let applied = apply_enroll_response(
+            &paths,
+            &authoritative,
+            "example.com",
+            ApplyEnrollOptions {
+                working_dir: Some(tmp.path().join("must-not-replace-operator-worktree")),
+                agent_kind: AgentKind::Karma,
+                model: Some("claude-opus-4-8"),
+                reasoning_effort: None,
+                dedupe_mode: EnrollDedupeMode::RunnerOnly,
+            },
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(applied.runner.runner_id, runner_id);
+        assert_eq!(applied.runner.workspace_slug.as_deref(), Some("acme"));
+        assert_eq!(applied.runner.project_slug.as_deref(), Some("WEB"));
+        assert_eq!(applied.runner.project_id, Some(new_project_id));
+        assert_eq!(applied.runner.pod_id, Some(new_pod_id));
+        assert_eq!(
+            applied.runner.binding_source,
+            Some(crate::config::schema::RunnerBindingSource::AutoProjectSync)
+        );
+        assert_eq!(applied.runner.workspace.working_dir, original_working_dir);
+        assert_eq!(applied.runner.agent.kind, AgentKind::Karma);
+        assert_eq!(applied.runner.karma.model_default, None);
+        assert_eq!(file::load_config(&paths).unwrap().runners.len(), 1);
     }
 
     #[test]
@@ -838,6 +1202,7 @@ mod tests {
                 agent_kind: AgentKind::Karma,
                 model: None,
                 reasoning_effort: None,
+                dedupe_mode: EnrollDedupeMode::RunnerAndProject,
             },
         )
         .await
@@ -968,6 +1333,35 @@ mod tests {
     }
 
     #[test]
+    fn cli_config_mutators_use_the_host_wide_lock() {
+        // Login and ProjectSync can write the same config concurrently. Every
+        // CLI read-modify-write must therefore participate in the same flock
+        // protocol as automatic runner add/remove; the lock file is a stable,
+        // externally observable proof that the helper was used.
+        let tmp = tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let lock_path = paths.config_dir.join(".config.lock");
+
+        write_cli_token(&paths, "https://example.com", "tok").unwrap();
+        assert!(lock_path.exists(), "token write bypassed config lock");
+
+        std::fs::remove_file(&lock_path).unwrap();
+        write_cli_workspace(&paths, "acme").unwrap();
+        assert!(lock_path.exists(), "workspace write bypassed config lock");
+
+        std::fs::remove_file(&lock_path).unwrap();
+        write_cli_default_project(&paths, "WEB").unwrap();
+        assert!(
+            lock_path.exists(),
+            "default-project write bypassed config lock"
+        );
+
+        std::fs::remove_file(&lock_path).unwrap();
+        clear_cli_token(&paths).unwrap();
+        assert!(lock_path.exists(), "token clear bypassed config lock");
+    }
+
+    #[test]
     fn write_cli_workspace_rebinds_when_called_with_new_slug() {
         // Workspace rebinding is intentionally allowed (membership
         // changes, user pick a different one on re-login). The login
@@ -984,6 +1378,48 @@ mod tests {
     }
 
     #[test]
+    fn workspace_credentials_survive_same_identity_but_not_login_change_or_logout() {
+        let tmp = tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        write_cli_token(&paths, "https://example.com", "mt_primary").unwrap();
+        let cache = || {
+            file::mutate_config(&paths, |cfg| {
+                cfg.cli
+                    .as_mut()
+                    .unwrap()
+                    .workspace_tokens
+                    .insert("shared".into(), "mt_shared".into());
+                Ok(())
+            })
+            .unwrap();
+        };
+        cache();
+        write_cli_token(&paths, "https://example.com", "mt_primary").unwrap();
+        assert_eq!(
+            file::load_config(&paths)
+                .unwrap()
+                .cli
+                .unwrap()
+                .workspace_tokens["shared"],
+            "mt_shared"
+        );
+        write_cli_token(&paths, "https://example.com", "mt_new_identity").unwrap();
+        assert!(
+            file::load_config(&paths)
+                .unwrap()
+                .cli
+                .unwrap()
+                .workspace_tokens
+                .is_empty()
+        );
+        cache();
+        clear_cli_token(&paths).unwrap();
+        let cli = file::load_config(&paths).unwrap().cli.unwrap();
+        assert!(cli.token.is_none());
+        assert!(cli.workspace_tokens.is_empty());
+    }
+
+    #[test]
     fn clear_cli_token_keeps_runner_blocks() {
         let tmp = tempdir().unwrap();
         let paths = paths_for(tmp.path());
@@ -996,6 +1432,8 @@ mod tests {
             runner_id: Uuid::new_v4(),
             workspace_slug: Some("acme".into()),
             project_slug: Some("WEB".into()),
+            project_id: None,
+            binding_source: None,
             pod_id: None,
             workspace: WorkspaceSection {
                 working_dir: tmp.path().join("wd"),

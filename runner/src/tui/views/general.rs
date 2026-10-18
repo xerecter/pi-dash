@@ -907,64 +907,37 @@ pub async fn submit_register(
         .await
         .map_err(|e| format!("enroll failed: {e:#}"))?;
 
-    let runner_paths = paths.for_runner(resp.runner_id);
-    runner_paths
-        .ensure()
-        .map_err(|e| format!("creating runner dirs: {e:#}"))?;
-    crate::cloud::http::write_runner_credentials(
-        runner_paths.credentials_path(),
-        crate::cloud::http::RunnerCredentials {
-            runner_id: resp.runner_id,
-            name: resp.runner_name.clone(),
-            refresh_token: resp.refresh_token.clone(),
-            refresh_token_generation: resp.refresh_token_generation,
+    // Persist enrollment through the same host-wide, idempotent mutation
+    // helper used by ProjectSync and `runner add`. The old TUI path built a
+    // fresh one-runner Config and overwrote concurrent hot-add/remove or
+    // machine-token updates while the network request was in flight.
+    let applied = crate::cli::runner_ops::apply_enroll_response(
+        paths,
+        &resp,
+        &cloud_url,
+        crate::cli::runner_ops::ApplyEnrollOptions {
+            working_dir: None,
+            agent_kind: crate::config::schema::AgentKind::default(),
+            model: None,
+            reasoning_effort: None,
+            dedupe_mode: crate::cli::runner_ops::EnrollDedupeMode::RunnerAndProject,
         },
     )
     .await
-    .map_err(|e| format!("writing runner credentials: {e:#}"))?;
-
-    let working_dir = paths.runner_dir(resp.runner_id).join("workspace");
-    let new_runner_block = crate::config::schema::RunnerConfig {
-        name: resp.runner_name.clone(),
-        runner_id: resp.runner_id,
-        workspace_slug: Some(resp.workspace_slug.clone()),
-        project_slug: Some(resp.project_identifier.clone()),
-        pod_id: None,
-        workspace: crate::config::schema::WorkspaceSection { working_dir },
-        agent: Default::default(),
-        codex: Default::default(),
-        claude_code: Default::default(),
-        cursor_agent: Default::default(),
-        openclaw: Default::default(),
-        grok: Default::default(),
-        muse_code: Default::default(),
-        karma: Default::default(),
-        approval_policy: Default::default(),
-    };
-    let cfg = crate::config::schema::Config {
-        version: 2,
-        daemon: crate::config::schema::DaemonConfig {
-            cloud_url: cloud_url.clone(),
-            dev_machine_id: None,
-            log_level: "info".to_string(),
-            log_retention_days: 14,
-            agent_observability_v1: false,
-            auto_update: true,
-        },
-        runners: vec![new_runner_block],
-        cli: None,
-    };
-    crate::config::file::write_config(paths, &cfg)
-        .map_err(|e| format!("writing config.toml: {e:#}"))?;
-    let creds = crate::config::schema::Credentials {
-        connection_id: resp.runner_id,
-        connection_secret: String::new(),
-        connection_name: Some(resp.runner_name.clone()),
-        api_token: None,
-        issued_at: chrono::Utc::now(),
-    };
-    crate::config::file::write_credentials(paths, &creds)
-        .map_err(|e| format!("writing credentials.toml: {e:#}"))?;
+    .map_err(|e| format!("persisting runner config: {e:#}"))?;
+    let cfg = crate::config::file::load_config(paths)
+        .map_err(|e| format!("reloading config.toml: {e:#}"))?;
+    if applied.is_first_runner {
+        let creds = crate::config::schema::Credentials {
+            connection_id: resp.runner_id,
+            connection_secret: String::new(),
+            connection_name: Some(resp.runner_name.clone()),
+            api_token: None,
+            issued_at: chrono::Utc::now(),
+        };
+        crate::config::file::write_credentials(paths, &creds)
+            .map_err(|e| format!("writing credentials.toml: {e:#}"))?;
+    }
 
     let svc = crate::service::detect();
     svc.write_unit(paths)

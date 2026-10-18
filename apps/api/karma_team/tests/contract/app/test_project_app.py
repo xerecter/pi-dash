@@ -3,6 +3,8 @@
 # See the LICENSE file for details.
 
 import pytest
+from unittest.mock import patch
+from django.db import transaction
 from rest_framework import status
 import uuid
 from django.utils import timezone
@@ -14,6 +16,12 @@ from karma_team.db.models import (
     State,
     WorkspaceMember,
     User,
+)
+from karma_team.runner.models import (
+    DevMachine,
+    Pod,
+    ProjectDeletionTombstone,
+    Runner,
 )
 
 
@@ -506,6 +514,145 @@ class TestProjectAPIPatchDelete(TestProjectBase):
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
         assert not Project.objects.filter(id=project.id).exists()
+
+    @pytest.mark.django_db
+    def test_delete_project_removes_only_its_runners(
+        self,
+        session_client,
+        workspace,
+        create_user,
+        django_capture_on_commit_callbacks,
+    ):
+        target = Project.objects.create(name="Runner cleanup target", identifier="RCT", workspace=workspace)
+        other = Project.objects.create(name="Runner cleanup other", identifier="RCO", workspace=workspace)
+        machine = DevMachine.objects.create(
+            owner=create_user,
+            host_label="project-delete-host",
+            label="Project delete host",
+        )
+        target_runner = Runner.objects.create(
+            owner=create_user,
+            workspace=workspace,
+            dev_machine=machine,
+            pod=Pod.default_for_project(target),
+            name="target-runner",
+        )
+        other_runner = Runner.objects.create(
+            owner=create_user,
+            workspace=workspace,
+            pod=Pod.default_for_project(other),
+            name="other-runner",
+        )
+
+        enqueued = []
+
+        def capture_enqueue(machine_id, message):
+            if message["type"] == "remove_runner":
+                enqueued.append((machine_id, message))
+                assert not Runner.objects.filter(pk=message["runner_id"]).exists()
+
+        with (
+            patch(
+                "karma_team.runner.services.runner_delete.send_to_machine",
+                side_effect=capture_enqueue,
+            ),
+            # Project.delete() schedules the broad soft-delete cascade. This
+            # contract test focuses on runner teardown and must not require a
+            # live RabbitMQ broker just to enqueue that unrelated task.
+            patch("karma_team.db.mixins.soft_delete_related_objects.delay"),
+            django_capture_on_commit_callbacks(execute=True),
+        ):
+            response = session_client.delete(self.get_project_url(workspace.slug, pk=target.id))
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+        assert len(enqueued) == 1
+        machine_id, message = enqueued[0]
+        assert machine_id == machine.id
+        assert message == {
+            "type": "remove_runner",
+            "runner_id": str(target_runner.id),
+            "reason": "project deleted",
+            "mid": f"project-delete:{target.id}:{target_runner.id}",
+        }
+        assert not Runner.objects.filter(pk=target_runner.id).exists()
+        assert Runner.objects.filter(pk=other_runner.id, revoked_at__isnull=True).exists()
+
+        from karma_team.runner.services.runner_delete import delete_project_runners
+
+        enqueued.clear()
+        delete_project_runners(target.id)
+        assert enqueued == []
+        assert ProjectDeletionTombstone.objects.filter(
+            project_id=target.id,
+            workspace_id=workspace.id,
+        ).count() == 1
+
+    @pytest.mark.django_db
+    def test_project_runner_cleanup_waits_for_outer_commit(
+        self,
+        workspace,
+        create_user,
+        django_capture_on_commit_callbacks,
+    ):
+        """A later project-delete failure must not remove local state."""
+
+        project = Project.objects.create(
+            name="Rollback cleanup target",
+            identifier="ROLLBACK",
+            workspace=workspace,
+        )
+        machine = DevMachine.objects.create(
+            owner=create_user,
+            host_label="project-delete-rollback-host",
+            label="Project delete rollback host",
+        )
+        runner = Runner.objects.create(
+            owner=create_user,
+            workspace=workspace,
+            dev_machine=machine,
+            pod=Pod.default_for_project(project),
+            name="rollback-target-runner",
+        )
+
+        from karma_team.runner.services.runner_delete import delete_project_runners
+
+        with (
+            patch("karma_team.runner.services.runner_delete.send_to_machine") as send,
+            django_capture_on_commit_callbacks(execute=True),
+            pytest.raises(RuntimeError, match="abort project delete"),
+        ):
+            with transaction.atomic():
+                delete_project_runners(project.id)
+                assert not Runner.objects.filter(pk=runner.id).exists()
+                raise RuntimeError("abort project delete")
+
+        assert Runner.objects.filter(pk=runner.id, revoked_at__isnull=True).exists()
+        assert not ProjectDeletionTombstone.objects.filter(project_id=project.id).exists()
+        send.assert_not_called()
+
+    @pytest.mark.django_db
+    def test_delete_default_project_does_not_remove_its_runners(self, session_client, workspace, create_user):
+        project = Project.objects.create(
+            name="Default project",
+            identifier="DFLT",
+            workspace=workspace,
+            is_default=True,
+        )
+        ProjectMember.objects.create(project=project, member=create_user, role=20, is_active=True)
+        runner = Runner.objects.create(
+            owner=create_user,
+            workspace=workspace,
+            pod=Pod.default_for_project(project),
+            name="default-project-runner",
+        )
+
+        with patch("karma_team.app.views.project.base.delete_project_runners") as cleanup:
+            response = session_client.delete(self.get_project_url(workspace.slug, pk=project.id))
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        cleanup.assert_not_called()
+        assert Project.objects.filter(pk=project.id).exists()
+        assert Runner.objects.filter(pk=runner.id, revoked_at__isnull=True).exists()
 
     @pytest.mark.django_db
     def test_delete_project_forbidden_non_admin(self, session_client, workspace):

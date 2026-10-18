@@ -93,7 +93,7 @@ export function AuthUniqueCodeForm(props: TAuthUniqueCodeForm) {
           <Input
             id="email"
             name="email"
-            type="email"
+            type="text"
             value={uniqueCodeFormData.email}
             onChange={(e) => handleFormChange("email", e.target.value)}
             placeholder="name@company.com"

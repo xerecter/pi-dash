@@ -39,6 +39,7 @@ export const OnboardingRoot = observer(function OnboardingRoot({ invitations = [
 
   const workspacesList = Object.values(workspaces ?? {});
   const isSelfManaged = instanceConfig?.is_self_managed;
+  const isKarmaUser = user?.last_login_medium === "karma";
 
   // Calculate total steps based on whether invitations are available
   const hasInvitations = invitations.length > 0;
@@ -75,10 +76,24 @@ export const OnboardingRoot = observer(function OnboardingRoot({ invitations = [
   );
 
   const handleStepChange = useCallback(
-    (step: EOnboardingSteps, skipInvites?: boolean) => {
+    async (step: EOnboardingSteps, skipInvites?: boolean) => {
       switch (step) {
         case EOnboardingSteps.CLI_INSTALL:
-          setCurrentStep(EOnboardingSteps.PROFILE_SETUP);
+          if (!isKarmaUser) {
+            setCurrentStep(EOnboardingSteps.PROFILE_SETUP);
+            break;
+          }
+
+          // Karma is the source of truth for the user's name and avatar. The
+          // API has already synchronised those fields during sign-in, so do
+          // not ask the user to enter the same profile information again.
+          if (isSelfManaged) {
+            await stepChange({ profile_complete: true });
+            if (workspacesList.length > 0) await finishOnboarding();
+            else setCurrentStep(EOnboardingSteps.WORKSPACE_CREATE_OR_JOIN);
+          } else {
+            setCurrentStep(EOnboardingSteps.ROLE_SETUP);
+          }
           break;
         case EOnboardingSteps.PROFILE_SETUP:
           if (isSelfManaged) {
@@ -111,7 +126,7 @@ export const OnboardingRoot = observer(function OnboardingRoot({ invitations = [
           break;
       }
     },
-    [stepChange, finishOnboarding, workspacesList, isSelfManaged]
+    [stepChange, finishOnboarding, workspacesList, isSelfManaged, isKarmaUser]
   );
 
   const updateCurrentStep = (step: EOnboardingSteps) => setCurrentStep(step);

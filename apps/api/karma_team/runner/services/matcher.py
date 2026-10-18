@@ -311,6 +311,14 @@ def _work_item_identifier(run: AgentRun) -> Optional[str]:
     return f"{issue.project.identifier}-{issue.sequence_id}"
 
 
+def _work_item_project_name(run: AgentRun) -> Optional[str]:
+    """Display name of the work item's project for Karma project binding."""
+    issue = run.work_item
+    if issue is None or issue.project is None:
+        return None
+    return issue.project.name
+
+
 def _build_assign_msg(run: AgentRun) -> dict:
     """Compose the WS ``assign`` envelope sent to a runner daemon.
 
@@ -331,6 +339,9 @@ def _build_assign_msg(run: AgentRun) -> dict:
         # Exported to the agent as KARMA_TEAM_ISSUE_IDENTIFIER so its `karma-team`
         # calls resolve the current issue without an explicit argument.
         "work_item_identifier": _work_item_identifier(run),
+        # Karma project names are display names, not project identifiers.
+        # Optional so older runners/cloud payload consumers remain compatible.
+        "project_name": _work_item_project_name(run),
         "prompt": run.prompt,
         "repo_url": run.run_config.get("repo_url"),
         "repo_ref": run.run_config.get("repo_ref"),
@@ -392,9 +403,8 @@ def pod_has_runner_for_issue_principal(pod, issue, run_creator_id) -> bool:
     for ``Visibility.PRIVATE`` runners — the only visibility today. A
     runner is "potentially serviceable" if its owner is one of:
 
-    - ``run_creator_id`` (the user the dispatch is being attributed to),
-    - ``issue.created_by_id`` (the issue creator),
-    - any current (non-soft-deleted) issue assignee.
+    - any current (non-soft-deleted) issue assignee when assigned;
+    - otherwise ``run_creator_id`` or ``issue.created_by_id``.
 
     Assignees are read through ``IssueAssignee.objects`` — the soft-delete
     manager — rather than the ``Issue.assignees`` M2M. The un-assign path
@@ -421,6 +431,8 @@ def pod_has_runner_for_issue_principal(pod, issue, run_creator_id) -> bool:
     ignored here for the same reason as above — a closed laptop is not a
     structural failure, and the creation path (§8.5) decides whether to wait.
     """
+    from karma_team.core.permissions import ROLE_GUEST
+    from karma_team.db.models import ProjectMember, WorkspaceMember
     from karma_team.db.models.issue import IssueAssignee
     from karma_team.runner.models import RunnerProvisioning
 
@@ -437,21 +449,28 @@ def pod_has_runner_for_issue_principal(pod, issue, run_creator_id) -> bool:
             .exists()
         )
 
-    eligible_owner_ids: set = set()
-    if run_creator_id is not None:
-        eligible_owner_ids.add(run_creator_id)
-    if issue.created_by_id is not None:
-        eligible_owner_ids.add(issue.created_by_id)
-    eligible_owner_ids.update(
-        IssueAssignee.objects.filter(issue=issue).values_list("assignee_id", flat=True)
-    )
+    eligible_owner_ids = set(IssueAssignee.objects.filter(issue=issue).values_list("assignee_id", flat=True))
+    if not eligible_owner_ids:
+        eligible_owner_ids.update((run_creator_id, issue.created_by_id))
     eligible_owner_ids.discard(None)
     if not eligible_owner_ids:
         return False
+    active_members = WorkspaceMember.objects.filter(
+        workspace_id=issue.workspace_id,
+        member_id__in=eligible_owner_ids,
+        is_active=True,
+        role__gte=ROLE_GUEST,
+    ).values("member_id")
+    project_members = ProjectMember.objects.filter(
+        workspace_id=issue.workspace_id,
+        project_id=issue.project_id,
+        member_id__in=active_members,
+        is_active=True,
+    ).values("member_id")
     return (
         Runner.objects.filter(
             pod=pod,
-            owner_id__in=eligible_owner_ids,
+            owner_id__in=project_members,
         )
         .exclude(status=RunnerStatus.REVOKED)
         .exclude(provisioning=RunnerProvisioning.DESKTOP_BUNDLED)

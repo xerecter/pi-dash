@@ -227,3 +227,9 @@ def test_sweep_ignores_other_executors_and_non_queued_rows(project, create_user,
     local.refresh_from_db()
     assert running.status == AgentRunStatus.RUNNING
     assert local.status == AgentRunStatus.QUEUED
+
+
+def test_expire_waiting_runs_is_registered_with_celery():
+    from karma_team.celery import app
+
+    assert app.tasks["managed_runner.expire_waiting_runs"] is expire_waiting_runs

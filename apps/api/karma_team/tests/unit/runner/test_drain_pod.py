@@ -439,12 +439,15 @@ def test_drain_for_runner_does_not_rebuild_prompt_for_followup(db, create_user, 
     from crum import impersonate
 
     from karma_team.db.models.issue import Issue, IssueComment
-    from karma_team.db.models.project import Project
+    from karma_team.db.models.project import ProjectMember
     from karma_team.db.models.state import State
 
     rA = _make_runner(create_user, workspace, pod, "rA")
+    project = pod.project
+    ProjectMember.objects.get_or_create(
+        project=project, member=create_user, defaults={"role": 20}
+    )
     with impersonate(create_user):
-        project = Project.objects.create(name="P", identifier="P", workspace=workspace, created_by=create_user)
         todo = State.objects.create(name="Todo", project=project, group="unstarted")
         issue = Issue.objects.create(
             name="task",

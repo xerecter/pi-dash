@@ -15,8 +15,7 @@ from zxcvbn import zxcvbn
 
 # Django imports
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.utils.encoding import DjangoUnicodeDecodeError, smart_bytes, smart_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
@@ -48,7 +47,7 @@ class ForgotPasswordSpaceEndpoint(APIView):
     throttle_classes = [AuthenticationThrottle]
 
     def post(self, request):
-        email = request.data.get("email")
+        email = str(request.data.get("email") or "").strip().lower()
 
         # Check instance configuration
         instance = Instance.objects.first()
@@ -80,17 +79,16 @@ class ForgotPasswordSpaceEndpoint(APIView):
             )
             return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            validate_email(email)
-        except ValidationError:
+        if not email:
             exc = AuthenticationException(
-                error_code=AUTHENTICATION_ERROR_CODES["INVALID_EMAIL"],
-                error_message="INVALID_EMAIL",
+                error_code=AUTHENTICATION_ERROR_CODES["EMAIL_REQUIRED"],
+                error_message="EMAIL_REQUIRED",
             )
             return Response(exc.get_error_dict(), status=status.HTTP_400_BAD_REQUEST)
 
-        # Get the user
-        user = User.objects.filter(email=email).first()
+        # ``email`` is a legacy field name; password recovery accepts either
+        # account form and sends to the stored address of the resolved user.
+        user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
         if user:
             # Get the reset token for user
             uidb64, token = generate_password_token(user=user)

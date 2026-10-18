@@ -111,6 +111,15 @@ class MachineSessionOpenEndpoint(APIView):
         # row lock released, so a slow Redis call can no longer wedge the DB.
         if old_session_id:
             machine_outbox.clear_session_marker(_uuid.UUID(old_session_id))
+        machine_outbox.claim_pending_for_new_session(
+            machine.id,
+            old_consumer=(
+                machine_outbox.consumer_name(old_session_id)
+                if old_session_id
+                else None
+            ),
+            new_consumer=machine_outbox.consumer_name(new_sid),
+        )
         machine_outbox.publish_session_eviction(
             machine.id,
             old_session_id=old_session_id,

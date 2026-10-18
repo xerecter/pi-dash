@@ -95,7 +95,7 @@ export function InstanceSignInForm() {
   }, [errorCode, errorMessage]);
 
   const isButtonDisabled = useMemo(
-    () => (!isSubmitting && formData.email && formData.password ? false : true),
+    () => (!isSubmitting && formData.email.trim() && formData.password ? false : true),
     [formData.email, formData.password, isSubmitting]
   );
 
@@ -135,15 +135,15 @@ export function InstanceSignInForm() {
 
             <div className="w-full space-y-1">
               <label className="text-13 font-medium text-tertiary" htmlFor="email">
-                Email <span className="text-danger-primary">*</span>
+                Email or username <span className="text-danger-primary">*</span>
               </label>
               <Input
                 className="w-full border border-subtle !bg-surface-1 placeholder:text-placeholder"
                 id="email"
                 name="email"
-                type="email"
+                type="text"
                 inputSize="md"
-                placeholder="name@company.com"
+                placeholder="Email or username"
                 value={formData.email}
                 onChange={(e) => handleFormChange("email", e.target.value)}
                 autoComplete="off"

@@ -95,6 +95,7 @@ async fn run_assignment(script: String, issue_identifier: Option<&str>) -> Clien
         worker.run(
             uuid::Uuid::new_v4(),
             issue_identifier.map(str::to_string),
+            None,
             "Build the logistics portal".into(),
             None,
             None,

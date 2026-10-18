@@ -155,6 +155,111 @@ async fn headless_without_yes_refuses_without_mutating_anything() {
 }
 
 #[tokio::test]
+async fn inherited_root_home_and_runtime_are_not_used_by_uninstall() {
+    let fixture = Fixture::new();
+    fixture.copy_script();
+    let stale_home = fixture.root.path().join("stale-root-home");
+    let stale_runtime = fixture.root.path().join("run-user-0");
+    fs::create_dir_all(&stale_home).unwrap();
+    fs::create_dir_all(&stale_runtime).unwrap();
+    fs::write(stale_runtime.join("must-stay"), "root runtime").unwrap();
+    executable(
+        &fixture.root.path().join("tools/id"),
+        "#!/bin/sh\n[ \"$1\" = -u ] && { echo 424242; exit 0; }\nexit 1\n",
+    );
+    executable(
+        &fixture.root.path().join("tools/getent"),
+        &format!(
+            "#!/bin/sh\nprintf '%s\\n' 'laiye:x:424242:424242::{}:/bin/sh'\n",
+            fixture.home.display()
+        ),
+    );
+    executable(
+        &fixture.root.path().join("tools/stat"),
+        &format!(
+            "#!/bin/sh\nlast=''\nfor arg in \"$@\"; do last=$arg; done\ncase \"$last\" in\n  '{}') echo 424242 ;;\n  *) echo 0 ;;\nesac\n",
+            fixture.home.display()
+        ),
+    );
+    executable(
+        &fixture.bin.join("karma-team"),
+        "#!/bin/sh\nprintf 'HOME=%s\\nXDG=%s\\nDBUS=%s\\n' \"$HOME\" \"${XDG_RUNTIME_DIR:-}\" \"${DBUS_SESSION_BUS_ADDRESS:-}\" >> \"$TEST_LOG\"\nexit 0\n",
+    );
+
+    let output = run(fixture
+        .command()
+        .args(["--local-only", "--yes"])
+        .env("HOME", &stale_home)
+        .env("XDG_RUNTIME_DIR", &stale_runtime)
+        .env(
+            "DBUS_SESSION_BUS_ADDRESS",
+            format!("unix:path={}/bus", stale_runtime.display()),
+        ))
+    .await;
+    assert!(
+        output.status.success(),
+        "stdout={} stderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let log = fs::read_to_string(&fixture.log).unwrap();
+    assert!(log.contains(&format!("HOME={}", fixture.home.display())));
+    assert!(log.contains("XDG=\n"), "{log}");
+    assert!(log.contains("DBUS=\n"), "{log}");
+    assert!(stale_runtime.join("must-stay").is_file());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("ignoring XDG_RUNTIME_DIR="));
+}
+
+#[tokio::test]
+async fn nonstandard_runtime_base_never_deletes_an_unrelated_karma_team_directory() {
+    let fixture = Fixture::new();
+    fixture.copy_script();
+    let unrelated = fixture.home.join("karma-team");
+    fs::create_dir_all(&unrelated).unwrap();
+    fs::write(unrelated.join("must-stay"), "user checkout").unwrap();
+
+    let output = run(fixture
+        .command()
+        .args(["--local-only", "--yes"])
+        .env_remove("KARMA_TEAM_DATA_DIR")
+        .env("XDG_RUNTIME_DIR", &fixture.home))
+    .await;
+
+    assert!(
+        output.status.success(),
+        "stdout={} stderr={}",
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(unrelated.join("must-stay").is_file());
+    assert!(
+        String::from_utf8_lossy(&output.stderr).contains("Skipping non-standard runtime cleanup")
+    );
+}
+
+#[tokio::test]
+async fn sudo_root_uninstall_for_an_ordinary_user_is_rejected_before_writing() {
+    let fixture = Fixture::new();
+    fixture.copy_script();
+    executable(
+        &fixture.root.path().join("tools/id"),
+        "#!/bin/sh\n[ \"$1\" = -u ] && { echo 0; exit 0; }\nexit 1\n",
+    );
+    let output = run(fixture
+        .command()
+        .args(["--local-only", "--yes"])
+        .env("SUDO_USER", "laiye"))
+    .await;
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("Refusing to uninstall a per-user karma-team CLI as root")
+    );
+    assert!(fixture.bin.join("karma-team").is_file());
+    assert!(!fixture.log.exists());
+}
+
+#[tokio::test]
 async fn dangerous_state_or_cache_roots_are_rejected_before_any_command() {
     let fixture = Fixture::new();
     fixture.copy_script();

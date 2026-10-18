@@ -5,16 +5,17 @@
 import json
 import uuid
 import pytest
+import requests
+from urllib.parse import parse_qs, urlparse
 from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from django.test import Client
-from django.core.exceptions import ValidationError
 from unittest.mock import patch
 
-from karma_team.db.models import User
+from karma_team.db.models import Profile, User
 from karma_team.settings.redis import redis_instance
-from karma_team.license.models import Instance
+from karma_team.license.models import Instance, InstanceConfiguration
 
 
 @pytest.fixture
@@ -60,26 +61,20 @@ class TestMagicLinkGenerate:
     def test_without_data(self, api_client, setup_user, setup_instance):
         """Test magic link generation with empty data"""
         url = reverse("magic-generate")
-        try:
-            response = api_client.post(url, {}, format="json")
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-        except ValidationError:
-            # If a ValidationError is raised directly, that's also acceptable
-            # as it indicates the empty email was rejected
-            assert True
+        response = api_client.post(url, {}, format="json")
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["error_message"] == "EMAIL_REQUIRED"
 
     @pytest.mark.django_db
-    def test_email_validity(self, api_client, setup_user, setup_instance):
-        """Test magic link generation with invalid email format"""
+    @patch("karma_team.bgtasks.magic_link_code_task.magic_link.delay")
+    def test_non_email_identifier(self, mock_magic_link, api_client, setup_user, setup_instance):
+        """Account identifiers do not require an email-address shape."""
         url = reverse("magic-generate")
-        try:
-            response = api_client.post(url, {"email": "useremail.com"}, format="json")
-            assert response.status_code == status.HTTP_400_BAD_REQUEST
-            assert "error_code" in response.data  # Check for error code in response
-        except ValidationError:
-            # If a ValidationError is raised directly, that's also acceptable
-            # as it indicates the invalid email was rejected
-            assert True
+        redis_instance().delete("magic_useremail.com")
+        response = api_client.post(url, {"email": "useremail.com"}, format="json")
+        assert response.status_code == status.HTTP_200_OK
+        mock_magic_link.assert_called_once()
+        assert mock_magic_link.call_args.args[0] == "useremail.com"
 
     @pytest.mark.django_db
     @patch("karma_team.bgtasks.magic_link_code_task.magic_link.delay")
@@ -117,96 +112,238 @@ class TestMagicLinkGenerate:
 
 
 @pytest.mark.contract
+@pytest.mark.django_db
 class TestSignInEndpoint:
-    """Test sign-in functionality"""
+    """Exercise Karma authentication, profile synchronisation and Django sessions."""
+
+    @pytest.fixture(autouse=True)
+    def sign_in_settings(self, settings):
+        settings.WEB_URL = "http://localhost"
+        settings.APP_BASE_URL = "http://localhost"
+        settings.SPACE_BASE_URL = "http://localhost"
+        settings.SPACE_BASE_PATH = "/spaces"
+
+    @pytest.fixture(params=["sign-in", "space-sign-in"])
+    def sign_in_url(self, request):
+        return reverse(request.param)
+
+    @pytest.fixture
+    def karma_profile(self):
+        return {
+            "id": "EOS3-xuhaoxuan",
+            "username": "xuhaoxuan",
+            "firstName": "Hao Xuan",
+            "lastName": "Xu",
+            "avatar": "https://karma.example/avatar.png",
+        }
+
+    @pytest.fixture
+    def karma_http(self, karma_profile, monkeypatch):
+        monkeypatch.setenv("KARMA_AUTH_BASE_URL", "https://karma.example")
+        monkeypatch.setenv("KARMA_AUTH_TIMEOUT_SECONDS", "7")
+        login_response = requests.Response()
+        login_response.status_code = 200
+        login_response._content = json.dumps({"success": True, "token": "upstream-token"}).encode()
+        profile_response = requests.Response()
+        profile_response.status_code = 200
+        profile_response._content = json.dumps(karma_profile).encode()
+        with (
+            patch("karma_team.authentication.services.karma.requests.post", return_value=login_response) as post,
+            patch("karma_team.authentication.services.karma.requests.get", return_value=profile_response) as get,
+        ):
+            yield post, get
 
     @pytest.fixture
     def setup_user(self, db):
         """Create a test user for authentication tests"""
-        user = User.objects.create(email="user@example.com")
+        user = User.objects.create(
+            username="xuhaoxuan",
+            email="old@example.com",
+            first_name="Old",
+            last_name="Name",
+            avatar="https://local.example/old.png",
+        )
         user.set_password("user@123")
         user.save()
         return user
 
-    @pytest.mark.django_db
-    def test_without_data(self, django_client, setup_user, setup_instance):
-        """Test sign-in with empty data"""
-        url = reverse("sign-in")
-        response = django_client.post(url, {}, follow=True)
+    @pytest.mark.parametrize("data", [{}, {"email": "   ", "password": "password"}])
+    def test_without_credentials(self, django_client, setup_instance, sign_in_url, karma_http, data):
+        response = django_client.post(sign_in_url, data)
 
-        # Check redirect contains error code
-        assert "REQUIRED_EMAIL_PASSWORD_SIGN_IN" in response.redirect_chain[-1][0]
+        assert "REQUIRED_EMAIL_PASSWORD_SIGN_IN" in response.url
+        karma_http[0].assert_not_called()
+        karma_http[1].assert_not_called()
+        assert "_auth_user_id" not in django_client.session
 
-    @pytest.mark.django_db
-    def test_email_validity(self, django_client, setup_user, setup_instance):
-        """Test sign-in with invalid email format"""
-        url = reverse("sign-in")
-        response = django_client.post(url, {"email": "useremail.com", "password": "user@123"}, follow=True)
+    def test_username_sign_in_creates_user_and_session(
+        self, django_client, setup_instance, sign_in_url, karma_http, karma_profile
+    ):
+        response = django_client.post(sign_in_url, {"email": "  xuhaoxuan  ", "password": "karma-password"})
 
-        # Check redirect contains error code
-        assert "INVALID_EMAIL_SIGN_IN" in response.redirect_chain[-1][0]
-
-    @pytest.mark.django_db
-    def test_user_exists(self, django_client, setup_user, setup_instance):
-        """Test sign-in with non-existent user"""
-        url = reverse("sign-in")
-        response = django_client.post(url, {"email": "user@email.so", "password": "user123"}, follow=True)
-
-        # Check redirect contains error code
-        assert "USER_DOES_NOT_EXIST" in response.redirect_chain[-1][0]
-
-    @pytest.mark.django_db
-    def test_password_validity(self, django_client, setup_user, setup_instance):
-        """Test sign-in with incorrect password"""
-        url = reverse("sign-in")
-        response = django_client.post(url, {"email": "user@example.com", "password": "user123"}, follow=True)
-
-        # Check for the specific authentication error in the URL
-        redirect_urls = [url for url, _ in response.redirect_chain]
-        redirect_contents = " ".join(redirect_urls)
-
-        # The actual error code for invalid password is AUTHENTICATION_FAILED_SIGN_IN
-        assert "AUTHENTICATION_FAILED_SIGN_IN" in redirect_contents
-
-    @pytest.mark.django_db
-    def test_user_login(self, django_client, setup_user, setup_instance):
-        """Test successful sign-in"""
-        url = reverse("sign-in")
-
-        # First make the request without following redirects
-        response = django_client.post(url, {"email": "user@example.com", "password": "user@123"}, follow=False)
-
-        # Check that the initial response is a redirect (302) without error code
         assert response.status_code == 302
         assert "error_code" not in response.url
-
-        # Now follow just the first redirect to avoid 404s
-        response = django_client.get(response.url, follow=False)
-
-        # The user should be authenticated regardless of the final page
-        assert "_auth_user_id" in django_client.session
-
-    @pytest.mark.django_db
-    def test_next_path_redirection(self, django_client, setup_user, setup_instance):
-        """Test sign-in with next_path parameter"""
-        url = reverse("sign-in")
-        next_path = "workspaces"
-
-        # First make the request without following redirects
-        response = django_client.post(
-            url,
-            {"email": "user@example.com", "password": "user@123", "next_path": next_path},
-            follow=False,
+        user = User.objects.get(username="xuhaoxuan")
+        assert user.email == "xuhaoxuan"
+        assert user.first_name == karma_profile["firstName"]
+        assert user.last_name == karma_profile["lastName"]
+        assert user.avatar == karma_profile["avatar"]
+        assert user.display_name == "Hao Xuan Xu"
+        assert not user.has_usable_password()
+        assert Profile.objects.filter(user=user).exists()
+        assert django_client.session["_auth_user_id"] == str(user.pk)
+        assert django_client.session["device_info"]["user_agent"]
+        karma_http[0].assert_called_once_with(
+            "https://karma.example/v1/auth/login",
+            json={"username": "xuhaoxuan", "password": "karma-password"},
+            timeout=7.0,
+            allow_redirects=False,
+        )
+        karma_http[1].assert_called_once_with(
+            "https://karma.example/v1/account/profile",
+            headers={"Authorization": "Bearer upstream-token"},
+            timeout=7.0,
+            allow_redirects=False,
         )
 
-        # Check that the initial response is a redirect (302) without error code
-        assert response.status_code == 302
-        assert "error_code" not in response.url
+    @pytest.mark.parametrize("failed_stage", ["login", "profile"])
+    def test_failure_does_not_create_user_or_session(
+        self, django_client, setup_instance, sign_in_url, karma_http, failed_stage
+    ):
+        failed_request = karma_http[0 if failed_stage == "login" else 1]
+        failed_request.return_value.status_code = 401
+        users_before = User.objects.count()
+        profiles_before = Profile.objects.count()
 
-        # In a real browser, the next_path would be used to build the absolute URL
-        # Since we're just testing the authentication logic, we won't check for the exact URL structure
-        # Instead, just verify that we're authenticated
+        response = django_client.post(sign_in_url, {"email": "xuhaoxuan", "password": "wrong"})
+
+        assert "AUTHENTICATION_FAILED_SIGN_IN" in response.url
+        assert User.objects.count() == users_before
+        assert Profile.objects.count() == profiles_before
+        assert "_auth_user_id" not in django_client.session
+        if failed_stage == "login":
+            karma_http[1].assert_not_called()
+
+    def test_profile_failure_does_not_change_existing_user(
+        self, django_client, setup_user, setup_instance, sign_in_url, karma_http
+    ):
+        karma_http[1].side_effect = requests.Timeout("upstream unavailable")
+        original = User.objects.filter(pk=setup_user.pk).values().get()
+
+        response = django_client.post(sign_in_url, {"email": "xuhaoxuan", "password": "karma-password"})
+
+        assert "AUTHENTICATION_FAILED_SIGN_IN" in response.url
+        assert User.objects.filter(pk=setup_user.pk).values().get() == original
+        assert "_auth_user_id" not in django_client.session
+
+    @pytest.mark.parametrize("upstream_status", [200, 401])
+    def test_local_password_is_never_checked(
+        self, django_client, setup_user, setup_instance, sign_in_url, karma_http, upstream_status
+    ):
+        karma_http[0].return_value.status_code = upstream_status
+        with patch.object(User, "check_password", side_effect=AssertionError("Local password was checked")):
+            response = django_client.post(sign_in_url, {"email": "xuhaoxuan", "password": "user@123"})
+
+        if upstream_status == 200:
+            assert "error_code" not in response.url
+            assert django_client.session["_auth_user_id"] == str(setup_user.pk)
+        else:
+            assert "AUTHENTICATION_FAILED_SIGN_IN" in response.url
+            assert "_auth_user_id" not in django_client.session
+
+    def test_each_login_overwrites_profile_without_replacing_user(
+        self, django_client, setup_user, setup_instance, sign_in_url, karma_http
+    ):
+        response = django_client.post(sign_in_url, {"email": "xuhaoxuan", "password": "karma-password"})
+        assert "error_code" not in response.url
+        setup_user.refresh_from_db()
+        assert setup_user.email == "xuhaoxuan"
+        assert setup_user.first_name == "Hao Xuan"
+        assert setup_user.avatar == "https://karma.example/avatar.png"
+        django_client.logout()
+        karma_http[1].return_value._content = json.dumps(
+            {
+                "id": "EOS3-xuhaoxuan",
+                "username": "xuhaoxuan",
+                "firstName": None,
+                "lastName": None,
+                "avatar": None,
+            }
+        ).encode()
+
+        response = django_client.post(sign_in_url, {"email": "xuhaoxuan", "password": "new-karma-password"})
+
+        assert "error_code" not in response.url
+        setup_user.refresh_from_db()
+        assert setup_user.first_name == ""
+        assert setup_user.last_name == ""
+        assert setup_user.avatar == ""
+        assert setup_user.display_name == "xuhaoxuan"
+        assert User.objects.filter(username="xuhaoxuan").count() == 1
+        assert Profile.objects.filter(user=setup_user).count() == 1
+        assert django_client.session["_auth_user_id"] == str(setup_user.pk)
+
+    def test_next_path_redirection(self, django_client, setup_instance, sign_in_url, karma_http):
+        response = django_client.post(
+            sign_in_url,
+            {"email": "xuhaoxuan", "password": "karma-password", "next_path": "/workspaces"},
+        )
+
+        assert "error_code" not in response.url
+        parsed_url = urlparse(response.url)
+        if sign_in_url == reverse("sign-in"):
+            assert parse_qs(parsed_url.query)["next_path"] == ["/workspaces"]
+        else:
+            assert parsed_url.path.endswith("/spaces/workspaces")
         assert "_auth_user_id" in django_client.session
+
+    def test_disabled_password_auth_does_not_call_karma(self, django_client, setup_instance, sign_in_url, karma_http):
+        InstanceConfiguration.objects.update_or_create(key="ENABLE_EMAIL_PASSWORD", defaults={"value": "0"})
+
+        response = django_client.post(sign_in_url, {"email": "xuhaoxuan", "password": "karma-password"})
+
+        assert "EMAIL_PASSWORD_AUTHENTICATION_DISABLED" in response.url
+        karma_http[0].assert_not_called()
+        karma_http[1].assert_not_called()
+        assert "_auth_user_id" not in django_client.session
+
+
+@pytest.mark.contract
+@pytest.mark.django_db
+class TestEmailCheck:
+    """Registration preflight accepts account names and email identifiers."""
+
+    @pytest.fixture(params=["/auth/email-check/", "/auth/spaces/email-check/"])
+    def email_check_url(self, request):
+        return request.param
+
+    @pytest.mark.parametrize("identifier", ["xuhaoxuan", "team/user+east", "not-an-email@"])
+    def test_accepts_account_identifier(self, api_client, setup_instance, email_check_url, identifier):
+        response = api_client.post(email_check_url, {"email": identifier}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["existing"] is False
+
+    def test_matches_existing_username(self, api_client, setup_instance, email_check_url):
+        User.objects.create(username="testfree1", email="member@example.com")
+        response = api_client.post(email_check_url, {"email": " TESTFREE1 "}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["existing"] is True
+
+    @pytest.mark.parametrize("identifier", ["", "   "])
+    def test_empty_identifier_is_rejected(self, api_client, setup_instance, email_check_url, identifier):
+        response = api_client.post(email_check_url, {"email": identifier}, format="json")
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert response.data["error_message"] == "EMAIL_REQUIRED"
+
+    def test_registration_email_still_supported(self, api_client, setup_instance, email_check_url):
+        response = api_client.post(email_check_url, {"email": "new-registration@example.com"}, format="json")
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data["existing"] is False
+        assert response.data["status"] in {"CREDENTIAL", "MAGIC_CODE"}
 
 
 @pytest.mark.contract

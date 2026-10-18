@@ -7,9 +7,8 @@ import jwt
 from datetime import datetime
 
 # Django imports
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
 from django.conf import settings
+from django.db.models import Q
 from django.utils import timezone
 
 # Third Party imports
@@ -32,6 +31,7 @@ from karma_team.db.models import (
 )
 from karma_team.db.models.project import ProjectNetwork
 from karma_team.utils.host import base_host
+from karma_team.bgtasks.project_invitation_task import project_invitation
 
 
 class ProjectInvitationsViewset(BaseViewSet):
@@ -54,14 +54,37 @@ class ProjectInvitationsViewset(BaseViewSet):
     def create(self, request, slug, project_id):
         emails = request.data.get("emails", [])
 
-        # Check if email is provided
+        # ``emails`` is the historical payload key. Each value may be either a
+        # Karma username or an email-shaped identifier.
         if not emails:
-            return Response({"error": "Emails are required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Accounts or emails are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        normalized_invites = []
+        for invite in emails:
+            identifier = str(invite.get("email", "")).strip()
+            if not identifier:
+                return Response({"error": "Account or email is required"}, status=status.HTTP_400_BAD_REQUEST)
+            user = (
+                User.objects.filter(Q(email__iexact=identifier) | Q(username__iexact=identifier), is_active=True)
+                .only("id", "email")
+                .first()
+            )
+            normalized_invites.append(
+                {
+                    "email": (user.email if user and user.email else identifier).strip().lower(),
+                    "role": invite.get("role", 5),
+                    "user_id": user.id if user else None,
+                }
+            )
+        emails = normalized_invites
 
         for email in emails:
-            workspace_role = WorkspaceMember.objects.filter(
-                workspace__slug=slug, member__email=email.get("email"), is_active=True
-            ).role
+            workspace_members = WorkspaceMember.objects.filter(workspace__slug=slug, is_active=True)
+            if email["user_id"]:
+                workspace_members = workspace_members.filter(member_id=email["user_id"])
+            else:
+                workspace_members = workspace_members.none()
+            workspace_role = workspace_members.values_list("role", flat=True).first()
 
             if workspace_role in [5, 20] and workspace_role != email.get("role", 5):
                 return Response({"error": "You cannot invite a user with different role than workspace role"})
@@ -70,29 +93,20 @@ class ProjectInvitationsViewset(BaseViewSet):
 
         project_invitations = []
         for email in emails:
-            try:
-                validate_email(email.get("email"))
-                project_invitations.append(
-                    ProjectMemberInvite(
-                        email=email.get("email").strip().lower(),
-                        project_id=project_id,
-                        workspace_id=workspace.id,
-                        token=jwt.encode(
-                            {"email": email, "timestamp": datetime.now().timestamp()},
-                            settings.SECRET_KEY,
-                            algorithm="HS256",
-                        ),
-                        role=email.get("role", 5),
-                        created_by=request.user,
-                    )
+            project_invitations.append(
+                ProjectMemberInvite(
+                    email=email["email"],
+                    project_id=project_id,
+                    workspace_id=workspace.id,
+                    token=jwt.encode(
+                        {"email": email["email"], "timestamp": datetime.now().timestamp()},
+                        settings.SECRET_KEY,
+                        algorithm="HS256",
+                    ),
+                    role=email.get("role", 5),
+                    created_by=request.user,
                 )
-            except ValidationError:
-                return Response(
-                    {
-                        "error": f"Invalid email - {email} provided a valid email address is required to send the invite"  # noqa: E501
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            )
 
         # Create workspace member invite
         project_invitations = ProjectMemberInvite.objects.bulk_create(
@@ -102,7 +116,7 @@ class ProjectInvitationsViewset(BaseViewSet):
 
         # Send invitations
         for invitation in project_invitations:
-            project_invitations.delay(
+            project_invitation.delay(
                 invitation.email,
                 project_id,
                 invitation.token,

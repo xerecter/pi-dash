@@ -95,9 +95,34 @@ class TestCreateJoinRequest:
         assert WorkspaceJoinRequest.objects.count() == 0
 
     @pytest.mark.django_db
-    def test_invalid_email_rejected(self, session_client):
+    def test_unknown_username_returns_neutral_response(self, session_client):
         url = reverse("user-workspace-join-requests")
         response = session_client.post(url, {"admin_email": "not-an-email"}, format="json")
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert WorkspaceJoinRequest.objects.get().workspace_id is None
+
+    @pytest.mark.django_db
+    def test_request_resolves_admin_username(self, session_client, admin_workspace):
+        response = session_client.post(
+            reverse("user-workspace-join-requests"), {"admin_email": " ADMIN_USER "}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_201_CREATED
+        assert WorkspaceJoinRequest.objects.get().workspace_id == admin_workspace.id
+
+    @pytest.mark.django_db
+    def test_cannot_request_with_own_username(self, session_client, create_user):
+        response = session_client.post(
+            reverse("user-workspace-join-requests"), {"admin_email": create_user.username}, format="json"
+        )
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+        assert WorkspaceJoinRequest.objects.count() == 0
+
+    @pytest.mark.django_db
+    def test_blank_identifier_is_rejected(self, session_client):
+        response = session_client.post(reverse("user-workspace-join-requests"), {"admin_email": "   "}, format="json")
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert WorkspaceJoinRequest.objects.count() == 0

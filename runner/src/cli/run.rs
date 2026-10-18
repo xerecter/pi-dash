@@ -25,7 +25,7 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     if !config_path.exists() {
         anyhow::bail!(
             "no config.toml at {config_path:?}. \
-             Run `karma-team auth login --url <URL>`, then `karma-team runner add --project <PROJECT>`."
+             Run `karma-team auth login --url <URL>` to bind this machine and start automatic project synchronization."
         );
     }
 
@@ -38,9 +38,8 @@ pub async fn run(args: Args, paths: &Paths) -> Result<()> {
     // Zero runners is only a hard error when the daemon would have
     // nothing at all to do. With a shared machine token AND a
     // dev_machine_id, the daemon opens the machine control session and
-    // the cloud can create the first runner remotely (web "Add runner"
-    // → connected dev machine) — that path requires an idle daemon to
-    // be running.
+    // ProjectSync can create the first runner from the workspace's cloud
+    // project list — that path requires an idle daemon to be running.
     if config.runners.is_empty() && !supports_machine_control(&config) {
         anyhow::bail!(
             "no runners configured in config.toml — \
@@ -135,6 +134,7 @@ mod tests {
                 token: Some(token.into()),
                 workspace_slug: Some("acme".into()),
                 default_project: None,
+                ..Default::default()
             }),
         }
     }

@@ -38,15 +38,26 @@ irm https://github.com/xerecter/karma-team/releases/latest/download/install.ps1 
 
 When prompted, enter `https://karma-team.example.com` and approve the device-code in the browser.
 
-## 5. Register this machine as a runner
+## 5. Bind this machine and verify automatic runners
 
 ```bash
-karma-team runner add --project <PROJECT_ID>
+karma-team auth login --url https://karma-team.example.com
 karma-team doctor
 karma-team status
 ```
 
-`karma-team doctor` must be clean before continuing.
+Login starts the daemon even when the local config has no runner yet. The daemon
+immediately reads the bound workspace's cloud projects, idempotently creates one
+runner per otherwise-unbound project, and keeps them synchronized every minute.
+You do not need to bind projects manually. `karma-team runner add` remains
+available for an intentional extra runner or non-default pod. `karma-team
+doctor` must be clean before continuing.
+
+For private repositories, also configure Git credentials for the operating-system
+account running the daemon and verify it can run `git ls-remote` without a prompt.
+Platform login and connected Git provider accounts do not supply runner clone
+credentials. See [Private repository authentication](../../runner/README.md#private-repository-authentication)
+for the setup and verification steps.
 
 ## 6. Run your first work item
 
@@ -71,7 +82,7 @@ karma-team tui                 # interactive dashboard
 karma-team doctor              # preflight checks
 karma-team auth status         # who am I logged in as
 karma-team runner list         # runners on this host
-karma-team runner add --project <ID>
+karma-team runner add --project <ID> # optional extra/manual runner
 karma-team runner remove <name>
 karma-team restart / stop
 karma-team update --restart    # self-update and restart when idle
@@ -83,9 +94,9 @@ Full command + flag reference: [17 — `karma-team` CLI reference](./17-cli-refe
 ## If something breaks
 
 - **Run stuck pending** → `karma-team status`, then `karma-team restart`.
-- **Run fails immediately** → `karma-team doctor` (usually agent not on `PATH`, or git clone auth).
+- **Run fails immediately** → `karma-team doctor` for agent and Git installation checks; for clone authentication errors, follow [Private repository authentication](../../runner/README.md#private-repository-authentication).
 - **Command not found** → open a new terminal.
 - **Browser auth not approving** → use the same browser you signed up in.
-- **Headless host** → run `karma-team auth login --no-browser --url https://karma-team.example.com`, approve the printed URL from another browser, then run `karma-team runner add --project <PROJECT_ID>`.
+- **Headless host** → run `karma-team auth login --no-browser --url https://karma-team.example.com` and approve the printed URL from another browser; project runners are then synchronized automatically.
 
 Discussions: <https://github.com/xerecter/karma-team/discussions> · Bugs: <https://github.com/xerecter/karma-team/issues>

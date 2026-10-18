@@ -80,7 +80,7 @@ where
     // keeps its precondition check as a last line of defense for direct
     // `karma-team start` callers that don't pass through this self-heal.
     match svc.rewrite_unit_if_missing(paths).await {
-        Ok(true) => progress("rewrote missing service unit".into()),
+        Ok(true) => progress("refreshed missing or outdated service unit".into()),
         Ok(false) => {}
         Err(e) => tracing::warn!("pre-restart service unit check failed: {e:#}"),
     }

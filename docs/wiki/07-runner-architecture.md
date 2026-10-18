@@ -11,8 +11,8 @@ runner/src/
 ├── main.rs               ← tokio entrypoint
 ├── lib.rs                ← module root
 ├── cli/                  ← clap subcommands
-├── daemon/               ← supervisor + state machine (mod, observability, runner_instance, runner_out, state, supervisor)
-├── cloud/                ← WS client + HTTP + message schemas (http, mod, projects, protocol, runners, ws)
+├── daemon/               ← supervisor + state machine (including project_sync, observability, runner_instance, state)
+├── cloud/                ← HTTP client + message schemas (http, projects, protocol, runners; legacy WS support)
 ├── codex/                ← `codex app-server` subprocess + JSON-RPC bridge (app_server, bridge, jsonrpc, mod, schema)
 ├── claude_code/          ← Claude Code adapter
 ├── agent/                ← generic agent trait (so new agents can be wired in)
@@ -33,7 +33,7 @@ The `karma-team` binary is a clap subcommand router:
 
 ```
 karma-team auth login / logout / status      ← device-code login, token mgmt
-karma-team runner add / list / remove        ← register a runner on this host
+karma-team runner add / list / remove        ← optionally manage additional runners on this host
 karma-team configure                          ← (re)write config
 karma-team install / uninstall                ← install OS service unit
 karma-team start / stop / restart             ← daemon lifecycle
@@ -49,12 +49,26 @@ Bare `karma-team` (no subcommand) drops into `auth login` when no config exists 
 
 ## Daemon (`daemon/`)
 
-The daemon is the long-lived process. Its responsibilities:
+The daemon is the long-lived process. After account/workspace login, its responsibilities:
 
 1. **Supervisor** (`supervisor.rs`) — drives the state machine: connect → register → poll for runs → dispatch → report.
-2. **Runner instance** (`runner_instance.rs`) — one daemon can manage multiple runner registrations (one per project on this host).
-3. **Observability** (`observability.rs`) — structured logging + metrics.
-4. **State** (`state.rs`) — in-memory state shared between IPC, TUI, and supervisor.
+2. **Runner instance** (`runner_instance.rs`) — one daemon can manage multiple runner registrations (normally one per project, plus any intentional manual extras).
+3. **ProjectSync** (`project_sync.rs`) — discovers all active workspace memberships, caches a separate machine token per workspace, and fetches each workspace's complete visible-project, machine-binding, and deleted-project tombstone snapshot. It ensures a default-pod runner for each otherwise-unbound project, including projects created by other members, and recovers cloud bindings missing from local config. Local runner removal requires confirmed project deletion. Successful reconciliations repeat every 60 seconds; transient failures retry with bounded backoff. A secondary workspace failure does not prevent the others from synchronizing. This runs alongside the existing per-runner task-polling and dispatch lifecycle.
+4. **Observability** (`observability.rs`) — structured logging + metrics.
+5. **State** (`state.rs`) — in-memory state shared between IPC, TUI, and supervisor.
+
+Project removal is fail-closed: project or binding absence can result from a
+permission change or a runner-only deletion and never proves that the project
+was deleted. Cleanup requires the immutable project UUID in the explicit
+`deleted_project_ids` list of two different, validated complete snapshots.
+Snapshot fetch, completeness, workspace-validation failures, and replaying one
+snapshot do not advance removal state. Once confirmed, the daemon removes the
+local config block and runner-specific runtime data; project deletion has
+already removed the cloud runner transactionally. The configured project
+working directory and Git checkout are not deleted. Legacy local rows without
+a project UUID fail closed and require manual cleanup. Tombstones live in an
+independent deletion ledger, so they remain available after Project retention
+hard-deletes the original soft-deleted row.
 
 The daemon talks to the cloud via `cloud/` (HTTPS + WS) and to the local TUI via `ipc/` (Unix socket on Unix, named pipe on Windows — both `0600`).
 

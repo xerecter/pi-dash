@@ -29,6 +29,7 @@ export const OnboardingHeader = observer(function OnboardingHeader(props: Onboar
   const { data: user } = useUser();
   const { config: instanceConfig } = useInstance();
   const isSelfManaged = instanceConfig?.is_self_managed;
+  const isKarmaUser = user?.last_login_medium === "karma";
 
   // handle step back
   const handleStepBack = () => {
@@ -37,13 +38,19 @@ export const OnboardingHeader = observer(function OnboardingHeader(props: Onboar
         updateCurrentStep(EOnboardingSteps.CLI_INSTALL);
         break;
       case EOnboardingSteps.ROLE_SETUP:
-        updateCurrentStep(EOnboardingSteps.PROFILE_SETUP);
+        updateCurrentStep(isKarmaUser ? EOnboardingSteps.CLI_INSTALL : EOnboardingSteps.PROFILE_SETUP);
         break;
       case EOnboardingSteps.USE_CASE_SETUP:
         updateCurrentStep(EOnboardingSteps.ROLE_SETUP);
         break;
       case EOnboardingSteps.WORKSPACE_CREATE_OR_JOIN:
-        updateCurrentStep(isSelfManaged ? EOnboardingSteps.PROFILE_SETUP : EOnboardingSteps.USE_CASE_SETUP);
+        updateCurrentStep(
+          isSelfManaged
+            ? isKarmaUser
+              ? EOnboardingSteps.CLI_INSTALL
+              : EOnboardingSteps.PROFILE_SETUP
+            : EOnboardingSteps.USE_CASE_SETUP
+        );
         break;
     }
   };
@@ -55,7 +62,7 @@ export const OnboardingHeader = observer(function OnboardingHeader(props: Onboar
   const showInviteStep = !hasInvitations || currentStep === EOnboardingSteps.INVITE_MEMBERS;
   const stepOrder: TOnboardingStep[] = [
     EOnboardingSteps.CLI_INSTALL,
-    EOnboardingSteps.PROFILE_SETUP,
+    ...(isKarmaUser ? [] : [EOnboardingSteps.PROFILE_SETUP]),
     ...(isSelfManaged ? [] : [EOnboardingSteps.ROLE_SETUP, EOnboardingSteps.USE_CASE_SETUP]),
     EOnboardingSteps.WORKSPACE_CREATE_OR_JOIN,
     ...(showInviteStep ? [EOnboardingSteps.INVITE_MEMBERS] : []),

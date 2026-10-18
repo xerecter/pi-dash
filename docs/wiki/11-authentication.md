@@ -55,8 +55,14 @@ karma-team auth login --url https://your-karma-team-instance.com
 2. CLI shows the user a short code + URL to open in a browser.
 3. User approves in the browser (signed in via flow #2 above).
 4. CLI polls until the code is approved → cloud mints a **CLI token**.
-5. CLI persists token at `~/.config/karma-team/config.toml` (`0600`).
-6. CLI prompts to add a runner inline if none exists on this host.
+5. CLI exchanges it for a workspace-scoped **MachineToken**, selects the
+   default workspace, and persists it at
+   `~/.config/karma-team/config.toml` (`0600`).
+6. CLI installs/starts the daemon. ProjectSync discovers all active workspace
+   memberships and visible projects, including projects created by other users,
+   and ensures one isolated runner for each otherwise-unbound project. It
+   repeats discovery every minute, so new memberships need no additional login
+   or manual project-by-project binding.
 
 This is the same UX as `gh auth login` or `stripe login`. Bare `karma-team` (no subcommand) drops into this flow when no config exists — useful after MSI install on Windows.
 
@@ -66,24 +72,34 @@ For headless hosts where opening a browser automatically is awkward:
 
 ```bash
 karma-team auth login --no-browser --url https://karma-team.example.com
-karma-team runner add --project <PROJECT_ID>
 ```
 
-The CLI prints the verification URL and user code; approve it from any browser signed in to karma-team.
+The CLI prints the verification URL and user code; approve it from any browser
+signed in to karma-team. After login, the daemon synchronizes project runners
+automatically. Use `karma-team runner add --project <PROJECT_ID>` only when you
+intentionally need an additional runner or want a non-default pod.
 
 ## Runner credential model
 
-After login, the dev machine holds one shared **MachineToken**. The CLI and every runner on that local machine use the same token; the runner identity is carried separately by URL `runner_id` or `X-Runner-Id`.
+After login, the dev machine holds a **MachineToken** for its default workspace.
+ProjectSync exchanges that login for a separate token for each additional
+active workspace and caches it in `[cli.workspace_tokens]` in the same private
+config file. Runner requests and agent CLI commands select the token for their
+workspace; the cloud still enforces the token's user, machine, and workspace
+scope. The runner identity is carried separately by URL `runner_id` or
+`X-Runner-Id`. Changing the login identity or logging out clears cached tokens.
 
 | Token                        | Lifetime   | Use                                                                                                                 |
 | ---------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------- |
 | **MachineToken** (`mt_...`)  | Long-lived | Identifies the authenticated dev machine + user + workspace. Stored once in `[cli].token` at login.                 |
 | **Runner id**                | Stable     | Identifies the specific runner under that dev machine. Sent in runner URLs or `X-Runner-Id`, not secret.            |
-| **Enrollment/refresh token** | Legacy     | Kept only for already-minted `karma-team connect` compatibility paths. New `karma-team runner add` does not use it. |
+| **Enrollment/refresh token** | Legacy     | Kept only for already-minted `karma-team connect` compatibility paths. New automatic project bindings and `karma-team runner add` use the shared MachineToken. |
 
 Cloud-side, MachineToken lifecycle is stored in `runner.MachineToken`; legacy refresh/access helpers remain in `karma_team/runner/services/tokens.py` for compatibility.
 
-`karma-team auth logout` revokes the dev-machine token cloud-side. `karma-team runner remove` removes one runner row/local instance without rotating the shared machine token.
+`karma-team auth logout` revokes the default and cached workspace tokens
+cloud-side. `karma-team runner remove` removes one runner row/local instance
+without rotating its workspace's machine token.
 
 ## On-disk security
 

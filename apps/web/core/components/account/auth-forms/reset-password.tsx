@@ -118,7 +118,7 @@ export const ResetPasswordForm = observer(function ResetPasswordForm() {
             <Input
               id="email"
               name="email"
-              type="email"
+              type="text"
               value={resetFormData.email}
               //hasError={Boolean(errors.email)}
               placeholder={t("name@company.com")}

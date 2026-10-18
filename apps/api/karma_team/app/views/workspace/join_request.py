@@ -3,9 +3,8 @@
 # See the LICENSE file for details.
 
 # Django imports
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
 from django.db import IntegrityError, transaction
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
@@ -49,30 +48,33 @@ class UserWorkspaceJoinRequestViewSet(BaseViewSet):
         admin_email = (request.data.get("admin_email") or "").strip().lower()
         message = request.data.get("message")
 
-        # Validate the email format
-        try:
-            validate_email(admin_email)
-        except ValidationError:
+        if not admin_email:
             return Response(
-                {"error": "A valid workspace admin email is required"},
+                {"error": "A workspace admin account or email is required"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # A user cannot request to join using their own email
-        if request.user.email and admin_email == request.user.email.strip().lower():
+        # A user cannot request to join using either form of their own account.
+        own_identifiers = {
+            value.strip().lower() for value in (request.user.email, request.user.username) if value and value.strip()
+        }
+        if admin_email in own_identifiers:
             return Response(
-                {"error": "You cannot request to join a workspace using your own email"},
+                {"error": "You cannot request to join a workspace using your own account"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Resolve the workspaces the typed email administers: an active Admin
-        # member, or the workspace owner.
+        account_match = Q(member__email__iexact=admin_email) | Q(member__username__iexact=admin_email)
         target_workspace_ids = set(
-            WorkspaceMember.objects.filter(member__email=admin_email, role=ADMIN_ROLE, is_active=True).values_list(
+            WorkspaceMember.objects.filter(account_match, role=ADMIN_ROLE, is_active=True).values_list(
                 "workspace_id", flat=True
             )
         )
-        target_workspace_ids.update(Workspace.objects.filter(owner__email=admin_email).values_list("id", flat=True))
+        target_workspace_ids.update(
+            Workspace.objects.filter(
+                Q(owner__email__iexact=admin_email) | Q(owner__username__iexact=admin_email)
+            ).values_list("id", flat=True)
+        )
 
         # Never target a workspace the requester is already an active member of.
         already_member_ids = set(

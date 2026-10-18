@@ -6,21 +6,18 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { observer } from "mobx-react";
-import Link from "next/link";
 // icons
 import { Eye, EyeOff, Info, XCircle } from "lucide-react";
 // karma-team imports
-import { API_BASE_URL, E_PASSWORD_STRENGTH, AUTH_TRACKER_ELEMENTS } from "@karma-team/constants";
+import { API_BASE_URL, E_PASSWORD_STRENGTH } from "@karma-team/constants";
 import { useTranslation } from "@karma-team/i18n";
 import { Button } from "@karma-team/propel/button";
 import { CloseIcon } from "@karma-team/propel/icons";
 import { Input, PasswordStrengthIndicator, Spinner } from "@karma-team/ui";
 import { getPasswordStrength } from "@karma-team/utils";
-// components
-import { ForgotPasswordPopover } from "@/components/account/auth-forms/forgot-password-popover";
 // constants
 // helpers
-import { EAuthModes, EAuthSteps } from "@/helpers/authentication.helper";
+import { EAuthModes } from "@/helpers/authentication.helper";
 // services
 import { AuthService } from "@/services/auth.service";
 
@@ -29,7 +26,6 @@ type Props = {
   isSMTPConfigured: boolean;
   mode: EAuthModes;
   handleEmailClear: () => void;
-  handleAuthStep: (step: EAuthSteps) => void;
   nextPath: string | undefined;
 };
 
@@ -47,7 +43,7 @@ const defaultValues: TPasswordFormValues = {
 const authService = new AuthService();
 
 export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props) {
-  const { email, isSMTPConfigured, handleAuthStep, handleEmailClear, mode, nextPath } = props;
+  const { email, isSMTPConfigured, handleEmailClear, mode, nextPath } = props;
   // karma-team imports
   const { t } = useTranslation();
   // ref
@@ -77,30 +73,10 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
     }
   }, [csrfPromise]);
 
-  const redirectToUniqueCodeSignIn = async () => {
-    handleAuthStep(EAuthSteps.UNIQUE_CODE);
-  };
-
-  const passwordSupport =
-    mode === EAuthModes.SIGN_IN ? (
-      <div className="w-full">
-        {isSMTPConfigured ? (
-          <Link
-            data-ph-element={AUTH_TRACKER_ELEMENTS.FORGOT_PASSWORD_FROM_SIGNIN}
-            href={`/accounts/forgot-password?email=${encodeURIComponent(email)}`}
-            className="text-11 font-medium text-accent-primary"
-          >
-            {t("Forgot your password?")}
-          </Link>
-        ) : (
-          <ForgotPasswordPopover />
-        )}
-      </div>
-    ) : (
-      passwordFormData.password.length > 0 &&
-      getPasswordStrength(passwordFormData.password) != E_PASSWORD_STRENGTH.STRENGTH_VALID && (
-        <PasswordStrengthIndicator password={passwordFormData.password} isFocused={isPasswordInputFocused} />
-      )
+  const passwordSupport = mode === EAuthModes.SIGN_UP &&
+    passwordFormData.password.length > 0 &&
+    getPasswordStrength(passwordFormData.password) != E_PASSWORD_STRENGTH.STRENGTH_VALID && (
+      <PasswordStrengthIndicator password={passwordFormData.password} isFocused={isPasswordInputFocused} />
     );
 
   const isButtonDisabled = useMemo(
@@ -172,16 +148,16 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
         {nextPath && <input type="hidden" value={nextPath} name="next_path" />}
         <div className="space-y-1">
           <label htmlFor="email" className="text-13 font-medium text-tertiary">
-            {t("Email")}
+            {t("Email or username")}
           </label>
           <div className={`relative flex items-center rounded-md border border-strong bg-surface-1`}>
             <Input
               id="email"
               name="email"
-              type="email"
+              type="text"
               value={passwordFormData.email}
               onChange={(e) => handleFormChange("email", e.target.value)}
-              placeholder={t("name@company.com")}
+              placeholder={t("Email or username")}
               className={`h-10 w-full border-0 disable-autofill-style placeholder:text-placeholder`}
               disabled
             />
@@ -190,7 +166,7 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
                 type="button"
                 className="absolute right-3 size-5"
                 onClick={handleEmailClear}
-                aria-label={t("Clear email")}
+                aria-label={t("Clear email or username")}
               >
                 <XCircle className="size-5 stroke-placeholder" />
               </button>
@@ -283,18 +259,6 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
                   t("Go to workspace")
                 )}
               </Button>
-              {isSMTPConfigured && (
-                <Button
-                  type="button"
-                  data-ph-element={AUTH_TRACKER_ELEMENTS.SIGN_IN_WITH_UNIQUE_CODE}
-                  onClick={redirectToUniqueCodeSignIn}
-                  variant="secondary"
-                  className="w-full"
-                  size="xl"
-                >
-                  {t("Sign in with unique code")}
-                </Button>
-              )}
             </>
           ) : (
             <Button type="submit" variant="primary" className="w-full" size="xl" disabled={isButtonDisabled}>

@@ -382,10 +382,8 @@ class DeviceCodeTokenEndpoint(APIView):
 class WorkspaceListEndpoint(APIView):
     """``GET /api/v1/auth/workspaces/`` — workspaces the caller belongs to.
 
-    Used by ``karma-team auth login`` to drive a "which workspace should this
-    host be bound to?" picker. The karma-team CLI on a dev host is
-    single-workspace-per-install in v1: after login the CLI persists one
-    ``workspace_slug`` and forwards it on subsequent runner-create calls.
+    Used by ``karma-team auth login`` to select the default workspace and by
+    the daemon to discover memberships for automatic project/runner binding.
 
     Authenticated with the CLI's ``X-Api-Key`` token. Returns
     ``{"workspaces": [{"slug", "name"}, ...]}`` in member-since order so
@@ -410,8 +408,8 @@ class DeviceMachineTokenEndpoint(APIView):
 
     The APIToken is an in-memory bridge used only to finish workspace
     selection. The CLI persists the returned ``mt_...`` token as
-    ``[cli].token``; both CLI commands and all local runners then share that
-    one dev-machine credential.
+    ``[cli].token``. The daemon can also exchange an existing machine token
+    for a credential scoped to another active workspace on the same machine.
     """
 
     permission_classes = [IsAuthenticated]

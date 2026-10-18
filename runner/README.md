@@ -155,7 +155,16 @@ powershell -c "irm https://github.com/xerecter/karma-team/releases/latest/downlo
 | Git Bash / MSYS2 / Cygwin | Supported — the cargo-dist installer maps `MINGW*`/`MSYS*`/`CYGWIN*` to the Windows target and unpacks the Windows build; `install.sh` accepts the resulting `karma-team.exe`.                                 |
 | WSL                       | Installs the **Linux** build, which can only drive agents inside the WSL distro. `install.sh` warns about this. If your coding agents are installed on the Windows side, use the PowerShell one-liner instead. |
 
-The installer will prompt for your karma-team cloud URL, walk you through device-code approval in the browser, and offer to register this host as a runner — for the typical dev-laptop case, that's the entire setup.
+The installer prompts for your karma-team cloud URL and walks you through
+device-code approval in the browser. Successful account/workspace binding
+starts the daemon even with zero local runners. The daemon immediately
+discovers all active workspace memberships and creates one isolated runner per
+otherwise-unbound visible project, including projects created by other members.
+Memberships added after login are picked up on the next reconciliation pass
+(normally within 60 seconds). Each workspace keeps its own machine credential;
+agent CLI commands use the running task's workspace and project. Assigned local
+work items run on a current assignee's machine. No project-by-project
+registration is required.
 
 ### Installing a specific version (pinning / prereleases)
 
@@ -212,7 +221,7 @@ For silent installs, or if you clear the checkbox, sign in from a terminal: bare
 
 Windows release assets also include a `karma-team-x86_64-pc-windows-msvc.zip` archive with `karma-team.exe` for advanced/manual installs.
 
-Then run the setup steps manually:
+Then run the setup step manually:
 
 ```bash
 # 1. Log in as your user. Opens a browser to approve a short code shown in
@@ -220,26 +229,31 @@ Then run the setup steps manually:
 #    a CLI token at ~/.config/karma-team/config.toml.
 karma-team auth login --url https://karma-team.example.com
 
-# 2. Register this host as a runner. Uses the token from step 1 to mint
-#    runner credentials cloud-side; no enrollment-token paste needed. On
-#    the first runner, installs the systemd user unit, launchd agent, or
-#    Windows per-user scheduled task and starts the daemon.
-karma-team runner add --project WEB
+# Login writes/refreshes the service unit and starts the daemon. The daemon
+# discovers all active cloud projects and creates their runners automatically.
 
-# 3. Optional: open the interactive UI.
+# 2. Optional: open the interactive UI.
 karma-team tui
 ```
 
-`karma-team auth login` prompts to add a runner inline when no runner exists yet on the host — for the dev-laptop case, that single command is enough. Bare `karma-team` with no subcommand also drops into the login flow when no config exists, so if you installed via the MSI or skipped auto-auth, you can re-trigger setup just by typing `karma-team`.
+`karma-team auth login` is the complete normal onboarding flow. It binds the
+account, workspace, and dev-machine identity, then starts a zero-runner-capable
+daemon. Project creation and deletion are reflected locally on the next
+reconciliation pass. Bare `karma-team` with no subcommand also drops into the
+login flow when no config exists, so if you installed via the MSI or skipped
+auto-auth, you can re-trigger setup just by typing `karma-team`.
 
 Useful follow-ups:
 
 ```bash
 karma-team auth status               # who am I logged in as; runner list
 karma-team auth logout               # revoke the CLI token server-side
-karma-team runner add --project X    # add another runner
+karma-team runner add --project X    # optional extra/manual runner
 karma-team runner list / remove      # manage runners
 ```
+
+Automatic bindings use each project's default pod. Use `runner add` only when
+you intentionally need an additional runner or a non-default pod.
 
 ## Task folders and Git
 
@@ -247,12 +261,70 @@ Direct-mode runners can execute coding and non-coding tasks in an ordinary
 working directory. No Git repository or project repository URL is required;
 existing files are preserved, and the runner does not initialize Git for you.
 This applies to user-connected agents and the built-in desktop agent alike.
+The Karma agent is an exception: its `--worktree` mode requires a Git base, so
+the runner initializes one with an empty first commit when needed. Existing
+workspace files are not included in that commit.
 
 When a repository URL is supplied, the runner still clones into an empty
 directory or reuses an existing repository. It refuses to clone over files in
 a non-repository directory. Branch checkout only applies to repositories.
 Explicit worktree pools remain Git-based; use a direct working directory for
 repo-free tasks.
+
+### Private repository authentication
+
+Repository clones use Git credentials from the operating-system account running
+the runner daemon. Signing in with `karma-team auth login` authenticates the
+runner to the platform; a GitLab or GitHub account connected in project settings
+authenticates the platform's repository integration. Neither supplies Git clone
+credentials to the runner.
+
+Before running a work item against a private repository, configure one of these
+methods on the runner host, under the same operating-system account as the daemon:
+
+- **HTTP(S):** configure a Git credential helper that works without interactive
+  prompts. For GitLab, store a personal or project access token with
+  `read_repository` permission in that helper. Tasks that push changes also need
+  `write_repository`. Use a credential helper backed by the host's credential
+  store and keep tokens out of repository URLs, shell history, and project settings.
+- **SSH:** use an SSH repository URL and authorize that account's SSH key in the
+  Git provider. Ensure the daemon can access the key or its SSH agent. For a
+  host not yet in that account's `known_hosts`, runner-initiated SSH clones
+  with the default OpenSSH `StrictHostKeyChecking=ask` policy use
+  `StrictHostKeyChecking=accept-new`: the first observed host key is saved,
+  and any later key change is rejected. This is trust on first use, not
+  independent verification of the host's identity. An explicit non-interactive
+  SSH host-key policy (`yes`, `no`/`off`, or `accept-new`) in `~/.ssh/config`
+  or the system configuration is preserved, as are custom Git SSH commands
+  and variants. An explicit `ask` policy is treated like the OpenSSH default
+  because the background daemon has no terminal in which to show that prompt.
+  For deployments that need
+  verified host keys from the outset, provision `known_hosts` through a trusted
+  channel and set `GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=yes -o BatchMode=yes'`
+  in the daemon's service environment. Existing `GIT_SSH_COMMAND`, `GIT_SSH`,
+  or Git `core.sshCommand` settings are never replaced by the runner. If Git
+  uses `includeIf` configuration, automatic first-use trust is disabled: a
+  target-directory-specific SSH command cannot be inspected until Git has
+  initialized the clone. Provision `known_hosts` in advance in that case.
+
+Check the repository URL currently saved in project settings, then test it from
+the daemon's account. On Linux or macOS, this read-only check disables terminal
+credential prompts:
+
+```bash
+GIT_TERMINAL_PROMPT=0 git ls-remote 'https://gitlab.example.com/team/project.git' HEAD
+```
+
+The command should return the repository's `HEAD` hash (or succeed with no output
+for an empty repository). `could not read Username`, `terminal prompts disabled`,
+or `Authentication failed` means the daemon still lacks usable Git credentials.
+A successful check under a different account does not verify the daemon's
+credentials. `karma-team doctor` checks that Git is installed, but does not check
+access to the project's repository.
+
+After the check succeeds, retry the failed work item. If you changed environment
+variables needed by the credential helper or SSH agent, restart the runner service
+when it is idle so the daemon receives the updated environment.
 
 ## Auto-update
 

@@ -69,7 +69,7 @@ export const useWorkspaceInvitationActions = (props: TUseWorkspaceInvitationProp
   };
 
   const onSubmitForm = async (data: InvitationFormValues) => {
-    await onSubmit(data)?.then(() => {
+    await onSubmit({ emails: data.emails.map((invite) => ({ ...invite, email: invite.email.trim() })) })?.then(() => {
       reset(SEND_WORKSPACE_INVITATION_MODAL_DEFAULT_VALUES);
     });
   };

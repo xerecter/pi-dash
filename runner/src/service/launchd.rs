@@ -6,6 +6,7 @@ use tokio::process::Command;
 use crate::util::paths::Paths;
 
 const LABEL: &str = "so.karma-team.daemon";
+const UNIT_VERSION_MARKER: &str = "<!-- karma-team-managed-unit-version=2 -->";
 
 /// Upper bound on how long `stop()` will wait for `launchctl bootout` to
 /// finish tearing the daemon down before escalating to SIGKILL. 10s is
@@ -29,20 +30,27 @@ const START_POLL_INTERVAL: Duration = Duration::from_millis(150);
 /// to `enable_and_start` so `karma-team install` can gate activation on
 /// `karma-team configure` completing first.
 pub async fn write_unit(paths: &Paths) -> Result<()> {
+    let _lock = super::lock_service_definition(paths)?;
     let plist_path = plist_path()?;
-    if let Some(parent) = plist_path.parent() {
-        tokio::fs::create_dir_all(parent).await?;
-    }
     let exe = std::env::current_exe()?;
     let exe_str = xml_escape(super::validate_path_for_unit(&exe)?);
     let logs_dir = paths.logs_dir();
     let logs = xml_escape(super::validate_path_for_unit(&logs_dir)?);
     let config = xml_escape(super::validate_path_for_unit(&paths.config_dir)?);
     let data = xml_escape(super::validate_path_for_unit(&paths.data_dir)?);
+    let runtime = xml_escape(super::validate_path_for_unit(&paths.runtime_dir)?);
     // See `service::capture_install_time_path` for why we bake $PATH in.
     let path_env = super::capture_install_time_path().map(|p| xml_escape(&p));
-    let body = render_plist(&exe_str, &config, &data, &logs, path_env.as_deref());
-    tokio::fs::write(&plist_path, body).await?;
+    let body = render_plist(
+        &exe_str,
+        &config,
+        &data,
+        &runtime,
+        &logs,
+        path_env.as_deref(),
+    );
+    super::atomic_write_service_file(&plist_path, &body)?;
+    paths.persist_runtime_dir()?;
     println!("installed launchd agent at {}", plist_path.display());
     Ok(())
 }
@@ -56,13 +64,21 @@ pub async fn write_unit(paths: &Paths) -> Result<()> {
 /// `EnvironmentVariables` so the daemon (and every subprocess it forks)
 /// inherits the operator's interactive PATH instead of launchd's stripped
 /// default. See `service::capture_install_time_path` for the full rationale.
-fn render_plist(exe: &str, config: &str, data: &str, logs: &str, path_env: Option<&str>) -> String {
+fn render_plist(
+    exe: &str,
+    config: &str,
+    data: &str,
+    runtime: &str,
+    logs: &str,
+    path_env: Option<&str>,
+) -> String {
     let path_entry = match path_env {
         Some(p) => format!("\n    <key>PATH</key><string>{p}</string>"),
         None => String::new(),
     };
     format!(
         r#"<?xml version="1.0" encoding="UTF-8"?>
+{UNIT_VERSION_MARKER}
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -70,6 +86,8 @@ fn render_plist(exe: &str, config: &str, data: &str, logs: &str, path_env: Optio
   <key>ProgramArguments</key>
   <array>
     <string>{exe}</string>
+    <string>--runtime-dir</string>
+    <string>{runtime}</string>
     <string>__run</string>
   </array>
   <key>EnvironmentVariables</key>
@@ -86,6 +104,11 @@ fn render_plist(exe: &str, config: &str, data: &str, logs: &str, path_env: Optio
 "#,
         label = LABEL,
     )
+}
+
+fn plist_body_is_current(body: &str, expected_runtime: &str) -> bool {
+    let runtime_arg = format!("<string>{}</string>", xml_escape(expected_runtime));
+    body.contains(UNIT_VERSION_MARKER) && body.contains(&runtime_arg)
 }
 
 /// Load the LaunchAgent. Equivalent to `start()` now that `start` handles
@@ -556,14 +579,8 @@ fn ensure_plist_present(plist: &Path) -> Result<()> {
 }
 
 /// Self-heal entry point used by `reload::restart_and_verify_with_progress`:
-/// returns `Ok(true)` when the plist was missing and got rewritten, `Ok(false)`
-/// when it was already present. Lets `karma-team restart` after `karma-team update` on
-/// a plist-less machine recover transparently instead of bailing with the
-/// `ensure_plist_present` error the operator would have to act on by hand.
-///
-/// The "rewrite only when missing" rule lives in `service::rewrite_unit_if_absent`
-/// so all three backends state it once; see there for why we never clobber an
-/// existing plist.
+/// rewrites a missing plist or an older managed plist that does not pin the
+/// daemon runtime directory.
 ///
 /// Gated to `target_os = "macos"` (not the module's broader `macos || test`
 /// gate) because the `Service::Launchd` arm that calls it is too. The module's
@@ -573,7 +590,17 @@ fn ensure_plist_present(plist: &Path) -> Result<()> {
 /// warning under `-D dead-code`.
 #[cfg(target_os = "macos")]
 pub(crate) async fn rewrite_unit_if_missing(paths: &Paths) -> Result<bool> {
-    super::rewrite_unit_if_absent(&plist_path()?, || write_unit(paths)).await
+    let path = plist_path()?;
+    let current = tokio::fs::read_to_string(&path).await.ok();
+    let expected_runtime = super::validate_path_for_unit(&paths.runtime_dir)?;
+    if current
+        .as_deref()
+        .is_some_and(|body| plist_body_is_current(body, expected_runtime))
+    {
+        return Ok(false);
+    }
+    write_unit(paths).await?;
+    Ok(true)
 }
 
 fn plist_path() -> Result<PathBuf> {
@@ -617,6 +644,7 @@ mod tests {
             "/usr/local/bin/karma-team",
             "/Users/user/Library/Application Support/karma-team",
             "/Users/user/Library/Application Support/karma-team",
+            "/Users/user/Library/Application Support/karma-team/runtime",
             "/Users/user/Library/Application Support/karma-team/logs",
             None,
         );
@@ -628,8 +656,18 @@ mod tests {
 
     #[test]
     fn plist_body_includes_program_args_and_logs() {
-        let body = render_plist("/bin/karma-team", "/cfg", "/data", "/logs", None);
+        let body = render_plist(
+            "/bin/karma-team",
+            "/cfg",
+            "/data",
+            "/data/runtime",
+            "/logs",
+            None,
+        );
+        assert!(body.contains(UNIT_VERSION_MARKER));
         assert!(body.contains("<string>/bin/karma-team</string>"));
+        assert!(body.contains("<string>--runtime-dir</string>"));
+        assert!(body.contains("<string>/data/runtime</string>"));
         assert!(body.contains("<string>__run</string>"));
         assert!(body.contains("<key>KARMA_TEAM_CONFIG_DIR</key><string>/cfg</string>"));
         assert!(body.contains("<key>KARMA_TEAM_DATA_DIR</key><string>/data</string>"));
@@ -638,11 +676,62 @@ mod tests {
     }
 
     #[test]
+    fn plist_program_arguments_pin_one_exact_runtime_dir() {
+        let body = render_plist(
+            "/bin/karma-team",
+            "/cfg",
+            "/data",
+            "/run/user/1000/karma-team",
+            "/logs",
+            None,
+        );
+        let expected = r#"  <array>
+    <string>/bin/karma-team</string>
+    <string>--runtime-dir</string>
+    <string>/run/user/1000/karma-team</string>
+    <string>__run</string>
+  </array>"#;
+
+        assert!(
+            body.contains(expected),
+            "unexpected ProgramArguments:\n{body}"
+        );
+        assert_eq!(body.matches("<string>--runtime-dir</string>").count(), 1);
+    }
+
+    #[test]
+    fn legacy_or_mismatched_plists_are_refreshed() {
+        let legacy = "<plist><string>__run</string></plist>";
+        assert!(!plist_body_is_current(legacy, "/run/user/1000/karma-team"));
+
+        let current = render_plist(
+            "/bin/karma-team",
+            "/cfg",
+            "/data",
+            "/run/user/1000/karma-team",
+            "/logs",
+            None,
+        );
+        assert!(plist_body_is_current(&current, "/run/user/1000/karma-team"));
+        assert!(!plist_body_is_current(
+            &current,
+            "/run/user/1001/karma-team"
+        ));
+    }
+
+    #[test]
     fn plist_body_omits_path_when_not_captured() {
         // None means we couldn't (or shouldn't) snapshot $PATH at install
         // time. The plist must not contain a PATH key in that case — an
         // empty PATH would be worse than launchd's default.
-        let body = render_plist("/bin/karma-team", "/cfg", "/data", "/logs", None);
+        let body = render_plist(
+            "/bin/karma-team",
+            "/cfg",
+            "/data",
+            "/data/runtime",
+            "/logs",
+            None,
+        );
         assert!(
             !body.contains("<key>PATH</key>"),
             "plist body must not declare PATH when path_env is None; got:\n{body}"
@@ -933,6 +1022,7 @@ mod tests {
             "/bin/karma-team",
             "/cfg",
             "/data",
+            "/data/runtime",
             "/logs",
             Some("/Users/u/.local/bin:/opt/homebrew/bin:/usr/bin"),
         );

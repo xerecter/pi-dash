@@ -12,7 +12,7 @@ use clap::{Args as ClapArgs, Subcommand};
 use std::io::IsTerminal;
 use std::path::PathBuf;
 
-use crate::cli::runner_ops::{self, ApplyEnrollOptions};
+use crate::cli::runner_ops::{self, ApplyEnrollOptions, EnrollDedupeMode};
 use crate::cloud::http::{CreateRunnerRequest, SharedHttpTransport, create_runner};
 use crate::cloud::runners::{delete_runner, probe_cloud_reachable};
 use crate::config::file;
@@ -213,6 +213,7 @@ pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
         CreateRunnerRequest {
             api_token: &api_token,
             dev_machine_id: &dev_machine_id,
+            request_id: None,
             workspace_slug: workspace_arg.as_deref(),
             project: &args.project,
             host_label: &host_label,
@@ -238,6 +239,7 @@ pub async fn add(args: AddArgs, paths: &Paths) -> Result<RunnerConfig> {
             agent_kind: args.agent,
             model: args.model.as_deref(),
             reasoning_effort: args.reasoning_effort.as_deref(),
+            dedupe_mode: EnrollDedupeMode::RunnerAndProject,
         },
     )
     .await
@@ -481,6 +483,7 @@ pub async fn remove(args: RemoveArgs, paths: &Paths) -> Result<()> {
         .position(|r| r.name == args.name)
         .ok_or_else(|| anyhow::anyhow!("no runner named {:?} in config.toml", args.name))?;
     let runner_id = cfg.runners[idx].runner_id;
+    let runner_working_dir = cfg.runners[idx].workspace.working_dir.clone();
     let cloud_url = cfg.daemon.cloud_url.clone();
 
     // Decide the mode before prompting so the prompt copy matches the
@@ -590,14 +593,18 @@ pub async fn remove(args: RemoveArgs, paths: &Paths) -> Result<()> {
     // cascade handler does the same thing on its own; doing it here
     // too is a no-op when both paths run, and the only path when the
     // daemon is offline.
+    let mut latest_working_dir = None;
     file::mutate_config_for_cleanup(paths, |c| {
+        latest_working_dir = c
+            .runners
+            .iter()
+            .find(|r| r.runner_id == runner_id)
+            .map(|r| r.workspace.working_dir.clone());
         c.runners.retain(|r| r.runner_id != runner_id);
         Ok(())
     })?;
-    let runner_data = paths.runner_dir(runner_id);
-    if runner_data.exists() {
-        let _ = std::fs::remove_dir_all(&runner_data);
-    }
+    let protected_working_dir = latest_working_dir.as_ref().unwrap_or(&runner_working_dir);
+    paths.remove_runner_runtime_dir(runner_id, Some(protected_working_dir))?;
 
     match mode {
         RemoveMode::Cascade => {

@@ -74,7 +74,7 @@ export const GeneralConfigurationForm = observer(function GeneralConfigurationFo
             <Input
               id="email"
               name="email"
-              type="email"
+              type="text"
               value={instanceAdmins[0]?.user_detail?.email ?? ""}
               placeholder="Admin email"
               className="w-full cursor-not-allowed !text-placeholder"

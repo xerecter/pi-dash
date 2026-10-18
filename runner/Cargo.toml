@@ -1,6 +1,6 @@
 [package]
 name = "karma-team"
-version = "0.1.23"
+version = "0.1.24"
 edition = "2024"
 rust-version = "1.93"
 description = "karma-team local runner: connects a dev machine to the karma-team cloud and drives the Karma agent for assigned tasks."

@@ -58,9 +58,7 @@ impl Bridge {
         Self::spawn_with_resume_options(binary, cwd, model_default, resume_session_id, false).await
     }
 
-    /// Spawn with an optional Karma-specific worktree flag. Keeping this as a
-    /// separate constructor preserves the Claude Code bridge contract while
-    /// allowing the Karma wrapper to request cloud-synced isolation.
+    /// Karma opts into its worktree mode while Claude Code keeps its existing arguments.
     pub async fn spawn_with_resume_options(
         binary: &str,
         cwd: &Path,

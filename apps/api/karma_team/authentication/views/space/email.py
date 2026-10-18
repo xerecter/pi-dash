@@ -3,14 +3,14 @@
 # See the LICENSE file for details.
 
 # Django imports
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
+from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.views import View
 from django.utils.http import url_has_allowed_host_and_scheme
 
 # Module imports
 from karma_team.authentication.provider.credentials.email import EmailProvider
+from karma_team.authentication.services.karma import authenticate_karma_user
 from karma_team.authentication.utils.login import user_login
 from karma_team.license.models import Instance
 from karma_team.authentication.utils.host import base_host
@@ -40,7 +40,7 @@ class SignInAuthSpaceEndpoint(View):
             return HttpResponseRedirect(url)
 
         # set the referer as session to redirect after login
-        email = request.POST.get("email", False)
+        email = request.POST.get("email", "").strip()
         password = request.POST.get("password", False)
 
         ## Raise exception if any of the above are missing
@@ -56,40 +56,9 @@ class SignInAuthSpaceEndpoint(View):
             )
             return HttpResponseRedirect(url)
 
-        # Validate email
-        email = email.strip().lower()
+        # Karma accepts both email-shaped identifiers and ordinary usernames.
         try:
-            validate_email(email)
-        except ValidationError:
-            exc = AuthenticationException(
-                error_code=AUTHENTICATION_ERROR_CODES["INVALID_EMAIL_SIGN_IN"],
-                error_message="INVALID_EMAIL_SIGN_IN",
-                payload={"email": str(email)},
-            )
-            params = exc.get_error_dict()
-            url = get_safe_redirect_url(
-                base_url=base_host(request=request, is_space=True), next_path=next_path, params=params
-            )
-            return HttpResponseRedirect(url)
-
-        # Existing User
-        existing_user = User.objects.filter(email=email).first()
-
-        if not existing_user:
-            exc = AuthenticationException(
-                error_code=AUTHENTICATION_ERROR_CODES["USER_DOES_NOT_EXIST"],
-                error_message="USER_DOES_NOT_EXIST",
-                payload={"email": str(email)},
-            )
-            params = exc.get_error_dict()
-            url = get_safe_redirect_url(
-                base_url=base_host(request=request, is_space=True), next_path=next_path, params=params
-            )
-            return HttpResponseRedirect(url)
-
-        try:
-            provider = EmailProvider(request=request, key=email, code=password, is_signup=False)
-            user = provider.authenticate()
+            user = authenticate_karma_user(request=request, username=email, password=password)
             # Login the user and record his device info
             user_login(request=request, user=user, is_space=True)
             # redirect to referer path
@@ -124,7 +93,7 @@ class SignUpAuthSpaceEndpoint(View):
             )
             return HttpResponseRedirect(url)
 
-        email = request.POST.get("email", False)
+        email = str(request.POST.get("email") or "").strip().lower()
         password = request.POST.get("password", False)
         ## Raise exception if any of the above are missing
         if not email or not password:
@@ -139,25 +108,8 @@ class SignUpAuthSpaceEndpoint(View):
                 base_url=base_host(request=request, is_space=True), next_path=next_path, params=params
             )
             return HttpResponseRedirect(url)
-        # Validate the email
-        email = email.strip().lower()
-        try:
-            validate_email(email)
-        except ValidationError:
-            # Redirection params
-            exc = AuthenticationException(
-                error_code=AUTHENTICATION_ERROR_CODES["INVALID_EMAIL_SIGN_UP"],
-                error_message="INVALID_EMAIL_SIGN_UP",
-                payload={"email": str(email)},
-            )
-            params = exc.get_error_dict()
-            url = get_safe_redirect_url(
-                base_url=base_host(request=request, is_space=True), next_path=next_path, params=params
-            )
-            return HttpResponseRedirect(url)
-
         # Existing User
-        existing_user = User.objects.filter(email=email).first()
+        existing_user = User.objects.filter(Q(email__iexact=email) | Q(username__iexact=email)).first()
 
         if existing_user:
             exc = AuthenticationException(

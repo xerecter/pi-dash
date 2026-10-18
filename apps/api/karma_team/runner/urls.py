@@ -29,6 +29,8 @@ from karma_team.runner.views import (
     ProjectListEndpoint,
     DesktopEnrollEndpoint,
     RunnerCreateEndpoint,
+    MachineProjectBindingEnsureEndpoint,
+    MachineProjectBindingSnapshotEndpoint,
     RunAcceptEndpoint,
     RunApprovalEndpoint,
     RunAwaitingReauthEndpoint,
@@ -83,6 +85,16 @@ urlpatterns = [
         "projects/",
         ProjectListEndpoint.as_view(),
         name="cli-project-list",
+    ),
+    path(
+        "dev-machines/<uuid:dev_machine_id>/project-bindings/",
+        MachineProjectBindingSnapshotEndpoint.as_view(),
+        name="machine-project-bindings",
+    ),
+    path(
+        "dev-machines/<uuid:dev_machine_id>/project-bindings/ensure/",
+        MachineProjectBindingEnsureEndpoint.as_view(),
+        name="machine-project-binding-ensure",
     ),
     path(
         "runners/<uuid:runner_id>/refresh/",

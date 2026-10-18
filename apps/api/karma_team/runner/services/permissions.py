@@ -83,9 +83,8 @@ def can_use_runner(user, runner) -> bool:
 def filter_runs_usable_by_runner(qs, runner):
     """Limit an AgentRun queryset to work this runner may consume.
 
-    Private runners can process work initiated by their owner, work already
-    billed to their owner, issue work involving their owner, or project
-    scheduler work explicitly authored by their owner.
+    Assigned local issue work belongs to the current assignees' runners.
+    For unassigned issues and other work, preserve creator/owner access.
 
     The assignee clause traverses the ``IssueAssignee`` through-model
     explicitly rather than the ``Issue.assignees`` M2M. ``IssueAssignee`` is
@@ -97,8 +96,25 @@ def filter_runs_usable_by_runner(qs, runner):
     same joined row.
     """
     if runner.visibility == Visibility.PRIVATE:
-        from karma_team.db.models.issue import Issue
+        from karma_team.core.agent_execution import AgentExecutorKind
+        from karma_team.db.models import ProjectMember, WorkspaceMember
+        from karma_team.db.models.issue import Issue, IssueAssignee
         from karma_team.db.models.scheduler import SchedulerBinding
+
+        if not (
+            WorkspaceMember.objects.filter(
+                workspace_id=runner.workspace_id, member_id=runner.owner_id, is_active=True
+            ).exists()
+            and ProjectMember.objects.filter(
+                workspace_id=runner.workspace_id,
+                project_id=runner.pod.project_id,
+                member_id=runner.owner_id,
+                is_active=True,
+            ).exists()
+        ):
+            # Keep non-issue work unaffected; a stale runner must not gain
+            # access to a project's work items after its owner leaves.
+            qs = qs.filter(work_item__isnull=True)
 
         visible_issue = Issue.objects.filter(pk=OuterRef("work_item_id")).filter(
             Q(created_by_id=runner.owner_id)
@@ -111,14 +127,25 @@ def filter_runs_usable_by_runner(qs, runner):
             pk=OuterRef("scheduler_binding_id"),
             actor_id=runner.owner_id,
         )
-        return qs.annotate(
-            _runner_visible_issue=Exists(visible_issue),
-            _runner_visible_scheduler=Exists(visible_scheduler),
-        ).filter(
-            Q(created_by_id=runner.owner_id)
-            | Q(owner_id=runner.owner_id)
-            | Q(_runner_visible_issue=True)
-            | Q(_runner_visible_scheduler=True)
+        assignees = IssueAssignee.objects.filter(issue_id=OuterRef("work_item_id"))
+        return (
+            qs.annotate(
+                _runner_visible_issue=Exists(visible_issue),
+                _runner_visible_scheduler=Exists(visible_scheduler),
+                _issue_has_assignees=Exists(assignees),
+                _issue_assigned_to_runner=Exists(assignees.filter(assignee_id=runner.owner_id)),
+            )
+            .filter(
+                Q(created_by_id=runner.owner_id)
+                | Q(owner_id=runner.owner_id)
+                | Q(_runner_visible_issue=True)
+                | Q(_runner_visible_scheduler=True)
+            )
+            .filter(
+                ~Q(executor_kind=AgentExecutorKind.LOCAL_RUNNER)
+                | Q(_issue_has_assignees=False)
+                | Q(_issue_assigned_to_runner=True)
+            )
         )
     return qs.none()
 

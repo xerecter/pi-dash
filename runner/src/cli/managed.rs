@@ -25,7 +25,7 @@ use clap::{Args as ClapArgs, Subcommand};
 use std::io::Read;
 use std::path::PathBuf;
 
-use crate::cli::runner_ops::{self, ApplyEnrollOptions};
+use crate::cli::runner_ops::{self, ApplyEnrollOptions, EnrollDedupeMode};
 use crate::cloud::http::{CreateRunnerRequest, SharedHttpTransport, create_runner};
 use crate::config::file;
 use crate::config::schema::AgentKind;
@@ -147,9 +147,16 @@ async fn bootstrap(args: BootstrapArgs, paths: &Paths) -> Result<()> {
         .context("writing machine token to config.toml")?;
     runner_ops::write_cli_workspace(paths, &args.workspace)
         .context("writing workspace binding to config.toml")?;
-    let mut cfg = file::load_config(paths)?;
-    cfg.daemon.dev_machine_id = Some(args.dev_machine_id);
-    file::write_config(paths, &cfg).context("writing enrolled dev-machine identity")?;
+    // Keep the machine identity update in the same host-wide read-modify-write
+    // critical section as ProjectSync and runner enrollment. A daemon may
+    // discover and persist project runners between the token/workspace writes
+    // above and this final bootstrap step; writing a stale full config here
+    // would otherwise drop those runner blocks.
+    file::mutate_config(paths, |cfg| {
+        cfg.daemon.dev_machine_id = Some(args.dev_machine_id);
+        Ok(())
+    })
+    .context("writing enrolled dev-machine identity")?;
     println!("{{\"ok\":true,\"config\":{:?}}}", paths.config_path());
     Ok(())
 }
@@ -197,6 +204,7 @@ async fn enroll(args: EnrollArgs, paths: &Paths) -> Result<()> {
         CreateRunnerRequest {
             api_token: &api_token,
             dev_machine_id: &dev_machine_id,
+            request_id: None,
             workspace_slug: Some(&args.workspace),
             project: &args.project,
             host_label: &host_label,
@@ -216,6 +224,7 @@ async fn enroll(args: EnrollArgs, paths: &Paths) -> Result<()> {
             agent_kind: AgentKind::Codex,
             model: None,
             reasoning_effort: None,
+            dedupe_mode: EnrollDedupeMode::RunnerAndProject,
         },
     )
     .await

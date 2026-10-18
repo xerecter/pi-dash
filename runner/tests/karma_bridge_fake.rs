@@ -20,6 +20,7 @@ use uuid::Uuid;
 /// drains stdin, then emits canned stream-JSON events ending in `result`.
 const FAKE_KARMA: &str = r#"#!/bin/sh
 set -e
+git rev-parse --verify HEAD >/dev/null 2>&1
 printf '%s\n' "$@" > argv.txt
 (cat >/dev/null) &
 printf '%s\n' '{"type":"system","subtype":"init","session_id":"sess_karma_001","model":"claude-opus-5"}'
@@ -111,6 +112,16 @@ async fn karma_agent_drives_the_claude_contract_to_completion() {
     assert!(completed, "expected a Completed event from fake karma");
 
     bridge.shutdown(Duration::from_secs(1)).await.unwrap();
+    assert!(
+        cwd.join(".git").exists(),
+        "Karma agent startup must initialize a Git worktree base"
+    );
+    let head = std::process::Command::new("git")
+        .current_dir(&cwd)
+        .args(["rev-parse", "--verify", "HEAD"])
+        .output()
+        .unwrap();
+    assert!(head.status.success(), "Karma worktree base needs a commit");
 
     // The fake recorded the argv it was launched with: it must match the
     // Claude Code headless contract the Karma agent reuses.
@@ -128,4 +139,10 @@ async fn karma_agent_drives_the_claude_contract_to_completion() {
             "expected {expected:?} in karma argv:\n{argv}"
         );
     }
+    assert_eq!(
+        argv.lines()
+            .filter(|argument| *argument == "--worktree")
+            .count(),
+        1
+    );
 }

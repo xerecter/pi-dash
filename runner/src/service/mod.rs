@@ -1,7 +1,68 @@
 use anyhow::Result;
+use fs2::FileExt;
+use std::fs;
+use std::io::Write;
 use std::path::Path;
 
 use crate::util::paths::Paths;
+
+pub(crate) struct ServiceDefinitionLock(fs::File);
+
+impl Drop for ServiceDefinitionLock {
+    fn drop(&mut self) {
+        let _ = FileExt::unlock(&self.0);
+    }
+}
+
+/// Serialize service definition updates across concurrent login/install/
+/// restart commands. This lock also covers the runtime pin, so the unit and
+/// the CLI-visible IPC path cannot be published from two different writers.
+pub(crate) fn lock_service_definition(paths: &Paths) -> Result<ServiceDefinitionLock> {
+    paths.ensure_config()?;
+    let lock_path = paths.config_dir.join(".service-definition.lock");
+    let mut options = fs::OpenOptions::new();
+    options.create(true).read(true).write(true).truncate(false);
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::OpenOptionsExt;
+        options.mode(0o600);
+    }
+    let file = options.open(&lock_path)?;
+    file.lock_exclusive()?;
+    Ok(ServiceDefinitionLock(file))
+}
+
+/// Replace a service definition atomically so a concurrent service-manager
+/// reload/bootstrap can never observe a truncated unit or plist.
+pub(crate) fn atomic_write_service_file(path: &Path, contents: &str) -> Result<()> {
+    let parent = path
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("service definition has no parent: {path:?}"))?;
+    fs::create_dir_all(parent)?;
+    let file_name = path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| anyhow::anyhow!("invalid service definition filename: {path:?}"))?;
+    let temporary = parent.join(format!(".{file_name}.{}.tmp", uuid::Uuid::new_v4()));
+    let result = (|| -> Result<()> {
+        let mut options = fs::OpenOptions::new();
+        options.create_new(true).write(true);
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::OpenOptionsExt;
+            options.mode(0o644);
+        }
+        let mut file = options.open(&temporary)?;
+        file.write_all(contents.as_bytes())?;
+        file.sync_all()?;
+        fs::rename(&temporary, path)?;
+        Ok(())
+    })();
+    if result.is_err() {
+        let _ = fs::remove_file(&temporary);
+    }
+    result
+}
 
 #[cfg(any(target_os = "macos", test))]
 pub mod launchd;
@@ -91,6 +152,7 @@ pub(crate) fn capture_install_time_path() -> Option<String> {
 /// file, and Windows treats only a clean `/Query` exit as proof of existence.
 /// Guessing "absent" there is the safe guess — the write that follows either
 /// repairs the install or fails with the real reason.
+#[cfg(any(windows, test))]
 pub(crate) async fn rewrite_unit_if_absent<F, Fut>(unit: &Path, write: F) -> Result<bool>
 where
     F: FnOnce() -> Fut,
@@ -162,11 +224,9 @@ impl Service {
         }
     }
 
-    /// Rewrite the unit if the service manager no longer has one, returning
-    /// whether it was rewritten. Every backend implements this: a unit can go
-    /// missing on any OS (`karma-team uninstall`/`remove`, manual cleanup, or a
-    /// `karma-team update` that swapped the binary without ever writing one), and
-    /// on every OS the result is a `restart` that can't recover on its own.
+    /// Rewrite the unit if it is missing or predates the current managed-unit
+    /// format, returning whether it was rewritten. This transparently migrates
+    /// older installs to pinned runtime-directory semantics during restart.
     ///
     /// Callers treat a failure here as non-fatal — it's a best-effort repair
     /// before the real start attempt, which produces the actionable error.

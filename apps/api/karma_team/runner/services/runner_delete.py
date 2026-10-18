@@ -36,11 +36,17 @@ from uuid import UUID
 from django.db import transaction
 from django.utils import timezone
 
-from karma_team.runner.models import DevMachine, MachineToken, Runner
+from karma_team.runner.models import (
+    DevMachine,
+    MachineToken,
+    ProjectDeletionTombstone,
+    Runner,
+)
 from karma_team.runner.services.pubsub import (
     close_runner_session,
     send_runner_remove,
     send_runner_revoke,
+    send_to_machine,
 )
 
 
@@ -94,6 +100,67 @@ def delete_runner(runner: Runner, *, purge_local: bool) -> None:
         Runner.objects.filter(pk=runner_pk).delete()
 
 
+def delete_project_runners(project_id: UUID) -> None:
+    """Record project deletion and remove every attached runner.
+
+    The project row is locked by the caller while this runs. A durable deletion
+    tombstone is inserted idempotently before Runner rows are locked and
+    materialized, so concurrent delete requests neither duplicate evidence nor
+    process a runner twice. Repeating the query is harmless after Runner rows
+    or the retained Project row have vanished.
+
+    Local teardown is dispatched through the machine outbox only after the
+    outermost database transaction commits. This prevents a later project
+    cascade failure from rolling back PostgreSQL after the daemon has already
+    removed irreversible local state. Machine commands are at-least-once and
+    ``RunnerSpawnCtx::remove_runner`` is idempotent; ProjectSync remains the
+    eventual fallback when Redis delivery is unavailable.
+    """
+    with transaction.atomic():
+        # Project soft-delete rows are eventually hard-deleted by retention
+        # cleanup. Persist an independent, workspace-scoped tombstone in the
+        # same transaction as runner teardown so a daemon offline beyond that
+        # window can still prove deletion. The project UUID primary key makes
+        # retries and concurrent delete paths idempotent.
+        from karma_team.db.models.project import Project
+
+        workspace_id = (
+            Project.all_objects.filter(pk=project_id)
+            .values_list("workspace_id", flat=True)
+            .first()
+        )
+        if workspace_id is not None:
+            ProjectDeletionTombstone.objects.get_or_create(
+                project_id=project_id,
+                defaults={"workspace_id": workspace_id},
+            )
+
+        runners = list(
+            Runner.objects.select_for_update()
+            .filter(pod__project_id=project_id)
+            .order_by("pk")
+        )
+        for runner in runners:
+            runner_id = runner.pk
+            dev_machine_id = runner.dev_machine_id
+            runner.revoke(reason="runner_removed")
+            Runner.objects.filter(pk=runner_id).delete()
+
+            if dev_machine_id is not None:
+                transaction.on_commit(
+                    lambda mid=dev_machine_id, rid=runner_id: send_to_machine(
+                        mid,
+                        {
+                            "type": "remove_runner",
+                            "runner_id": str(rid),
+                            "reason": "project deleted",
+                            "mid": f"project-delete:{project_id}:{rid}",
+                        },
+                    ),
+                    robust=True,
+                )
+
+
 def delete_dev_machine(machine: DevMachine, *, purge_local: bool) -> None:
     """Hard-delete a dev-machine *connection* cloud-side.
 
@@ -123,6 +190,18 @@ def delete_dev_machine(machine: DevMachine, *, purge_local: bool) -> None:
     """
     machine_pk: UUID = machine.pk
     with transaction.atomic():
+        # Automatic ensure locks DevMachine before Project -> Pod -> Runner.
+        # Take the same first lock here so ensure cannot insert a runner after
+        # this delete has already scanned the machine's runners. Without it,
+        # the final DevMachine delete (Runner FK is SET_NULL) can commit with a
+        # freshly-created, orphaned runner whose dev_machine_id became NULL.
+        locked_machine = (
+            DevMachine.objects.select_for_update(of=("self",))
+            .filter(pk=machine_pk)
+            .first()
+        )
+        if locked_machine is None:
+            return
         now = timezone.now()
         MachineToken.objects.filter(dev_machine_id=machine_pk, revoked_at__isnull=True).update(revoked_at=now)
         runners = list(Runner.objects.select_for_update().filter(dev_machine_id=machine_pk))

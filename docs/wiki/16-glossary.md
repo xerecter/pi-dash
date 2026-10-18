@@ -34,7 +34,10 @@ The first user registered against a self-hosted instance. Lives in `apps/admin/`
 ## Agent execution
 
 **Runner**
-A registered instance of the `karma-team` daemon on a developer machine, scoped to a project. One host can run multiple runners (one per project). Model in `karma_team/runner/models.py`.
+A registered instance of the `karma-team` daemon on a developer machine, scoped to a project/pod. After machine login, ProjectSync automatically ensures a default-pod runner for each active cloud project not yet bound to that machine. Manual runners may be added for extra capacity or another pod. Model in `karma_team/runner/models.py`.
+
+**Automatic project binding / ProjectSync**
+The daemon's machine-token-authenticated desired-state reconciliation. It runs immediately after daemon startup and then every 60 seconds after successful passes, ensuring missing project runners and cleaning up local runners only when the project's immutable UUID appears in the explicit tombstone list of two different complete cloud snapshots. Project or binding absence, permissions changes, incomplete snapshots, failed snapshots, and snapshot replay never trigger deletion. Tombstones are stored in a durable workspace-scoped ledger that outlives Project-row retention cleanup. Implemented in `runner/src/daemon/project_sync.rs`.
 
 **Pod**
 A grouping primitive on the runner side — a namespace a run lives in on a particular runner. Naming logic in `karma_team/runner/services/pod_naming.py`.
@@ -83,7 +86,7 @@ One shared `mt_...` credential per dev machine/workspace. Runner runtime request
 Browser-based login that requires no token paste. Same UX as `gh auth login` / `stripe login`. Recommended.
 
 **Enrollment token** (deprecated)
-One-shot token used by the hidden `karma-team connect` compatibility path. New runner setup uses `karma-team auth login` and `karma-team runner add`.
+One-shot token used by the hidden `karma-team connect` compatibility path. New machine login uses `karma-team auth login`; its shared MachineToken authorizes automatic project binding and optional manual `karma-team runner add`.
 
 **Plan**
 The current subscription tier of an account on karma-team Cloud. Source-of-truth is the home-page OIDC; cached as a JWT `plan` claim on `Account`. No webhooks. Upgrade UI deep-links back to home-page.

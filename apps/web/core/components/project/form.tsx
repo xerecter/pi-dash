@@ -174,9 +174,10 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
     setIsBinding(true);
     try {
       const res = await projectService.bindGitRepository(workspaceSlug, projectId, { repo_url: url });
-      // Persist the canonical URL back into the project store + form input
-      // so the field reflects what's actually bound (e.g. trailing `.git`
-      // and `git@…` SSH URLs get rewritten to the https html_url).
+      // Persist the URL returned by the bind endpoint back into the project
+      // store and form input. The API may add a missing `.git` suffix for an
+      // HTTP remote, while SSH remotes stay SSH so the runner can use its
+      // configured SSH keys.
       const canonical = res.repo_url ?? url;
       await updateProject(workspaceSlug, projectId, { repo_url: canonical });
       setValue("repo_url", canonical, { shouldDirty: false });

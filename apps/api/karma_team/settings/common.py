@@ -406,6 +406,7 @@ CELERY_IMPORTS = (
     "karma_team.bgtasks.issue_description_version_sync",
     # runner lifecycle tasks
     "karma_team.runner.tasks",
+    "karma_team.managed_runner.tasks",
 )
 
 FILE_SIZE_LIMIT = int(get_config("FILE_SIZE_LIMIT", 5242880))

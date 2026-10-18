@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 use uuid::Uuid;
@@ -20,15 +21,10 @@ pub struct Config {
     pub cli: Option<CliSection>,
 }
 
-/// Top-level `[cli]` table. Holds the auth token the `karma-team` CRUD
-/// subcommands present to the cloud. The CLI also reads `cloud_url`
-/// from `[daemon]` and `workspace_slug` from the primary `[[runner]]`
-/// — there's deliberately no duplication of those values here.
-///
-/// For v1 the token is populated manually by the operator (or by a
-/// future `karma-team login` flow). A per-run, per-issue scoped token
-/// minted by the cloud is the next step; see
-/// `.ai_design/agent_cli_auth/` (TBD).
+/// Top-level `[cli]` table. Holds the login credential and default workspace
+/// for `karma-team` commands, plus scoped credentials for other memberships.
+/// Agent commands select the credential for their task's workspace; older
+/// configs can still infer the default workspace from the first runner.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CliSection {
     /// Auth token presented to the cloud as `Authorization: Bearer …`
@@ -38,10 +34,8 @@ pub struct CliSection {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub token: Option<String>,
 
-    /// Workspace this host is bound to. The karma-team CLI on a dev host
-    /// is single-workspace-per-install in v1: `karma-team auth login`
-    /// resolves it (auto-picks if the user belongs to one workspace,
-    /// prompts if they belong to several) and persists it here.
+    /// Default workspace selected by `karma-team auth login`.
+    /// Project synchronization also discovers the account's other workspaces.
     /// `karma-team runner add` reads this as the default for `--workspace`
     /// when the caller doesn't pass one explicitly.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -52,6 +46,25 @@ pub struct CliSection {
     /// context files still take precedence for agent workflows.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub default_project: Option<String>,
+
+    /// Machine credentials for additional workspaces. Each credential keeps
+    /// its server-side workspace scope; the login token remains the default.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub workspace_tokens: BTreeMap<String, String>,
+}
+
+impl CliSection {
+    pub fn machine_token_for_workspace(&self, workspace: Option<&str>) -> Option<&str> {
+        let primary = self.token.as_deref().filter(|t| t.starts_with("mt_"))?;
+        if workspace.is_none() || workspace == self.workspace_slug.as_deref() {
+            Some(primary)
+        } else {
+            self.workspace_tokens
+                .get(workspace?)
+                .map(String::as_str)
+                .filter(|t| t.starts_with("mt_"))
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -126,6 +139,14 @@ pub struct RunnerConfig {
     /// field existed; `Config::validate()` rejects empty values.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub project_slug: Option<String>,
+    /// Immutable project identity used by machine-level reconciliation. Older
+    /// configs may omit this and are matched once by `project_slug`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub project_id: Option<Uuid>,
+    /// Whether this binding was installed by an operator or by automatic
+    /// project synchronization. Missing values retain the manual default.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub binding_source: Option<RunnerBindingSource>,
     /// Pod id assigned by the cloud at registration. Informational only —
     /// the source of truth is the cloud-side runner row. Stamped here so
     /// `karma-team status` can show it without an extra REST call.
@@ -178,6 +199,19 @@ pub struct RunnerConfig {
     /// a minimal `config.toml` doesn't have to spell out every knob.
     #[serde(default)]
     pub approval_policy: ApprovalPolicySection,
+}
+
+/// Provenance of the project binding represented by a runner.
+///
+/// This is intentionally separate from the runner's provisioning mode: a
+/// manually enrolled runner and a desktop-managed runner can both be bound
+/// either manually or by project synchronization.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum RunnerBindingSource {
+    #[default]
+    Manual,
+    AutoProjectSync,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -879,6 +913,8 @@ mod tests {
             runner_id: Uuid::new_v4(),
             workspace_slug: None,
             project_slug: Some("TEST".into()),
+            project_id: None,
+            binding_source: None,
             pod_id: None,
             workspace: WorkspaceSection {
                 working_dir: PathBuf::from(working_dir),

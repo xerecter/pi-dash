@@ -60,6 +60,7 @@ async fn start_fake_cloud() -> (SocketAddr, tokio::task::JoinHandle<()>) {
             run_id: uuid::Uuid::new_v4(),
             work_item_id: None,
             work_item_identifier: None,
+            project_name: None,
             prompt: "test".into(),
             repo_url: None,
             repo_ref: None,

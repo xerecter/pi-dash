@@ -1,5 +1,6 @@
 pub mod machine_control;
 pub mod observability;
+pub mod project_sync;
 pub mod question_guard;
 mod run_event_mirror;
 pub mod runner_instance;

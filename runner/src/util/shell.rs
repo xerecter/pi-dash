@@ -70,6 +70,9 @@ pub struct RunEnv {
     /// Work-item key (e.g. `ENG-42`) the run is bound to. `None` for runs
     /// without an issue, or when an older cloud omits it from `Assign`.
     pub issue_identifier: Option<String>,
+    /// Workspace and project of this runner, independent of login defaults.
+    pub workspace_slug: Option<String>,
+    pub project_id: Option<uuid::Uuid>,
 }
 
 /// Environment variable name the agent reads for its run id.
@@ -79,12 +82,21 @@ pub const RUN_ID_ENV: &str = "KARMA_TEAM_RUN_ID";
 /// calls fall back to when no issue identifier is passed explicitly.
 pub const ISSUE_IDENTIFIER_ENV: &str = "KARMA_TEAM_ISSUE_IDENTIFIER";
 
+/// Task workspace takes precedence over the account's interactive CLI default.
+pub const RUN_WORKSPACE_ENV: &str = "KARMA_TEAM_RUN_WORKSPACE_SLUG";
+
 /// Apply the task-scoped per-run environment, when there is one.
 fn apply_run_env(cmd: &mut Command) {
     if let Ok(env) = RUN_ENV.try_with(|e| e.clone()) {
         cmd.env(RUN_ID_ENV, env.run_id.to_string());
         if let Some(identifier) = env.issue_identifier.filter(|s| !s.trim().is_empty()) {
             cmd.env(ISSUE_IDENTIFIER_ENV, identifier);
+        }
+        if let Some(workspace) = env.workspace_slug.filter(|s| !s.trim().is_empty()) {
+            cmd.env(RUN_WORKSPACE_ENV, workspace);
+        }
+        if let Some(project_id) = env.project_id {
+            cmd.env("KARMA_TEAM_PROJECT_ID", project_id.to_string());
         }
     }
 }
@@ -98,12 +110,14 @@ fn apply_run_env(cmd: &mut Command) {
 /// re-exporting them here is the same trick the working directory has always
 /// used, extended to the managed runner's environment.
 ///
-/// Every clause is a no-op when its `KARMA_TEAM_*` variable is unset, so a
-/// user-enrolled runner produces exactly the command line it always did.
+/// Keep existing PATH precedence, then add the user-local install directory
+/// as a fallback. Karma and karma-team install there even when a profile or
+/// service-manager PATH omits it.
 #[cfg(not(target_os = "windows"))]
 const SHELL_SCRIPT: &str = r#"[ -n "${KARMA_TEAM_AGENT_CWD-}" ] && cd -- "$KARMA_TEAM_AGENT_CWD"
 [ -n "${KARMA_TEAM_CODEX_HOME-}" ] && export CODEX_HOME="$KARMA_TEAM_CODEX_HOME"
 [ -n "${KARMA_TEAM_AGENT_PATH_PREPEND-}" ] && export PATH="$KARMA_TEAM_AGENT_PATH_PREPEND:$PATH"
+[ -n "${HOME-}" ] && [ -d "$HOME/.local/bin" ] && case ":${PATH:-}:" in *:"$HOME/.local/bin":*) ;; *) export PATH="${PATH:+$PATH:}$HOME/.local/bin" ;; esac
 [ -n "${KARMA_TEAM_AGENT_CONFIG_DIR-}" ] && export KARMA_TEAM_CONFIG_DIR="$KARMA_TEAM_AGENT_CONFIG_DIR"
 [ -n "${KARMA_TEAM_AGENT_DATA_DIR-}" ] && export KARMA_TEAM_DATA_DIR="$KARMA_TEAM_AGENT_DATA_DIR"
 [ -n "${KARMA_TEAM_MODEL_TOKEN_FILE-}" ] && [ -r "$KARMA_TEAM_MODEL_TOKEN_FILE" ] &&   export KARMA_TEAM_GATEWAY_TOKEN="$(cat "$KARMA_TEAM_MODEL_TOKEN_FILE")"
@@ -323,11 +337,28 @@ pub async fn binary_runs_version(binary: &str) -> bool {
 /// stderr should drop these so logs aren't polluted with a warning on every
 /// agent spawn.
 pub fn is_benign_login_shell_warning(line: &str) -> bool {
-    matches!(
-        line.trim_end(),
-        "bash: cannot set terminal process group (-1): Inappropriate ioctl for device"
-            | "bash: no job control in this shell"
-    )
+    let line = line.trim_end();
+    if line == "bash: no job control in this shell"
+        || line == "bash: cannot set terminal process group (-1): Inappropriate ioctl for device"
+    {
+        return true;
+    }
+    if let Some(path) = line
+        .strip_prefix("bash: ")
+        .and_then(|value| value.strip_suffix(": No such file or directory"))
+    {
+        // Older Karma installers added an unguarded source of this optional
+        // compatibility file to .bashrc. The file is no longer shipped, but
+        // bash continues after reporting the missing profile include.
+        return path.starts_with('/') && path.ends_with("/.local/share/karma-cli/env.sh");
+    }
+    let Some(rest) = line.strip_prefix("bash: cannot set terminal process group (") else {
+        return false;
+    };
+    let Some((pid, suffix)) = rest.split_once("): Inappropriate ioctl for device") else {
+        return false;
+    };
+    !pid.is_empty() && pid.chars().all(|c| c.is_ascii_digit()) && suffix.is_empty()
 }
 
 #[cfg(test)]
@@ -384,11 +415,14 @@ mod tests {
     #[tokio::test]
     async fn run_env_scope_puts_run_id_on_the_child() {
         let run_id = uuid::Uuid::new_v4();
+        let project_id = uuid::Uuid::new_v4();
         let cmd = RUN_ENV
             .scope(
                 RunEnv {
                     run_id,
-                    issue_identifier: None,
+                    issue_identifier: Some("SHARED-42".into()),
+                    workspace_slug: Some("shared-workspace".into()),
+                    project_id: Some(project_id),
                 },
                 async { login_shell_command("claude", &[], None) },
             )
@@ -396,6 +430,18 @@ mod tests {
         assert_eq!(
             env_value(&cmd, RUN_ID_ENV),
             Some(OsString::from(run_id.to_string()))
+        );
+        assert_eq!(
+            env_value(&cmd, ISSUE_IDENTIFIER_ENV),
+            Some(OsString::from("SHARED-42"))
+        );
+        assert_eq!(
+            env_value(&cmd, RUN_WORKSPACE_ENV),
+            Some(OsString::from("shared-workspace"))
+        );
+        assert_eq!(
+            env_value(&cmd, "KARMA_TEAM_PROJECT_ID"),
+            Some(OsString::from(project_id.to_string()))
         );
     }
 
@@ -489,6 +535,24 @@ mod tests {
             "claude: unexpected internal error"
         ));
         assert!(!is_benign_login_shell_warning(""));
+    }
+
+    #[test]
+    fn recognises_bash_no_tty_warning_with_real_process_group() {
+        assert!(is_benign_login_shell_warning(
+            "bash: cannot set terminal process group (695232): Inappropriate ioctl for device"
+        ));
+        assert!(is_benign_login_shell_warning(
+            "bash: /root/.local/share/karma-cli/env.sh: No such file or directory"
+        ));
+        for line in [
+            "bash: exec: karma: not found",
+            "bash: cannot set terminal process group (695232): Operation not permitted",
+            "bash: cannot set terminal process group (invalid): Inappropriate ioctl for device",
+            "bash: /root/.local/share/other-cli/env.sh: No such file or directory",
+        ] {
+            assert!(!is_benign_login_shell_warning(line), "must retain: {line}");
+        }
     }
 
     #[tokio::test]
@@ -603,6 +667,51 @@ mod tests {
 
     #[cfg(not(target_os = "windows"))]
     #[tokio::test]
+    async fn user_local_bin_survives_profile_path_reset() {
+        // A systemd/launchd daemon can start with a minimal PATH, and a
+        // user's profile can replace that PATH instead of extending it. The
+        // default Karma install lives in ~/.local/bin, so the wrapper must
+        // restore that directory after profile startup before exec'ing the
+        // configured binary.
+        let home = tempfile::tempdir().expect("tempdir for fake HOME");
+        let local_bin = home.path().join(".local/bin");
+        std::fs::create_dir_all(&local_bin).expect("create fake local bin");
+        let karma = local_bin.join("karma");
+        std::fs::write(&karma, "#!/bin/sh\nprintf 'karma-found\\n'\n").expect("write fake karma");
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&karma, std::fs::Permissions::from_mode(0o755))
+                .expect("make fake karma executable");
+        }
+
+        std::fs::write(
+            home.path().join(".bash_profile"),
+            "[ -f \"$HOME/.bashrc\" ] && . \"$HOME/.bashrc\"\n",
+        )
+        .expect("write .bash_profile");
+        std::fs::write(home.path().join(".bashrc"), "export PATH=/usr/bin:/bin\n")
+            .expect("write .bashrc");
+
+        let mut cmd = login_shell_command("karma", &["--version"], None);
+        cmd.env("HOME", home.path());
+        cmd.env("PATH", "/usr/bin:/bin");
+        cmd.env_remove("BASH_ENV");
+        let out = cmd.output().await.expect("spawn fake karma");
+        assert!(
+            out.status.success(),
+            "karma was not found after profile PATH reset: stderr={}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        assert_eq!(
+            stdout.lines().last(),
+            Some("karma-found"),
+            "stdout={stdout:?}"
+        );
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    #[tokio::test]
     async fn sandbox_marker_survives_bashrc_unset() {
         // Claude/Karma reject bypassPermissions for root unless IS_SANDBOX is
         // present on the final agent process. A user's rc file can unset or
@@ -616,8 +725,11 @@ mod tests {
         .expect("write .bash_profile");
         std::fs::write(home.path().join(".bashrc"), "unset IS_SANDBOX\n").expect("write .bashrc");
 
-        let mut cmd =
-            login_shell_command("sh", &["-c", "printf '%s' \"${IS_SANDBOX:-unset}\""], None);
+        let mut cmd = login_shell_command(
+            "sh",
+            &["-c", "printf '%s\\n' \"${IS_SANDBOX:-unset}\""],
+            None,
+        );
         cmd.env("HOME", home.path());
         cmd.env("KARMA_TEAM_IS_SANDBOX", "1");
         cmd.env_remove("BASH_ENV");
@@ -627,7 +739,8 @@ mod tests {
             "stderr: {}",
             String::from_utf8_lossy(&out.stderr)
         );
-        assert_eq!(String::from_utf8_lossy(&out.stdout), "1");
+        let stdout = String::from_utf8_lossy(&out.stdout);
+        assert_eq!(stdout.lines().last(), Some("1"), "stdout={stdout:?}");
     }
 
     // -----------------------------------------------------------------

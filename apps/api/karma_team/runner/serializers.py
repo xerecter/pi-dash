@@ -172,6 +172,7 @@ class RunnerSerializer(serializers.ModelSerializer):
             # and support tooling can answer "is this the bundled desktop
             # runner or one the user installed?" without a second query.
             "provisioning",
+            "binding_source",
             "os",
             "arch",
             "runner_version",
@@ -198,6 +199,7 @@ class RunnerSerializer(serializers.ModelSerializer):
             # Never client-settable: a runner must not be able to claim it is
             # karma-team-managed and thereby become eligible for pinned work.
             "provisioning",
+            "binding_source",
             "os",
             "arch",
             "runner_version",

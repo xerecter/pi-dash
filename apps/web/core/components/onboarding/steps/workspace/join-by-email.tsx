@@ -11,7 +11,7 @@ import { useTranslation } from "@karma-team/i18n";
 import { Button } from "@karma-team/propel/button";
 import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 import { Spinner } from "@karma-team/ui";
-import { checkEmailValidity, cn } from "@karma-team/utils";
+import { cn } from "@karma-team/utils";
 // hooks
 import { useWorkspace } from "@/hooks/store/use-workspace";
 import { useUserSettings } from "@/hooks/store/user";
@@ -47,12 +47,12 @@ export const WorkspaceJoinByEmailStep = observer(function WorkspaceJoinByEmailSt
   const { fetchWorkspaces } = useWorkspace();
   const { fetchCurrentUserSettings } = useUserSettings();
 
-  const isEmailValid = checkEmailValidity(adminEmail.trim());
+  const hasAccount = adminEmail.trim().length > 0;
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
     const email = adminEmail.trim();
-    if (!checkEmailValidity(email)) {
+    if (!email) {
       setEmailError(true);
       return;
     }
@@ -85,31 +85,31 @@ export const WorkspaceJoinByEmailStep = observer(function WorkspaceJoinByEmailSt
     <div className="flex flex-col gap-10">
       <CommonOnboardingHeader
         title="Join an existing workspace"
-        description="Enter the email of a workspace admin to request access."
+        description="Enter the email or username of a workspace admin to request access."
       />
       <div className="flex flex-col gap-2">
         <label
           className="text-13 font-medium text-tertiary after:ml-0.5 after:text-danger-primary after:content-['*']"
           htmlFor="admin_email"
         >
-          {t("Workspace admin email")}
+          {t("Workspace admin email or username")}
         </label>
         <input
           id="admin_email"
           name="admin_email"
-          type="email"
+          type="text"
           value={adminEmail}
           onChange={(event) => {
             setAdminEmail(event.target.value);
             if (emailError) setEmailError(false);
           }}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && isEmailValid && !isSubmitting) {
+            if (event.key === "Enter" && hasAccount && !isSubmitting) {
               event.preventDefault();
               void handleSubmit();
             }
           }}
-          placeholder={t("admin@company.com")}
+          placeholder={t("Email or username")}
           className={cn(
             "w-full rounded-md border border-strong bg-surface-1 px-3 py-2 text-secondary transition-all duration-200 placeholder:text-placeholder focus:border-transparent focus:ring-2 focus:ring-accent-strong focus:outline-none",
             {
@@ -119,7 +119,7 @@ export const WorkspaceJoinByEmailStep = observer(function WorkspaceJoinByEmailSt
           // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
         />
-        {emailError && <span className="text-13 text-danger-primary">{t("Please enter a valid email address.")}</span>}
+        {emailError && <span className="text-13 text-danger-primary">{t("Email or username is required")}</span>}
       </div>
       <div className="flex flex-col gap-4">
         <Button
@@ -127,7 +127,7 @@ export const WorkspaceJoinByEmailStep = observer(function WorkspaceJoinByEmailSt
           size="xl"
           className="w-full"
           onClick={handleSubmit}
-          disabled={!isEmailValid || isSubmitting}
+          disabled={!hasAccount || isSubmitting}
         >
           {isSubmitting ? <Spinner height="20px" width="20px" /> : t("Send join request")}
         </Button>

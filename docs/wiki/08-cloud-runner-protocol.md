@@ -52,6 +52,22 @@ The runner does **not** carry a per-runner password. Authentication is a dev-mac
 
 `karma-team runner add` uses the MachineToken to create a new runner row under the current dev machine; it does not mint a separate runtime credential per runner.
 
+After login, the daemon's `ProjectSync` loop also uses this MachineToken for
+machine-scoped project reconciliation. It runs immediately and then every 60
+seconds after a successful pass. It consumes a complete workspace snapshot of
+visible projects, runner bindings, and explicit deleted-project UUIDs;
+idempotently ensures a default-pod runner for projects not yet bound to this
+machine; and removes local runner state only when a project tombstone appears
+in two different complete snapshots. Project/binding absence, permission
+changes, failed snapshots, incomplete snapshots, and replaying one snapshot are
+fail-closed and cannot trigger cleanup. The
+machine/project ensure operation is idempotent, so retries and multiple local
+reconciliation attempts reuse an existing active binding rather than creating
+duplicates. Runner-specific local state is cleaned up on confirmed removal;
+the project working directory is preserved. Project deletion writes a durable,
+workspace-scoped tombstone ledger in the same transaction as cloud Runner
+teardown; tombstones therefore outlive Project-row retention cleanup.
+
 See [11 — Authentication](./11-authentication.md) for the full flow.
 
 ## Endpoints (Django side, `karma_team/runner/`)
@@ -63,6 +79,9 @@ See [11 — Authentication](./11-authentication.md) for the full flow.
 | `POST /api/v1/runner/runs/<id>/...`      | Stream run events back to the cloud                         |
 | `POST /api/v1/runner/approvals/<id>/...` | Submit an approval decision                                 |
 | `POST /api/v1/runner/enroll/...`         | Device-code enrollment endpoints                            |
+| `GET  /api/v1/runner/dev-machines/<machine_id>/project-bindings/` | Complete workspace-scoped visible-project, runner-binding, and deleted-project tombstone snapshot for ProjectSync |
+| `POST /api/v1/runner/dev-machines/<machine_id>/project-bindings/ensure/` | Idempotently ensure the machine's default-pod runner binding for a project |
+| `DELETE /api/v1/runner/runners/<runner_id>/` | Revoke/delete one runner binding using MachineToken auth |
 | `GET/POST /api/runners/...`              | Web-UI side of runner admin (CRUD, "add connection" tokens) |
 
 Schemas are typed in `karma_team/runner/serializers.py` and mirrored in `runner/src/cloud/protocol.rs`. Treat the two as the contract.

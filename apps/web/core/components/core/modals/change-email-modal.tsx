@@ -37,10 +37,9 @@ const CHANGE_EMAIL_I18N = {
   description: "Enter a new email address to receive a verification link.",
   "toasts.success_title": "Success!",
   "toasts.success_message": "Email updated successfully. Please sign in again.",
-  "form.email.label": "New email",
-  "form.email.placeholder": "Enter your email",
-  "form.email.errors.required": "Email is required",
-  "form.email.errors.invalid": "Email is invalid",
+  "form.email.label": "New email or username",
+  "form.email.placeholder": "Enter your email or username",
+  "form.email.errors.required": "Email or username is required",
   "form.email.errors.exists": "Email already exists. Please use a different one.",
   "form.email.errors.validation_failed": "Email validation failed. Please try again.",
   "form.code.label": "Unique code",
@@ -90,10 +89,11 @@ export const ChangeEmailModal = observer(function ChangeEmailModal(props: Props)
   };
 
   const onSubmit = async (formData: TUniqueCodeValuesForm) => {
+    const email = formData.email.trim();
     if (currentStep === "UNIQUE_CODE") {
       // Step 2: Verify the code and update email
       try {
-        await userService.verifyEmailCode({ email: formData.email, code: formData.code });
+        await userService.verifyEmailCode({ email, code: formData.code });
 
         setToast({
           type: TOAST_TYPE.SUCCESS,
@@ -121,7 +121,7 @@ export const ChangeEmailModal = observer(function ChangeEmailModal(props: Props)
       if (!csrfToken) throw new Error("CSRF token not found");
 
       // Check if email is available
-      const emailCheckResponse = await userService.checkEmail(csrfToken, formData.email);
+      const emailCheckResponse = await userService.checkEmail(csrfToken, email);
 
       // Check if email already exists
       if (emailCheckResponse?.existing === true) {
@@ -130,7 +130,7 @@ export const ChangeEmailModal = observer(function ChangeEmailModal(props: Props)
       }
 
       // Generate verification code and send to new email
-      await userService.generateEmailCode({ email: formData.email });
+      await userService.generateEmailCode({ email });
 
       // Move to verification code step
       setCurrentStep("UNIQUE_CODE");
@@ -166,17 +166,13 @@ export const ChangeEmailModal = observer(function ChangeEmailModal(props: Props)
             control={control}
             name="email"
             rules={{
-              required: changeEmailT("form.email.errors.required"),
-              pattern: {
-                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                message: changeEmailT("form.email.errors.invalid"),
-              },
+              validate: (value) => value.trim().length > 0 || changeEmailT("form.email.errors.required"),
             }}
             render={({ field: { value, onChange, ref } }) => (
               <Input
                 id="email"
                 name="email"
-                type="email"
+                type="text"
                 value={value}
                 onChange={onChange}
                 ref={ref}

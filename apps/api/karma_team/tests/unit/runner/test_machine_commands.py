@@ -248,15 +248,24 @@ def test_valid_agents_matches_runner_schema():
     "Add runner" 400'd with invalid_agent. Pin the two together so the next
     backend can't drift the same way.
     """
-    schema = pathlib.Path(__file__).resolve().parents[6] / "runner/src/config/schema.rs"
-    if not schema.is_file():
+    schema = next(
+        (
+            parent / "runner/src/config/schema.rs"
+            for parent in pathlib.Path(__file__).resolve().parents
+            if (parent / "runner/src/config/schema.rs").is_file()
+        ),
+        None,
+    )
+    if schema is None:
         pytest.skip("runner source tree not present in this checkout")
     body = re.search(r"pub enum AgentKind \{(.*?)\n\}", schema.read_text(), re.S)
     assert body, "AgentKind enum not found in schema.rs"
     variants = re.findall(r"^\s{4}([A-Z][A-Za-z0-9]*),", body.group(1), re.M)
     assert variants, "no AgentKind variants parsed"
     kebab = {re.sub(r"(?<!^)(?=[A-Z])", "-", v).lower() for v in variants}
-    assert kebab == set(_VALID_AGENTS)
+    # Karma is the internal default for automatically bound runners; the
+    # interactive Add Runner menu lists only the selectable agent adapters.
+    assert kebab == set(_VALID_AGENTS) | {"karma"}
 
 
 @pytest.mark.unit

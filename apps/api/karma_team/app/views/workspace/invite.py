@@ -9,8 +9,7 @@ import jwt
 
 # Django imports
 from django.conf import settings
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
+from django.db.models import Q
 from django.utils import timezone
 
 # Third party modules
@@ -52,9 +51,36 @@ class WorkspaceInvitationsViewset(BaseViewSet):
 
     def create(self, request, slug):
         emails = request.data.get("emails", [])
-        # Check if email is provided
+        # Check if an account identifier is provided. Workspace deployments may
+        # use username-style identifiers in the email field, so do not enforce
+        # an email-address format here.
         if not emails:
-            return Response({"error": "Emails are required"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Accounts or emails are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        normalized_invites = []
+        for invite in emails:
+            identifier = str(invite.get("email", "")).strip()
+            if not identifier:
+                return Response(
+                    {"error": "Account or email is required"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # If the identifier belongs to an existing account, store its
+            # canonical email value so the invitation appears for that user.
+            user = (
+                User.objects.filter(Q(email__iexact=identifier) | Q(username__iexact=identifier), is_active=True)
+                .only("email")
+                .first()
+            )
+            normalized_invites.append(
+                {
+                    "email": (user.email if user and user.email else identifier).strip().lower(),
+                    "role": invite.get("role", 5),
+                }
+            )
+
+        emails = normalized_invites
 
         # check for role level of the requesting user
         requesting_user = WorkspaceMember.objects.get(workspace__slug=slug, member=request.user, is_active=True)
@@ -87,28 +113,19 @@ class WorkspaceInvitationsViewset(BaseViewSet):
 
         workspace_invitations = []
         for email in emails:
-            try:
-                validate_email(email.get("email"))
-                workspace_invitations.append(
-                    WorkspaceMemberInvite(
-                        email=email.get("email").strip().lower(),
-                        workspace_id=workspace.id,
-                        token=jwt.encode(
-                            {"email": email, "timestamp": datetime.now().timestamp()},
-                            settings.SECRET_KEY,
-                            algorithm="HS256",
-                        ),
-                        role=email.get("role", 5),
-                        created_by=request.user,
-                    )
+            workspace_invitations.append(
+                WorkspaceMemberInvite(
+                    email=email.get("email"),
+                    workspace_id=workspace.id,
+                    token=jwt.encode(
+                        {"email": email.get("email"), "timestamp": datetime.now().timestamp()},
+                        settings.SECRET_KEY,
+                        algorithm="HS256",
+                    ),
+                    role=email.get("role", 5),
+                    created_by=request.user,
                 )
-            except ValidationError:
-                return Response(
-                    {
-                        "error": f"Invalid email - {email} provided a valid email address is required to send the invite"  # noqa: E501
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
+            )
         # Create workspace member invite
         workspace_invitations = WorkspaceMemberInvite.objects.bulk_create(
             workspace_invitations, batch_size=10, ignore_conflicts=True

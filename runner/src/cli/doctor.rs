@@ -468,6 +468,8 @@ mod tests {
             runner_id: Uuid::new_v4(),
             workspace_slug: Some("WS".into()),
             project_slug: Some("PRJ".into()),
+            project_id: None,
+            binding_source: None,
             pod_id: None,
             workspace: WorkspaceSection {
                 working_dir: PathBuf::from("/tmp/karma-team-doctor-test"),

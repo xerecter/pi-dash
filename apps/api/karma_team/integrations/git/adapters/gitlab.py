@@ -200,8 +200,6 @@ class GitLabAdapter:
     def _client(self, credential: dict) -> GitLabClient:
         host_url = credential.get("host_url") or getattr(settings, "GITLAB_HOST", "") or "https://gitlab.com"
         normalized_host_url = _normalize_host(host_url)
-        if urlparse(normalized_host_url).scheme != "https":
-            raise GitProviderPermissionError("GitLab host must use HTTPS")
         if not self._host_allowed(normalized_host_url):
             raise GitProviderPermissionError(
                 "GitLab host is not allowed; ask an instance admin to add it to GITLAB_ALLOWED_HOSTS."
@@ -211,14 +209,30 @@ class GitLabAdapter:
     def _host_allowed(self, host_url: str) -> bool:
         return _normalize_host(host_url) in _allowed_hosts()
 
+    def _allowed_host_url(self, host: str) -> str | None:
+        """Return the configured HTTP(S) URL for an SSH repository host.
+
+        SSH remotes do not include an HTTP scheme, while provider accounts are
+        stored with the scheme used to reach the GitLab API. Prefer HTTPS when
+        both forms are allowlisted, but support an HTTP-only internal GitLab
+        deployment as well. The allowlist check keeps an arbitrary SSH host
+        from being treated as a GitLab provider.
+        """
+
+        for scheme in ("https", "http"):
+            candidate = _normalize_host(f"{scheme}://{host}")
+            if self._host_allowed(candidate):
+                return candidate
+        return None
+
     def parse_repo_url(self, url: str) -> ParsedRepository | None:
         candidate = (url or "").strip()
         if not candidate:
             return None
         ssh = self._ssh_repo_re.match(candidate)
         if ssh:
-            host_url = _normalize_host(ssh.group("host"))
-            if not self._host_allowed(host_url):
+            host_url = self._allowed_host_url(ssh.group("host"))
+            if host_url is None:
                 return None
             split = _split_full_path(ssh.group("path"))
             if split is None:
@@ -235,10 +249,24 @@ class GitLabAdapter:
 
         parsed = urlparse(candidate)
         # netloc carries `user@host[:port]` for ssh:// URLs — strip the userinfo
-        # so the allowlist lookup compares the bare host.
-        host_url = _normalize_host(parsed.netloc.rsplit("@", 1)[-1])
-        if parsed.scheme not in {"http", "https", "ssh"} or not self._host_allowed(host_url):
+        # so the allowlist lookup compares the bare host. Preserve HTTP for
+        # explicitly allowlisted self-managed GitLab instances.
+        host = parsed.netloc.rsplit("@", 1)[-1]
+        if parsed.scheme not in {"http", "https", "ssh"}:
             return None
+        if parsed.scheme == "ssh":
+            host_url = self._allowed_host_url(host)
+            if host_url is None:
+                return None
+        else:
+            host_url = _normalize_host(f"{parsed.scheme}://{host}")
+        if parsed.scheme in {"http", "https"} and not self._host_allowed(host_url):
+            # Keep compatibility with deployments that historically listed
+            # only the HTTPS form while GitLab emitted HTTP repository URLs.
+            https_host_url = _normalize_host(f"https://{host}")
+            if parsed.scheme != "http" or not self._host_allowed(https_host_url):
+                return None
+            host_url = https_host_url
         path = parsed.path
         if "/-/" in path:
             path = path.split("/-/", 1)[0]
@@ -258,9 +286,22 @@ class GitLabAdapter:
     def parse_code_review_url(self, url: str) -> ParsedCodeReview | None:
         candidate = (url or "").strip()
         parsed = urlparse(candidate)
-        host_url = _normalize_host(parsed.netloc)
-        if parsed.scheme not in {"http", "https"} or not self._host_allowed(host_url):
+        # Keep the URL scheme when normalizing the host. Self-managed GitLab
+        # instances may publish merge-request links over HTTP on an internal
+        # network; dropping the scheme would turn those links into unusable
+        # HTTPS URLs even when the HTTP host is explicitly allowlisted.
+        host_url = _normalize_host(f"{parsed.scheme}://{parsed.netloc}")
+        if parsed.scheme not in {"http", "https"}:
             return None
+        if not self._host_allowed(host_url):
+            # Preserve compatibility with deployments that historically
+            # configured only the HTTPS form while GitLab emitted HTTP links.
+            # The link is canonicalized to HTTPS in that case; deployments
+            # that explicitly allow HTTP retain the usable HTTP URL above.
+            https_host_url = _normalize_host(f"https://{parsed.netloc}")
+            if parsed.scheme != "http" or not self._host_allowed(https_host_url):
+                return None
+            host_url = https_host_url
         marker = "/-/merge_requests/"
         if marker not in parsed.path:
             return None

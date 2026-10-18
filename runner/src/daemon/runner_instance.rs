@@ -28,6 +28,16 @@ use crate::util::paths::{Paths, RunnerPaths};
 /// instance behind a slow consumer.
 const INSTANCE_MAILBOX_DEPTH: usize = 64;
 
+/// Durable-in-process result for one runner teardown attempt.  A watch
+/// channel lets every concurrent remover observe the same terminal outcome
+/// without starting competing filesystem cleanup.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub(crate) enum RunnerTeardownOutcome {
+    Pending,
+    Succeeded,
+    Failed(String),
+}
+
 #[derive(Clone)]
 pub struct RunnerInstance {
     pub runner_id: Uuid,
@@ -47,6 +57,12 @@ pub struct RunnerInstance {
     /// even if they weren't parked at the exact moment the signal was
     /// sent, preventing zombie heartbeats after per-runner teardown.
     pub remove_tx: watch::Sender<bool>,
+    /// Completed only after the live RunnerLoop has stopped its workers,
+    /// removed runner-owned runtime data, and stripped the config entry.
+    /// MachineControl and ProjectSync wait on this before treating removal as
+    /// successful, so their ACK/reconcile result represents a finished,
+    /// retry-safe teardown rather than a queued mailbox message.
+    pub(crate) teardown_complete_tx: watch::Sender<RunnerTeardownOutcome>,
     /// Version string reported by this runner's agent binary, probed once at
     /// startup. `None` when the binary is missing or did not answer — the
     /// cloud then simply has no version to show, which is the honest answer.
@@ -128,6 +144,8 @@ impl RunnerInstance {
         let (mailbox_tx, mailbox_rx) = mpsc::channel(INSTANCE_MAILBOX_DEPTH);
         let (ack_tx, ack_rx) = mpsc::unbounded_channel();
         let (remove_tx, _remove_rx) = watch::channel(false);
+        let (teardown_complete_tx, _teardown_complete_rx) =
+            watch::channel(RunnerTeardownOutcome::Pending);
         Self {
             runner_id,
             name,
@@ -142,6 +160,7 @@ impl RunnerInstance {
             ack_tx,
             ack_rx: Arc::new(tokio::sync::Mutex::new(Some(ack_rx))),
             remove_tx,
+            teardown_complete_tx,
             engine_version: Arc::new(tokio::sync::RwLock::new(None)),
             chat_sessions: crate::ipc::chat::ChatRegistry::new(),
             chat_active: Arc::new(AtomicBool::new(false)),
@@ -174,6 +193,8 @@ mod tests {
             runner_id: Uuid::new_v4(),
             workspace_slug: Some("workspace".into()),
             project_slug: Some("PROJECT".into()),
+            project_id: None,
+            binding_source: None,
             pod_id: None,
             workspace: WorkspaceSection {
                 working_dir: std::env::temp_dir().join("karma-team-runner-instance-test"),

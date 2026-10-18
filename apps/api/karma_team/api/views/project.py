@@ -6,7 +6,7 @@
 import json
 
 # Django imports
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db.models import Exists, F, Func, OuterRef, Prefetch, Q, Subquery, Count
 from django.db.models.functions import Coalesce
 from django.utils import timezone
@@ -46,6 +46,7 @@ from karma_team.api.serializers import (
     ProjectUpdateSerializer,
 )
 from karma_team.app.permissions import ProjectBasePermission, WorkSpaceAdminPermission
+from karma_team.runner.services.runner_delete import delete_project_runners
 from karma_team.utils.openapi import (
     project_docs,
     PROJECT_ID_PARAMETER,
@@ -483,15 +484,24 @@ class ProjectDetailAPIEndpoint(BaseAPIView):
         Permanently remove a project and all its associated data from the workspace.
         Only admins can delete projects and the action cannot be undone.
         """
-        project = Project.objects.get(pk=pk, workspace__slug=slug)
-        if project.is_default:
-            return Response(
-                {"error": "Default project cannot be deleted"},
-                status=status.HTTP_400_BAD_REQUEST,
+        with transaction.atomic():
+            project = Project.objects.select_for_update(of=("self",)).get(
+                pk=pk,
+                workspace__slug=slug,
             )
-        # Delete the user favorite cycle
-        UserFavorite.objects.filter(entity_type="project", entity_identifier=pk, project_id=pk).delete()
-        project.delete()
+            if project.is_default:
+                return Response(
+                    {"error": "Default project cannot be deleted"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            # Revoke and hard-delete each cloud runner transactionally. Local
+            # remove_runner commands are queued through the machine outbox
+            # only after the outer project-delete transaction commits. The
+            # project row lock serializes this with automatic runner binding.
+            delete_project_runners(project.id)
+            # Delete the user favorite cycle
+            UserFavorite.objects.filter(entity_type="project", entity_identifier=pk, project_id=pk).delete()
+            project.delete()
         webhook_activity.delay(
             event="project",
             verb="deleted",

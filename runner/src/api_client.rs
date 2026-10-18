@@ -75,9 +75,9 @@ impl std::error::Error for CliError {}
 /// This means: an enrolled host doesn't need any env vars — the CLI
 /// reads everything from the same config the daemon uses. Out-of-band
 /// operator use (CI scripts, ad-hoc invocations) can still rely on env
-/// vars. The agent path Just Works because the agent inherits the
-/// runner's $HOME, so the CLI finds the config without anyone wiring
-/// per-spawn env vars.
+/// vars. During an agent run, `KARMA_TEAM_RUN_WORKSPACE_SLUG` selects the
+/// runner's workspace and its cached credential instead of the interactive
+/// default. Credentials stay in the config file rather than the child environment.
 #[derive(Debug, Clone)]
 pub struct CliEnv {
     pub api_url: String,
@@ -133,6 +133,15 @@ impl CliEnv {
     /// required value, with a message naming the specific field so
     /// the user knows what to add.
     pub fn resolve(paths: &crate::util::paths::Paths) -> Result<Self, CliError> {
+        let workspace = std::env::var(crate::util::shell::RUN_WORKSPACE_ENV).ok();
+        Self::resolve_for_run_workspace(paths, workspace.as_deref())
+    }
+
+    fn resolve_for_run_workspace(
+        paths: &crate::util::paths::Paths,
+        run_workspace: Option<&str>,
+    ) -> Result<Self, CliError> {
+        let run_workspace = run_workspace.map(str::trim).filter(|s| !s.is_empty());
         let cfg = crate::config::file::load_config_opt(paths).ok().flatten();
         let from_cfg_url = cfg
             .as_ref()
@@ -146,13 +155,39 @@ impl CliEnv {
                 .map(str::to_string)
                 .filter(|s| !s.is_empty())
         });
-        let from_cfg_token = cfg.as_ref().and_then(|c| {
-            c.cli
+        let from_cfg_token = cfg
+            .as_ref()
+            .and_then(|c| c.cli.as_ref())
+            .and_then(|cli| {
+                let token = cli.token.as_deref()?;
+                match run_workspace {
+                    Some(workspace) if token.starts_with("mt_") => cli.machine_token_for_workspace(
+                        if Some(workspace) == from_cfg_workspace.as_deref() {
+                            None
+                        } else {
+                            Some(workspace)
+                        },
+                    ),
+                    _ => Some(token),
+                }
+            })
+            .map(str::to_string)
+            .filter(|s| !s.is_empty());
+        if let Some(workspace) = run_workspace
+            && cfg
                 .as_ref()
-                .and_then(|s| s.token.as_deref())
-                .map(str::to_string)
-                .filter(|s| !s.is_empty())
-        });
+                .and_then(|c| c.cli.as_ref())
+                .and_then(|cli| cli.token.as_deref())
+                .is_some_and(|token| token.starts_with("mt_"))
+            && from_cfg_token.is_none()
+        {
+            return Err(CliError::new(
+                EXIT_AUTH,
+                format!(
+                    "no machine credential for task workspace {workspace:?}; wait for project synchronization or restart karma-team"
+                ),
+            ));
+        }
 
         let api_url = from_cfg_url
             .or_else(|| std::env::var("KARMA_TEAM_API_URL").ok())
@@ -163,7 +198,9 @@ impl CliEnv {
                      karma-team config or export KARMA_TEAM_API_URL",
                 )
             })?;
-        let workspace_slug = from_cfg_workspace
+        let workspace_slug = run_workspace
+            .map(str::to_owned)
+            .or(from_cfg_workspace)
             .or_else(|| std::env::var("KARMA_TEAM_WORKSPACE_SLUG").ok())
             .ok_or_else(|| {
                 CliError::new(
@@ -351,6 +388,8 @@ mod resolve_tests {
                 runner_id: uuid::Uuid::new_v4(),
                 workspace_slug: Some("acme".into()),
                 project_slug: Some("WEB".into()),
+                project_id: None,
+                binding_source: None,
                 pod_id: None,
                 workspace: WorkspaceSection {
                     working_dir: std::path::PathBuf::from("/tmp/wd"),
@@ -369,6 +408,7 @@ mod resolve_tests {
                 token: Some(token.into()),
                 workspace_slug: None,
                 default_project: None,
+                ..CliSection::default()
             }),
         }
     }
@@ -393,5 +433,39 @@ mod resolve_tests {
         assert_eq!(env.api_url, "https://cloud.example");
         assert_eq!(env.workspace_slug, "acme");
         assert_eq!(env.token, "tok-from-cfg");
+    }
+
+    #[test]
+    fn agent_cli_selects_its_workspace_credential_without_changing_login_default() {
+        let tmp = tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        let mut cfg = make_config("mt_primary");
+        let cli = cfg.cli.as_mut().unwrap();
+        cli.workspace_slug = Some("acme".into());
+        cli.workspace_tokens
+            .insert("shared".into(), "mt_shared".into());
+        write_config(&paths, &cfg).unwrap();
+
+        let task = CliEnv::resolve_for_run_workspace(&paths, Some("shared")).unwrap();
+        assert_eq!(task.workspace_slug, "shared");
+        assert_eq!(task.token, "mt_shared");
+        let operator = CliEnv::resolve_for_run_workspace(&paths, None).unwrap();
+        assert_eq!(operator.workspace_slug, "acme");
+        assert_eq!(operator.token, "mt_primary");
+    }
+
+    #[test]
+    fn agent_cli_rejects_missing_workspace_credentials() {
+        let tmp = tempdir().unwrap();
+        let paths = paths_for(tmp.path());
+        write_config(&paths, &make_config("mt_primary")).unwrap();
+        let error = CliEnv::resolve_for_run_workspace(&paths, Some("shared")).unwrap_err();
+        assert_eq!(error.exit_code, EXIT_AUTH);
+        assert!(error.message.contains("shared"));
+        let primary = CliEnv::resolve_for_run_workspace(&paths, Some("acme")).unwrap();
+        assert_eq!(
+            primary.token, "mt_primary",
+            "legacy default inferred from first runner"
+        );
     }
 }

@@ -296,6 +296,11 @@ pub enum ServerMsg {
         /// explicit argument. Absent from older clouds.
         #[serde(default)]
         work_item_identifier: Option<String>,
+        /// Display name of the work item's project. Karma uses this to bind
+        /// the run to a same-named local Karma project. Optional for wire
+        /// compatibility with older cloud versions.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        project_name: Option<String>,
         prompt: String,
         repo_url: Option<String>,
         repo_ref: Option<String>,
@@ -424,6 +429,13 @@ pub enum MachineMsg {
     /// Cloud-driven runner creation (the web "Add runner" modal's
     /// "Generate Runner" against a connected machine).
     CreateRunner(CreateRunnerCmd),
+    /// Remove one runner from this daemon after its cloud project was
+    /// deleted. Delivery is at-least-once, so the handler must be idempotent.
+    RemoveRunner {
+        runner_id: Uuid,
+        #[serde(default)]
+        reason: Option<String>,
+    },
     /// Reserved for config distribution; ack + ignore for now.
     ConfigPush {},
 }
@@ -627,6 +639,7 @@ mod tests {
             run_id: Uuid::new_v4(),
             work_item_id: Some(Uuid::new_v4()),
             work_item_identifier: None,
+            project_name: None,
             prompt: "do the thing".into(),
             repo_url: Some("https://example.invalid/x.git".into()),
             repo_ref: Some("main".into()),

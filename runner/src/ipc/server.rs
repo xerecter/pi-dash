@@ -1,7 +1,15 @@
 use anyhow::{Context, Result};
+#[cfg(unix)]
+use fs2::FileExt;
 use std::collections::HashMap;
 #[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
+use std::fs::{File, OpenOptions};
+#[cfg(unix)]
+use std::io::{Read, Seek, SeekFrom, Write};
+#[cfg(unix)]
+use std::os::unix::fs::{FileTypeExt, MetadataExt, OpenOptionsExt, PermissionsExt};
+#[cfg(unix)]
+use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufStream};
@@ -27,6 +35,10 @@ pub struct IpcServer {
     /// the supervisor ticks them all together; we keep a dedicated
     /// "primary" handle for that purpose.
     pub primary_state: crate::daemon::state::StateHandle,
+    /// Host-level shutdown signal. This must not be the primary runner's
+    /// per-instance state: once the daemon hosts multiple runners, notifying
+    /// one instance does not wake the supervisor or machine-level services.
+    pub daemon_state: crate::daemon::state::StateHandle,
     pub paths: crate::util::paths::Paths,
     /// All configured runners, keyed by runner_id. Resolved on every
     /// per-runner request via the `runner` selector. Wrapped in `Arc`
@@ -36,35 +48,56 @@ pub struct IpcServer {
     pub(crate) spawn_ctx: crate::daemon::supervisor::RunnerSpawnCtx,
 }
 
+/// An IPC server whose process-lifetime singleton endpoint has already been
+/// reserved.  Preparing the server is intentionally synchronous so daemon
+/// startup can fail before any runner or cloud background task is spawned.
+pub struct PreparedIpcServer {
+    server: IpcServer,
+    #[cfg(unix)]
+    listener: UnixListener,
+    #[cfg(unix)]
+    _instance_lock: DaemonInstanceLock,
+    #[cfg(windows)]
+    first_pipe: NamedPipeServer,
+}
+
 impl IpcServer {
+    pub fn prepare(self) -> Result<PreparedIpcServer> {
+        #[cfg(unix)]
+        {
+            let (listener, instance_lock) =
+                bind_singleton_unix_listener(&self.path, &self.paths.pid_path())?;
+            Ok(PreparedIpcServer {
+                server: self,
+                listener,
+                _instance_lock: instance_lock,
+            })
+        }
+
+        #[cfg(windows)]
+        {
+            let pipe_name = crate::ipc::windows_pipe_name(&self.path);
+            let first_pipe = ServerOptions::new()
+                .first_pipe_instance(true)
+                .create(&pipe_name)
+                .with_context(|| format!("creating named pipe {pipe_name}"))?;
+            Ok(PreparedIpcServer {
+                server: self,
+                first_pipe,
+            })
+        }
+    }
+}
+
+impl PreparedIpcServer {
     #[cfg(unix)]
     pub async fn run(self) -> Result<()> {
-        // Clean up stale socket.
-        let _ = tokio::fs::remove_file(&self.path).await;
-        if let Some(parent) = self.path.parent() {
-            tokio::fs::create_dir_all(parent)
-                .await
-                .with_context(|| format!("creating {parent:?}"))?;
-            // Best-effort: tighten the runtime dir to 0700 so even if the
-            // socket bind racewindow is exploited, no peer can reach it.
-            let mut p = std::fs::metadata(parent)?.permissions();
-            p.set_mode(0o700);
-            let _ = std::fs::set_permissions(parent, p);
-        }
-        // Restrict the file mode of files (including the socket) we create
-        // until after bind, then restore. Closes the TOCTOU window where the
-        // socket exists with the process umask before set_permissions runs.
-        let prev_umask = nix::sys::stat::umask(nix::sys::stat::Mode::from_bits_truncate(0o077));
-        let bind_result = UnixListener::bind(&self.path);
-        nix::sys::stat::umask(prev_umask);
-        let listener =
-            bind_result.with_context(|| format!("binding unix socket {:?}", self.path))?;
-        // Belt-and-braces: enforce 0600 on the socket explicitly.
-        let mut perm = std::fs::metadata(&self.path)?.permissions();
-        perm.set_mode(0o600);
-        std::fs::set_permissions(&self.path, perm)?;
-
-        let me = Arc::new(self);
+        let PreparedIpcServer {
+            server,
+            listener,
+            _instance_lock,
+        } = self;
+        let me = Arc::new(server);
         loop {
             let (stream, _) = listener.accept().await?;
             let server = me.clone();
@@ -78,20 +111,19 @@ impl IpcServer {
 
     #[cfg(windows)]
     pub async fn run(self) -> Result<()> {
-        let pipe_name = crate::ipc::windows_pipe_name(&self.path);
-        let mut server = ServerOptions::new()
-            .first_pipe_instance(true)
-            .create(&pipe_name)
-            .with_context(|| format!("creating named pipe {pipe_name}"))?;
-
-        let me = Arc::new(self);
+        let PreparedIpcServer {
+            server: ipc,
+            first_pipe: mut pipe_server,
+        } = self;
+        let pipe_name = crate::ipc::windows_pipe_name(&ipc.path);
+        let me = Arc::new(ipc);
         loop {
-            server
+            pipe_server
                 .connect()
                 .await
                 .with_context(|| format!("accepting named-pipe client at {pipe_name}"))?;
-            let connected = server;
-            server = ServerOptions::new()
+            let connected = pipe_server;
+            pipe_server = ServerOptions::new()
                 .create(&pipe_name)
                 .with_context(|| format!("creating next named pipe {pipe_name}"))?;
             let server = me.clone();
@@ -102,7 +134,9 @@ impl IpcServer {
             });
         }
     }
+}
 
+impl IpcServer {
     async fn handle_conn(&self, stream: IpcStream) -> Result<()> {
         let mut buf = BufStream::new(stream);
         let mut line = String::new();
@@ -173,9 +207,7 @@ impl IpcServer {
                 // the wire so a future per-runner live-patch flow can
                 // opt in without bumping IPC version again.
                 let _ = runner;
-                let mut cfg = crate::config::file::load_config(&self.paths)?;
-                merge_json(&mut cfg, patch)?;
-                crate::config::file::write_config(&self.paths, &cfg)?;
+                let cfg = apply_config_patch(&self.paths, patch)?;
                 self.primary_state.set_config(cfg.clone()).await;
                 Ok(Response::Ack)
             }
@@ -272,37 +304,16 @@ impl IpcServer {
                 Ok(Response::Ack)
             }
             Request::RunnerDisconnect => {
-                self.primary_state.shutdown();
+                self.daemon_state.shutdown();
                 Ok(Response::Ack)
             }
             Request::RunnerRemoveLocal { runner } => {
-                // Synthesize a `ServerMsg::RemoveRunner` envelope into
-                // the target instance's inbound mailbox. The supervisor
-                // already has the full teardown handler for that
-                // variant (cancel run + strip config.toml + delete
-                // data dir + exit RunnerLoop), so we don't duplicate
-                // any of that logic here — we just enter the same
-                // code path the cloud's wire frame would.
+                // Enter the supervisor's serialized removal path so shutdown
+                // can freeze this mutation ingress before taking its drain
+                // snapshot. That path persists config first, then delivers the
+                // same RemoveRunner frame consumed by RunnerLoop.
                 let inst = self.resolve_runner(Some(&runner))?;
-                let envelope = crate::cloud::protocol::Envelope::for_runner(
-                    inst.runner_id,
-                    crate::cloud::protocol::ServerMsg::RemoveRunner {
-                        runner_id: inst.runner_id,
-                        reason: Some("local removal via karma-team CLI".to_string()),
-                    },
-                );
-                inst.mailbox_tx
-                    .send(crate::cloud::http::InboundEnvelope {
-                        stream_id: None,
-                        env: envelope,
-                    })
-                    .await
-                    .with_context(|| {
-                        format!(
-                            "delivering synthesized RemoveRunner to {runner:?} mailbox \
-                             (loop may have already exited)"
-                        )
-                    })?;
+                self.spawn_ctx.remove_runner(inst.runner_id).await?;
                 Ok(Response::Ack)
             }
             // Local chat (PDASHOSS01-159, IPC v4). The desktop host drives
@@ -446,6 +457,118 @@ impl IpcServer {
     }
 }
 
+#[cfg(unix)]
+#[derive(Debug)]
+struct DaemonInstanceLock {
+    _file: File,
+}
+
+/// Acquire the daemon's process-lifetime lock, remove only a proven-stale
+/// socket, and bind the replacement listener while the lock is held.
+///
+/// The lock file is deliberately never unlinked. Removing it on shutdown can
+/// race a successor that already opened and locked the old inode, allowing a
+/// third process to create and lock a new inode at the same path.
+#[cfg(unix)]
+fn bind_singleton_unix_listener(
+    socket_path: &Path,
+    lock_path: &Path,
+) -> Result<(UnixListener, DaemonInstanceLock)> {
+    if let Some(parent) = socket_path.parent() {
+        std::fs::create_dir_all(parent).with_context(|| format!("creating {parent:?}"))?;
+        // Best-effort tightening is retained here for direct test/embedded
+        // callers; normal daemon startup already applies the stronger Paths
+        // ownership and permission checks before reaching IPC startup.
+        let mut permissions = std::fs::metadata(parent)?.permissions();
+        permissions.set_mode(0o700);
+        let _ = std::fs::set_permissions(parent, permissions);
+    }
+
+    let mut lock_file = open_instance_lock(lock_path)?;
+    match lock_file.try_lock_exclusive() {
+        Ok(()) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+            let mut holder = String::new();
+            let _ = lock_file.read_to_string(&mut holder);
+            let holder = holder.trim();
+            if holder.is_empty() {
+                anyhow::bail!("another karma-team daemon is already running");
+            }
+            anyhow::bail!("another karma-team daemon is already running (pid {holder})");
+        }
+        Err(error) => {
+            return Err(error).with_context(|| format!("locking daemon instance {lock_path:?}"));
+        }
+    }
+
+    remove_socket_if_stale(socket_path)?;
+
+    let listener = UnixListener::bind(socket_path)
+        .with_context(|| format!("binding unix socket {socket_path:?}"))?;
+
+    let mut permissions = std::fs::metadata(socket_path)?.permissions();
+    permissions.set_mode(0o600);
+    std::fs::set_permissions(socket_path, permissions)?;
+
+    lock_file.set_len(0)?;
+    lock_file.seek(SeekFrom::Start(0))?;
+    writeln!(lock_file, "{}", std::process::id())?;
+    lock_file.sync_data()?;
+
+    Ok((listener, DaemonInstanceLock { _file: lock_file }))
+}
+
+#[cfg(unix)]
+fn open_instance_lock(path: &Path) -> Result<File> {
+    let mut options = OpenOptions::new();
+    options
+        .create(true)
+        .read(true)
+        .write(true)
+        .mode(0o600)
+        .custom_flags(nix::libc::O_CLOEXEC | nix::libc::O_NOFOLLOW);
+    let file = options
+        .open(path)
+        .with_context(|| format!("opening daemon instance lock {path:?}"))?;
+    let metadata = file
+        .metadata()
+        .with_context(|| format!("inspecting daemon instance lock {path:?}"))?;
+    let euid = nix::unistd::Uid::effective().as_raw();
+    if !metadata.is_file() || metadata.uid() != euid {
+        anyhow::bail!("daemon instance lock {path:?} must be a regular file owned by uid {euid}");
+    }
+    let mut permissions = metadata.permissions();
+    permissions.set_mode(0o600);
+    file.set_permissions(permissions)
+        .with_context(|| format!("securing daemon instance lock {path:?}"))?;
+    Ok(file)
+}
+
+#[cfg(unix)]
+fn remove_socket_if_stale(path: &Path) -> Result<()> {
+    let metadata = match std::fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => return Err(error).with_context(|| format!("inspecting IPC socket {path:?}")),
+    };
+    if !metadata.file_type().is_socket() {
+        anyhow::bail!("refusing to replace non-socket IPC path {path:?}");
+    }
+
+    match std::os::unix::net::UnixStream::connect(path) {
+        Ok(_) => anyhow::bail!("a karma-team daemon is already listening at {path:?}"),
+        Err(error) if error.kind() == std::io::ErrorKind::ConnectionRefused => {
+            std::fs::remove_file(path)
+                .with_context(|| format!("removing stale IPC socket {path:?}"))?;
+            Ok(())
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(error) => Err(error).with_context(|| {
+            format!("probing existing IPC socket {path:?}; refusing to unlink it")
+        }),
+    }
+}
+
 async fn write_line(buf: &mut BufStream<IpcStream>, resp: &Response) -> Result<()> {
     let mut line = serde_json::to_vec(resp)?;
     line.push(b'\n');
@@ -461,6 +584,17 @@ fn merge_json(cfg: &mut crate::config::schema::Config, patch: serde_json::Value)
     Ok(())
 }
 
+/// Apply a partial IPC config update as one locked read-modify-write. Project
+/// reconciliation and runner add/remove use the same host-wide lock, so a TUI
+/// setting change cannot overwrite a runner block created or removed between
+/// an unlocked load and write.
+fn apply_config_patch(
+    paths: &crate::util::paths::Paths,
+    patch: serde_json::Value,
+) -> Result<crate::config::schema::Config> {
+    crate::config::file::mutate_config(paths, move |cfg| merge_json(cfg, patch))
+}
+
 fn deep_merge(base: &mut serde_json::Value, patch: serde_json::Value) {
     match (base, patch) {
         (serde_json::Value::Object(b), serde_json::Value::Object(p)) => {
@@ -469,5 +603,104 @@ fn deep_merge(base: &mut serde_json::Value, patch: serde_json::Value) {
             }
         }
         (b, p) => *b = p,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::schema::{Config, DaemonConfig, RunnerConfig};
+    use crate::util::paths::Paths;
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn second_daemon_fails_without_unlinking_the_active_socket() {
+        let tmp = tempfile::tempdir().unwrap();
+        let runtime = tmp.path().join("runtime");
+        let socket = runtime.join("karma-team.sock");
+        let lock = runtime.join("pid");
+
+        let (_listener, _instance_lock) = bind_singleton_unix_listener(&socket, &lock).unwrap();
+        let error = bind_singleton_unix_listener(&socket, &lock).unwrap_err();
+
+        assert!(error.to_string().contains("already running"), "{error:#}");
+        assert!(std::os::unix::net::UnixStream::connect(&socket).is_ok());
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn active_legacy_socket_without_lock_is_never_unlinked() {
+        let tmp = tempfile::tempdir().unwrap();
+        let runtime = tmp.path().join("runtime");
+        std::fs::create_dir_all(&runtime).unwrap();
+        let socket = runtime.join("karma-team.sock");
+        let lock = runtime.join("pid");
+        let _legacy_listener = std::os::unix::net::UnixListener::bind(&socket).unwrap();
+
+        let error = bind_singleton_unix_listener(&socket, &lock).unwrap_err();
+
+        assert!(error.to_string().contains("already listening"), "{error:#}");
+        assert!(socket.exists());
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn stale_socket_is_replaced_after_the_old_lock_is_released() {
+        let tmp = tempfile::tempdir().unwrap();
+        let runtime = tmp.path().join("runtime");
+        std::fs::create_dir_all(&runtime).unwrap();
+        let socket = runtime.join("karma-team.sock");
+        let lock = runtime.join("pid");
+        let stale_listener = std::os::unix::net::UnixListener::bind(&socket).unwrap();
+        drop(stale_listener);
+
+        let (_listener, _instance_lock) = bind_singleton_unix_listener(&socket, &lock).unwrap();
+
+        assert!(std::os::unix::net::UnixStream::connect(&socket).is_ok());
+        assert_eq!(std::fs::metadata(&socket).unwrap().mode() & 0o777, 0o600);
+        assert_eq!(
+            std::fs::read_to_string(lock).unwrap().trim(),
+            std::process::id().to_string()
+        );
+    }
+
+    #[test]
+    fn config_patch_preserves_runner_blocks_under_host_lock() {
+        let tmp = tempfile::tempdir().unwrap();
+        let paths = Paths {
+            config_dir: tmp.path().join("config"),
+            data_dir: tmp.path().join("data"),
+            runtime_dir: tmp.path().join("runtime"),
+        };
+        let runner_id = Uuid::new_v4();
+        let runner: RunnerConfig = serde_json::from_value(serde_json::json!({
+            "name": "auto-web",
+            "runner_id": runner_id,
+            "workspace_slug": "acme",
+            "project_slug": "WEB",
+            "workspace": { "working_dir": tmp.path().join("work-web") },
+        }))
+        .unwrap();
+        let config = Config {
+            version: 2,
+            daemon: DaemonConfig {
+                cloud_url: "https://cloud.example".into(),
+                ..DaemonConfig::default()
+            },
+            runners: vec![runner],
+            cli: None,
+        };
+        crate::config::file::write_config(&paths, &config).unwrap();
+
+        let patched = apply_config_patch(
+            &paths,
+            serde_json::json!({"daemon": {"log_level": "debug"}}),
+        )
+        .unwrap();
+
+        assert_eq!(patched.daemon.log_level, "debug");
+        assert_eq!(patched.daemon.cloud_url, "https://cloud.example");
+        assert_eq!(patched.runners.len(), 1);
+        assert_eq!(patched.runners[0].runner_id, runner_id);
     }
 }

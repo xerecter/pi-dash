@@ -8,6 +8,7 @@ import json
 
 # Django imports
 from django.core.serializers.json import DjangoJSONEncoder
+from django.db import transaction
 from django.db.models import Exists, F, OuterRef, Prefetch, Q, Subquery, Count
 from django.utils import timezone
 
@@ -41,6 +42,7 @@ from karma_team.db.models import (
 )
 from karma_team.db.models.intake import IntakeIssueStatus
 from karma_team.utils.host import base_host
+from karma_team.runner.services.runner_delete import delete_project_runners
 
 
 class ProjectViewSet(BaseViewSet):
@@ -395,13 +397,31 @@ class ProjectViewSet(BaseViewSet):
                 is_active=True,
             ).exists()
         ):
-            project = Project.objects.get(pk=pk, workspace__slug=slug)
-            if project.is_default:
-                return Response(
-                    {"error": "Default project cannot be deleted"},
-                    status=status.HTTP_400_BAD_REQUEST,
+            with transaction.atomic():
+                # Serialize project deletion with the automatic runner-binding
+                # endpoint, which locks this same project before creating a
+                # runner. Otherwise a project could be deleted while an
+                # ensure request is creating a runner for it.
+                project = Project.objects.select_for_update(of=("self",)).get(
+                    pk=pk,
+                    workspace__slug=slug,
                 )
-            project.delete()
+                if project.is_default:
+                    return Response(
+                        {"error": "Default project cannot be deleted"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                # Hard-delete cloud runner rows in this transaction. Attached
+                # daemons receive idempotent machine remove_runner commands
+                # only after the outer project-delete transaction commits.
+                delete_project_runners(project.id)
+                project.delete()
+
+                # Delete the project members' saved board and favorite state.
+                DeployBoard.objects.filter(project_id=pk, workspace__slug=slug).delete()
+                UserFavorite.objects.filter(project_id=pk, workspace__slug=slug).delete()
+
             webhook_activity.delay(
                 event="project",
                 verb="deleted",
@@ -415,12 +435,6 @@ class ProjectViewSet(BaseViewSet):
                 old_identifier=None,
                 new_identifier=None,
             )
-            # Delete the project members
-            DeployBoard.objects.filter(project_id=pk, workspace__slug=slug).delete()
-
-            # Delete the user favorite
-            UserFavorite.objects.filter(project_id=pk, workspace__slug=slug).delete()
-
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response(

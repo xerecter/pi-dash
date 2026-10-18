@@ -31,7 +31,7 @@ use uuid::Uuid;
 use crate::cloud::protocol::{
     ClientMsg, Envelope, RunnerStatus as WireStatus, ServerMsg, WIRE_VERSION,
 };
-use crate::config::schema::AgentKind;
+use crate::config::schema::{AgentKind, RunnerBindingSource};
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -472,6 +472,32 @@ impl RunnerCloudClient {
                 RefreshOutcome::Done(Ok(())) => return Ok(()),
                 RefreshOutcome::Done(Err(code)) => return Err(code.into_err()),
             }
+        }
+    }
+
+    /// Wait until any detached single-flight token refresh has finished.
+    /// Dropping a caller's `refresh()` future does not cancel `do_refresh()`:
+    /// that task may still rotate credentials beneath the runner runtime
+    /// directory.  Per-runner teardown calls this after latching its stop
+    /// signal and before deleting the runtime tree, preventing a late rotate
+    /// from recreating a directory that removal already reported as gone.
+    pub async fn wait_for_refresh_idle(&self) {
+        loop {
+            let in_flight = self.inner.state.lock().await.refresh_in_flight.clone();
+            let Some(mut rx) = in_flight else {
+                return;
+            };
+            loop {
+                if matches!(&*rx.borrow(), RefreshOutcome::Done(_)) {
+                    break;
+                }
+                if rx.changed().await.is_err() {
+                    break;
+                }
+            }
+            // The refresh task clears `refresh_in_flight` after publishing its
+            // terminal result.  Re-check under the mutex so we also cover the
+            // tiny publish/clear interval (and any waiter that joined it).
         }
     }
 
@@ -1514,11 +1540,43 @@ impl HttpLoop {
     /// after startup but before the reconnect (`session_service.py`
     /// `reap_stale_busy_runs`).
     fn current_attach_body(&self) -> AttachBody {
-        refresh_attach_body(
+        let mut body = refresh_attach_body(
             &self.attach_body,
             *self.status_rx.borrow(),
             *self.in_flight_rx.borrow(),
-        )
+        );
+        // Project identifiers are mutable cloud metadata. ProjectSync updates
+        // the shared StateHandle when a project is renamed, and every
+        // reconnect must use that current value rather than the startup
+        // snapshot captured in `attach_body`.
+        if let Some(state) = &self.state {
+            body.project_slug = state.project_slug_now();
+        }
+        body
+    }
+
+    /// Wait until this runner's teardown latch is set.  The HTTP loop owns a
+    /// long-poll request which can otherwise remain pending for the full
+    /// server timeout after the runner has been removed locally.  Treat a
+    /// closed watch channel as teardown too: the corresponding runner loop
+    /// has gone away and there is no useful session left to maintain.
+    async fn wait_for_teardown(teardown_rx: &mut Option<watch::Receiver<bool>>) {
+        let Some(rx) = teardown_rx.as_mut() else {
+            std::future::pending::<()>().await;
+            return;
+        };
+        loop {
+            if *rx.borrow() {
+                return;
+            }
+            if rx.changed().await.is_err() {
+                return;
+            }
+        }
+    }
+
+    fn teardown_error() -> TransportError {
+        TransportError::LocalTeardown("runner teardown requested".to_string())
     }
 
     /// Run `ensure_access_token` then `open_session`, retrying transient
@@ -1575,13 +1633,24 @@ impl HttpLoop {
     }
 
     pub async fn run(mut self) -> Result<(), TransportError> {
+        // Keep the receiver local so every awaited transport operation can be
+        // cancelled without borrowing the loop's optional field across a
+        // `select!`.  ProjectSync and local `runner remove` both latch this
+        // watch channel before dropping the runner mailbox.
+        let mut teardown_rx = self.teardown_rx.clone();
+
         // 1. Bootstrap: ensure bearer token, open session. Both calls
         // can hit transient network blips (request timeout, connection
         // reset, brief 5xx during cloud restart) — retry with backoff
         // so a single startup glitch doesn't kill the loop forever. Only
         // genuinely fatal errors (revoked creds, runner_id mismatch)
         // unwind here.
-        let session = self.bootstrap_with_retry().await?;
+        let session = tokio::select! {
+            _ = Self::wait_for_teardown(&mut teardown_rx) => {
+                return Err(Self::teardown_error());
+            }
+            result = self.bootstrap_with_retry() => result?,
+        };
         // Capture the server's long-poll interval (clamped) so the per-
         // request timeout in `RunnerCloudClient::poll` matches the
         // server's actual block deadline.
@@ -1653,6 +1722,9 @@ impl HttpLoop {
             let shutdown = self.shutdown.clone();
             match tokio::select! {
                 _ = shutdown.notified() => break,
+                _ = Self::wait_for_teardown(&mut teardown_rx) => {
+                    return Err(Self::teardown_error());
+                }
                 result = self.poll_once() => result,
             } {
                 Ok(()) => {
@@ -1677,8 +1749,19 @@ impl HttpLoop {
                         backoff_secs = backoff.as_secs(),
                         "session evicted ({reason}); reopening",
                     );
-                    sleep(backoff).await;
-                    if let Err(e) = self.client.open_session(self.current_attach_body()).await {
+                    tokio::select! {
+                        _ = Self::wait_for_teardown(&mut teardown_rx) => {
+                            return Err(Self::teardown_error());
+                        }
+                        _ = sleep(backoff) => {}
+                    }
+                    let reopen = tokio::select! {
+                        _ = Self::wait_for_teardown(&mut teardown_rx) => {
+                            return Err(Self::teardown_error());
+                        }
+                        result = self.client.open_session(self.current_attach_body()) => result,
+                    };
+                    if let Err(e) = reopen {
                         tracing::warn!(
                             runner = %self.client.runner_id(),
                             "reopen after eviction failed: {e}",
@@ -1693,12 +1776,22 @@ impl HttpLoop {
                     // already in flight against it would surface as
                     // SessionEvicted on the next loop iteration.
                     tracing::debug!(runner = %self.client.runner_id(), "recoverable transport error: {err}");
-                    sleep(Duration::from_secs(backoff_secs)).await;
+                    tokio::select! {
+                        _ = Self::wait_for_teardown(&mut teardown_rx) => {
+                            return Err(Self::teardown_error());
+                        }
+                        _ = sleep(Duration::from_secs(backoff_secs)) => {}
+                    }
                     backoff_secs = (backoff_secs * 2).min(30);
                 }
                 Err(err) => {
                     tracing::error!(runner = %self.client.runner_id(), "transport error: {err}");
-                    sleep(Duration::from_secs(backoff_secs)).await;
+                    tokio::select! {
+                        _ = Self::wait_for_teardown(&mut teardown_rx) => {
+                            return Err(Self::teardown_error());
+                        }
+                        _ = sleep(Duration::from_secs(backoff_secs)) => {}
+                    }
                     backoff_secs = (backoff_secs * 2).min(30);
                 }
             }
@@ -1873,6 +1966,8 @@ fn map_session_error(status: StatusCode, body: &str) -> TransportError {
 pub struct CreateRunnerRequest<'a> {
     pub api_token: &'a str,
     pub dev_machine_id: &'a Uuid,
+    /// Durable machine-command idempotency key. Ordinary CLI calls omit it.
+    pub request_id: Option<&'a str>,
     pub workspace_slug: Option<&'a str>,
     pub project: &'a str,
     pub host_label: &'a str,
@@ -1891,20 +1986,7 @@ pub async fn create_runner(
     req: CreateRunnerRequest<'_>,
 ) -> Result<EnrollResponse, TransportError> {
     let url = format!("{}/api/v1/runner/runners/", transport.cloud_url());
-    let mut body = serde_json::json!({
-        "project": req.project,
-        "dev_machine_id": req.dev_machine_id,
-        "host_label": req.host_label,
-    });
-    if let Some(ws) = req.workspace_slug {
-        body["workspace_slug"] = Json::String(ws.to_string());
-    }
-    if let Some(n) = req.name {
-        body["name"] = Json::String(n.to_string());
-    }
-    if let Some(p) = req.pod {
-        body["pod"] = Json::String(p.to_string());
-    }
+    let body = create_runner_body(&req);
     let resp = transport
         .http()
         .post(&url)
@@ -1921,6 +2003,27 @@ pub async fn create_runner(
     resp.json::<EnrollResponse>()
         .await
         .map_err(|e| TransportError::Protocol(format!("create_runner body: {e}")))
+}
+
+fn create_runner_body(req: &CreateRunnerRequest<'_>) -> Json {
+    let mut body = serde_json::json!({
+        "project": req.project,
+        "dev_machine_id": req.dev_machine_id,
+        "host_label": req.host_label,
+    });
+    if let Some(request_id) = req.request_id {
+        body["request_id"] = Json::String(request_id.to_string());
+    }
+    if let Some(ws) = req.workspace_slug {
+        body["workspace_slug"] = Json::String(ws.to_string());
+    }
+    if let Some(n) = req.name {
+        body["name"] = Json::String(n.to_string());
+    }
+    if let Some(p) = req.pod {
+        body["pod"] = Json::String(p.to_string());
+    }
+    body
 }
 
 pub async fn enroll_runner(
@@ -2004,6 +2107,172 @@ impl MachineClient {
 
     pub fn machine_token(&self) -> &str {
         &self.machine_token
+    }
+
+    /// Account membership discovery uses the CLI API authentication surface;
+    /// project and runner requests continue to use workspace-scoped bearers.
+    pub async fn account_workspaces(&self) -> Result<Vec<String>, TransportError> {
+        #[derive(Deserialize)]
+        struct Workspace {
+            slug: String,
+        }
+        #[derive(Deserialize)]
+        struct Response {
+            workspaces: Vec<Workspace>,
+        }
+        let response = self
+            .transport
+            .http()
+            .get(format!(
+                "{}/api/v1/auth/workspaces/",
+                self.transport.cloud_url()
+            ))
+            .header("X-Api-Key", &self.machine_token)
+            .send()
+            .await
+            .map_err(classify_send_error)?;
+        let status = response.status();
+        if !status.is_success() {
+            return Err(map_auth_error(
+                status,
+                &response.text().await.unwrap_or_default(),
+            ));
+        }
+        let body: Response = response
+            .json()
+            .await
+            .map_err(|e| TransportError::Protocol(format!("workspace list body: {e}")))?;
+        if body.workspaces.iter().any(|w| w.slug.trim().is_empty()) {
+            return Err(TransportError::Protocol(
+                "workspace list contains an empty slug".into(),
+            ));
+        }
+        Ok(body.workspaces.into_iter().map(|w| w.slug).collect())
+    }
+
+    /// Exchange the account's existing login for a credential restricted to
+    /// another active workspace on this same machine. Call only when no
+    /// cached credential exists, since the endpoint rotates that scope.
+    pub async fn workspace_machine_token(
+        &self,
+        workspace_slug: &str,
+    ) -> Result<String, TransportError> {
+        #[derive(Deserialize)]
+        struct Response {
+            machine_token: String,
+            workspace_slug: String,
+            dev_machine_id: Uuid,
+        }
+        let response = self
+            .transport
+            .http()
+            .post(format!(
+                "{}/api/v1/auth/machine-token/",
+                self.transport.cloud_url()
+            ))
+            .header("X-Api-Key", &self.machine_token)
+            .json(&serde_json::json!({
+                "workspace_slug": workspace_slug,
+                "dev_machine_id": self.dev_machine_id,
+                "host_label": crate::util::hostname::default_hostname(),
+            }))
+            .send()
+            .await
+            .map_err(classify_send_error)?;
+        let status = response.status();
+        if !status.is_success() {
+            return Err(map_auth_error(
+                status,
+                &response.text().await.unwrap_or_default(),
+            ));
+        }
+        let body: Response = response
+            .json()
+            .await
+            .map_err(|e| TransportError::Protocol(format!("workspace token body: {e}")))?;
+        if body.workspace_slug != workspace_slug
+            || body.dev_machine_id != self.dev_machine_id
+            || !body.machine_token.starts_with("mt_")
+        {
+            return Err(TransportError::Protocol(
+                "workspace token identity mismatch".into(),
+            ));
+        }
+        Ok(body.machine_token)
+    }
+
+    /// `GET …/project-bindings/` — fetch one complete, workspace-scoped
+    /// desired-state inventory for this machine. The workspace is derived by
+    /// the cloud from the machine token; callers cannot override it.
+    pub async fn project_bindings(&self) -> Result<ProjectBindingSnapshot, TransportError> {
+        let url = format!("{}/project-bindings/", self.base());
+        let resp = self
+            .transport
+            .http()
+            .get(&url)
+            .header(AUTHORIZATION, format!("Bearer {}", self.machine_token))
+            .send()
+            .await
+            .map_err(classify_send_error)?;
+        let status = resp.status();
+        if !status.is_success() {
+            let body = resp.text().await.unwrap_or_default();
+            return Err(map_auth_error(status, &body));
+        }
+        resp.json::<ProjectBindingSnapshot>()
+            .await
+            .map_err(|e| TransportError::Protocol(format!("project bindings body: {e}")))
+    }
+
+    /// `POST …/project-bindings/ensure/` — idempotently obtain a runner
+    /// binding for one active project on this machine.
+    pub async fn ensure_project_binding(
+        &self,
+        project_id: &Uuid,
+    ) -> Result<EnsureProjectBindingResponse, TransportError> {
+        let url = format!("{}/project-bindings/ensure/", self.base());
+        let resp = self
+            .transport
+            .http()
+            .post(&url)
+            .header(AUTHORIZATION, format!("Bearer {}", self.machine_token))
+            .json(&serde_json::json!({ "project_id": project_id }))
+            .send()
+            .await
+            .map_err(classify_send_error)?;
+        let status = resp.status();
+        if !status.is_success() {
+            let body = resp.text().await.unwrap_or_default();
+            return Err(map_auth_error(status, &body));
+        }
+        resp.json::<EnsureProjectBindingResponse>()
+            .await
+            .map_err(|e| TransportError::Protocol(format!("ensure project binding body: {e}")))
+    }
+
+    /// Delete a machine runner through the same machine-token surface used by
+    /// the CLI. A 404 is already the desired end state and is therefore
+    /// treated as success for reconciliation retries.
+    pub async fn delete_runner(&self, runner_id: &Uuid) -> Result<(), TransportError> {
+        let url = format!(
+            "{}/api/v1/runner/runners/{}/",
+            self.transport.cloud_url(),
+            runner_id
+        );
+        let resp = self
+            .transport
+            .http()
+            .delete(&url)
+            .header(AUTHORIZATION, format!("Bearer {}", self.machine_token))
+            .send()
+            .await
+            .map_err(classify_send_error)?;
+        let status = resp.status();
+        if status.is_success() || status == StatusCode::NOT_FOUND {
+            return Ok(());
+        }
+        let body = resp.text().await.unwrap_or_default();
+        Err(map_auth_error(status, &body))
     }
 
     fn base(&self) -> String {
@@ -2109,6 +2378,96 @@ impl MachineClient {
     }
 }
 
+/// A project in the complete machine-scoped binding snapshot.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct ProjectSnapshot {
+    pub id: Uuid,
+    pub identifier: String,
+    pub name: String,
+    #[serde(default)]
+    pub default_pod_id: Option<Uuid>,
+    #[serde(default)]
+    pub default_pod_slug: String,
+}
+
+/// A cloud runner binding for this machine.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct ProjectRunnerBinding {
+    pub runner_id: Uuid,
+    pub runner_name: String,
+    pub project_id: Uuid,
+    pub project_identifier: String,
+    pub pod_id: Uuid,
+    #[serde(default)]
+    pub pod_slug: String,
+    #[serde(default)]
+    pub binding_source: RunnerBindingSource,
+}
+
+/// Complete, unpaginated discovery/binding inventory and deletion evidence.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct ProjectBindingSnapshot {
+    pub complete: bool,
+    pub snapshot_id: Uuid,
+    pub workspace_id: Uuid,
+    pub workspace_slug: String,
+    pub projects: Vec<ProjectSnapshot>,
+    pub bindings: Vec<ProjectRunnerBinding>,
+    pub deleted_project_ids: Vec<Uuid>,
+}
+
+/// Enrollment-compatible payload returned by the machine ensure endpoint.
+/// Machine-token bindings normally leave per-runner credential fields empty;
+/// local activation uses the shared machine token persisted by auth login.
+#[derive(Debug, Clone, PartialEq, Eq, Deserialize)]
+pub struct EnsureProjectBindingResponse {
+    pub runner_id: Uuid,
+    pub runner_name: String,
+    pub project_id: Uuid,
+    pub project_identifier: String,
+    pub pod_id: Uuid,
+    #[serde(default)]
+    pub pod_slug: String,
+    pub workspace_slug: String,
+    #[serde(default)]
+    pub binding_source: RunnerBindingSource,
+    #[serde(default)]
+    pub refresh_token: String,
+    #[serde(default)]
+    pub access_token: String,
+    #[serde(default)]
+    pub access_token_expires_at: String,
+    #[serde(default)]
+    pub refresh_token_generation: u64,
+    #[serde(default)]
+    pub long_poll_interval_secs: u64,
+    #[serde(default)]
+    pub protocol_version: u32,
+}
+
+impl From<EnsureProjectBindingResponse> for EnrollResponse {
+    fn from(response: EnsureProjectBindingResponse) -> Self {
+        Self {
+            runner_id: response.runner_id,
+            runner_name: response.runner_name,
+            refresh_token: response.refresh_token,
+            access_token: response.access_token,
+            access_token_expires_at: response.access_token_expires_at,
+            refresh_token_generation: response.refresh_token_generation,
+            workspace_slug: response.workspace_slug,
+            pod_slug: response.pod_slug,
+            project_identifier: response.project_identifier,
+            project_id: Some(response.project_id),
+            binding_source: Some(response.binding_source),
+            pod_id: Some(response.pod_id),
+            long_poll_interval_secs: response.long_poll_interval_secs,
+            protocol_version: response.protocol_version,
+            machine_token: None,
+            machine_token_minted: false,
+        }
+    }
+}
+
 /// Read a per-runner `credentials.toml` from disk and return a
 /// `CredentialsHandle` ready for use with `RunnerCloudClient`. Centralised
 /// here so the supervisor and the CLI/TUI remove flow share one parser.
@@ -2204,6 +2563,12 @@ pub struct EnrollResponse {
     pub pod_slug: String,
     #[serde(default)]
     pub project_identifier: String,
+    #[serde(default)]
+    pub project_id: Option<Uuid>,
+    #[serde(default)]
+    pub binding_source: Option<RunnerBindingSource>,
+    #[serde(default)]
+    pub pod_id: Option<Uuid>,
     pub long_poll_interval_secs: u64,
     pub protocol_version: u32,
     #[serde(default)]
@@ -2215,6 +2580,8 @@ pub struct EnrollResponse {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::net::TcpListener;
 
     #[test]
     fn access_token_expiry_logic() {
@@ -2224,6 +2591,78 @@ mod tests {
         };
         assert!(!token.is_expired(60));
         assert!(token.is_expired(121));
+    }
+
+    #[test]
+    fn create_runner_body_only_serializes_machine_command_request_id() {
+        let dev_machine_id = Uuid::new_v4();
+        let command_id = Uuid::new_v4().to_string();
+        let command = CreateRunnerRequest {
+            api_token: "mt_test",
+            dev_machine_id: &dev_machine_id,
+            request_id: Some(&command_id),
+            workspace_slug: Some("acme"),
+            project: "WEB",
+            host_label: "host",
+            name: None,
+            pod: None,
+        };
+        let command_body = create_runner_body(&command);
+        let cli = CreateRunnerRequest {
+            request_id: None,
+            ..command
+        };
+
+        assert_eq!(command_body["request_id"], command_id);
+        assert!(create_runner_body(&cli).get("request_id").is_none());
+    }
+
+    #[tokio::test]
+    async fn machine_delete_runner_uses_machine_token_endpoint_and_bearer_auth() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let expected_runner_id = Uuid::new_v4();
+        let expected_token = "mt_test-token";
+        let server = tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut request = Vec::new();
+            let mut chunk = [0u8; 2048];
+            loop {
+                let read = socket.read(&mut chunk).await.unwrap();
+                assert!(read > 0, "client closed before sending request");
+                request.extend_from_slice(&chunk[..read]);
+                if request.windows(4).any(|window| window == b"\r\n\r\n") {
+                    break;
+                }
+            }
+            let request = String::from_utf8_lossy(&request);
+            let mut lines = request.lines();
+            assert_eq!(
+                lines.next(),
+                Some(
+                    format!("DELETE /api/v1/runner/runners/{expected_runner_id}/ HTTP/1.1")
+                        .as_str()
+                )
+            );
+            assert!(request.lines().any(|line| {
+                line.eq_ignore_ascii_case(&format!("authorization: Bearer {expected_token}"))
+            }));
+            assert!(!request.to_ascii_lowercase().contains("x-api-key:"));
+            socket
+                .write_all(
+                    b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\nConnection: close\r\n\r\n",
+                )
+                .await
+                .unwrap();
+        });
+
+        let transport = SharedHttpTransport::new(format!("http://{address}")).expect("transport");
+        let client = MachineClient::new(transport, Uuid::new_v4(), expected_token.to_string());
+        client
+            .delete_runner(&expected_runner_id)
+            .await
+            .expect("machine runner deletion");
+        server.await.unwrap();
     }
 
     /// The session-open response's `redeliver` payload (design §6.3) must
@@ -2482,6 +2921,173 @@ mod tests {
             agent_versions: std::collections::HashMap::new(),
             agent_kind: AgentKind::default(),
         }
+    }
+
+    #[tokio::test]
+    async fn current_attach_body_reads_project_slug_refreshes_from_state() {
+        let runner_id = Uuid::new_v4();
+        let tmp = tempfile::tempdir().unwrap();
+        let creds = CredentialsHandle::new(
+            tmp.path().join("credentials.toml"),
+            RunnerCredentials {
+                runner_id,
+                name: "runner".into(),
+                refresh_token: "rt_test".into(),
+                refresh_token_generation: 1,
+            },
+        );
+        let transport = SharedHttpTransport::new("http://127.0.0.1:1".into()).unwrap();
+        let client = RunnerCloudClient::new(runner_id, creds, transport);
+        let (mailbox, _mailbox_rx) = mpsc::channel(1);
+        let (_ack_tx, ack_rx) = mpsc::unbounded_channel();
+        let (_status_tx, status_rx) = watch::channel(WireStatus::Idle);
+        let (_in_flight_tx, in_flight_rx) = watch::channel(None);
+        let state = crate::daemon::state::StateHandle::new(crate::config::schema::Config {
+            version: 2,
+            daemon: Default::default(),
+            runners: vec![],
+            cli: None,
+        });
+        state.set_project_slug(Some("OLD_WEB".into()));
+        let http_loop = HttpLoop::new(
+            client,
+            mailbox,
+            ack_rx,
+            status_rx,
+            in_flight_rx,
+            Arc::new(tokio::sync::Notify::new()),
+            sample_attach_body(),
+        )
+        .with_state(state);
+
+        assert_eq!(
+            http_loop.current_attach_body().project_slug.as_deref(),
+            Some("OLD_WEB")
+        );
+        // Simulate ProjectSync observing a cloud rename while this runner's
+        // HTTP loop remains alive. The next reconnect must use the new
+        // identifier rather than the startup AttachBody snapshot.
+        http_loop
+            .state
+            .as_ref()
+            .expect("state attached")
+            .set_project_slug(Some("WEB".into()));
+        assert_eq!(
+            http_loop.current_attach_body().project_slug.as_deref(),
+            Some("WEB")
+        );
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn http_loop_stops_when_teardown_is_latched_during_long_poll() {
+        // Regression: RemoveRunner used to latch the refresh teardown watch,
+        // but HttpLoop only consulted it while classifying a closed mailbox.
+        // A poll already blocked in reqwest consequently stayed alive until
+        // the cloud long-poll timeout (up to a minute), keeping a deleted
+        // project's session and heartbeat machinery around.
+        async fn read_request(socket: &mut tokio::net::TcpStream) -> String {
+            let mut bytes = Vec::new();
+            let mut chunk = [0u8; 4096];
+            loop {
+                let read = socket.read(&mut chunk).await.expect("read HTTP request");
+                assert!(read > 0, "client closed before sending HTTP request");
+                bytes.extend_from_slice(&chunk[..read]);
+                if bytes.windows(4).any(|window| window == b"\r\n\r\n") {
+                    break;
+                }
+            }
+            String::from_utf8_lossy(&bytes).into_owned()
+        }
+
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let runner_id = Uuid::new_v4();
+        let session_id = Uuid::new_v4();
+        let (poll_seen_tx, poll_seen_rx) = tokio::sync::oneshot::channel();
+        let server = tokio::spawn(async move {
+            let (mut open_socket, _) = listener.accept().await.expect("session connection");
+            let request = read_request(&mut open_socket).await;
+            assert!(request.starts_with("POST /api/v1/runner/runners/"));
+            assert!(request.contains("/sessions/ HTTP/1.1"));
+            let body = serde_json::json!({
+                "session_id": session_id,
+                "welcome": {
+                    "server_time": Utc::now(),
+                    "long_poll_interval_secs": 1,
+                    "protocol_version": WIRE_VERSION
+                }
+            });
+            let body = serde_json::to_vec(&body).unwrap();
+            let response = format!(
+                "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                body.len()
+            );
+            open_socket.write_all(response.as_bytes()).await.unwrap();
+            open_socket.write_all(&body).await.unwrap();
+
+            let (mut poll_socket, _) = listener.accept().await.expect("poll connection");
+            let request = read_request(&mut poll_socket).await;
+            assert!(request.contains(&format!(
+                "POST /api/v1/runner/runners/{runner_id}/sessions/{session_id}/poll HTTP/1.1"
+            )));
+            let _ = poll_seen_tx.send(());
+            // Keep the long-poll request pending. The client must cancel it
+            // when the teardown watch changes, rather than waiting for the
+            // six-second request deadline used by this test.
+            let mut byte = [0u8; 1];
+            let _ =
+                tokio::time::timeout(Duration::from_secs(10), poll_socket.read(&mut byte)).await;
+        });
+
+        let tmp = tempfile::tempdir().unwrap();
+        let credentials = CredentialsHandle::new(
+            tmp.path().join("credentials.toml"),
+            RunnerCredentials {
+                runner_id,
+                name: "runner".into(),
+                refresh_token: "mt_test-token".into(),
+                refresh_token_generation: 0,
+            },
+        );
+        let transport = SharedHttpTransport::new_with_timeout(
+            format!("http://{address}"),
+            Duration::from_secs(10),
+        )
+        .unwrap();
+        let client = RunnerCloudClient::new(runner_id, credentials, transport);
+        let (mailbox, _mailbox_rx) = mpsc::channel(4);
+        let (_ack_tx, ack_rx) = mpsc::unbounded_channel();
+        let (_status_tx, status_rx) = watch::channel(WireStatus::Idle);
+        let (_in_flight_tx, in_flight_rx) = watch::channel(None);
+        let (remove_tx, remove_rx) = watch::channel(false);
+        let http_loop = HttpLoop::new(
+            client,
+            mailbox,
+            ack_rx,
+            status_rx,
+            in_flight_rx,
+            Arc::new(tokio::sync::Notify::new()),
+            sample_attach_body(),
+        )
+        .with_teardown_rx(remove_rx);
+        let task = tokio::spawn(http_loop.run());
+
+        tokio::time::timeout(Duration::from_secs(2), poll_seen_rx)
+            .await
+            .expect("HTTP loop did not reach its long poll")
+            .expect("poll server dropped notification");
+        remove_tx.send(true).unwrap();
+        let result = tokio::time::timeout(Duration::from_secs(1), task)
+            .await
+            .expect("HTTP loop did not stop promptly after teardown")
+            .expect("HTTP loop task panicked");
+        assert!(matches!(
+            result,
+            Err(TransportError::LocalTeardown(message)) if message.contains("teardown")
+        ));
+
+        server.abort();
+        let _ = server.await;
     }
 
     #[test]

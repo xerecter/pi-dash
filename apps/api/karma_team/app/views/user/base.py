@@ -16,7 +16,6 @@ from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_control
 from django.views.decorators.vary import vary_on_cookie
-from django.core.validators import validate_email
 from django.core.cache import cache
 
 # Third party imports
@@ -109,15 +108,6 @@ class UserEndpoint(BaseViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Validate email format
-        try:
-            validate_email(new_email)
-        except Exception:
-            return Response(
-                {"error": "Invalid email format"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         # Check if email is the same as current email
         if new_email == user.email:
             return Response(
@@ -126,7 +116,7 @@ class UserEndpoint(BaseViewSet):
             )
 
         # Check if email already exists in the User model
-        if User.objects.filter(email=new_email).exclude(id=user.id).exists():
+        if User.objects.filter(Q(email__iexact=new_email) | Q(username__iexact=new_email)).exclude(id=user.id).exists():
             return Response(
                 {"error": "An account with this email already exists"},
                 status=status.HTTP_400_BAD_REQUEST,
@@ -222,7 +212,7 @@ class UserEndpoint(BaseViewSet):
             )
 
         # Final check: ensure email is still available (might have been taken between code generation and update)
-        if User.objects.filter(email=new_email).exclude(id=user.id).exists():
+        if User.objects.filter(Q(email__iexact=new_email) | Q(username__iexact=new_email)).exclude(id=user.id).exists():
             return Response(
                 {"error": "An account with this email already exists"},
                 status=status.HTTP_400_BAD_REQUEST,

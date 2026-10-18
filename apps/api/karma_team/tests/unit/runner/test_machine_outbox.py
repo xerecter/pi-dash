@@ -40,6 +40,27 @@ class _FakeRedis:
         return len(ids)
 
 
+class _ClaimRedis(_FakeRedis):
+    def __init__(self, *, results=None, error=None):
+        super().__init__()
+        self.results = list(results or [])
+        self.error = error
+        self.deleted_consumers: list[tuple[str, str, str]] = []
+        self.claim_calls: list[dict] = []
+
+    def xautoclaim(self, **kwargs):
+        self.claim_calls.append(kwargs)
+        if self.error is not None:
+            raise self.error
+        if self.results:
+            return self.results.pop(0)
+        return (b"0-0", [])
+
+    def xgroup_delconsumer(self, name, groupname, consumername):
+        self.deleted_consumers.append((name, groupname, consumername))
+        return 1
+
+
 MID = "11111111-1111-1111-1111-111111111111"
 
 
@@ -87,6 +108,28 @@ def test_enqueue_offline_queueable_type_buffers(monkeypatch):
 
 
 @pytest.mark.unit
+def test_enqueue_offline_remove_runner_buffers_for_reconnect(monkeypatch):
+    client = _FakeRedis()
+    monkeypatch.setattr(machine_outbox, "redis_instance", lambda: client)
+    monkeypatch.setattr(
+        machine_outbox, "active_session_id_for_machine", lambda _mid: None
+    )
+    message = {
+        "type": "remove_runner",
+        "runner_id": "22222222-2222-2222-2222-222222222222",
+        "mid": "project-delete:p:r",
+    }
+
+    result = machine_outbox.enqueue_for_machine(MID, message)
+
+    assert result is None
+    entries = client.streams[machine_outbox.offline_stream_key(MID)]
+    assert len(entries) == 1
+    assert entries[0][1]["type"] == "remove_runner"
+    assert entries[0][1]["mid"] == "project-delete:p:r"
+
+
+@pytest.mark.unit
 def test_enqueue_offline_create_runner_raises(monkeypatch):
     client = _FakeRedis()
     monkeypatch.setattr(machine_outbox, "redis_instance", lambda: client)
@@ -116,3 +159,62 @@ def test_ack_for_session_calls_xack(monkeypatch):
     n = machine_outbox.ack_for_session(MID, ["1-0", "2-0", ""])
     assert n == 2
     assert client.acked == ["1-0", "2-0"]
+
+
+@pytest.mark.unit
+def test_claim_pending_without_prior_session_reclaims_orphaned_pel(monkeypatch):
+    client = _ClaimRedis(results=[(b"0-0", [[b"1-0", {b"payload": b"{}"}]])])
+    monkeypatch.setattr(machine_outbox, "redis_instance", lambda: client)
+
+    claimed = machine_outbox.claim_pending_for_new_session(
+        MID,
+        old_consumer=None,
+        new_consumer="machine-consumer-new",
+    )
+
+    assert claimed == 1
+    assert client.deleted_consumers == []
+
+
+@pytest.mark.unit
+def test_claim_pending_scans_empty_nonterminal_pages_and_cleans_old_consumer(
+    monkeypatch,
+):
+    client = _ClaimRedis(
+        results=[
+            (b"250-0", []),
+            (b"0-0", [[b"300-0", {b"payload": b"{}"}]]),
+        ]
+    )
+    monkeypatch.setattr(machine_outbox, "redis_instance", lambda: client)
+
+    claimed = machine_outbox.claim_pending_for_new_session(
+        MID,
+        old_consumer="machine-consumer-old",
+        new_consumer="machine-consumer-new",
+    )
+
+    assert claimed == 1
+    assert client.deleted_consumers == [
+        (
+            machine_outbox.stream_key(MID),
+            machine_outbox.group_name(MID),
+            "machine-consumer-old",
+        )
+    ]
+    assert all("justid" not in call for call in client.claim_calls)
+
+
+@pytest.mark.unit
+def test_claim_pending_failure_keeps_old_consumer(monkeypatch):
+    client = _ClaimRedis(error=RuntimeError("redis unavailable"))
+    monkeypatch.setattr(machine_outbox, "redis_instance", lambda: client)
+
+    claimed = machine_outbox.claim_pending_for_new_session(
+        MID,
+        old_consumer="machine-consumer-old",
+        new_consumer="machine-consumer-new",
+    )
+
+    assert claimed == 0
+    assert client.deleted_consumers == []

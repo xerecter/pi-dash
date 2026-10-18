@@ -108,6 +108,9 @@ _RESOLVER_CONFIG = {
 _ENV_INFRA = {
     # Core / security
     "SECRET_KEY": None,
+    # External Karma identity service used by browser and space sign-in.
+    "KARMA_AUTH_BASE_URL": "https://karma-eos3-server.aifoundrys.com:7443",
+    "KARMA_AUTH_TIMEOUT_SECONDS": 10,
     "DEBUG": "0",
     "ALLOWED_HOSTS": "*",
     "CORS_ALLOWED_ORIGINS": "",

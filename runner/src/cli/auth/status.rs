@@ -79,8 +79,8 @@ pub async fn run(_args: Args, paths: &Paths) -> Result<()> {
     if let Some(c) = &cfg {
         let runner_count = c.runners.len();
         if runner_count == 0 {
-            println!("  - No runners registered on this host.");
-            println!("    Run `karma-team runner add` to register one.");
+            println!("  - No project runners are active on this host yet.");
+            println!("    The daemon will add them automatically from the cloud project list.");
         } else {
             println!("  ✓ Runners on this host: {runner_count}");
             for r in &c.runners {

@@ -18,13 +18,16 @@ import pytest
 from django.urls import reverse
 from django.utils import timezone
 
+from karma_team.db.models import Project
 from karma_team.runner.models import (
     AgentRun,
     AgentRunStatus,
     Pod,
     Runner,
+    RunnerBindingSource,
     RunnerStatus,
 )
+from karma_team.runner.views.runners import RunnerDetailEndpoint
 
 
 @pytest.fixture
@@ -76,6 +79,85 @@ def test_move_runner_to_another_pod_succeeds_when_idle(
     assert resp.status_code == 200, resp.content
     runner.refresh_from_db()
     assert runner.pod_id == other_pod.id
+
+
+@pytest.mark.unit
+def test_auto_project_sync_runner_cannot_move_to_another_pod(
+    db, session_client, create_user, workspace, pod, other_pod
+):
+    runner = _make_runner(create_user, workspace, pod, "auto-managed")
+    runner.binding_source = RunnerBindingSource.AUTO_PROJECT_SYNC
+    runner.save(update_fields=["binding_source", "updated_at"])
+
+    response = session_client.patch(
+        reverse("runner-detail", kwargs={"runner_id": runner.id}),
+        {"pod": str(other_pod.id)},
+        format="json",
+    )
+
+    assert response.status_code == 409, response.content
+    assert response.json()["code"] == "auto_project_binding_managed"
+    runner.refresh_from_db()
+    assert runner.pod_id == pod.id
+
+
+@pytest.mark.unit
+def test_auto_project_sync_runner_allows_same_pod_noop_and_rename(
+    db, session_client, create_user, workspace, pod
+):
+    runner = _make_runner(create_user, workspace, pod, "auto-managed-noop")
+    runner.binding_source = RunnerBindingSource.AUTO_PROJECT_SYNC
+    runner.save(update_fields=["binding_source", "updated_at"])
+
+    response = session_client.patch(
+        reverse("runner-detail", kwargs={"runner_id": runner.id}),
+        {"pod": str(pod.id), "name": "auto-managed-renamed"},
+        format="json",
+    )
+
+    assert response.status_code == 200, response.content
+    runner.refresh_from_db()
+    assert runner.pod_id == pod.id
+    assert runner.name == "auto-managed-renamed"
+
+
+@pytest.mark.unit
+def test_move_runner_revalidates_target_project_after_initial_read(
+    db, session_client, create_user, workspace, pod, monkeypatch
+):
+    """A target project deleted during PATCH setup cannot receive a runner."""
+    target_project = Project.objects.create(
+        name="Move race target",
+        identifier="MOVRACE",
+        workspace=workspace,
+        created_by=create_user,
+    )
+    target_pod = Pod.default_for_project(target_project)
+    runner = _make_runner(create_user, workspace, pod, "move-race")
+    original_get_runner = RunnerDetailEndpoint._get_runner
+
+    def get_runner_then_delete_target(view, request, runner_id):
+        result = original_get_runner(view, request, runner_id)
+        Project.all_objects.filter(pk=target_project.id).update(
+            deleted_at=timezone.now()
+        )
+        return result
+
+    monkeypatch.setattr(
+        RunnerDetailEndpoint,
+        "_get_runner",
+        get_runner_then_delete_target,
+    )
+
+    response = session_client.patch(
+        reverse("runner-detail", kwargs={"runner_id": runner.id}),
+        {"pod": str(target_pod.id)},
+        format="json",
+    )
+
+    assert response.status_code == 400, response.content
+    runner.refresh_from_db()
+    assert runner.pod_id == pod.id
 
 
 @pytest.mark.unit

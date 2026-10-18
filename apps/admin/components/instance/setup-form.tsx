@@ -129,7 +129,7 @@ export function InstanceSetupForm() {
       !(
         !isSubmitting &&
         formData.first_name &&
-        formData.email &&
+        formData.email.trim() &&
         formData.password &&
         getPasswordStrength(formData.password) === E_PASSWORD_STRENGTH.STRENGTH_VALID &&
         formData.password === formData.confirm_password
@@ -218,15 +218,15 @@ export function InstanceSetupForm() {
 
             <div className="w-full space-y-1">
               <label className="text-13 font-medium text-tertiary" htmlFor="email">
-                Email <span className="text-danger-primary">*</span>
+                Email or username <span className="text-danger-primary">*</span>
               </label>
               <Input
                 className="w-full border border-subtle !bg-surface-1 placeholder:text-placeholder"
                 id="email"
                 name="email"
-                type="email"
+                type="text"
                 inputSize="md"
-                placeholder="name@company.com"
+                placeholder="Email or username"
                 value={formData.email}
                 onChange={(e) => handleFormChange("email", e.target.value)}
                 hasError={Boolean(errorData.type && errorData.type === EErrorCodes.INVALID_EMAIL)}

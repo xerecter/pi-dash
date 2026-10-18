@@ -506,6 +506,45 @@ def test_dev_machine_delete_drops_machine_and_tears_down_runners(
 
 
 @pytest.mark.unit
+def test_dev_machine_delete_locks_machine_before_scanning_runners(
+    db, create_user, workspace, pod
+):
+    from karma_team.runner.services.runner_delete import delete_dev_machine
+
+    machine = DevMachine.objects.create(owner=create_user, host_label="lock-order")
+    _make_machine_token(create_user, workspace, machine, raw="mt_lock_order")
+    _make_runner(create_user, workspace, pod, "lock-order-runner", dev_machine=machine)
+    calls = []
+    machine_select_for_update = DevMachine.objects.select_for_update
+    runner_select_for_update = Runner.objects.select_for_update
+
+    def lock_machine(*args, **kwargs):
+        calls.append(("machine", kwargs))
+        return machine_select_for_update(*args, **kwargs)
+
+    def lock_runners(*args, **kwargs):
+        calls.append(("runners", kwargs))
+        return runner_select_for_update(*args, **kwargs)
+
+    with (
+        patch.object(
+            DevMachine.objects,
+            "select_for_update",
+            side_effect=lock_machine,
+        ),
+        patch.object(
+            Runner.objects,
+            "select_for_update",
+            side_effect=lock_runners,
+        ),
+    ):
+        delete_dev_machine(machine, purge_local=True)
+
+    assert [name for name, _ in calls[:2]] == ["machine", "runners"]
+    assert calls[0][1]["of"] == ("self",)
+
+
+@pytest.mark.unit
 def test_dev_machine_delete_purge_false_emits_revoke_only(
     db, session_client, create_user, workspace, pod, _stub_outbox_send
 ):

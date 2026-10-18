@@ -426,6 +426,82 @@ async fn installation_works_when_shell_is_not_exported() {
 }
 
 #[tokio::test]
+async fn inherited_root_home_and_runtime_are_repaired_for_effective_user() {
+    let install = Installation::new();
+    let target_home = install.root.path().join("target user home");
+    let stale_home = install.root.path().join("stale root home");
+    let environment_log = install.root.path().join("environment.log");
+    fs::create_dir_all(&target_home).unwrap();
+    fs::create_dir_all(&stale_home).unwrap();
+    executable(
+        &install.repo.join("target/release/karma-team"),
+        LOCAL_BINARY,
+    );
+    executable(
+        &install.root.path().join("tools/id"),
+        "#!/bin/sh\n[ \"$1\" = -u ] && { echo 424242; exit 0; }\nexit 1\n",
+    );
+    executable(
+        &install.root.path().join("tools/getent"),
+        &format!(
+            "#!/bin/sh\nprintf '%s\\n' 'laiye:x:424242:424242::{}:/bin/sh'\n",
+            target_home.display()
+        ),
+    );
+    executable(
+        &install.root.path().join("tools/stat"),
+        &format!(
+            "#!/bin/sh\nlast=''\nfor arg in \"$@\"; do last=$arg; done\ncase \"$last\" in\n  '{}') echo 424242 ;;\n  *) echo 0 ;;\nesac\n",
+            target_home.display()
+        ),
+    );
+    executable(
+        &install.root.path().join("tools/mkdir"),
+        "#!/bin/sh\nprintf 'XDG=%s DBUS=%s\\n' \"${XDG_RUNTIME_DIR:-}\" \"${DBUS_SESSION_BUS_ADDRESS:-}\" >> \"$TEST_LOG\"\nexec /bin/mkdir \"$@\"\n",
+    );
+
+    let output = run(install
+        .command()
+        .env("HOME", &stale_home)
+        .env("XDG_RUNTIME_DIR", "/run/user/0")
+        .env("DBUS_SESSION_BUS_ADDRESS", "unix:path=/run/user/0/bus")
+        .env("TEST_LOG", &environment_log))
+    .await;
+    assert_success(&output);
+    assert!(target_home.join(".profile").is_file());
+    assert!(!stale_home.join(".profile").exists());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("replacing inherited HOME="), "{stderr}");
+    assert!(
+        stderr.contains("ignoring XDG_RUNTIME_DIR=/run/user/0"),
+        "{stderr}"
+    );
+    let environment = fs::read_to_string(environment_log).unwrap();
+    assert!(!environment.contains("/run/user/0"), "{environment}");
+    assert!(environment.lines().all(|line| line == "XDG= DBUS="));
+}
+
+#[tokio::test]
+async fn sudo_root_install_for_an_ordinary_user_is_rejected_before_writing() {
+    let install = Installation::new();
+    executable(
+        &install.repo.join("target/release/karma-team"),
+        LOCAL_BINARY,
+    );
+    executable(
+        &install.root.path().join("tools/id"),
+        "#!/bin/sh\n[ \"$1\" = -u ] && { echo 0; exit 0; }\nexit 1\n",
+    );
+    let output = run(install.command().env("SUDO_USER", "laiye")).await;
+    assert!(!output.status.success());
+    assert!(
+        String::from_utf8_lossy(&output.stderr)
+            .contains("Refusing to install a per-user karma-team CLI as root")
+    );
+    assert!(!install.destination.exists());
+}
+
+#[tokio::test]
 async fn relative_install_rejects_unrepresentable_parent_paths_before_downloading() {
     for directory in ["bad:parent", "bad\nparent"] {
         let install = Installation::new();

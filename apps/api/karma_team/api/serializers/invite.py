@@ -3,12 +3,11 @@
 # See the LICENSE file for details.
 
 # Django imports
-from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
+from django.db.models import Q
 from rest_framework import serializers
 
 # Module imports
-from karma_team.db.models import WorkspaceMemberInvite
+from karma_team.db.models import User, WorkspaceMemberInvite
 from .base import BaseSerializer
 from karma_team.app.permissions.base import ROLE
 
@@ -39,11 +38,15 @@ class WorkspaceInviteSerializer(BaseSerializer):
         ]
 
     def validate_email(self, value):
-        try:
-            validate_email(value)
-        except ValidationError:
-            raise serializers.ValidationError("Invalid email address", code="INVALID_EMAIL_ADDRESS")
-        return value
+        identifier = str(value or "").strip().lower()
+        if not identifier:
+            raise serializers.ValidationError("Account or email is required", code="ACCOUNT_IDENTIFIER_REQUIRED")
+        user = (
+            User.objects.filter(Q(email__iexact=identifier) | Q(username__iexact=identifier), is_active=True)
+            .only("email")
+            .first()
+        )
+        return (user.email if user and user.email else identifier).strip().lower()
 
     def validate_role(self, value):
         if value not in [ROLE.ADMIN.value, ROLE.MEMBER.value, ROLE.GUEST.value]:

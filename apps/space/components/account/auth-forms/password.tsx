@@ -14,7 +14,7 @@ import { AuthService } from "@karma-team/services";
 import { Input, Spinner, PasswordStrengthIndicator } from "@karma-team/ui";
 import { getPasswordStrength } from "@karma-team/utils";
 // types
-import { EAuthModes, EAuthSteps } from "@/types/auth";
+import { EAuthModes } from "@/types/auth";
 
 type Props = {
   email: string;
@@ -23,7 +23,6 @@ type Props = {
   mode: EAuthModes;
   nextPath: string | undefined;
   handleEmailClear: () => void;
-  handleAuthStep: (step: EAuthSteps) => void;
 };
 
 type TPasswordFormValues = {
@@ -40,7 +39,7 @@ const defaultValues: TPasswordFormValues = {
 const authService = new AuthService();
 
 export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props) {
-  const { email, nextPath, isSMTPConfigured, handleAuthStep, handleEmailClear, mode } = props;
+  const { email, nextPath, isSMTPConfigured, handleEmailClear, mode } = props;
   // ref
   const formRef = useRef<HTMLFormElement>(null);
   // states
@@ -66,10 +65,6 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
       setCsrfPromise(promise);
     }
   }, [csrfPromise]);
-
-  const redirectToUniqueCodeSignIn = async () => {
-    handleAuthStep(EAuthSteps.UNIQUE_CODE);
-  };
 
   const passwordSupport = passwordFormData.password.length > 0 &&
     mode === EAuthModes.SIGN_UP &&
@@ -123,16 +118,16 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
       <input type="hidden" value={nextPath} name="next_path" />
       <div className="space-y-1">
         <label className="text-13 font-medium text-tertiary" htmlFor="email">
-          Email
+          Email or username
         </label>
         <div className={`relative flex items-center rounded-md border border-subtle bg-surface-1`}>
           <Input
             id="email"
             name="email"
-            type="email"
+            type="text"
             value={passwordFormData.email}
             onChange={(e) => handleFormChange("email", e.target.value)}
-            placeholder="name@company.com"
+            placeholder="Email or username"
             className={`h-10 w-full border-0 disable-autofill-style placeholder:text-placeholder`}
             disabled
           />
@@ -224,17 +219,6 @@ export const AuthPasswordForm = observer(function AuthPasswordForm(props: Props)
                 "Go to workspace"
               )}
             </Button>
-            {isSMTPConfigured && (
-              <Button
-                type="button"
-                onClick={redirectToUniqueCodeSignIn}
-                variant="secondary"
-                className="w-full"
-                size="xl"
-              >
-                Sign in with unique code
-              </Button>
-            )}
           </>
         ) : (
           <Button type="submit" variant="primary" className="w-full" size="xl" disabled={isButtonDisabled}>
