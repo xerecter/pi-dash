@@ -69,8 +69,12 @@ pub async fn resolve_state_name(
         client.env.workspace_slug, project_id
     );
     let body = client.get(&path).await?;
+    // Current servers return a paginated envelope; retain compatibility with
+    // older deployments that returned the state array directly.
     let states = body
-        .as_array()
+        .get("results")
+        .and_then(Value::as_array)
+        .or_else(|| body.as_array())
         .ok_or_else(|| CliError::new(EXIT_SERVER, "states response is not a list"))?;
     let needle = name.trim().to_lowercase();
     let mut matches: Vec<(String, String)> = Vec::new();

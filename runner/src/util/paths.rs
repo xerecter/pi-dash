@@ -133,6 +133,12 @@ impl Paths {
         self.runtime_dir.join("pid")
     }
 
+    /// Crash-safe journal of `RunFailed` signals the daemon could not deliver
+    /// while shutting down.
+    pub fn drain_journal_path(&self) -> PathBuf {
+        self.data_dir.join("pending_run_failures.json")
+    }
+
     pub fn ipc_socket_path(&self) -> PathBuf {
         self.runtime_dir.join("karma-team.sock")
     }

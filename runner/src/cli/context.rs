@@ -163,6 +163,27 @@ fn render_context(doc: &ContextDoc) -> String {
     out
 }
 
+pub(crate) fn merge_context_documents(primary: &str, additional: &str) -> Option<String> {
+    let mut primary = parse_context(primary)?;
+    let additional = parse_context(additional)?;
+    if primary.workspace_slug.is_empty() {
+        primary.workspace_slug = additional.workspace_slug;
+    }
+    if primary.default_project_id.is_empty() {
+        primary.default_project_id = additional.default_project_id;
+    }
+    for project in additional.projects {
+        if !primary
+            .projects
+            .iter()
+            .any(|existing| existing.id == project.id)
+        {
+            primary.projects.push(project);
+        }
+    }
+    Some(render_context(&primary))
+}
+
 fn parse_context(body: &str) -> Option<ContextDoc> {
     let mut lines = body.lines();
     if lines.next()? != "---" {
@@ -278,5 +299,27 @@ mod tests {
         assert_eq!(projects.len(), 2);
         assert_eq!(projects[0].identifier, "APP");
         assert_eq!(projects[1].identifier, "API");
+    }
+
+    #[test]
+    fn merge_context_documents_keeps_projects_from_both_workspaces() {
+        let local = render_context(&ContextDoc {
+            workspace_slug: "acme".to_string(),
+            default_project_id: "p1".to_string(),
+            projects: vec![project("p1", "WEB", "Website")],
+        });
+        let cloned = render_context(&ContextDoc {
+            workspace_slug: "other".to_string(),
+            default_project_id: "p2".to_string(),
+            projects: vec![project("p2", "API", "API")],
+        });
+
+        let merged = parse_context(&merge_context_documents(&local, &cloned).unwrap()).unwrap();
+
+        assert_eq!(merged.workspace_slug, "acme");
+        assert_eq!(merged.default_project_id, "p1");
+        assert_eq!(merged.projects.len(), 2);
+        assert_eq!(merged.projects[0].id, "p1");
+        assert_eq!(merged.projects[1].id, "p2");
     }
 }

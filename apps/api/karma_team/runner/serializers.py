@@ -262,6 +262,7 @@ class AgentRunSerializer(serializers.ModelSerializer):
     pod_detail = PodMiniSerializer(source="pod", read_only=True)
     error_diagnostic = serializers.SerializerMethodField()
     tool_calls = AgentRunToolCallSerializer(many=True, read_only=True)
+    scheduler_binding_detail = serializers.SerializerMethodField()
 
     def get_error_diagnostic(self, run: AgentRun):
         # Only the per-run detail drawer renders this block. Skip the
@@ -271,6 +272,17 @@ class AgentRunSerializer(serializers.ModelSerializer):
         if isinstance(self.parent, serializers.ListSerializer):
             return None
         return classify_run_error(run.error)
+
+    def get_scheduler_binding_detail(self, run: AgentRun):
+        if run.scheduler_binding_id is None:
+            return None
+        binding = run.scheduler_binding
+        return {
+            "id": str(binding.id),
+            "scheduler_name": binding.scheduler.name,
+            "scheduler_slug": binding.scheduler.slug,
+            "project": str(binding.project_id),
+        }
 
     class Meta:
         model = AgentRun
@@ -286,6 +298,8 @@ class AgentRunSerializer(serializers.ModelSerializer):
             "agent_metadata",
             "runner",
             "work_item",
+            "scheduler_binding",
+            "scheduler_binding_detail",
             "pod",
             "pod_detail",
             "created_by",

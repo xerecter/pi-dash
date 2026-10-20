@@ -18,7 +18,7 @@ import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 import { Tooltip } from "@karma-team/propel/tooltip";
 import { EFileAssetType } from "@karma-team/types";
 import type { IProject, IWorkspace } from "@karma-team/types";
-import { CustomSelect, Input, TextArea } from "@karma-team/ui";
+import { CustomSelect, Input, TextArea, ToggleSwitch } from "@karma-team/ui";
 import { renderFormattedDate } from "@karma-team/utils";
 import { CoverImage } from "@/components/common/cover-image";
 import { ImagePickerPopover } from "@/components/core/image-picker-popover";
@@ -34,6 +34,16 @@ import { GIT_PROJECT_BINDING } from "@/constants/fetch-keys";
 import { ProjectService } from "@/services/project";
 // local imports
 import { ProjectNetworkIcon } from "./project-network-icon";
+import {
+  buildTickingPolicyPayload,
+  cappedBudgetOf,
+  DEFAULT_CADENCE_SECONDS,
+  DEFAULT_MAX_TICKS,
+  formatCadenceSeconds,
+  INFINITE_MAX_TICKS,
+  isValidTickBudget,
+  TICKING_CADENCE_OPTIONS,
+} from "./ticking-policy";
 
 export interface IProjectDetailsForm {
   project: IProject;
@@ -49,6 +59,7 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
   // states
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [lastCappedBudget, setLastCappedBudget] = useState(cappedBudgetOf(project));
   // store hooks
   const { updateProject } = useProject();
   const { isMobile } = usePlatformOS();
@@ -61,7 +72,7 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
     setValue,
     setError,
     reset,
-    formState: { errors },
+    formState: { errors, dirtyFields },
     getValues,
   } = useForm<IProject>({
     defaultValues: {
@@ -73,6 +84,7 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
   const currentNetwork = NETWORK_CHOICES.find((n) => n.key === project?.network);
   const coverImage = watch("cover_image_url");
   const cloudExecutorOption = project.agent_executor_options?.find((option) => option.kind === "cloud_agent");
+  const isTickingEnabled = watch("agent_ticking_enabled") ?? true;
 
   useEffect(() => {
     if (project && projectId !== getValues("id")) {
@@ -80,6 +92,7 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
         ...project,
         workspace: (project.workspace as IWorkspace).id,
       });
+      setLastCappedBudget(cappedBudgetOf(project));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project, projectId]);
@@ -220,6 +233,11 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
       timezone: formData.timezone,
       base_branch: formData.base_branch ?? "",
       default_agent_executor: formData.default_agent_executor ?? "local_runner",
+      ...buildTickingPolicyPayload(formData, {
+        agent_ticking_enabled: Boolean(dirtyFields.agent_ticking_enabled),
+        agent_default_max_ticks: Boolean(dirtyFields.agent_default_max_ticks),
+        agent_default_interval_seconds: Boolean(dirtyFields.agent_default_interval_seconds),
+      }),
     };
 
     // Handle cover image changes
@@ -500,6 +518,118 @@ export function ProjectDetailsForm(props: IProjectDetailsForm) {
           <p className="text-11 text-tertiary">
             {t("Changing this affects new runs only. Existing and queued runs keep their original executor.")}
           </p>
+        </div>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col gap-1">
+              <h4 className="text-13">{t("AI agent ticking")}</h4>
+              <p className="text-11 text-tertiary">
+                {t(
+                  "When off, no work item in this project is re-run on a timer. Human-started runs (Run AI, Comment & Run) still work."
+                )}
+              </p>
+            </div>
+            <Controller
+              name="agent_ticking_enabled"
+              control={control}
+              render={({ field: { value, onChange } }) => (
+                <ToggleSwitch value={value ?? true} onChange={onChange} disabled={!isAdmin} size="sm" />
+              )}
+            />
+          </div>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="flex flex-col gap-1">
+              <h4 className="text-13">{t("Run budget per work item")}</h4>
+              <Controller
+                name="agent_default_max_ticks"
+                control={control}
+                rules={{
+                  validate: (value) => {
+                    if ((getValues("agent_ticking_enabled") ?? true) === false) return true;
+                    return isValidTickBudget(value) || t("Enter a whole number of 1 or more, or tick No cap.");
+                  },
+                }}
+                render={({ field: { value, onChange } }) => {
+                  const isUncapped = value === INFINITE_MAX_TICKS;
+                  return (
+                    <div className="flex items-center gap-3">
+                      <Input
+                        id="agent_default_max_ticks"
+                        name="agent_default_max_ticks"
+                        type="number"
+                        min={1}
+                        step={1}
+                        value={isUncapped ? "" : (value ?? DEFAULT_MAX_TICKS)}
+                        onChange={(event) => onChange(event.target.value === "" ? "" : Number(event.target.value))}
+                        hasError={Boolean(errors?.agent_default_max_ticks)}
+                        placeholder={isUncapped ? t("No cap") : undefined}
+                        className="w-24 font-medium"
+                        disabled={!isAdmin || !isTickingEnabled || isUncapped}
+                      />
+                      <label className="flex items-center gap-1.5 text-11 text-tertiary">
+                        <input
+                          type="checkbox"
+                          checked={isUncapped}
+                          onChange={(event) => {
+                            if (event.target.checked) {
+                              if (typeof value === "number" && value > 0) setLastCappedBudget(value);
+                              onChange(INFINITE_MAX_TICKS);
+                            } else {
+                              onChange(lastCappedBudget);
+                            }
+                          }}
+                          disabled={!isAdmin || !isTickingEnabled}
+                        />
+                        {t("No cap")}
+                      </label>
+                    </div>
+                  );
+                }}
+              />
+              <span className="text-11 text-danger-primary">{errors?.agent_default_max_ticks?.message}</span>
+              <p className="text-11 text-tertiary">
+                {t(
+                  "How many automatic runs a work item gets across In Progress, In Review and In Test before it pauses. Re-tick grants one new full budget. A new budget applies from the next tick; paused work items stay paused until you Re-tick them."
+                )}
+              </p>
+            </div>
+            <div className="flex flex-col gap-1">
+              <h4 className="text-13">{t("Cadence")}</h4>
+              <Controller
+                name="agent_default_interval_seconds"
+                control={control}
+                render={({ field: { value, onChange } }) => {
+                  const selected = Number(value ?? DEFAULT_CADENCE_SECONDS);
+                  const isPreset = TICKING_CADENCE_OPTIONS.some((option) => option.seconds === selected);
+                  return (
+                    <select
+                      aria-label={t("Cadence")}
+                      value={selected}
+                      onChange={(event) => onChange(Number(event.target.value))}
+                      disabled={!isAdmin || !isTickingEnabled}
+                      className="w-fit rounded-md border border-subtle bg-surface-1 px-2 py-1 text-13"
+                    >
+                      {!isPreset && (
+                        <option value={selected}>
+                          {t("Custom ({duration})", { duration: formatCadenceSeconds(selected) })}
+                        </option>
+                      )}
+                      {TICKING_CADENCE_OPTIONS.map((option) => (
+                        <option key={option.seconds} value={option.seconds}>
+                          {t(option.i18n_label)}
+                        </option>
+                      ))}
+                    </select>
+                  );
+                }}
+              />
+              <p className="text-11 text-tertiary">
+                {t(
+                  "How long Karma Team waits between automatic runs. One cadence covers In Progress, In Review and In Test. A new cadence applies from the next tick; a work item already waiting keeps its scheduled time."
+                )}
+              </p>
+            </div>
+          </div>
         </div>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <div className="flex flex-col gap-1">

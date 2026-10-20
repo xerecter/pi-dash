@@ -235,11 +235,11 @@ async fn resolve_state_name_is_case_insensitive() {
     let fake = start_fake(Box::new(|req| {
         assert!(req.path.ends_with("/states/"));
         CannedResponse::ok(
-            r#"[
+            r#"{"count":3,"next_cursor":null,"results":[
                 {"id":"00000000-0000-0000-0000-0000000000b1","name":"Todo","group":"unstarted"},
                 {"id":"00000000-0000-0000-0000-0000000000b2","name":"In Progress","group":"started"},
                 {"id":"00000000-0000-0000-0000-0000000000b3","name":"Done","group":"completed"}
-            ]"#,
+            ]}"#,
         )
     }))
     .await;

@@ -10,7 +10,8 @@
 //! See `.ai_design/runner_install_ux/cli-restructure-and-install-flow.md`.
 
 use clap::CommandFactory;
-use karma_team::cli::Cli;
+use clap::Parser;
+use karma_team::cli::{Cli, Command, auth};
 
 fn subcommand_names() -> Vec<String> {
     Cli::command()
@@ -28,6 +29,39 @@ fn top_level_service_verbs_are_registered() {
             "missing top-level subcommand: {v} (present: {names:?})",
         );
     }
+}
+
+#[test]
+fn top_level_login_reuses_auth_login_arguments() {
+    let cli = Cli::try_parse_from([
+        "karma-team",
+        "login",
+        "--url",
+        "https://karma-team.example.com",
+        "--no-browser",
+    ])
+    .expect("top-level login should parse");
+
+    let Some(Command::Login(args)) = cli.command else {
+        panic!("top-level login command expected");
+    };
+    assert_eq!(args.url.as_deref(), Some("https://karma-team.example.com"));
+    assert!(args.no_browser);
+
+    let legacy = Cli::try_parse_from([
+        "karma-team",
+        "auth",
+        "login",
+        "--url",
+        "https://karma-team.example.com",
+    ])
+    .expect("auth login compatibility path should still parse");
+    assert!(matches!(
+        legacy.command,
+        Some(Command::Auth(auth::AuthArgs {
+            command: auth::AuthCommand::Login(_),
+        }))
+    ));
 }
 
 #[test]
@@ -86,6 +120,21 @@ fn legacy_connect_command_exists_but_is_hidden() {
         sub.is_hide_set(),
         "`connect` must be hidden from --help; new setup uses `karma-team auth login` and `karma-team runner add`",
     );
+}
+
+#[test]
+fn workpad_update_has_keep_flag() {
+    let cmd = Cli::command();
+    let update = cmd
+        .find_subcommand("workpad")
+        .and_then(|workpad| workpad.find_subcommand("update"))
+        .expect("`workpad update` should be registered");
+    let keep = update
+        .get_arguments()
+        .find(|argument| argument.get_id() == "keep")
+        .expect("`workpad update` must expose `--keep`");
+
+    assert_eq!(keep.get_long(), Some("keep"));
 }
 
 #[test]

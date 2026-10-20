@@ -66,6 +66,10 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
+    /// Authenticate this host with karma-team cloud.
+    /// This is a shorthand for `karma-team auth login`.
+    Login(auth::login::Args),
+
     /// Authenticate this host as a user (`auth login` / `status` /
     /// `logout`). Binds the machine and starts automatic project-runner
     /// synchronization; the token also authorizes manual runner commands.
@@ -169,6 +173,7 @@ pub async fn run(cli: Cli) -> Result<()> {
     };
 
     match command {
+        Command::Login(args) => auth::login::run(args, &paths).await,
         Command::Auth(args) => auth::run(args, &paths).await,
         Command::Connect(args) => connect::run(args, &paths).await,
         Command::Config(args) => config_cmd::run(args, &paths).await,

@@ -19,6 +19,7 @@ import { EIssuesStoreType } from "@karma-team/types";
 import { CustomSelect } from "@karma-team/ui";
 import { copyTextToClipboard, generateWorkItemLink } from "@karma-team/utils";
 // hooks
+import { useAppRouter } from "@/hooks/use-app-router";
 import { useIssueDetail } from "@/hooks/store/use-issue-detail";
 import { useIssues } from "@/hooks/store/use-issues";
 import { useProject } from "@/hooks/store/use-project";
@@ -91,6 +92,7 @@ export const IssuePeekOverviewHeader = observer(function IssuePeekOverviewHeader
   // ref
   const parentRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
+  const router = useAppRouter();
   // store hooks
   const { data: currentUser } = useUser();
   const {
@@ -112,22 +114,40 @@ export const IssuePeekOverviewHeader = observer(function IssuePeekOverviewHeader
 
   const workItemLink = generateWorkItemLink({
     workspaceSlug,
-    projectId: issueDetails?.project_id,
+    projectId: projectId ?? issueDetails?.project_id,
     issueId,
     projectIdentifier,
     sequenceId: issueDetails?.sequence_id,
     isArchived,
   });
+  const isWorkItemLinkReady = isArchived
+    ? Boolean(workspaceSlug && projectId && issueId)
+    : Boolean(projectIdentifier && issueDetails?.sequence_id != null);
+
+  const handleOpenFullScreen = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+    event.preventDefault();
+    removeRoutePeekId();
+    router.push(workItemLink);
+  };
 
   const handleCopyText = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
-    await copyTextToClipboard(desktopWebUrl(workItemLink));
-    setToast({
-      type: TOAST_TYPE.SUCCESS,
-      title: t("Link copied!"),
-      message: t("Link copied to clipboard"),
-    });
+    if (!isWorkItemLinkReady) return;
+    try {
+      await copyTextToClipboard(desktopWebUrl(workItemLink));
+      setToast({
+        type: TOAST_TYPE.SUCCESS,
+        title: t("Link copied!"),
+        message: t("Link copied to clipboard"),
+      });
+    } catch (_error) {
+      setToast({
+        title: t("Error!"),
+        type: TOAST_TYPE.ERROR,
+      });
+    }
   };
 
   const handleDeleteIssue = async () => {
@@ -169,9 +189,15 @@ export const IssuePeekOverviewHeader = observer(function IssuePeekOverviewHeader
         </Tooltip>
 
         <Tooltip tooltipContent={t("Open work item in full screen")} isMobile={isMobile}>
-          <Link href={workItemLink} onClick={() => removeRoutePeekId()}>
-            <MoveDiagonal className="h-4 w-4 text-tertiary hover:text-secondary" />
-          </Link>
+          {isWorkItemLinkReady ? (
+            <Link href={workItemLink} onClick={handleOpenFullScreen}>
+              <MoveDiagonal className="h-4 w-4 text-tertiary hover:text-secondary" />
+            </Link>
+          ) : (
+            <span aria-disabled className="cursor-not-allowed">
+              <MoveDiagonal className="h-4 w-4 text-placeholder" />
+            </span>
+          )}
         </Tooltip>
         {currentMode && embedIssue === false && (
           <div className="flex flex-shrink-0 items-center gap-2">
@@ -209,7 +235,13 @@ export const IssuePeekOverviewHeader = observer(function IssuePeekOverviewHeader
             <IssueSubscription workspaceSlug={workspaceSlug} projectId={projectId} issueId={issueId} />
           )}
           <Tooltip tooltipContent={t("Copy link")} isMobile={isMobile}>
-            <IconButton variant="secondary" size="lg" onClick={handleCopyText} icon={CopyLinkIcon} />
+            <IconButton
+              variant="secondary"
+              size="lg"
+              onClick={handleCopyText}
+              icon={CopyLinkIcon}
+              disabled={!isWorkItemLinkReady}
+            />
           </Tooltip>
           {issueDetails && (
             <WorkItemDetailQuickActions

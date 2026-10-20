@@ -6,6 +6,7 @@
 
 import { useMemo } from "react";
 import { X as CloseIcon } from "lucide-react";
+import { Link, useParams } from "react-router";
 import { useTranslation } from "@karma-team/i18n";
 import { Button } from "@karma-team/propel/button";
 import type { ISchedulerBinding, ISchedulerOccurrence } from "@karma-team/services";
@@ -33,6 +34,7 @@ type Props = {
  */
 export function OccurrenceDrawer({ occurrence, binding, canManage, onClose, onEditBinding }: Props) {
   const { t } = useTranslation();
+  const { workspaceSlug, projectId } = useParams<{ workspaceSlug: string; projectId: string }>();
 
   const friendlyRule = useMemo(() => (binding ? humanizeRrule(binding.rrule, binding.dtstart) : null), [binding]);
 
@@ -40,6 +42,7 @@ export function OccurrenceDrawer({ occurrence, binding, canManage, onClose, onEd
 
   const dt = new Date(occurrence.dtstart);
   const isPast = occurrence.kind === "past";
+  const bindingDetailPath = `/${workspaceSlug}/projects/${projectId}/schedulers/${occurrence.binding_id}`;
 
   return (
     <div className="shadow-xl fixed inset-y-0 right-0 z-40 flex w-[420px] max-w-full flex-col border-l border-subtle bg-surface-1 md:w-[420px]">
@@ -72,13 +75,19 @@ export function OccurrenceDrawer({ occurrence, binding, canManage, onClose, onEd
           </>
         )}
 
-        {isPast && occurrence.agent_run_id && (
-          <div className="mt-6">
-            <Button variant="link" size="sm" onClick={onClose}>
-              {t("View full run")} →
-            </Button>
-          </div>
-        )}
+        <div className="mt-6 flex flex-col items-start gap-2">
+          {isPast && occurrence.agent_run_id && (
+            <Link
+              to={`/${workspaceSlug}/projects/${projectId}/runners/runs/${occurrence.agent_run_id}`}
+              className="text-13 font-medium text-primary hover:underline"
+            >
+              {t("View full run")}
+            </Link>
+          )}
+          <Link to={bindingDetailPath} className="text-13 font-medium text-primary hover:underline">
+            {t("View scheduler")}
+          </Link>
+        </div>
       </div>
 
       {!isPast && binding && canManage && (

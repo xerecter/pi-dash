@@ -34,6 +34,7 @@ from karma_team.db.models.issue_agent_ticker import (
     IssueAgentTicker,
     TickerDisarmReason,
 )
+from karma_team.db.models.project import Project
 from karma_team.orchestration.agent_phases import is_ticking_state
 
 logger = logging.getLogger("karma_team.worker")
@@ -76,8 +77,9 @@ def fire_tick(ticker_id: str) -> bool:
     """Per-ticker worker. Atomically claims and dispatches.
 
     Returns ``True`` if a continuation run was dispatched, ``False`` if the
-    fire was skipped (race lost, ticker changed, no active In Progress
-    state, run already in flight, etc.).
+    fire was skipped (race lost, ticker changed, ticking switched off for
+    the project or issue, no active In Progress state, run already in flight,
+    etc.).
     """
     from karma_team.orchestration.scheduling import (
         TRIGGER_RUN_AI,
@@ -85,15 +87,30 @@ def fire_tick(ticker_id: str) -> bool:
         dispatch_continuation_run,
     )
 
+    # Resolve only the lock key outside the transaction. The Project row is
+    # then locked and re-read before the ticker row, so a project PATCH and a
+    # worker claim have one deterministic linearization point.
+    project_id = (
+        IssueAgentTicker.objects.filter(pk=ticker_id)
+        .values_list("issue__project_id", flat=True)
+        .first()
+    )
+    if project_id is None:
+        return False
+
     with transaction.atomic():
+        project = Project.objects.select_for_update(of=("self",)).filter(pk=project_id).first()
+        if project is None:
+            return False
         ticker = (
             IssueAgentTicker.objects.select_for_update(of=("self",))
-            .select_related("issue", "issue__state", "issue__project")
-            .filter(pk=ticker_id)
+            .select_related("issue", "issue__state")
+            .filter(pk=ticker_id, issue__project_id=project.pk)
             .first()
         )
         if ticker is None:
             return False
+        ticker.issue.project = project
 
         # Re-check after acquiring the lock — Comment & Run, another tick
         # firing on the same row, or a disarm could have moved things.
@@ -108,6 +125,41 @@ def fire_tick(ticker_id: str) -> bool:
         # cannot exist (reconcile parks the issue instead), so the cap
         # check below only ever stops timer ticks.
         free_claim = ticker.pending_entry and ticker.pending_entry_free
+
+        # Project and issue switches must stop an already-armed automatic tick
+        # before it consumes budget. Human-queued free entries still run below
+        # because a person explicitly requested them.
+        if not free_claim and (
+            ticker.user_disabled
+            or not project.agent_ticking_enabled
+        ):
+            ticker.enabled = False
+            ticker.disarm_reason = (
+                TickerDisarmReason.USER_DISABLED
+                if ticker.user_disabled
+                else TickerDisarmReason.NONE
+            )
+            ticker.pending_entry = False
+            ticker.pending_entry_free = False
+            ticker.pending_entry_actor = None
+            ticker.pending_entry_trigger = ""
+            ticker.save(
+                update_fields=[
+                    "enabled",
+                    "disarm_reason",
+                    "pending_entry",
+                    "pending_entry_free",
+                    "pending_entry_actor",
+                    "pending_entry_trigger",
+                    "updated_at",
+                ]
+            )
+            logger.info(
+                "agent_ticker.fire_tick: skip issue=%s reason=ticking-switched-off",
+                ticker.issue_id,
+            )
+            return False
+
         cap = ticker.effective_max_ticks()
         if not free_claim and cap != INFINITE_MAX_TICKS and ticker.used >= cap:
             # Already at cap — disarm and bail. A queued (counting) entry
@@ -217,9 +269,9 @@ def fire_tick(ticker_id: str) -> bool:
             # transition is deferred to the run-terminate hook (§4.4.1).
             ticker.enabled = False
             ticker.disarm_reason = TickerDisarmReason.CAP_HIT
-        elif ticker.user_disabled or not getattr(issue.project, "agent_ticking_enabled", True):
-            # A queued human entry fires even on a switched-off clock (the
-            # human asked for this run), but no timer tick may follow it.
+        elif ticker.user_disabled or not project.agent_ticking_enabled:
+            # Only a human's free pending entry can reach this branch when a
+            # switch is off; it runs once, then leaves the clock disarmed.
             ticker.enabled = False
             ticker.disarm_reason = (
                 TickerDisarmReason.USER_DISABLED if ticker.user_disabled else TickerDisarmReason.NONE
@@ -256,13 +308,21 @@ def fire_tick(ticker_id: str) -> bool:
         # last_tick_at intentionally NOT rolled back: it's an observability
         # field for "we attempted a tick at this time," not a budget input.
         with transaction.atomic():
+            rollback_project = (
+                Project.objects.select_for_update(of=("self",))
+                .filter(pk=project_id)
+                .first()
+            )
+            if rollback_project is None:
+                return False
             rollback = (
                 IssueAgentTicker.objects.select_for_update(of=("self",))
                 .select_related("issue__state")
-                .filter(pk=ticker_id)
+                .filter(pk=ticker_id, issue__project_id=rollback_project.pk)
                 .first()
             )
             if rollback is not None:
+                rollback.issue.project = rollback_project
                 rollback.used = prev_used
                 if rollback.issue.state_id != claimed_state_id:
                     # Dispatch may have bounced the issue to Backlog. The
@@ -287,6 +347,25 @@ def fire_tick(ticker_id: str) -> bool:
                 rollback.pending_entry_free = prev_pending_entry_free
                 rollback.pending_entry_actor_id = prev_pending_entry_actor_id
                 rollback.pending_entry_trigger = prev_pending_entry_trigger
+
+                # A project/user switch may have committed after the claim but
+                # before dispatch failed. Never resurrect automatic work over
+                # that newer decision. A human/free pending entry is different:
+                # it is an explicit one-shot request and remains retryable.
+                restoring_human_entry = prev_pending_entry and prev_pending_entry_free
+                if not restoring_human_entry and (
+                    rollback.user_disabled or not rollback_project.agent_ticking_enabled
+                ):
+                    rollback.enabled = False
+                    rollback.disarm_reason = (
+                        TickerDisarmReason.USER_DISABLED
+                        if rollback.user_disabled
+                        else TickerDisarmReason.NONE
+                    )
+                    rollback.pending_entry = False
+                    rollback.pending_entry_free = False
+                    rollback.pending_entry_actor = None
+                    rollback.pending_entry_trigger = ""
                 rollback.save(
                     update_fields=[
                         "used",

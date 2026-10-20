@@ -38,6 +38,7 @@ from karma_team.assistant.runtime.agent import assistant
 from karma_team.assistant.runtime.deps import AssistantDeps
 from karma_team.core.permissions import workspace_role
 from karma_team.settings.redis import redis_instance
+from karma_team.utils.db_async import close_idle_connections, db_sync_to_async
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,8 @@ class _Ctx:
 
 
 # --------------------------------------------------------------------------- #
-# Sync DB helpers (called from async via sync_to_async)
+# Sync DB helpers (called from async via db_sync_to_async, which releases the
+# Django connection around each call so a long turn does not park it idle).
 # --------------------------------------------------------------------------- #
 
 def _load_context(turn_id):
@@ -226,6 +228,9 @@ class _Streamer:
         from pydantic_ai.messages import PartDeltaEvent, PartStartEvent, TextPart, TextPartDelta
 
         async for event in event_stream:
+            # Cancellation is Redis-only. Keep it on the regular
+            # thread-sensitive executor so it does not close the hot delta
+            # connection between successive stream events.
             if await sync_to_async(_is_cancelled)(self.ctx.turn.id):
                 raise _Cancelled()
             if isinstance(event, PartStartEvent):
@@ -242,7 +247,7 @@ class _Streamer:
         await self._finalize()
 
     async def _start(self, initial: str):
-        self.message = await sync_to_async(_start_assistant_row)(self.ctx)
+        self.message = await db_sync_to_async(_start_assistant_row)(self.ctx)
         self.text = ""
         self.pending = ""
         self.last_flush = asyncio.get_running_loop().time()
@@ -263,6 +268,9 @@ class _Streamer:
     async def _flush(self):
         if self.message is not None and self.pending:
             chunk, self.pending = self.pending, ""
+            # This is the hot streaming path and can run every 100ms. Keep one
+            # thread-sensitive connection here instead of reconnecting for
+            # every delta; run_assistant_turn releases it in its finalizer.
             await sync_to_async(_emit_delta)(self.ctx, self.message, chunk)
             self.last_flush = asyncio.get_running_loop().time()
 
@@ -270,13 +278,17 @@ class _Streamer:
         if self.message is None:
             return
         await self._flush()
-        await sync_to_async(_finalize_row)(self.ctx, self.message, self.text, MessageStatus.COMPLETED)
+        await db_sync_to_async(_finalize_row)(
+            self.ctx, self.message, self.text, MessageStatus.COMPLETED
+        )
         self.message = None
         self.text = ""
 
     async def fail_open_row(self, status: str):
         if self.message is not None:
-            await sync_to_async(_finalize_row)(self.ctx, self.message, self.text, status)
+            await db_sync_to_async(_finalize_row)(
+                self.ctx, self.message, self.text, status
+            )
             self.message = None
 
 
@@ -293,28 +305,28 @@ async def _run_turn(turn_id: str):
         resolve_toolsets_for_user,
     )
 
-    ctx = await sync_to_async(_load_context)(turn_id)
+    ctx = await db_sync_to_async(_load_context)(turn_id)
     if ctx is None:
         return
-    if not await sync_to_async(_mark_running)(ctx):
+    if not await db_sync_to_async(_mark_running)(ctx):
         return  # turn was already taken, cancelled, or swept
 
     try:
-        model = await sync_to_async(resolve_model_for_user)(ctx.user)
+        model = await db_sync_to_async(resolve_model_for_user)(ctx.user)
     except AssistantError as exc:
-        await sync_to_async(_fail_turn)(ctx, exc.code, exc.detail)
+        await db_sync_to_async(_fail_turn)(ctx, exc.code, exc.detail)
         return
 
     # Tool servers are additive: a failure to build them degrades the turn's
     # capabilities but never fails it, so this is deliberately outside the
     # model-resolution try/except above.
-    toolsets, skipped = await sync_to_async(_resolve_toolsets)(
+    toolsets, skipped = await db_sync_to_async(_resolve_toolsets)(
         ctx, resolve_toolsets_for_user
     )
 
-    hist = await sync_to_async(history.load_history)(ctx.thread)
+    hist = await db_sync_to_async(history.load_history)(ctx.thread)
     streamer = _Streamer(ctx)
-    model_label = await sync_to_async(_model_label)(ctx.user)
+    model_label = await db_sync_to_async(_model_label)(ctx.user)
 
     # Servers that dropped out mid-run were absorbed to keep the turn alive;
     # report them however the turn ends. On the failure paths this matters
@@ -332,27 +344,27 @@ async def _run_turn(turn_id: str):
             event_stream_handler=streamer.handle,
         )
     except _Cancelled:
-        await sync_to_async(_report_runtime_tool_failures)(ctx, toolsets)
+        await db_sync_to_async(_report_runtime_tool_failures)(ctx, toolsets)
         await streamer.fail_open_row(MessageStatus.CANCELLED)
-        await sync_to_async(_cancel_turn)(ctx)
+        await db_sync_to_async(_cancel_turn)(ctx)
         return
     except UsageLimitExceeded as exc:
-        await sync_to_async(_report_runtime_tool_failures)(ctx, toolsets)
+        await db_sync_to_async(_report_runtime_tool_failures)(ctx, toolsets)
         await streamer.fail_open_row(MessageStatus.FAILED)
-        await sync_to_async(_fail_turn)(ctx, "iteration_limit", str(exc))
+        await db_sync_to_async(_fail_turn)(ctx, "iteration_limit", str(exc))
         return
     except Exception as exc:  # noqa: BLE001 — classify provider failures
-        await sync_to_async(_report_runtime_tool_failures)(ctx, toolsets)
+        await db_sync_to_async(_report_runtime_tool_failures)(ctx, toolsets)
         await streamer.fail_open_row(MessageStatus.FAILED)
         code, detail = _classify_error(exc)
-        await sync_to_async(_fail_turn)(ctx, code, detail)
+        await db_sync_to_async(_fail_turn)(ctx, code, detail)
         return
 
-    await sync_to_async(_report_runtime_tool_failures)(ctx, toolsets)
+    await db_sync_to_async(_report_runtime_tool_failures)(ctx, toolsets)
 
-    model_messages = await sync_to_async(history.dump_new_messages)(result)
+    model_messages = await db_sync_to_async(history.dump_new_messages)(result)
     usage = _extract_usage(result)
-    await sync_to_async(_complete_turn)(ctx, model_messages, usage, model_label)
+    await db_sync_to_async(_complete_turn)(ctx, model_messages, usage, model_label)
 
 
 def _resolve_toolsets(ctx, resolver) -> tuple[list, list]:
@@ -428,6 +440,15 @@ def _extract_usage(result) -> dict:
 
 
 def _classify_error(exc: Exception) -> tuple[str, str]:
+    # Model adapters and providers already use stable, user-facing typed
+    # errors. The runtime can wrap them, so inspect the full cause chain before
+    # falling back to message heuristics.
+    cause: BaseException | None = exc
+    while cause is not None:
+        if isinstance(cause, AssistantError):
+            return cause.code, cause.detail
+        cause = cause.__cause__
+
     text = str(exc).lower()
     # Credit exhaustion is a distinct, user-actionable condition — routed
     # providers (OpenRouter, and any metered gateway) answer 402 rather than
@@ -475,6 +496,15 @@ def run_assistant_turn(turn_id):
         ctx = _load_context(str(turn_id))
         if ctx is not None:
             _fail_turn(ctx, "turn_timeout", "The assistant took too long to respond.")
+    finally:
+        asyncio.run(_close_turn_connection())
+
+
+async def _close_turn_connection() -> None:
+    """Release the hot delta path's thread-sensitive connection after a turn."""
+    # Django connections are thread-local. Route cleanup back to the same
+    # process-wide thread-sensitive executor used by _emit_delta.
+    await sync_to_async(close_idle_connections)()
 
 
 @shared_task(name="assistant.sweep_stale_turns")

@@ -54,6 +54,44 @@ def runner_visible_to_user_q(user, *, prefix: str = "") -> Q:
     )
 
 
+def scheduler_run_visible_to_user_q(user, *, prefix: str = "") -> Q:
+    """ORM predicate for a scheduler run visible to a project member.
+
+    Project membership is deliberately *not* encoded here; scheduler endpoints
+    apply their normal project permission before using this predicate.  This is
+    the second, private-runner gate shared by history, calendar occurrences and
+    binding summary counts:
+
+    - runner-less (queued / Cloud Agent) runs are project-visible;
+    - a run on a private runner is visible to its creator or runner owner.
+
+    ``prefix`` targets an ``AgentRun`` relation, for example ``"last_run__"``.
+    """
+    user_id = _authenticated_user_id(user)
+    if user_id is None:
+        return Q(**{f"{prefix}pk__isnull": True})
+    return (
+        Q(**{f"{prefix}runner__isnull": True})
+        | Q(**{f"{prefix}runner__owner_id": user_id})
+        | Q(**{f"{prefix}created_by_id": user_id})
+    )
+
+
+def can_view_scheduler_run(user, run) -> bool:
+    """Object-level equivalent of :func:`scheduler_run_visible_to_user_q`.
+
+    Callers must still enforce active project membership. Keeping this small
+    object check beside the queryset predicate prevents binding serializers
+    from drifting away from the history/calendar policy.
+    """
+    user_id = _authenticated_user_id(user)
+    if user_id is None or run is None:
+        return False
+    if run.runner_id is None or run.created_by_id == user_id:
+        return True
+    return run.runner.owner_id == user_id
+
+
 def can_view_dev_machine(user, dev_machine) -> bool:
     user_id = _authenticated_user_id(user)
     if user_id is None:

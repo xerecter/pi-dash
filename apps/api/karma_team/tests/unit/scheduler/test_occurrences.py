@@ -16,6 +16,7 @@ from datetime import datetime, timedelta, timezone as dt_timezone
 
 import pytest
 from crum import impersonate
+from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 from karma_team.app.views.scheduler.occurrences import (
@@ -24,7 +25,17 @@ from karma_team.app.views.scheduler.occurrences import (
     ProjectSchedulerOccurrencesEndpoint,
     _parse_iso,
 )
-from karma_team.db.models import Project, ProjectMember, Scheduler, SchedulerBinding
+from karma_team.db.models import (
+    Project,
+    ProjectMember,
+    Scheduler,
+    SchedulerBinding,
+    WorkspaceMember,
+)
+from karma_team.runner.models import AgentRun, DevMachine, Pod, Runner
+
+
+User = get_user_model()
 
 
 @pytest.fixture
@@ -126,9 +137,7 @@ def _call_endpoint(workspace, project, query: dict, user):
 
 
 @pytest.mark.unit
-def test_occurrences_rejects_window_over_90_days(
-    db, workspace, project, scheduler, hourly_binding, create_user
-):
+def test_occurrences_rejects_window_over_90_days(db, workspace, project, scheduler, hourly_binding, create_user):
     res = _call_endpoint(
         workspace,
         project,
@@ -143,9 +152,7 @@ def test_occurrences_rejects_window_over_90_days(
 
 
 @pytest.mark.unit
-def test_occurrences_rejects_inverted_window(
-    db, workspace, project, scheduler, hourly_binding, create_user
-):
+def test_occurrences_rejects_inverted_window(db, workspace, project, scheduler, hourly_binding, create_user):
     res = _call_endpoint(
         workspace,
         project,
@@ -157,9 +164,7 @@ def test_occurrences_rejects_inverted_window(
 
 
 @pytest.mark.unit
-def test_occurrences_returns_future_expansion(
-    db, workspace, project, scheduler, hourly_binding, create_user
-):
+def test_occurrences_returns_future_expansion(db, workspace, project, scheduler, hourly_binding, create_user):
     """A binding firing every hour over a 24h window yields ~24 occurrences."""
     now = timezone.now()
     res = _call_endpoint(
@@ -183,9 +188,7 @@ def test_occurrences_returns_future_expansion(
 
 
 @pytest.mark.unit
-def test_occurrences_omits_disabled_binding_futures(
-    db, workspace, project, scheduler, hourly_binding, create_user
-):
+def test_occurrences_omits_disabled_binding_futures(db, workspace, project, scheduler, hourly_binding, create_user):
     """Disabled bindings: future occurrences are hidden (they won't fire)."""
     hourly_binding.enabled = False
     hourly_binding.save(update_fields=["enabled"])
@@ -204,9 +207,7 @@ def test_occurrences_omits_disabled_binding_futures(
 
 
 @pytest.mark.unit
-def test_occurrences_omits_disabled_scheduler_futures(
-    db, workspace, project, scheduler, hourly_binding, create_user
-):
+def test_occurrences_omits_disabled_scheduler_futures(db, workspace, project, scheduler, hourly_binding, create_user):
     """Disabled schedulers: same — hide future occurrences from the calendar."""
     scheduler.is_enabled = False
     scheduler.save(update_fields=["is_enabled"])
@@ -222,3 +223,59 @@ def test_occurrences_omits_disabled_scheduler_futures(
     )
     scheduled = [o for o in res.data["occurrences"] if o["kind"] == "scheduled"]
     assert scheduled == []
+
+
+@pytest.mark.unit
+def test_occurrences_hides_other_members_private_runner_history(db, workspace, project, hourly_binding, create_user):
+    owner = User.objects.create(username="calendar-owner@example.com", email="calendar-owner@example.com")
+    viewer = User.objects.create(username="calendar-viewer@example.com", email="calendar-viewer@example.com")
+    for user in (owner, viewer):
+        WorkspaceMember.objects.create(workspace=workspace, member=user, role=15, is_active=True)
+        ProjectMember.objects.create(
+            project=project,
+            workspace=workspace,
+            member=user,
+            role=15,
+            is_active=True,
+        )
+    pod = Pod.objects.get(project=project, is_default=True)
+    machine = DevMachine.objects.create(owner=owner, host_label="calendar-owner.local", label="Calendar owner")
+    runner = Runner.objects.create(
+        owner=owner,
+        workspace=workspace,
+        pod=pod,
+        name="calendar-private-runner",
+        dev_machine=machine,
+    )
+    hidden = AgentRun.objects.create(
+        workspace=workspace,
+        created_by=owner,
+        pod=pod,
+        runner=runner,
+        prompt="",
+        scheduler_binding=hourly_binding,
+        status="completed",
+        started_at=timezone.now() - timedelta(minutes=30),
+    )
+    visible = AgentRun.objects.create(
+        workspace=workspace,
+        created_by=owner,
+        pod=pod,
+        prompt="",
+        scheduler_binding=hourly_binding,
+        status="completed",
+        started_at=timezone.now() - timedelta(minutes=15),
+    )
+    now = timezone.now()
+    query = {
+        "from": (now - timedelta(hours=1)).isoformat(),
+        "to": (now + timedelta(minutes=1)).isoformat(),
+    }
+
+    viewer_response = _call_endpoint(workspace, project, query, viewer)
+    owner_response = _call_endpoint(workspace, project, query, owner)
+
+    viewer_ids = {row["agent_run_id"] for row in viewer_response.data["occurrences"] if row["kind"] == "past"}
+    owner_ids = {row["agent_run_id"] for row in owner_response.data["occurrences"] if row["kind"] == "past"}
+    assert viewer_ids == {str(visible.id)}
+    assert owner_ids == {str(hidden.id), str(visible.id)}

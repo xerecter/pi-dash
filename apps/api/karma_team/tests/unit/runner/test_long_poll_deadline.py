@@ -34,6 +34,9 @@ from unittest.mock import patch
 import pytest
 from redis.exceptions import ConnectionError as RedisConnectionError
 
+from karma_team.runner.views.machine_sessions import (
+    _aread_with_eviction_awareness as _machine_aread_with_eviction_awareness,
+)
 from karma_team.runner.views.sessions import (
     _aread_with_eviction_awareness,
     _session_open_side_effect,
@@ -189,5 +192,73 @@ def test_pubsub_is_closed_when_subscribe_fails():
                     use_zero=False,
                 )
             )
+
+    assert pubsub.closed is True
+
+
+@pytest.mark.unit
+@pytest.mark.parametrize(
+    ("reader", "identity", "read_target"),
+    [
+        (
+            _aread_with_eviction_awareness,
+            {
+                "runner_id": "11111111-1111-1111-1111-111111111111",
+                "session_id": "22222222-2222-2222-2222-222222222222",
+            },
+            "karma_team.runner.services.outbox.aread_for_session",
+        ),
+        (
+            _machine_aread_with_eviction_awareness,
+            {
+                "dev_machine_id": "33333333-3333-3333-3333-333333333333",
+                "session_id": "44444444-4444-4444-4444-444444444444",
+            },
+            "karma_team.runner.services.machine_outbox.aread_for_session",
+        ),
+    ],
+    ids=["runner", "machine"],
+)
+def test_pubsub_is_closed_when_long_poll_is_cancelled(reader, identity, read_target):
+    class FakePubsub:
+        def __init__(self):
+            self.closed = False
+
+        async def subscribe(self, _channel):
+            pass
+
+        async def get_message(self, timeout=0):
+            return None
+
+        async def close(self):
+            self.closed = True
+
+    pubsub = FakePubsub()
+
+    class FakeRedis:
+        def pubsub(self, ignore_subscribe_messages=True):
+            return pubsub
+
+    async def scenario():
+        entered_read = asyncio.Event()
+
+        async def blocking_read(**kwargs):
+            entered_read.set()
+            await asyncio.Future()
+
+        with (
+            patch(read_target, new=blocking_read),
+            patch(
+                "karma_team.settings.redis.async_redis_instance",
+                return_value=FakeRedis(),
+            ),
+        ):
+            task = asyncio.create_task(reader(**identity, block_ms=60_000, use_zero=False))
+            await asyncio.wait_for(entered_read.wait(), timeout=1)
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+
+    asyncio.run(scenario())
 
     assert pubsub.closed is True

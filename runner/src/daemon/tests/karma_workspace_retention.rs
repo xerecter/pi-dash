@@ -65,7 +65,10 @@ sleep 0.2
     )
 }
 
-async fn run_case(ending: Ending) -> (tempfile::TempDir, PathBuf, ClientMsg) {
+async fn run_case_with_repo_url(
+    ending: Ending,
+    repo_url: Option<String>,
+) -> (tempfile::TempDir, PathBuf, ClientMsg) {
     let temp = tempfile::tempdir().expect("temp dir");
     let root = temp.path().to_path_buf();
     let paths = paths_for(&root);
@@ -109,13 +112,17 @@ async fn run_case(ending: Ending) -> (tempfile::TempDir, PathBuf, ClientMsg) {
         cancel,
     };
     tokio::time::timeout(
-        Duration::from_secs(30),
+        // Karma invokes several CLI commands through the login shell before
+        // the assignment starts. This can exceed 30 seconds on machines with
+        // slow shell initialization (e.g. conda hooks), so leave room for the
+        // actual workspace/clone path instead of timing out during setup.
+        Duration::from_secs(90),
         worker.run(
             uuid::Uuid::new_v4(),
             Some("DEMO-10".into()),
             Some("Demo Project".into()),
             "Create a user-visible result".into(),
-            None,
+            repo_url,
             None,
         ),
     )
@@ -123,8 +130,17 @@ async fn run_case(ending: Ending) -> (tempfile::TempDir, PathBuf, ClientMsg) {
     .expect("Karma assignment timed out")
     .expect("Karma assignment failed internally");
 
-    let terminal = std::iter::from_fn(|| rx.try_recv().ok())
+    let messages: Vec<_> = std::iter::from_fn(|| rx.try_recv().ok())
         .map(|envelope| envelope.body)
+        .collect();
+    assert!(
+        messages
+            .iter()
+            .any(|message| matches!(message, ClientMsg::Accept { .. })),
+        "Karma assignment was not accepted before execution"
+    );
+    let terminal = messages
+        .into_iter()
         .find(|message| {
             matches!(
                 message,
@@ -135,6 +151,10 @@ async fn run_case(ending: Ending) -> (tempfile::TempDir, PathBuf, ClientMsg) {
         })
         .expect("worker sent no terminal message");
     (temp, project_root, terminal)
+}
+
+async fn run_case(ending: Ending) -> (tempfile::TempDir, PathBuf, ClientMsg) {
+    run_case_with_repo_url(ending, None).await
 }
 
 #[tokio::test]
@@ -174,4 +194,24 @@ async fn karma_project_and_work_item_files_survive_every_terminal_outcome() {
             "user-visible result"
         );
     }
+}
+
+#[tokio::test]
+async fn clone_failure_does_not_block_a_karma_agent_assignment() {
+    let (_temp, project_root, terminal) = run_case_with_repo_url(
+        Ending::Completed,
+        Some("https://127.0.0.1:1/unreachable.git".into()),
+    )
+    .await;
+
+    assert!(
+        matches!(terminal, ClientMsg::RunCompleted { .. }),
+        "clone failure must reach the Karma agent, got {terminal:?}"
+    );
+    let operation_dir = project_root.join("main").join("DEMO-10");
+    assert_eq!(
+        std::fs::read_to_string(operation_dir.join("result.txt"))
+            .expect("Karma agent result must survive"),
+        "user-visible result"
+    );
 }

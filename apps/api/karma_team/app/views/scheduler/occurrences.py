@@ -45,6 +45,7 @@ from karma_team.app.views.base import BaseAPIView
 from karma_team.bgtasks._rrule import occurrences_between
 from karma_team.db.models import Project, SchedulerBinding
 from karma_team.runner.models import AgentRun
+from karma_team.runner.services.permissions import scheduler_run_visible_to_user_q
 from karma_team.utils.iso_datetime import coerce_iso_datetimes, parse_iso_utc
 
 
@@ -114,8 +115,7 @@ class ProjectSchedulerOccurrencesEndpoint(BaseAPIView):
                 scheduler__is_enabled=True,
                 scheduler__deleted_at__isnull=True,
                 project__deleted_at__isnull=True,
-            )
-            .select_related("scheduler")
+            ).select_related("scheduler")
         )
 
         occurrences: list[dict] = []
@@ -143,17 +143,19 @@ class ProjectSchedulerOccurrencesEndpoint(BaseAPIView):
                 cap=remaining_cap,
             )
             for occ in expanded:
-                occurrences.append({
-                    "binding_id": str(binding.id),
-                    "scheduler_id": str(binding.scheduler_id),
-                    "scheduler_name": binding.scheduler.name,
-                    "scheduler_color": binding.scheduler.color or "#3b82f6",
-                    "dtstart": occ.isoformat(),
-                    "tzid": binding.tzid or "UTC",
-                    "kind": "scheduled",
-                    "agent_run_id": None,
-                    "status": None,
-                })
+                occurrences.append(
+                    {
+                        "binding_id": str(binding.id),
+                        "scheduler_id": str(binding.scheduler_id),
+                        "scheduler_name": binding.scheduler.name,
+                        "scheduler_color": binding.scheduler.color or "#3b82f6",
+                        "dtstart": occ.isoformat(),
+                        "tzid": binding.tzid or "UTC",
+                        "kind": "scheduled",
+                        "agent_run_id": None,
+                        "status": None,
+                    }
+                )
             remaining_cap = OCCURRENCE_CAP - len(occurrences)
             if hit_cap and remaining_cap <= 0:
                 truncated_at = expanded[-1] if expanded else None
@@ -172,6 +174,7 @@ class ProjectSchedulerOccurrencesEndpoint(BaseAPIView):
                     started_at__gte=window_start,
                     started_at__lte=past_end,
                 )
+                .filter(scheduler_run_visible_to_user_q(request.user))
                 .select_related("scheduler_binding__scheduler")
                 .order_by("started_at")
             )
@@ -179,17 +182,19 @@ class ProjectSchedulerOccurrencesEndpoint(BaseAPIView):
                 if len(occurrences) >= OCCURRENCE_CAP:
                     break
                 sched = run.scheduler_binding.scheduler
-                occurrences.append({
-                    "binding_id": str(run.scheduler_binding_id),
-                    "scheduler_id": str(sched.id),
-                    "scheduler_name": sched.name,
-                    "scheduler_color": sched.color or "#3b82f6",
-                    "dtstart": run.started_at.isoformat(),
-                    "tzid": run.scheduler_binding.tzid or "UTC",
-                    "kind": "past",
-                    "agent_run_id": str(run.id),
-                    "status": run.status,
-                })
+                occurrences.append(
+                    {
+                        "binding_id": str(run.scheduler_binding_id),
+                        "scheduler_id": str(sched.id),
+                        "scheduler_name": sched.name,
+                        "scheduler_color": sched.color or "#3b82f6",
+                        "dtstart": run.started_at.isoformat(),
+                        "tzid": run.scheduler_binding.tzid or "UTC",
+                        "kind": "past",
+                        "agent_run_id": str(run.id),
+                        "status": run.status,
+                    }
+                )
 
         # Sort by dtstart so the client can render time-axis week view
         # without re-sorting. Past + future are interleaved naturally.

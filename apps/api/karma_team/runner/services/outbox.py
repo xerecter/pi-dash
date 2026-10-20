@@ -341,6 +341,13 @@ def claim_pending_for_new_session(
             if old_consumer:
                 delete_consumer(runner_id, old_consumer, client=client)
             return claimed
+        if next_cursor == cursor:
+            logger.error(
+                "xautoclaim cursor did not advance for runner %s cursor=%s",
+                runner_id,
+                cursor,
+            )
+            return claimed
         cursor = next_cursor
 
 

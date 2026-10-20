@@ -68,6 +68,14 @@ export interface IProject extends IPartialProject {
   next_work_item_sequence?: number;
   repo_url?: string;
   base_branch?: string;
+  // Periodic agent re-invocation policy. One budget pool per work item
+  // (`agent_default_max_ticks`, `-1` = no cap) is shared across all ticking
+  // stages. Cadence remains separate in the model but is set together here.
+  agent_ticking_enabled?: boolean;
+  agent_default_max_ticks?: number;
+  agent_default_interval_seconds?: number;
+  agent_review_default_interval_seconds?: number;
+  agent_test_default_interval_seconds?: number;
 }
 
 export type TProjectAnalyticsCountParams = {

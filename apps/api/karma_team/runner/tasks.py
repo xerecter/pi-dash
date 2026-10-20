@@ -20,6 +20,7 @@ from django.db import models, transaction
 from django.db.models import Q
 from django.utils import timezone
 
+from karma_team.core.agent_execution import AgentExecutorKind
 from karma_team.runner.models import (
     AgentRun,
     AgentRunStatus,
@@ -31,7 +32,7 @@ from karma_team.runner.models import (
     RunnerSession,
     RunnerStatus,
 )
-from karma_team.runner.services import outbox, run_lifecycle
+from karma_team.runner.services import matcher, outbox, run_lifecycle, session_service
 from karma_team.runner.services.pubsub import send_to_runner
 
 logger = logging.getLogger(__name__)
@@ -109,6 +110,133 @@ def mark_offline_runners() -> int:
     if affected:
         logger.info("marked %s runner(s) offline via heartbeat timeout", affected)
     return affected
+
+
+# ---- Offline-runner run recovery -----------------------------------------
+#
+# Every other recovery path needs the runner to talk to us: the heartbeat
+# reaper runs on its poll, and ``reconcile_stalled_runs`` requires a fresh
+# snapshot. A runner that never comes back therefore left its runs active
+# forever, and one active run blocks every later dispatch on the issue.
+
+
+@shared_task(name="runner.release_pins_on_offline_runners")
+def release_pins_on_offline_runners() -> int:
+    """Return QUEUED runs pinned to a long-silent runner to the pod queue.
+
+    Managed runs are skipped because their pin is the execution target and
+    ``managed_runner.expire_waiting_runs`` owns their timeout. Setting
+    ``RUNNER_OFFLINE_PIN_RELEASE_SECS`` to 0 disables this sweep.
+    """
+    grace = int(getattr(settings, "RUNNER_OFFLINE_PIN_RELEASE_SECS", 300))
+    if grace <= 0:
+        return 0
+    cutoff = timezone.now() - timedelta(seconds=grace)
+    stuck = list(
+        AgentRun.objects.filter(
+            status=AgentRunStatus.QUEUED,
+            executor_kind=AgentExecutorKind.LOCAL_RUNNER,
+            pinned_runner__isnull=False,
+            created_at__lt=cutoff,
+        )
+        .filter(Q(pinned_runner__last_heartbeat_at__lt=cutoff) | Q(pinned_runner__last_heartbeat_at__isnull=True))
+        .values_list("id", "pinned_runner_id")[:500]
+    )
+    released = 0
+    pod_ids = set()
+    silent = Q(last_heartbeat_at__lt=cutoff) | Q(last_heartbeat_at__isnull=True)
+    for run_id, pinned_runner_id in stuck:
+        with transaction.atomic():
+            # Polling locks this same row before refreshing the heartbeat. Lock
+            # runner first (the matcher uses runner -> run ordering too), then
+            # re-check silence so a runner that just returned keeps its pin.
+            locked_runner = (
+                Runner.objects.select_for_update(skip_locked=True).filter(pk=pinned_runner_id).filter(silent).first()
+            )
+            if locked_runner is None:
+                continue
+            run = (
+                AgentRun.objects.select_for_update(of=("self",))
+                .select_related("parent_run")
+                .filter(
+                    id=run_id,
+                    status=AgentRunStatus.QUEUED,
+                    pinned_runner_id=locked_runner.id,
+                )
+                .first()
+            )
+            if run is None:
+                continue
+            run.pinned_runner = None
+            # The replacement runner cannot resume the parent's local session.
+            if run.parent_run is not None and run.parent_run.thread_id:
+                run.parent_run.thread_id = ""
+                run.parent_run.save(update_fields=["thread_id"])
+            run.save(update_fields=["pinned_runner"])
+        released += 1
+        if run.pod_id is not None:
+            pod_ids.add(run.pod_id)
+    for pod_id in pod_ids:
+        # One failed pod drain must not prevent recovery in the remaining pods.
+        try:
+            matcher.drain_pod_by_id(pod_id)
+        except Exception:
+            logger.exception("release_pins_on_offline_runners: drain failed for pod %s", pod_id)
+    if released:
+        logger.info("release_pins_on_offline_runners unpinned %s queued run(s)", released)
+    return released
+
+
+@shared_task(name="runner.fail_runs_on_offline_runners")
+def fail_runs_on_offline_runners() -> int:
+    """Terminate active local runs whose runner has been silent too long.
+
+    This is the no-heartbeat counterpart of the heartbeat reaper. Managed
+    runs retain their existing desktop-specific recovery policy. Setting
+    ``RUNNER_OFFLINE_RUN_FAIL_SECS`` to 0 disables this sweep.
+    """
+    grace = int(getattr(settings, "RUNNER_OFFLINE_RUN_FAIL_SECS", 3600))
+    if grace <= 0:
+        return 0
+    cutoff = timezone.now() - timedelta(seconds=grace)
+    silent = Q(last_heartbeat_at__lt=cutoff) | Q(last_heartbeat_at__isnull=True)
+    runner_ids = list(
+        Runner.objects.filter(
+            agent_runs__status__in=matcher.BUSY_STATUSES,
+            agent_runs__assigned_at__lt=cutoff,
+            agent_runs__executor_kind=AgentExecutorKind.LOCAL_RUNNER,
+        )
+        .filter(silent)
+        .values_list("id", flat=True)
+        .distinct()[:500]
+    )
+    finished = 0
+    for runner_id in runner_ids:
+        try:
+            with transaction.atomic():
+                # Polling takes this same lock before updating the heartbeat.
+                # Re-checking silence here closes the list-to-finalize race.
+                runner = Runner.objects.select_for_update().filter(pk=runner_id).filter(silent).first()
+                if runner is None:
+                    continue
+                stale = AgentRun.objects.filter(
+                    runner=runner,
+                    status__in=matcher.BUSY_STATUSES,
+                    assigned_at__lt=cutoff,
+                    executor_kind=AgentExecutorKind.LOCAL_RUNNER,
+                )
+                finished += session_service._finish_unclaimed_runs(
+                    runner,
+                    stale,
+                    detail=f"runner offline: no heartbeat for >{grace}s while this run was assigned to it",
+                    error_code=session_service.RUNNER_OFFLINE_ERROR_CODE,
+                    stamp_cancelled=True,
+                )
+        except Exception:
+            logger.exception("fail_runs_on_offline_runners: failed for runner %s", runner_id)
+    if finished:
+        logger.info("fail_runs_on_offline_runners finished %s run(s) (grace=%ss)", finished, grace)
+    return finished
 
 
 # ---- Per-runner HTTPS transport sweepers ---------------------------------

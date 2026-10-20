@@ -32,6 +32,8 @@ type Props = {
   onClose: () => void;
   workspaceId: string;
   workspaceSlug: string;
+  /** Route project UUID. When set, the matching project is preselected and locked. */
+  projectId?: string;
 };
 
 // Mirrors the runner CLI's ``--agent`` value-enum (kebab-case). Keep in
@@ -94,7 +96,8 @@ const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve,
 const machineDisplayLabel = (machine: IDevMachine): string => machine.label || machine.host_label || machine.id;
 
 export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
-  const { isOpen, onClose, workspaceId, workspaceSlug } = props;
+  const { isOpen, onClose, workspaceId, workspaceSlug, projectId } = props;
+  const projectLocked = Boolean(projectId);
   const { t } = useTranslation();
   const { data: installConfig, error: installConfigError, mutate: reloadInstallConfig } = useCliInstallConfig(isOpen);
 
@@ -118,6 +121,8 @@ export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
   // One-shot per open: auto-select the first connected machine once the
   // machine list arrives, unless the user already touched the picker.
   const autoSelectedMachine = useRef(false);
+  // One-shot per open; the form stores an identifier while routes use UUIDs.
+  const prefilledProject = useRef(false);
 
   // Reset everything on close→open. State persists between consecutive
   // opens otherwise (RHF + local command state would carry the stale
@@ -129,6 +134,7 @@ export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
     }
     pollCancelled.current = false;
     autoSelectedMachine.current = false;
+    prefilledProject.current = false;
     setRunnerCommand(null);
     setRemoteCreate(null);
     setLastSubmitted(null);
@@ -176,6 +182,15 @@ export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
   );
   const selectedProject = watch("projectIdentifier");
   const selectedPodName = watch("podName");
+
+  useEffect(() => {
+    if (prefilledProject.current || !isOpen || !projectId) return;
+    const project = projects?.find((candidate) => candidate.id === projectId);
+    if (!project) return;
+    prefilledProject.current = true;
+    setValue("projectIdentifier", project.identifier, { shouldValidate: true });
+  }, [isOpen, projectId, projects, setValue]);
+
   const { data: pods, error: podsError } = useSWR<IPod[]>(isOpen && workspaceId ? ["pods", workspaceId] : null, () =>
     podService.list(workspaceId)
   );
@@ -449,7 +464,7 @@ export const AddRunnerModal = observer(function AddRunnerModal(props: Props) {
                   input
                   maxHeight="lg"
                   placement="bottom-start"
-                  disabled={!projects || projects.length === 0}
+                  disabled={projectLocked || !projects || projects.length === 0}
                 >
                   <>
                     {(projects ?? []).map((p) => (

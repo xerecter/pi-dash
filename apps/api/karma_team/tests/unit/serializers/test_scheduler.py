@@ -14,13 +14,28 @@ from datetime import datetime, timezone as dt_timezone
 
 import pytest
 from crum import impersonate
+from django.db import IntegrityError
+from rest_framework.test import APIRequestFactory, force_authenticate
 
 from karma_team.app.serializers.scheduler import (
     EXTRA_CONTEXT_MAX_LENGTH,
     SchedulerBindingSerializer,
     SchedulerSerializer,
 )
-from karma_team.db.models import Project, Scheduler, SchedulerBinding
+from karma_team.app.views.scheduler.views import (
+    ProjectSchedulerBindingListEndpoint,
+    SCHEDULER_BINDING_CONSTRAINT,
+    SCHEDULER_SLUG_CONSTRAINT,
+    WorkspaceSchedulerListEndpoint,
+    _violates_constraint,
+)
+from karma_team.db.models import (
+    Project,
+    ProjectMember,
+    Scheduler,
+    SchedulerBinding,
+    Workspace,
+)
 from karma_team.runner.models import Pod
 
 
@@ -169,18 +184,14 @@ def test_rdates_must_be_iso_strings(scheduler, project, workspace):
 @pytest.mark.unit
 @pytest.mark.parametrize("color", ["#3b82f6", "#000000", "#FFFFFF"])
 def test_valid_color_accepted(workspace, color):
-    s = SchedulerSerializer(
-        data={"slug": "x", "name": "x", "prompt": "x", "color": color}
-    )
+    s = SchedulerSerializer(data={"slug": "x", "name": "x", "prompt": "x", "color": color})
     assert s.is_valid(), s.errors
 
 
 @pytest.mark.unit
 @pytest.mark.parametrize("color", ["", "blue", "#fff", "#ggghhh", "rgb(0,0,0)"])
 def test_invalid_color_rejected(workspace, color):
-    s = SchedulerSerializer(
-        data={"slug": "x", "name": "x", "prompt": "x", "color": color}
-    )
+    s = SchedulerSerializer(data={"slug": "x", "name": "x", "prompt": "x", "color": color})
     assert not s.is_valid()
     assert "color" in s.errors
 
@@ -299,17 +310,13 @@ def test_active_binding_count_excludes_soft_deleted_bindings(scheduler, binding)
 @pytest.fixture
 def project_pod(project, create_user):
     with impersonate(create_user):
-        return Pod.objects.create(
-            project=project, name=f"{project.identifier}_extra", created_by=create_user
-        )
+        return Pod.objects.create(project=project, name=f"{project.identifier}_extra", created_by=create_user)
 
 
 @pytest.fixture
 def other_project(workspace, create_user):
     with impersonate(create_user):
-        return Project.objects.create(
-            name="Api", identifier="API", workspace=workspace, created_by=create_user
-        )
+        return Project.objects.create(name="Api", identifier="API", workspace=workspace, created_by=create_user)
 
 
 @pytest.mark.unit
@@ -331,9 +338,7 @@ def test_pod_in_same_project_accepted(scheduler, project, project_pod):
 @pytest.mark.unit
 def test_pod_in_other_project_rejected(scheduler, project, other_project, create_user):
     with impersonate(create_user):
-        foreign_pod = Pod.objects.create(
-            project=other_project, name="API_x", created_by=create_user
-        )
+        foreign_pod = Pod.objects.create(project=other_project, name="API_x", created_by=create_user)
     s = SchedulerBindingSerializer(
         data={
             "scheduler": scheduler.id,
@@ -378,26 +383,20 @@ def test_patch_can_change_pod(binding, project_pod):
 @pytest.mark.unit
 def test_patch_pod_from_other_project_rejected(binding, other_project, create_user):
     with impersonate(create_user):
-        foreign_pod = Pod.objects.create(
-            project=other_project, name="API_y", created_by=create_user
-        )
+        foreign_pod = Pod.objects.create(project=other_project, name="API_y", created_by=create_user)
     s = SchedulerBindingSerializer(binding, data={"pod": foreign_pod.id}, partial=True)
     assert not s.is_valid()
     assert "pod" in s.errors
 
 
 @pytest.mark.unit
-def test_create_pod_validated_against_context_project_not_request_body(
-    scheduler, project, other_project, create_user
-):
+def test_create_pod_validated_against_context_project_not_request_body(scheduler, project, other_project, create_user):
     """A client must not bypass the cross-project pod check by claiming a
     different `project` in the body. The view pins the binding to the URL's
     project via context/save(), so validation must trust that — not the
     request-supplied project."""
     with impersonate(create_user):
-        foreign_pod = Pod.objects.create(
-            project=other_project, name="API_z", created_by=create_user
-        )
+        foreign_pod = Pod.objects.create(project=other_project, name="API_z", created_by=create_user)
     s = SchedulerBindingSerializer(
         data={
             "scheduler": scheduler.id,
@@ -413,3 +412,141 @@ def test_create_pod_validated_against_context_project_not_request_body(
     )
     assert not s.is_valid()
     assert "pod" in s.errors
+
+
+# ---------------------------------------------------------------------------
+# Scheduler slug uniqueness
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.unit
+def test_create_duplicate_slug_rejected_as_field_error(scheduler, workspace):
+    serializer = SchedulerSerializer(
+        data={"slug": scheduler.slug, "name": "Duplicate", "prompt": "Run it."},
+        context={"workspace": workspace},
+    )
+
+    assert not serializer.is_valid()
+    assert "slug" in serializer.errors
+
+
+@pytest.mark.unit
+def test_create_slug_of_soft_deleted_scheduler_is_reusable(scheduler, workspace):
+    scheduler.delete()
+    serializer = SchedulerSerializer(
+        data={"slug": scheduler.slug, "name": "Replacement", "prompt": "Run it."},
+        context={"workspace": workspace},
+    )
+
+    assert serializer.is_valid(), serializer.errors
+
+
+@pytest.mark.unit
+def test_same_slug_in_another_workspace_is_allowed(scheduler, create_user):
+    with impersonate(create_user):
+        other_workspace = Workspace.objects.create(name="Other Workspace", owner=create_user, slug="other-workspace")
+    serializer = SchedulerSerializer(
+        data={"slug": scheduler.slug, "name": "Other", "prompt": "Run it."},
+        context={"workspace": other_workspace},
+    )
+
+    assert serializer.is_valid(), serializer.errors
+
+
+@pytest.mark.unit
+def test_patch_keeps_own_slug(scheduler):
+    serializer = SchedulerSerializer(
+        scheduler,
+        data={"slug": scheduler.slug, "name": "Renamed"},
+        partial=True,
+    )
+
+    assert serializer.is_valid(), serializer.errors
+
+
+@pytest.mark.unit
+def test_scheduler_create_endpoint_returns_slug_field_error(session_client, scheduler, workspace):
+    response = session_client.post(
+        f"/api/workspaces/{workspace.slug}/schedulers/",
+        {"slug": scheduler.slug, "name": "Duplicate", "prompt": "Run it."},
+        format="json",
+    )
+
+    assert response.status_code == 400
+    assert "slug" in response.data
+
+
+def _constraint_error(name: str) -> IntegrityError:
+    class _Diag:
+        constraint_name = name
+
+    class _Cause(Exception):
+        diag = _Diag()
+
+    error = IntegrityError("duplicate key")
+    error.__cause__ = _Cause()
+    return error
+
+
+@pytest.mark.unit
+def test_scheduler_create_endpoint_returns_stable_concurrent_slug_conflict(monkeypatch, workspace, create_user):
+    request = APIRequestFactory().post(
+        f"/api/workspaces/{workspace.slug}/schedulers/",
+        {"slug": "race-winner", "name": "Race", "prompt": "Run it."},
+        format="json",
+    )
+    force_authenticate(request, user=create_user)
+    monkeypatch.setattr(
+        SchedulerSerializer,
+        "save",
+        lambda self, **kwargs: (_ for _ in ()).throw(_constraint_error(SCHEDULER_SLUG_CONSTRAINT)),
+    )
+
+    response = WorkspaceSchedulerListEndpoint.as_view()(request, slug=workspace.slug)
+
+    assert response.status_code == 409
+    assert response.data["code"] == "scheduler_slug_conflict"
+    assert "slug" in response.data
+
+
+@pytest.mark.unit
+def test_constraint_matcher_rejects_unrelated_integrity_error():
+    error = _constraint_error("some_other_constraint")
+
+    assert not _violates_constraint(error, SCHEDULER_SLUG_CONSTRAINT)
+    assert not _violates_constraint(error, SCHEDULER_BINDING_CONSTRAINT)
+
+
+@pytest.mark.unit
+def test_binding_install_returns_stable_concurrent_duplicate_conflict(
+    monkeypatch, scheduler, project, workspace, create_user
+):
+    ProjectMember.objects.get_or_create(
+        project=project,
+        workspace=workspace,
+        member=create_user,
+        defaults={"role": 20},
+    )
+    request = APIRequestFactory().post(
+        f"/api/workspaces/{workspace.slug}/projects/{project.id}/scheduler-bindings/",
+        {
+            "scheduler": str(scheduler.id),
+            "project": str(project.id),
+            "dtstart": _ANCHOR.isoformat(),
+            "rrule": "FREQ=DAILY",
+            "tzid": "UTC",
+        },
+        format="json",
+    )
+    force_authenticate(request, user=create_user)
+    monkeypatch.setattr(
+        SchedulerBindingSerializer,
+        "save",
+        lambda self, **kwargs: (_ for _ in ()).throw(_constraint_error(SCHEDULER_BINDING_CONSTRAINT)),
+    )
+
+    response = ProjectSchedulerBindingListEndpoint.as_view()(request, slug=workspace.slug, project_id=str(project.id))
+
+    assert response.status_code == 409
+    assert response.data["code"] == "scheduler_binding_conflict"
+    assert "scheduler" in response.data

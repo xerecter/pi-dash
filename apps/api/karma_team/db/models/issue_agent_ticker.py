@@ -14,7 +14,8 @@ when the issue moves between the three ticking stages: moving between rooms
 of the bucket is a parameter change (which interval the clock reads, which
 prompt the run gets), not a re-arm. Budget is one pool per issue — ``used``
 counts every machine-started run in any stage for the life of the issue;
-``granted`` is the extra budget a human added with Re-tick.
+``granted`` is the extra budget a human added with Re-tick, one fresh
+project-sized pool per press.
 
 See ``.ai_design/ticking_relevance/design.md`` §4.0, §5 and §9.
 """
@@ -95,7 +96,8 @@ class IssueAgentTicker(BaseModel):
     #: it. Human-started runs (a human moving the issue, Comment & Run, Run
     #: AI) do not touch it.
     used = models.IntegerField(default=0)
-    #: Extra budget added by Re-tick. Cap = project pool + ``granted``.
+    #: Extra budget added by Re-tick in project-sized pool increments.
+    #: Cap = project pool + ``granted``.
     granted = models.IntegerField(default=0)
 
     user_disabled = models.BooleanField(default=False)

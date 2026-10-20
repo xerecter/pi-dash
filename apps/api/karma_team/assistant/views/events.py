@@ -14,13 +14,13 @@ from __future__ import annotations
 import json
 import logging
 
-from asgiref.sync import sync_to_async
 from django.http import HttpResponse, StreamingHttpResponse
 
 from karma_team.assistant.models import AssistantEvent, AssistantThread
 from karma_team.assistant.runtime.events import event_channel, serialize_event
 from karma_team.core.permissions import ROLE_MEMBER, workspace_role_by_slug
 from karma_team.settings.redis import async_redis_instance
+from karma_team.utils.db_async import close_idle_connections, db_sync_to_async
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +48,7 @@ def _sse(payload: dict) -> str:
 
 
 async def assistant_event_stream(request, slug, thread_id):
-    user, thread = await sync_to_async(_resolve)(request, slug, thread_id)
+    user, thread = await db_sync_to_async(_resolve)(request, slug, thread_id)
     if user is None:
         return HttpResponse(status=401)
     if thread is None:
@@ -60,13 +60,15 @@ async def assistant_event_stream(request, slug, thread_id):
         after = 0
 
     async def stream():
-        for ev in await sync_to_async(_replay)(thread_id, after):
+        for ev in await db_sync_to_async(_replay)(thread_id, after):
             yield _sse(ev)
 
         client = async_redis_instance()
         pubsub = client.pubsub(ignore_subscribe_messages=True)
-        await pubsub.subscribe(event_channel(thread_id))
+        subscribed = False
         try:
+            await pubsub.subscribe(event_channel(thread_id))
+            subscribed = True
             while True:
                 msg = await pubsub.get_message(timeout=1.0)
                 if msg is None:
@@ -80,14 +82,22 @@ async def assistant_event_stream(request, slug, thread_id):
         except Exception:
             logger.exception("assistant SSE stream error for thread %s", thread_id)
         finally:
-            try:
-                await pubsub.unsubscribe(event_channel(thread_id))
-            except Exception:
-                pass
+            if subscribed:
+                try:
+                    await pubsub.unsubscribe(event_channel(thread_id))
+                except Exception:
+                    pass
             try:
                 await pubsub.aclose()
             except Exception:
                 pass
+            try:
+                await db_sync_to_async(close_idle_connections)()
+            except Exception:
+                logger.exception(
+                    "failed to close DB connection after assistant SSE for thread %s",
+                    thread_id,
+                )
 
     response = StreamingHttpResponse(stream(), content_type="text/event-stream")
     response["Cache-Control"] = "no-cache"

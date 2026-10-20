@@ -680,6 +680,30 @@ def test_fire_tick_rolls_back_pending_flags_when_dispatch_fails(
 
 
 @pytest.mark.unit
+def test_dispatch_failure_does_not_resurrect_ticker_after_project_is_disabled(
+    seeded, issue, project, runner_for_workspace
+):
+    """Model a project switch committing after claim but before rollback."""
+    _make_prior_run(issue, runner_for_workspace)
+    sched = _make_due_schedule(issue, used=4)
+
+    def disable_project(*args, **kwargs):
+        Project.objects.filter(pk=project.pk).update(agent_ticking_enabled=False)
+        return None
+
+    with mock.patch(
+        "karma_team.orchestration.scheduling.dispatch_continuation_run",
+        side_effect=disable_project,
+    ):
+        assert fire_tick(str(sched.id)) is False
+
+    sched.refresh_from_db()
+    assert sched.used == 4
+    assert sched.enabled is False
+    assert sched.disarm_reason == TickerDisarmReason.NONE
+
+
+@pytest.mark.unit
 def test_fire_tick_bail_on_a_queued_entry_parks_as_pool_spent(seeded, issue, runner_for_workspace):
     """The pool was lowered after an agent's move queued a counting entry:
     the entry consumed nothing, so the clock stops as pool_spent — not the
@@ -697,3 +721,110 @@ def test_fire_tick_bail_on_a_queued_entry_parks_as_pool_spent(seeded, issue, run
     assert sched.enabled is False
     assert sched.disarm_reason == TickerDisarmReason.POOL_SPENT
     assert sched.pending_entry is False
+
+
+@pytest.mark.unit
+def test_fire_tick_stops_armed_row_when_project_ticking_is_off(
+    seeded, issue, project, runner_for_workspace, monkeypatch
+):
+    from karma_team.db.models.issue_agent_ticker import TickerDisarmReason
+
+    _make_prior_run(issue, runner_for_workspace)
+    sched = _make_due_schedule(issue)
+    project.agent_ticking_enabled = False
+    project.save(update_fields=["agent_ticking_enabled"])
+
+    lock_order = []
+    original_project_lock = Project.objects.select_for_update
+    original_ticker_lock = IssueAgentTicker.objects.select_for_update
+
+    def project_lock(*args, **kwargs):
+        lock_order.append("project")
+        return original_project_lock(*args, **kwargs)
+
+    def ticker_lock(*args, **kwargs):
+        lock_order.append("ticker")
+        return original_ticker_lock(*args, **kwargs)
+
+    monkeypatch.setattr(Project.objects, "select_for_update", project_lock)
+    monkeypatch.setattr(IssueAgentTicker.objects, "select_for_update", ticker_lock)
+
+    assert fire_tick(str(sched.id)) is False
+    assert lock_order[:2] == ["project", "ticker"]
+
+    sched.refresh_from_db()
+    assert sched.used == 0
+    assert sched.enabled is False
+    assert sched.disarm_reason == TickerDisarmReason.NONE
+    assert AgentRun.objects.filter(work_item=issue, parent_run__isnull=False).count() == 0
+
+
+@pytest.mark.unit
+def test_fire_tick_stops_agent_queued_entry_when_project_ticking_is_off(
+    seeded, issue, project, runner_for_workspace
+):
+    _make_prior_run(issue, runner_for_workspace)
+    sched = _make_due_schedule(issue)
+    sched.pending_entry = True
+    sched.pending_entry_free = False
+    sched.save(update_fields=["pending_entry", "pending_entry_free"])
+    project.agent_ticking_enabled = False
+    project.save(update_fields=["agent_ticking_enabled"])
+
+    assert fire_tick(str(sched.id)) is False
+
+    sched.refresh_from_db()
+    assert sched.used == 0
+    assert sched.enabled is False
+    assert sched.pending_entry is False
+    assert AgentRun.objects.filter(work_item=issue, parent_run__isnull=False).count() == 0
+
+
+@pytest.mark.unit
+def test_fire_tick_allows_human_pending_entry_when_project_ticking_is_off(
+    seeded, issue, project, runner_for_workspace
+):
+    from karma_team.app.serializers.project import ProjectSerializer
+
+    _make_prior_run(issue, runner_for_workspace)
+    sched = _make_due_schedule(issue)
+    sched.pending_entry = True
+    sched.pending_entry_free = True
+    sched.save(update_fields=["pending_entry", "pending_entry_free"])
+    serializer = ProjectSerializer(
+        project,
+        data={"agent_ticking_enabled": False},
+        context={"workspace_id": project.workspace_id},
+        partial=True,
+    )
+    serializer.is_valid(raise_exception=True)
+    serializer.save()
+    sched.refresh_from_db()
+    assert sched.enabled is True
+    assert sched.pending_entry is True
+    assert sched.pending_entry_free is True
+
+    assert fire_tick(str(sched.id)) is True
+
+    sched.refresh_from_db()
+    assert sched.used == 0
+    assert sched.enabled is False
+    assert AgentRun.objects.filter(work_item=issue, parent_run__isnull=False).count() == 1
+
+
+@pytest.mark.unit
+def test_fire_tick_stops_user_disabled_row(seeded, issue, runner_for_workspace):
+    from karma_team.db.models.issue_agent_ticker import TickerDisarmReason
+
+    _make_prior_run(issue, runner_for_workspace)
+    sched = _make_due_schedule(issue)
+    sched.user_disabled = True
+    sched.save(update_fields=["user_disabled"])
+
+    assert fire_tick(str(sched.id)) is False
+
+    sched.refresh_from_db()
+    assert sched.used == 0
+    assert sched.enabled is False
+    assert sched.disarm_reason == TickerDisarmReason.USER_DISABLED
+    assert AgentRun.objects.filter(work_item=issue, parent_run__isnull=False).count() == 0

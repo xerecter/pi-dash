@@ -263,6 +263,10 @@ export const coreRoutes: RouteConfigEntry[] = [
               ":workspaceSlug/projects/:projectId/schedulers/calendar",
               "./(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/schedulers/calendar/page.tsx"
             ),
+            route(
+              ":workspaceSlug/projects/:projectId/schedulers/:bindingId",
+              "./(all)/[workspaceSlug]/(projects)/projects/(detail)/[projectId]/schedulers/[bindingId]/page.tsx"
+            ),
           ]),
 
           // AI Workers (project-scoped runners panel). Renders the SAME

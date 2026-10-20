@@ -8,7 +8,7 @@ from datetime import datetime
 from django.core.serializers.json import DjangoJSONEncoder
 
 # Django imports
-from django.db import connection
+from django.db import connection, transaction
 from django.db.models import (
     Exists,
     OuterRef,
@@ -182,7 +182,42 @@ class PageViewSet(BaseViewSet):
             serializer = PageDetailSerializer(page, data=request.data, partial=True)
             page_description = page.description_html
             if serializer.is_valid():
-                serializer.save()
+                # Validation may be followed by expensive client work before
+                # this request reaches the database. Re-read under a row lock
+                # so a concurrent lock/archive always wins over this save.
+                with transaction.atomic():
+                    current = Page.objects.select_for_update().get(
+                        pk=page_id,
+                        workspace__slug=slug,
+                        projects__id=project_id,
+                        project_pages__deleted_at__isnull=True,
+                    )
+                    if current.access == Page.PRIVATE_ACCESS and current.owned_by_id != request.user.id:
+                        return Response({"error": "Permission denied"}, status=status.HTTP_403_FORBIDDEN)
+                    if current.is_locked:
+                        return Response({"error": "Page is locked"}, status=status.HTTP_400_BAD_REQUEST)
+                    if "description_html" in serializer.validated_data and current.archived_at:
+                        return Response(
+                            {
+                                "error_code": ERROR_CODES["PAGE_ARCHIVED"],
+                                "error_message": "PAGE_ARCHIVED",
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+                    if (
+                        "access" in serializer.validated_data
+                        and current.access != serializer.validated_data["access"]
+                        and current.owned_by_id != request.user.id
+                    ):
+                        return Response(
+                            {"error": "Access cannot be updated since this page is owned by someone else"},
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
+
+                    page_description = current.description_html
+                    current = serializer.update(current, dict(serializer.validated_data))
+                    response_data = PageDetailSerializer(current).data
+
                 # capture the page transaction
                 if request.data.get("description_html"):
                     page_transaction.delay(
@@ -191,7 +226,7 @@ class PageViewSet(BaseViewSet):
                         page_id=page_id,
                     )
 
-                return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(response_data, status=status.HTTP_200_OK)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Page.DoesNotExist:
             return Response(
@@ -244,48 +279,50 @@ class PageViewSet(BaseViewSet):
             return Response(data, status=status.HTTP_200_OK)
 
     def lock(self, request, slug, project_id, page_id):
-        page = Page.objects.get(
-            pk=page_id,
-            workspace__slug=slug,
-            projects__id=project_id,
-            project_pages__deleted_at__isnull=True,
-        )
-
-        page.is_locked = True
-        page.save()
+        with transaction.atomic():
+            page = Page.objects.select_for_update().get(
+                pk=page_id,
+                workspace__slug=slug,
+                projects__id=project_id,
+                project_pages__deleted_at__isnull=True,
+            )
+            page.is_locked = True
+            page.save(update_fields=["is_locked", "updated_at", "updated_by"])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def unlock(self, request, slug, project_id, page_id):
-        page = Page.objects.get(
-            pk=page_id,
-            workspace__slug=slug,
-            projects__id=project_id,
-            project_pages__deleted_at__isnull=True,
-        )
-
-        page.is_locked = False
-        page.save()
+        with transaction.atomic():
+            page = Page.objects.select_for_update().get(
+                pk=page_id,
+                workspace__slug=slug,
+                projects__id=project_id,
+                project_pages__deleted_at__isnull=True,
+            )
+            page.is_locked = False
+            page.save(update_fields=["is_locked", "updated_at", "updated_by"])
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def access(self, request, slug, project_id, page_id):
         access = request.data.get("access", 0)
-        page = Page.objects.get(
-            pk=page_id,
-            workspace__slug=slug,
-            projects__id=project_id,
-            project_pages__deleted_at__isnull=True,
-        )
-
-        # Only update access if the page owner is the requesting user
-        if page.access != request.data.get("access", page.access) and page.owned_by_id != request.user.id:
-            return Response(
-                {"error": "Access cannot be updated since this page is owned by someone else"},
-                status=status.HTTP_400_BAD_REQUEST,
+        with transaction.atomic():
+            page = Page.objects.select_for_update().get(
+                pk=page_id,
+                workspace__slug=slug,
+                projects__id=project_id,
+                project_pages__deleted_at__isnull=True,
             )
 
-        page.access = access
-        page.save()
+            # Check ownership on the locked, current row. Restrict the write to
+            # the state fields so this request can never replay stale content.
+            if page.access != request.data.get("access", page.access) and page.owned_by_id != request.user.id:
+                return Response(
+                    {"error": "Access cannot be updated since this page is owned by someone else"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            page.access = access
+            page.save(update_fields=["access", "updated_at", "updated_by"])
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def list(self, request, slug, project_id):
@@ -554,7 +591,40 @@ class PagesDescriptionViewSet(BaseViewSet):
         # Use serializer for validation and update
         serializer = PageBinaryUpdateSerializer(page, data=request.data, partial=True)
         if serializer.is_valid():
-            serializer.save()
+            with transaction.atomic():
+                current = (
+                    Page.objects.select_for_update()
+                    .filter(
+                        Q(owned_by=self.request.user) | Q(access=0),
+                        pk=page_id,
+                        workspace__slug=slug,
+                        projects__id=project_id,
+                        project_pages__deleted_at__isnull=True,
+                    )
+                    .first()
+                )
+                if current is None:
+                    return Response(status=status.HTTP_404_NOT_FOUND)
+                if current.is_locked:
+                    return Response(
+                        {
+                            "error_code": ERROR_CODES["PAGE_LOCKED"],
+                            "error_message": "PAGE_LOCKED",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                if current.archived_at:
+                    return Response(
+                        {
+                            "error_code": ERROR_CODES["PAGE_ARCHIVED"],
+                            "error_message": "PAGE_ARCHIVED",
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                old_description_html = current.description_html
+                existing_instance = json.dumps({"description_html": old_description_html}, cls=DjangoJSONEncoder)
+                serializer.update(current, dict(serializer.validated_data))
 
             # Capture the page transaction
             if request.data.get("description_html"):

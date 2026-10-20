@@ -53,6 +53,10 @@ OFFLINE_GRACE_SECS = 60
 # crash detection comes from missing heartbeats anyway.
 ASSIGN_DELIVERY_GRACE_SECS = 60
 
+# ``error_code`` on runs that the offline-runner sweep moved to a terminal
+# status. It also lets a returning daemon recognise that it must stop the run.
+RUNNER_OFFLINE_ERROR_CODE = "runner_offline"
+
 
 def _merge_dev_metadata(current: Any, body: Dict[str, Any]) -> Dict[str, Any]:
     """Merge whitelisted session-open metadata into a JSON object.
@@ -162,11 +166,7 @@ def reap_stale_busy_runs(runner: Runner, body: Dict[str, Any], *, exclude_redeli
     """
     from django.db import transaction
 
-    from karma_team.runner.services.matcher import (
-        BUSY_STATUSES,
-        drain_for_runner_by_id,
-        drain_pod_by_id,
-    )
+    from karma_team.runner.services.matcher import BUSY_STATUSES
 
     now = timezone.now()
     ts_raw = body.get("ts")
@@ -209,17 +209,27 @@ def reap_stale_busy_runs(runner: Runner, body: Dict[str, Any], *, exclude_redeli
     )
     if in_flight_id:
         stale = stale.exclude(id=in_flight_id)
-        if not exclude_redeliverable and AgentRun.objects.filter(
-            id=in_flight_id,
-            runner=runner,
-            status=AgentRunStatus.CANCEL_REQUESTED,
-        ).exists():
+        cancel_reason = None
+        if not exclude_redeliverable:
+            claimed = AgentRun.objects.filter(id=in_flight_id, runner=runner).values("status", "error_code").first()
+            if claimed is not None and claimed["status"] == AgentRunStatus.CANCEL_REQUESTED:
+                cancel_reason = "cancellation_pending"
+            elif (
+                claimed is not None
+                and claimed["status"] in (AgentRunStatus.FAILED, AgentRunStatus.CANCELLED)
+                and claimed["error_code"] == RUNNER_OFFLINE_ERROR_CODE
+            ):
+                # The sweep finalized this run while the daemon was silent.
+                # The issue may already have replacement work elsewhere, so
+                # keep telling a returning daemon to stop until it acknowledges.
+                cancel_reason = f"run_already_{claimed['status']}"
+        if cancel_reason is not None:
             # Re-enqueue on every poll until the daemon acknowledges. This
             # recovers when the initial best-effort enqueue happened during a
             # transient Redis outage without waiting for a session reconnect.
             from karma_team.runner.services.pubsub import send_to_runner
 
-            def _retry_cancel(rid=runner.id, run_id=in_flight_id):
+            def _retry_cancel(rid=runner.id, run_id=in_flight_id, reason=cancel_reason):
                 try:
                     send_to_runner(
                         rid,
@@ -227,56 +237,84 @@ def reap_stale_busy_runs(runner: Runner, body: Dict[str, Any], *, exclude_redeli
                             "v": 1,
                             "type": "cancel",
                             "run_id": str(run_id),
-                            "reason": "cancellation_pending",
+                            "reason": reason,
                         },
                     )
                 except Exception:
                     logger.exception(
-                        "session_service: failed to redeliver cancellation "
-                        "for run %s",
+                        "session_service: failed to redeliver cancellation for run %s",
                         run_id,
                     )
 
             transaction.on_commit(_retry_cancel)
 
-    # A cancellation request disappears from the daemon's in-flight report
-    # only after its worker has stopped. Treat that heartbeat as the same
-    # barrier as an explicit RunCancelled lifecycle frame.
-    stopped_cancel_ids = list(stale.filter(status=AgentRunStatus.CANCEL_REQUESTED).values_list("id", flat=True))
-    stopped_cancel_pod_ids = set(stale.filter(status=AgentRunStatus.CANCEL_REQUESTED).values_list("pod_id", flat=True))
-    if stopped_cancel_ids:
-        AgentRun.objects.filter(id__in=stopped_cancel_ids).update(
-            status=AgentRunStatus.CANCELLED,
-            ended_at=now,
-            queue_position=None,
-        )
-        stale = stale.exclude(id__in=stopped_cancel_ids)
+    _finish_unclaimed_runs(
+        runner,
+        stale,
+        detail=(
+            "reaped by heartbeat: runner reported in_flight_run="
+            f"{in_flight_id or '(none)'} but cloud had this run marked busy"
+        ),
+        error_code="heartbeat_reaped",
+    )
 
-    reaped = list(stale.values_list("id", "pod_id"))
-    if not reaped and not stopped_cancel_ids:
-        return
+
+def _finish_unclaimed_runs(
+    runner: Runner, stale, *, detail: str, error_code: str, stamp_cancelled: bool = False
+) -> int:
+    """Terminate active runs that ``runner`` is no longer serving.
+
+    This is shared by the heartbeat reaper and the offline-runner sweep.
+    ``stamp_cancelled`` records why the latter finalized a cancellation so a
+    daemon that later reconnects can be told to stop its local process.
+    """
+    from django.db import transaction
 
     from karma_team.runner.services.agent_run_finalization import finalize_agent_run
+    from karma_team.runner.services.matcher import drain_for_runner_by_id, drain_pod_by_id
 
-    detail = (
-        "reaped by heartbeat: runner reported in_flight_run="
-        f"{in_flight_id or '(none)'} but cloud had this run marked busy"
-    )
+    # A cancellation request disappears from the daemon's in-flight report
+    # only after its worker has stopped. Treat that as the same barrier as an
+    # explicit RunCancelled lifecycle frame.
+    stopped_cancel_candidates = list(stale.filter(status=AgentRunStatus.CANCEL_REQUESTED).values_list("id", "pod_id"))
+    stopped_cancel_ids = [run_id for run_id, _ in stopped_cancel_candidates]
+    stale = stale.exclude(id__in=stopped_cancel_ids)
+
+    reaped = list(stale.values_list("id", "pod_id"))
+    if not reaped and not stopped_cancel_candidates:
+        return 0
+
+    # Use the same first-writer-wins transition as runner lifecycle endpoints.
+    # A completion or failure racing this reaper must remain authoritative.
+    cancelled: list[tuple[Any, Any]] = []
+    cancelled_updates = {"error_code": error_code} if stamp_cancelled else None
+    for run_id, pod_id in stopped_cancel_candidates:
+        if finalize_agent_run(
+            run_id,
+            AgentRunStatus.CANCELLED,
+            updates=cancelled_updates,
+            expected_runner_id=runner.id,
+            expected_status=AgentRunStatus.CANCEL_REQUESTED,
+        ):
+            cancelled.append((run_id, pod_id))
+
+    failed = 0
     for run_id, _ in reaped:
-        finalize_agent_run(
+        if finalize_agent_run(
             run_id,
             AgentRunStatus.FAILED,
-            updates={"error": detail, "error_code": "heartbeat_reaped"},
+            updates={"error": detail, "error_code": error_code},
             expected_runner_id=runner.id,
-        )
+        ):
+            failed += 1
     pod_ids = {pid for _, pid in reaped if pid is not None}
-    pod_ids.update(pid for pid in stopped_cancel_pod_ids if pid is not None)
+    pod_ids.update(pid for _, pid in cancelled if pid is not None)
     runner_id = runner.id
 
     def _drain_after_commit(
         rid=runner_id,
         pids=pod_ids,
-        handoff_ids=tuple(stopped_cancel_ids),
+        handoff_ids=tuple(run_id for run_id, _ in cancelled),
     ):
         from karma_team.orchestration.service import complete_project_move_handoff
 
@@ -287,6 +325,7 @@ def reap_stale_busy_runs(runner: Runner, body: Dict[str, Any], *, exclude_redeli
             drain_pod_by_id(pid)
 
     transaction.on_commit(_drain_after_commit)
+    return failed + len(cancelled)
 
 
 # ---------------------------------------------------------------------------

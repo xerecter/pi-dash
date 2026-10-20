@@ -212,14 +212,22 @@ class PageBinaryUpdateSerializer(serializers.Serializer):
 
     def update(self, instance, validated_data):
         """Update the page instance with validated data"""
+        update_fields = []
         if "description_binary" in validated_data:
             instance.description_binary = validated_data.get("description_binary")
+            update_fields.append("description_binary")
 
         if "description_html" in validated_data:
             instance.description_html = validated_data.get("description_html")
+            update_fields.extend(["description_html", "description_stripped"])
 
         if "description_json" in validated_data:
             instance.description_json = validated_data.get("description_json")
+            update_fields.append("description_json")
 
-        instance.save()
+        if update_fields:
+            # Page.save() derives description_stripped and BaseModel.save()
+            # maintains the audit fields. Include them explicitly so a body
+            # write cannot persist unrelated values from a stale instance.
+            instance.save(update_fields=[*update_fields, "updated_at", "updated_by"])
         return instance

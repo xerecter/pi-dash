@@ -22,6 +22,9 @@ const envSchema = z.object({
   // Compression options
   COMPRESSION_LEVEL: z.string().default("6").transform(Number),
   COMPRESSION_THRESHOLD: z.string().default("5000").transform(Number),
+  // Full editor documents include HTML plus base64 Yjs state and regularly
+  // exceed Express' 100 KB default request limit.
+  JSON_BODY_LIMIT: z.string().default("20mb"),
   // secret
   LIVE_SERVER_SECRET_KEY: z.string(),
   // Redis configuration

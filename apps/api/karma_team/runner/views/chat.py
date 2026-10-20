@@ -11,10 +11,9 @@ from types import SimpleNamespace
 from typing import Optional
 
 import redis.asyncio as aioredis
-from channels.db import database_sync_to_async
 from django.conf import settings
-from django.db import close_old_connections, transaction
-from django.db.models import Q
+from django.db import transaction
+from django.db.models import Max, Q
 from django.http import JsonResponse, StreamingHttpResponse
 from django.utils import timezone
 from rest_framework import status
@@ -55,6 +54,7 @@ from karma_team.runner.services.permissions import (
     runner_visible_to_user_q,
 )
 from karma_team.runner.services.pubsub import send_to_runner
+from karma_team.utils.db_async import close_idle_connections, db_sync_to_async
 
 
 class ChatSendThrottle(UserRateThrottle):
@@ -62,6 +62,7 @@ class ChatSendThrottle(UserRateThrottle):
 
 
 CHAT_EVENT_PAYLOAD_MAX_BYTES = 256 * 1024
+CHAT_EVENT_REPLAY_BATCH_SIZE = 1000
 _async_redis_client: Optional[aioredis.Redis] = None
 logger = logging.getLogger(__name__)
 
@@ -114,6 +115,27 @@ def _session_authenticates(request) -> bool:
     if auth_result is not None:
         request.user = auth_result[0]
     return bool(getattr(request, "user", None) and request.user.is_authenticated)
+
+
+def _chat_session(session_id):
+    return AgentChatSession.objects.filter(pk=session_id).first()
+
+
+def _chat_event_high_water(session_id, after: int) -> int | None:
+    return AgentChatEvent.objects.filter(
+        session_id=session_id, seq__gt=after
+    ).aggregate(max_seq=Max("seq"))["max_seq"]
+
+
+def _replay_chat_events(
+    session_id, after: int, through: int, *, limit: int = CHAT_EVENT_REPLAY_BATCH_SIZE
+) -> list[tuple[int, dict]]:
+    return [
+        (event.seq, chat_service.serialize_event(event))
+        for event in AgentChatEvent.objects.filter(
+            session_id=session_id, seq__gt=after, seq__lte=through
+        ).order_by("seq")[:limit]
+    ]
 
 
 def _runner_unavailable(runner: Runner) -> bool:
@@ -779,22 +801,18 @@ class ChatClosedEndpoint(_ChatRunnerEndpointBase):
 
 
 async def chat_event_stream(request, session_id):
-    # ``database_sync_to_async`` (not ``asyncio.to_thread``): these helpers
-    # run ORM queries. ``asyncio.to_thread`` dispatches to Python's default
-    # ThreadPoolExecutor (~cpu+4 threads), and a Django connection opened in
-    # one of those pool threads is never closed — ``close_old_connections``
-    # only fires on the HTTP request cycle, not in arbitrary pool threads —
-    # so the connections accumulate (observed in prod 2026-06-10: ~94 idle
-    # connections exhausting the shared Postgres host). ``database_sync_to_async``
-    # routes the call onto Django's shared thread-sensitive executor and
-    # closes stale connections around it.
-    if not await database_sync_to_async(_session_authenticates)(request):
+    # These helpers run ORM work on Django's thread-sensitive executor and
+    # release its connection after each short operation, before the long-lived
+    # Redis stream begins.
+    if not await db_sync_to_async(_session_authenticates)(request):
         return JsonResponse(
             {"error": "authentication required"},
             status=status.HTTP_403_FORBIDDEN,
         )
-    session = await AgentChatSession.objects.filter(pk=session_id).afirst()
-    if session is None or not await database_sync_to_async(chat_service.can_read_chat)(request.user, session):
+    session = await db_sync_to_async(_chat_session)(session_id)
+    if session is None or not await db_sync_to_async(chat_service.can_read_chat)(
+        request.user, session
+    ):
         return JsonResponse({"error": "not found"}, status=status.HTTP_404_NOT_FOUND)
 
     after_raw = request.GET.get("after") or request.headers.get("Last-Event-ID") or "0"
@@ -812,10 +830,20 @@ async def chat_event_stream(request, session_id):
         try:
             await pubsub.subscribe(chat_service.event_channel(session_id))
             subscribed = True
-            async for event in AgentChatEvent.objects.filter(session_id=session_id, seq__gt=after).order_by("seq"):
-                data = chat_service.serialize_event(event)
-                last_seq = max(last_seq, event.seq)
-                yield f"event: chat.event\nid: {event.seq}\ndata: {json.dumps(data, default=str)}\n\n"
+            replay_through = await db_sync_to_async(_chat_event_high_water)(
+                session_id, after
+            )
+            replay_after = after
+            while replay_through is not None and replay_after < replay_through:
+                batch = await db_sync_to_async(_replay_chat_events)(
+                    session_id, replay_after, replay_through
+                )
+                if not batch:
+                    break
+                for seq, data in batch:
+                    last_seq = max(last_seq, seq)
+                    yield f"event: chat.event\nid: {seq}\ndata: {json.dumps(data, default=str)}\n\n"
+                replay_after = batch[-1][0]
             while True:
                 msg = await pubsub.get_message(timeout=1.0)
                 if msg and msg.get("type") == "message":
@@ -845,12 +873,8 @@ async def chat_event_stream(request, session_id):
                 await pubsub.close()
             except Exception:
                 logger.exception("failed to close chat SSE pubsub for session %s", session_id)
-            # The initial event replay above uses the async ORM, which runs on
-            # the shared thread-sensitive executor. Close that connection on the
-            # same thread when the (potentially long-lived) stream ends so it
-            # doesn't sit idle for the life of the connection.
             try:
-                await database_sync_to_async(close_old_connections)()
+                await db_sync_to_async(close_idle_connections)()
             except Exception:
                 logger.exception("failed to close DB connection after chat SSE for session %s", session_id)
 

@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import asyncio
 
-from asgiref.sync import sync_to_async
 from django.conf import settings
 
 from karma_team.cloud_agent import events
 from karma_team.cloud_agent.output import CloudAgentOutput
 from karma_team.cloud_agent.tools import build_tools
+from karma_team.utils.db_async import db_sync_to_async
 from karma_team.cloud_agent.github_mcp import GITHUB_TOOL_NAMES, build_github_toolset
 
 
@@ -18,7 +18,7 @@ async def execute(run):
     from karma_team.ee.cloud_agent.model_provider import resolve_model_for_run
     from karma_team.ee.cloud_agent.toolsets import resolve_extra_toolsets_for_run
 
-    model = await sync_to_async(resolve_model_for_run)(run)
+    model = await db_sync_to_async(resolve_model_for_run)(run)
     allowed_names = run.tool_plan.get("tools", [])
     tools = build_tools(run.id, set(allowed_names) - GITHUB_TOOL_NAMES)
     toolsets = []
@@ -30,9 +30,9 @@ async def execute(run):
     # admitted with, and the same flag decides whether the prompt tells the
     # agent these tools exist — so a run that resolves them without it would
     # carry tools its prompt never mentions. Building them can touch the DB,
-    # hence sync_to_async.
+    # hence db_sync_to_async, which also releases the connection afterwards.
     if run.tool_plan.get("extra_toolsets"):
-        toolsets.extend(await sync_to_async(resolve_extra_toolsets_for_run)(run))
+        toolsets.extend(await db_sync_to_async(resolve_extra_toolsets_for_run)(run))
     agent = Agent(
         model=model,
         output_type=CloudAgentOutput,
@@ -50,7 +50,7 @@ async def execute(run):
     # events.append is synchronous ORM work; calling it bare in this coroutine
     # raises SynchronousOnlyOperation (pydantic-ai runs sync *tools* in a
     # threadpool, but this call executes on the event loop itself).
-    await sync_to_async(events.append)(run.id, "model_started", {"model": model_name})
+    await db_sync_to_async(events.append)(run.id, "model_started", {"model": model_name})
     limits = run.tool_plan.get("limits", {})
     usage_limits = UsageLimits(
         request_limit=limits.get("model_requests", settings.CLOUD_AGENT_MODEL_REQUEST_LIMIT),

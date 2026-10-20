@@ -148,6 +148,28 @@ def test_claim_pending_requests_cursor_with_full_xautoclaim_response(monkeypatch
 
 
 @pytest.mark.unit
+def test_claim_pending_bails_when_cursor_does_not_advance(monkeypatch):
+    client = _FakeRedis(
+        autoclaim_results=[
+            (b"5-0", [b"1-0"]),
+            (b"5-0", [b"2-0"]),
+            (b"5-0", [b"3-0"]),
+        ]
+    )
+    monkeypatch.setattr(outbox, "redis_instance", lambda: client)
+
+    claimed = outbox.claim_pending_for_new_session(
+        "runner-1",
+        old_consumer="consumer-old",
+        new_consumer="consumer-new",
+    )
+
+    assert claimed == 2
+    assert len(client.autoclaim_results) == 1
+    assert client.deleted == []
+
+
+@pytest.mark.unit
 def test_reap_idle_consumers_drops_only_stale_zero_pending_consumers(monkeypatch):
     client = _FakeRedis(
         consumers=[

@@ -4,7 +4,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
@@ -648,3 +650,110 @@ def test_chat_session_list_by_runner_requires_runner_workspace_membership(db, se
     resp = session_client.get("/api/runners/chat/sessions/", {"runner": str(other_runner.id)})
 
     assert resp.status_code == 403
+
+
+@pytest.mark.unit
+def test_chat_event_replay_uses_bounded_batches(
+    db, create_user, workspace, pod, enrolled_runner
+):
+    from karma_team.runner.views.chat import (
+        _chat_event_high_water,
+        _replay_chat_events,
+    )
+
+    session = AgentChatSession.objects.create(
+        workspace=workspace,
+        runner=enrolled_runner,
+        created_by=create_user,
+        pod=pod,
+    )
+    for seq in range(1, 5):
+        AgentChatEvent.objects.create(
+            session=session,
+            seq=seq,
+            kind="chat_delta",
+            payload={"seq": seq},
+        )
+
+    high_water = _chat_event_high_water(session.id, 0)
+    AgentChatEvent.objects.create(
+        session=session,
+        seq=5,
+        kind="chat_delta",
+        payload={"seq": 5},
+    )
+    first = _replay_chat_events(session.id, 0, high_water, limit=2)
+    second = _replay_chat_events(session.id, first[-1][0], high_water, limit=2)
+
+    assert high_water == 4
+    assert [seq for seq, _ in first] == [1, 2]
+    assert [seq for seq, _ in second] == [3, 4]
+
+
+@pytest.mark.unit
+def test_chat_sse_cancellation_cleans_up_subscription(monkeypatch):
+    from karma_team.runner.views import chat as chat_views
+
+    entered_read = asyncio.Event()
+    cleanup_calls = []
+
+    class FakePubsub:
+        def __init__(self):
+            self.subscriptions = []
+            self.unsubscriptions = []
+            self.closed = False
+
+        async def subscribe(self, channel):
+            self.subscriptions.append(channel)
+
+        async def get_message(self, timeout):
+            entered_read.set()
+            await asyncio.Future()
+
+        async def unsubscribe(self, channel):
+            self.unsubscriptions.append(channel)
+
+        async def close(self):
+            self.closed = True
+
+    pubsub = FakePubsub()
+
+    class FakeRedis:
+        def pubsub(self, ignore_subscribe_messages=True):
+            assert ignore_subscribe_messages is True
+            return pubsub
+
+    def direct_sync_to_async(func):
+        async def call(*args, **kwargs):
+            return func(*args, **kwargs)
+
+        return call
+
+    monkeypatch.setattr(chat_views, "db_sync_to_async", direct_sync_to_async)
+    monkeypatch.setattr(chat_views, "_session_authenticates", lambda request: True)
+    monkeypatch.setattr(chat_views, "_chat_session", lambda session_id: SimpleNamespace(id=session_id))
+    monkeypatch.setattr(chat_views.chat_service, "can_read_chat", lambda user, session: True)
+    monkeypatch.setattr(chat_views, "_chat_event_high_water", lambda session_id, after: None)
+    monkeypatch.setattr(chat_views, "_async_redis", lambda: FakeRedis())
+    monkeypatch.setattr(
+        chat_views,
+        "close_idle_connections",
+        lambda: cleanup_calls.append("closed"),
+    )
+    request = SimpleNamespace(GET={}, headers={}, user=object())
+
+    async def scenario():
+        response = await chat_views.chat_event_stream(request, "session-id")
+        stream = response.streaming_content
+        next_event = asyncio.create_task(stream.__anext__())
+        await asyncio.wait_for(entered_read.wait(), timeout=1)
+        next_event.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await next_event
+
+    asyncio.run(scenario())
+
+    assert len(pubsub.subscriptions) == 1
+    assert pubsub.unsubscriptions == pubsub.subscriptions
+    assert pubsub.closed is True
+    assert cleanup_calls == ["closed"]

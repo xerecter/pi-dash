@@ -1,3 +1,4 @@
+pub mod drain_journal;
 pub mod machine_control;
 pub mod observability;
 pub mod project_sync;

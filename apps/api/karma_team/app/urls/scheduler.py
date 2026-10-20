@@ -8,6 +8,7 @@ from karma_team.app.views.scheduler.occurrences import ProjectSchedulerOccurrenc
 from karma_team.app.views.scheduler.views import (
     ProjectSchedulerBindingDetailEndpoint,
     ProjectSchedulerBindingListEndpoint,
+    ProjectSchedulerBindingRunsEndpoint,
     WorkspaceSchedulerDetailEndpoint,
     WorkspaceSchedulerListEndpoint,
 )
@@ -35,6 +36,11 @@ urlpatterns = [
         "workspaces/<str:slug>/projects/<str:project_id>/scheduler-bindings/<uuid:binding_id>/",
         ProjectSchedulerBindingDetailEndpoint.as_view(),
         name="project-scheduler-bindings-detail",
+    ),
+    path(
+        "workspaces/<str:slug>/projects/<str:project_id>/scheduler-bindings/<uuid:binding_id>/runs/",
+        ProjectSchedulerBindingRunsEndpoint.as_view(),
+        name="project-scheduler-bindings-runs",
     ),
     # Project-level: calendar occurrences (PR2 — see
     # .ai_design/project_scheduler_calendar/decisions.md §3).

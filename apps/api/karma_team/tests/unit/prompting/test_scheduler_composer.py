@@ -13,7 +13,7 @@ from karma_team.db.models.project import Project
 from karma_team.db.models.scheduler import OutcomeMode, Scheduler, SchedulerBinding
 from karma_team.prompting.composer import build_scheduler_turn
 from karma_team.prompting.context import build_scheduler_context, build_scheduler_task_body
-from karma_team.runner.models import AgentRun
+from karma_team.runner.models import AgentExecutorKind, AgentRun
 
 
 @pytest.fixture
@@ -40,6 +40,16 @@ def binding(db, workspace, create_user):
 @pytest.fixture
 def fake_run(db, workspace, create_user):
     return AgentRun.objects.create(workspace=workspace, prompt="", created_by=create_user)
+
+
+@pytest.fixture
+def cloud_run(db, workspace, create_user):
+    return AgentRun.objects.create(
+        workspace=workspace,
+        prompt="",
+        created_by=create_user,
+        executor_kind=AgentExecutorKind.CLOUD_AGENT,
+    )
 
 
 @pytest.mark.unit
@@ -75,6 +85,42 @@ def test_scheduler_turn_renders_and_injects_task_body(binding, fake_run):
         "scheduler-task",
         "karma-team-cli",
     }
+
+
+@pytest.mark.unit
+def test_cloud_scheduler_turn_includes_project_and_scheduler_identity(
+    binding, cloud_run
+):
+    project = binding.project
+    project.description = "Internal admin tool for billing operators."
+    project.save(update_fields=["description"])
+
+    prompt = build_scheduler_turn(binding, cloud_run)
+
+    assert "{{" not in prompt and "{%" not in prompt
+    assert project.identifier in prompt
+    assert project.name in prompt
+    assert project.description in prompt
+    assert binding.scheduler.name in prompt
+    assert f"`{binding.scheduler.slug}`" in prompt
+    assert binding.scheduler.description in prompt
+    assert str(cloud_run.id) in prompt
+    assert cloud_run.prompt_manifest["executor_kind"] == "cloud_agent"
+    assert "cloud-project-context" in {
+        entry["section_key"] for entry in cloud_run.prompt_manifest["sections"]
+    }
+
+
+@pytest.mark.unit
+def test_cloud_scheduler_turn_omits_empty_project_description(binding, cloud_run):
+    project = binding.project
+    project.description = ""
+    project.save(update_fields=["description"])
+
+    prompt = build_scheduler_turn(binding, cloud_run)
+
+    assert "Project description:" not in prompt
+    assert f"Project: {project.name} ({project.identifier})" in prompt
 
 
 @pytest.mark.unit

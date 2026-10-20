@@ -354,21 +354,37 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
   };
 
   const handleMoveToProjects = async () => {
-    if (!data?.id || !data?.project_id || !data) return;
+    if (!data?.id || !data) return;
+    const formValues = getValues();
+    const targetProjectId = formValues.project_id;
+    if (!targetProjectId) {
+      setToast({
+        type: TOAST_TYPE.ERROR,
+        title: t("Error"),
+        message: t("Select a project before publishing this draft."),
+      });
+      return;
+    }
     setIsMoving(true);
     try {
       await handleCreateUpdatePropertyValues({
         issueId: data.id,
-        issueTypeId: data.type_id,
-        projectId: data.project_id,
+        issueTypeId: formValues.type_id,
+        projectId: targetProjectId,
         workspaceSlug: workspaceSlug?.toString(),
         isDraft: true,
       });
 
       await moveIssue(workspaceSlug.toString(), data.id, {
         ...data,
-        ...getValues(),
+        ...formValues,
       } as TWorkspaceDraftIssue);
+      setToast({
+        type: TOAST_TYPE.SUCCESS,
+        title: t("Success"),
+        message: t("Draft published to project."),
+      });
+      onClose();
     } catch {
       setToast({
         type: TOAST_TYPE.ERROR,
@@ -677,6 +693,19 @@ export const IssueFormRoot = observer(function IssueFormRoot(props: IssueFormPro
                         size="lg"
                       >
                         {t("Add to project")}
+                      </Button>
+                    )}
+
+                    {!moveToIssue && isDraft && !!data?.id && (
+                      <Button
+                        variant="primary"
+                        type="button"
+                        loading={isMoving}
+                        onClick={handleMoveToProjects}
+                        disabled={isMoving || isGeneratingTitle}
+                        size="lg"
+                      >
+                        {t("Publish issue")}
                       </Button>
                     )}
                   </div>

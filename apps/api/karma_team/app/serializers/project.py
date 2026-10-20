@@ -10,6 +10,7 @@ import re
 
 # Module imports
 from .base import BaseSerializer, DynamicBaseSerializer
+from django.db import transaction
 from django.db.models import Max
 from karma_team.app.serializers.workspace import WorkspaceLiteSerializer
 from karma_team.app.serializers.user import UserLiteSerializer, UserAdminLiteSerializer
@@ -22,9 +23,20 @@ from karma_team.db.models import (
     ProjectPublicMember,
     IssueSequence,
 )
+from karma_team.db.models.issue_agent_ticker import INFINITE_MAX_TICKS
 from karma_team.utils.content_validator import (
     validate_html_content,
 )
+
+
+MIN_CADENCE_SECONDS = 60
+
+
+def _validate_cadence_seconds(interval):
+    if interval < MIN_CADENCE_SECONDS:
+        raise serializers.ValidationError(detail="AGENT_CADENCE_TOO_SHORT")
+
+    return interval
 
 
 class ProjectSerializer(BaseSerializer):
@@ -82,6 +94,21 @@ class ProjectSerializer(BaseSerializer):
 
         return identifier
 
+    def validate_agent_default_max_ticks(self, max_ticks):
+        if max_ticks != INFINITE_MAX_TICKS and max_ticks < 1:
+            raise serializers.ValidationError(detail="AGENT_MAX_TICKS_MUST_BE_POSITIVE_OR_INFINITE")
+
+        return max_ticks
+
+    def validate_agent_default_interval_seconds(self, interval):
+        return _validate_cadence_seconds(interval)
+
+    def validate_agent_review_default_interval_seconds(self, interval):
+        return _validate_cadence_seconds(interval)
+
+    def validate_agent_test_default_interval_seconds(self, interval):
+        return _validate_cadence_seconds(interval)
+
     def validate(self, data):
         if data.get("default_agent_executor") == "cloud_agent":
             from karma_team.core.agent_execution import cloud_agent_is_configured
@@ -106,6 +133,28 @@ class ProjectSerializer(BaseSerializer):
                 raise serializers.ValidationError({"error": "html content is not valid"})
 
         return data
+
+    def update(self, instance, validated_data):
+        """Serialize ticking-policy changes with ticker claims.
+
+        The Project row is the first lock in every ticking transaction. This
+        makes a committed ``agent_ticking_enabled=False`` authoritative before
+        any worker can lock and claim an issue ticker from that project.
+        """
+        with transaction.atomic():
+            project = Project.objects.select_for_update(of=("self",)).get(pk=instance.pk)
+            previously_enabled = project.agent_ticking_enabled
+            project = super().update(project, validated_data)
+
+            if project.agent_ticking_enabled != previously_enabled:
+                from karma_team.orchestration.scheduling import sync_project_ticking_switch
+
+                sync_project_ticking_switch(
+                    project,
+                    previously_enabled=previously_enabled,
+                )
+
+        return project
 
     def create(self, validated_data):
         workspace_id = self.context["workspace_id"]

@@ -114,6 +114,18 @@ def _can_view_run(user, run: AgentRun) -> bool:
 
         if IssueAssignee.objects.filter(issue_id=run.work_item_id, assignee_id=user.id).exists():
             return True
+    # Scheduler runs are project-scoped rather than issue-scoped. Grant every
+    # active project member access after the private-Runner gate above. This
+    # remains valid if a legacy/linked work item is later hidden or deleted.
+    if run.scheduler_binding_id is not None:
+        from karma_team.db.models.project import ProjectMember
+
+        if ProjectMember.objects.filter(
+            project_id=run.scheduler_binding.project_id,
+            member=user,
+            is_active=True,
+        ).exists():
+            return True
     return is_workspace_admin(user, run.workspace_id)
 
 
@@ -174,7 +186,7 @@ class AgentRunListEndpoint(APIView):
             # ``pod__project`` is read by AgentRunSerializer.pod_detail
             # (PodMiniSerializer.project_identifier); join it to avoid an
             # N+1 across the up-to-200 rows serialized below.
-            .select_related("pod__project")
+            .select_related("pod__project", "scheduler_binding__scheduler")
             # AgentRunSerializer renders ``tool_calls`` inline; prefetch so a
             # page of runs costs one extra query instead of one per row.
             .prefetch_related("tool_calls")
@@ -195,6 +207,19 @@ class AgentRunListEndpoint(APIView):
         project_id = request.query_params.get("project")
         if project_id:
             qs = qs.filter(pod__project_id=project_id)
+
+        scheduler_binding_id = request.query_params.get("scheduler_binding")
+        if scheduler_binding_id:
+            import uuid
+
+            try:
+                uuid.UUID(str(scheduler_binding_id))
+            except (TypeError, ValueError):
+                return Response(
+                    {"error": "invalid scheduler_binding UUID format"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            qs = qs.filter(scheduler_binding_id=scheduler_binding_id)
 
         # Page-number pagination. The list grew unbounded (previously capped at
         # a flat 200), so the client now requests one page at a time and only
@@ -528,7 +553,13 @@ class AgentRunDetailEndpoint(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, run_id):
-        run = AgentRun.objects.select_related("runner", "work_item").filter(id=run_id).first()
+        run = (
+            AgentRun.objects.select_related(
+                "runner", "work_item", "scheduler_binding__scheduler"
+            )
+            .filter(id=run_id)
+            .first()
+        )
         if run is None:
             return Response({"error": "not found"}, status=status.HTTP_404_NOT_FOUND)
         if not _can_view_run(request.user, run):

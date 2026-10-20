@@ -32,12 +32,12 @@ from karma_team.db.models.issue import Issue
 from karma_team.db.models.issue_agent_ticker import (
     DEFAULT_INTERVAL_SECONDS,
     DEFAULT_MAX_TICKS,
-    DEFAULT_RETICK_GRANT,
     INFINITE_MAX_TICKS,
     IssueAgentTicker,
     TickerDisarmReason,
     jitter_seconds,
 )
+from karma_team.db.models.project import Project
 from karma_team.orchestration.agent_phases import is_ticking_state
 from karma_team.runner.models import (
     AWAITING_HUMAN_INPUT_ERROR_CODE,
@@ -234,12 +234,26 @@ def _issue_has_active_run(issue: Issue) -> bool:
     return orchestration_service._active_run_for(issue) is not None
 
 
+def _lock_project_for_issue(issue: Issue) -> Project:
+    """Lock and bind the issue's authoritative project row.
+
+    Every transaction that mutates a ticker takes locks in the same order:
+    project first, ticker second. Besides avoiding lock inversion with project
+    policy updates, rebinding ``issue.project`` prevents callers' cached
+    Project instances from deciding whether a clock may run.
+    """
+    project = Project.objects.select_for_update(of=("self",)).get(pk=issue.project_id)
+    issue.project = project
+    return project
+
+
 def _lock_ticker(issue: Issue, *, create: bool) -> Optional[IssueAgentTicker]:
-    """Row-lock the issue's ticker, creating it (disabled, unarmed) if asked.
+    """Lock project then ticker, creating a disabled ticker if asked.
 
     Callers hold ``transaction.atomic()``.
     """
-    ticker = IssueAgentTicker.objects.select_for_update().filter(issue=issue).first()
+    _lock_project_for_issue(issue)
+    ticker = IssueAgentTicker.objects.select_for_update(of=("self",)).filter(issue=issue).first()
     if ticker is None and create:
         ticker = IssueAgentTicker.objects.create(
             issue=issue,
@@ -255,6 +269,105 @@ def _lock_ticker(issue: Issue, *, create: bool) -> Optional[IssueAgentTicker]:
         # the state the caller sees rather than a lazily-loaded stale copy.
         ticker.issue = issue
     return ticker
+
+
+def sync_project_ticking_switch(project: Project, *, previously_enabled: bool) -> int:
+    """Apply a project ticking switch transition to its existing clocks.
+
+    ``project`` must be the authoritative row already locked by the caller.
+    Disabling stops automatic and agent-queued work immediately, while an
+    explicitly human-queued free entry remains runnable once. Re-enabling
+    restores current ticking clocks that still have automatic budget; terminal,
+    cap-hit and user-disabled clocks retain their stronger stop condition.
+
+    Returns the number of ticker rows written.
+    """
+    enabled = bool(project.agent_ticking_enabled)
+    if enabled == bool(previously_enabled):
+        return 0
+
+    tickers = list(
+        IssueAgentTicker.objects.select_for_update(of=("self",))
+        .select_related("issue", "issue__state")
+        .filter(issue__project_id=project.pk)
+        .order_by("pk")
+    )
+    updated = 0
+    now = timezone.now()
+
+    for ticker in tickers:
+        issue = ticker.issue
+        issue.project = project
+        human_pending = ticker.pending_entry and ticker.pending_entry_free
+
+        if not enabled:
+            if human_pending:
+                # A human explicitly requested this one free run. Keep the
+                # row scanner-visible even though automatic ticking is off.
+                ticker.enabled = True
+                ticker.disarm_reason = TickerDisarmReason.NONE
+                if ticker.next_run_at is None:
+                    ticker.next_run_at = now
+            else:
+                ticker.enabled = False
+                if ticker.user_disabled and ticker.disarm_reason == TickerDisarmReason.NONE:
+                    ticker.disarm_reason = TickerDisarmReason.USER_DISABLED
+                # Preserve terminal/cap/left-state reasons. An armed clock
+                # normally has NONE, which also identifies it for resume.
+                _clear_pending(ticker)
+            _save_clock(ticker)
+            updated += 1
+            continue
+
+        if not is_ticking_state(issue.state):
+            ticker.enabled = False
+            if ticker.disarm_reason == TickerDisarmReason.NONE:
+                ticker.disarm_reason = TickerDisarmReason.LEFT_TICKING_STATE
+            _clear_pending(ticker)
+            _save_clock(ticker)
+            updated += 1
+            continue
+
+        # Human pending work remains a one-shot manual request. It is allowed
+        # even when the automatic pool is spent or the per-issue switch is off.
+        if human_pending:
+            ticker.enabled = True
+            ticker.disarm_reason = TickerDisarmReason.NONE
+            if ticker.next_run_at is None:
+                ticker.next_run_at = now
+            _save_clock(ticker)
+            updated += 1
+            continue
+
+        if ticker.user_disabled:
+            ticker.enabled = False
+            if ticker.disarm_reason == TickerDisarmReason.NONE:
+                ticker.disarm_reason = TickerDisarmReason.USER_DISABLED
+            _clear_pending(ticker)
+            _save_clock(ticker)
+            updated += 1
+            continue
+
+        if ticker.disarm_reason in {
+            TickerDisarmReason.CAP_HIT,
+            TickerDisarmReason.TERMINAL_SIGNAL,
+        } or ticker.cap_reached():
+            ticker.enabled = False
+            if ticker.cap_reached() and ticker.disarm_reason == TickerDisarmReason.NONE:
+                ticker.disarm_reason = TickerDisarmReason.POOL_SPENT
+            _clear_pending(ticker)
+            _save_clock(ticker)
+            updated += 1
+            continue
+
+        ticker.enabled = True
+        ticker.disarm_reason = TickerDisarmReason.NONE
+        ticker.next_run_at = _compute_next_run_at(ticker.effective_interval_seconds(), base=now)
+        _clear_pending(ticker)
+        _save_clock(ticker)
+        updated += 1
+
+    return updated
 
 
 _TICKER_CLOCK_FIELDS = (
@@ -545,10 +658,11 @@ def _on_human_run_requested(issue: Issue, event: TickerEvent) -> TickerDecision:
 
 
 def _on_retick(issue: Issue, event: TickerEvent) -> TickerDecision:
-    """Re-tick: grant one project-sized budget slice, then fire now.
+    """Re-tick: grant a fresh project-sized pool, then fire now.
 
     All guards must hold or the call is a no-op: a ticker row exists, the
-    issue is in the bucket, the pool is actually spent.
+    issue is in the bucket, the pool is actually spent. The project's pool
+    is also the grant size, so one policy knob controls both values.
     """
     ticker = _lock_ticker(issue, create=False)
     if ticker is None:
@@ -559,8 +673,10 @@ def _on_retick(issue: Issue, event: TickerEvent) -> TickerDecision:
     if not ticker.cap_reached():
         return TickerDecision(ticker=ticker, reason="budget_not_exhausted")
 
-    grant = getattr(issue.project, "agent_retick_grant", DEFAULT_RETICK_GRANT)
-    ticker.granted += max(0, int(grant))
+    pool = ticker.pool_size()
+    if pool == INFINITE_MAX_TICKS:
+        return TickerDecision(ticker=ticker, reason="budget_not_exhausted")
+    ticker.granted += max(0, int(pool))
     decision = TickerDecision(ticker=ticker, granted=True, reason="granted")
     if paused:
         # The cap-hit auto-pause parked the issue outside the bucket. The
@@ -1353,12 +1469,18 @@ def maybe_apply_deferred_pause(run: AgentRun) -> bool:
 
     bot = get_agent_system_user()
     with transaction.atomic():
-        # Re-fetch the schedule under a row lock so the disarmed-check we
-        # made above stays valid for the rest of this transaction. Without
-        # this, a concurrent ``arm_ticker`` (e.g. user manually re-starts
-        # the issue between the unlocked read on line ~314 and here) can
-        # re-enable the schedule while we auto-pause its issue.
-        locked_sched = IssueAgentTicker.objects.select_for_update().filter(pk=sched.pk).first()
+        # Existing issue/run lifecycle writers lock the issue first. Once it
+        # is stable, keep the ticking-specific order project then ticker.
+        IssueModel = type(issue)
+        locked = IssueModel.all_objects.select_for_update(of=("self",)).filter(pk=issue.pk).first()
+        if locked is None:
+            return False
+        locked_project = _lock_project_for_issue(locked)
+        locked_sched = (
+            IssueAgentTicker.objects.select_for_update(of=("self",))
+            .filter(pk=sched.pk, issue__project_id=locked_project.pk)
+            .first()
+        )
         if locked_sched is None or locked_sched.enabled:
             return False
         # Re-check disarm_reason under the lock so a concurrent
@@ -1367,12 +1489,6 @@ def maybe_apply_deferred_pause(run: AgentRun) -> bool:
         # LEFT_TICKING_STATE) cannot drive an auto-pause off a stale
         # unlocked read.
         if locked_sched.disarm_reason != TickerDisarmReason.CAP_HIT:
-            return False
-        # Re-fetch the issue under the same transaction to guard against a
-        # racing state transition.
-        IssueModel = type(issue)
-        locked = IssueModel.all_objects.select_for_update().filter(pk=issue.pk).first()
-        if locked is None:
             return False
         if locked.state_id != state.id:
             return False
@@ -1391,7 +1507,6 @@ def maybe_apply_deferred_pause(run: AgentRun) -> bool:
 __all__ = [
     "DEFAULT_INTERVAL_SECONDS",
     "DEFAULT_MAX_TICKS",
-    "DEFAULT_RETICK_GRANT",
     "DELEGATION_STATE_NAME",
     "INFINITE_MAX_TICKS",
     "OUTCOME_BLOCKED",
@@ -1426,4 +1541,5 @@ __all__ = [
     "re_tick_ticker",
     "reconcile",
     "reset_ticker_after_comment_and_run",
+    "sync_project_ticking_switch",
 ]

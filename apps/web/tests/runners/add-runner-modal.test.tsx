@@ -4,7 +4,7 @@
  * See the LICENSE file for details.
  */
 
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { CliInstallConfig } from "@/services/cli-install.service";
@@ -181,9 +181,11 @@ describe("AddRunnerModal", () => {
 
   // SWR caches by key across tests in this file; pass a unique
   // workspaceId when a test needs fresh dev-machine data.
-  function renderModal(workspaceId = "workspace-1") {
+  function renderModal(workspaceId = "workspace-1", projectId?: string) {
     const onClose = vi.fn();
-    const utils = render(<AddRunnerModal isOpen onClose={onClose} workspaceId={workspaceId} workspaceSlug="acme" />);
+    const utils = render(
+      <AddRunnerModal isOpen onClose={onClose} workspaceId={workspaceId} workspaceSlug="acme" projectId={projectId} />
+    );
     return { ...utils, onClose };
   }
 
@@ -236,6 +238,31 @@ describe("AddRunnerModal", () => {
     await user.click(screen.getByRole("button", { name: "Back" }));
 
     expect(screen.getByPlaceholderText("my-laptop-runner")).toHaveValue(runnerName);
+  });
+
+  it("prefills and locks the project on a project-scoped page", async () => {
+    const user = userEvent.setup();
+    renderModal("workspace-scoped", "project-1");
+
+    await screen.findByRole("option", { name: "BrowserX" });
+    const projectSelect = screen.getAllByTestId("select")[1];
+    await waitFor(() => expect(projectSelect).toHaveValue("BROWSERX"));
+    expect(projectSelect).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Generate Runner" }));
+    const command = await screen.findByText(
+      (_content: string, node: Element | null) => node?.tagName.toLowerCase() === "pre"
+    );
+    expect(command.textContent).toContain("--project BROWSERX");
+  });
+
+  it("keeps the project editable on the workspace-wide page", async () => {
+    renderModal("workspace-unscoped");
+
+    await screen.findByRole("option", { name: "BrowserX" });
+    const projectSelect = screen.getAllByTestId("select")[1];
+    expect(projectSelect).toHaveValue("");
+    expect(projectSelect).not.toBeDisabled();
   });
 
   it("blocks invalid runner names before generating a command", async () => {

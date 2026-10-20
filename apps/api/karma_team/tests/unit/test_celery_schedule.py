@@ -25,3 +25,10 @@ def test_generic_git_sync_reuses_legacy_github_beat_schedule_name():
         schedule["github-issue-sync-every-4h"]["task"]
         == "karma_team.bgtasks.git_sync_task.sync_all_bindings"
     )
+
+
+def test_offline_runner_recovery_tasks_are_scheduled():
+    schedule = app.conf.beat_schedule
+
+    assert schedule["runner-release-pins-on-offline-runners"]["task"] == "runner.release_pins_on_offline_runners"
+    assert schedule["runner-fail-runs-on-offline-runners"]["task"] == "runner.fail_runs_on_offline_runners"

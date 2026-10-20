@@ -5,6 +5,7 @@
  */
 
 import { API_BASE_URL } from "@karma-team/constants";
+import type { IAgentRunPage } from "@karma-team/types";
 import { APIService } from "../api.service";
 
 /**
@@ -98,6 +99,11 @@ export interface ISchedulerBinding {
   actor: string | null;
   created_at: string;
   updated_at: string;
+  /** Fields returned by the single-binding detail endpoint. */
+  resolved_prompt?: string;
+  run_count?: number;
+  scheduler_source?: SchedulerSource;
+  scheduler_is_enabled?: boolean;
 }
 
 export interface ISchedulerBindingCreatePayload {
@@ -230,6 +236,26 @@ export class SchedulerService extends APIService {
   async destroyBinding(workspaceSlug: string, projectId: string, bindingId: string): Promise<void> {
     return this.delete(`/api/workspaces/${workspaceSlug}/projects/${projectId}/scheduler-bindings/${bindingId}/`)
       .then(() => undefined)
+      .catch((err) => {
+        throw err?.response?.data;
+      });
+  }
+
+  // -------- Run history --------
+
+  async listBindingRuns(
+    workspaceSlug: string,
+    projectId: string,
+    bindingId: string,
+    page = 1,
+    perPage?: number
+  ): Promise<IAgentRunPage> {
+    const params: Record<string, string | number> = { page };
+    if (perPage !== undefined) params.per_page = perPage;
+    return this.get(`/api/workspaces/${workspaceSlug}/projects/${projectId}/scheduler-bindings/${bindingId}/runs/`, {
+      params,
+    })
+      .then((res) => res?.data)
       .catch((err) => {
         throw err?.response?.data;
       });

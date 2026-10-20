@@ -197,6 +197,14 @@ export interface IAgentRunErrorDiagnostic {
   action: string;
 }
 
+/** Scheduler installation identity attached to a scheduler-fired run. */
+export interface IAgentRunSchedulerBinding {
+  id: string;
+  scheduler_name: string;
+  scheduler_slug: string;
+  project: string;
+}
+
 export interface IAgentRun {
   id: string;
   status: TAgentRunStatus;
@@ -208,6 +216,8 @@ export interface IAgentRun {
   thread_id: string;
   runner: string | null;
   work_item: string | null;
+  scheduler_binding: string | null;
+  scheduler_binding_detail: IAgentRunSchedulerBinding | null;
   pod: string;
   pod_detail: IPodMini | null;
   /** Run creator — the access principal for permission checks. */

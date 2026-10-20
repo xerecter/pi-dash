@@ -122,6 +122,10 @@ fn clone_command(url: &str, target: &Path, use_first_use_trust: bool) -> Command
         .arg("--")
         .arg(url)
         .arg(target)
+        // The daemon cannot answer an interactive credential prompt. Force a
+        // prompt-free failure so workspace resolution can fall back instead of
+        // leaving the assignment blocked indefinitely.
+        .env("GIT_TERMINAL_PROMPT", "0")
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .kill_on_drop(true);
@@ -150,13 +154,6 @@ fn is_ssh_clone_url(url: &str) -> bool {
 
 pub fn is_git_repo(path: &Path) -> bool {
     path.join(".git").exists()
-}
-
-pub fn is_empty_dir(path: &Path) -> bool {
-    match std::fs::read_dir(path) {
-        Ok(mut rd) => rd.next().is_none(),
-        Err(_) => false,
-    }
 }
 
 #[cfg(test)]
@@ -348,6 +345,32 @@ mod tests {
                     .as_std()
                     .get_envs()
                     .all(|(key, _)| key != "GIT_SSH_COMMAND")
+            );
+        }
+    }
+
+    #[test]
+    fn every_clone_command_disables_terminal_prompts_without_changing_ssh_policy() {
+        for (url, use_first_use_trust, expected_ssh_command) in [
+            ("https://gitlab.example.com/group/repo.git", false, None),
+            (
+                "git@gitlab.example.com:group/repo.git",
+                true,
+                Some(SSH_CLONE_COMMAND),
+            ),
+            ("git@gitlab.example.com:group/repo.git", false, None),
+        ] {
+            let command = clone_command(url, Path::new("/tmp/target"), use_first_use_trust);
+            let envs: std::collections::HashMap<_, _> = command.as_std().get_envs().collect();
+            assert_eq!(
+                envs.get(std::ffi::OsStr::new("GIT_TERMINAL_PROMPT"))
+                    .and_then(|value| *value),
+                Some(std::ffi::OsStr::new("0"))
+            );
+            assert_eq!(
+                envs.get(std::ffi::OsStr::new("GIT_SSH_COMMAND"))
+                    .and_then(|value| *value),
+                expected_ssh_command.map(std::ffi::OsStr::new)
             );
         }
     }

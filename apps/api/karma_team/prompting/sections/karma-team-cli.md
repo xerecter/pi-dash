@@ -48,7 +48,7 @@ Use `--fold` only for low-value status/noop updates that should remain available
 The workpad is your durable per-issue scratchpad — a single markdown document the agent owns. It is the only carrier of state between runs. It is **not** visible to humans in the comment thread; treat it as your own working memory, not a message to the operator.
 
 - `karma-team workpad get [<identifier>]` — fetch the current workpad body. Returns `{body, updated_at}`. Defaults `<identifier>` to `KARMA_TEAM_ISSUE_IDENTIFIER` so you can call it bare.
-- `karma-team workpad update [<identifier>] --body-file <path>` — overwrite the workpad body from a file. Defaults `<identifier>` to `KARMA_TEAM_ISSUE_IDENTIFIER`. An empty file clears it. There is no "append" — always write the full body.
+- `karma-team workpad update [<identifier>] --body-file <path>` — overwrite the workpad body from a file. Defaults `<identifier>` to `KARMA_TEAM_ISSUE_IDENTIFIER`. An empty file clears it. There is no "append" — always write the full body. **On a successful upload the `--body-file` is deleted** so a stale local copy cannot overwrite newer server content; pass `--keep` to retain it. Re-fetch with `karma-team workpad get` before the next edit.
 
 {% endif %}#### States
 
@@ -75,7 +75,7 @@ Read your workpad, edit it, write it back:
 ```sh
 karma-team workpad get | jq -r .body > ./.karma-team-workpad.md
 # …edit the file in place…
-karma-team workpad update --body-file ./.karma-team-workpad.md
+karma-team workpad update --body-file ./.karma-team-workpad.md   # file is removed on success
 ```
 
 {% if run.kind != "scheduler" %}Post a blocker and move the issue to "Blocked":
