@@ -391,6 +391,26 @@ impl AgentBridge {
         Self::spawn_from_config_with_resume(runner, cwd, model_override, None, None).await
     }
 
+    /// Spawn an agent for an issue run. When the runner has already prepared
+    /// an explicit work branch, Karma must operate in that checkout directly
+    /// instead of creating a second, randomly named `--worktree` branch.
+    pub async fn spawn_from_config_for_issue(
+        runner: &RunnerConfig,
+        cwd: &Path,
+        model_override: Option<String>,
+        karma_create_worktree: bool,
+    ) -> Result<Self> {
+        Self::spawn_from_config_with_resume_options(
+            runner,
+            cwd,
+            model_override,
+            None,
+            None,
+            karma_create_worktree,
+        )
+        .await
+    }
+
     /// Spawn the configured agent, optionally resuming a session and, for the
     /// built-in codex engine, pinning the per-thread approval `mode`. A `None`
     /// mode keeps the codex bridge's default (historical full-access) posture,
@@ -402,6 +422,25 @@ impl AgentBridge {
         model_override: Option<String>,
         resume_session_id: Option<&str>,
         mode: Option<crate::cloud::protocol::ApprovalMode>,
+    ) -> Result<Self> {
+        Self::spawn_from_config_with_resume_options(
+            runner,
+            cwd,
+            model_override,
+            resume_session_id,
+            mode,
+            true,
+        )
+        .await
+    }
+
+    async fn spawn_from_config_with_resume_options(
+        runner: &RunnerConfig,
+        cwd: &Path,
+        model_override: Option<String>,
+        resume_session_id: Option<&str>,
+        mode: Option<crate::cloud::protocol::ApprovalMode>,
+        karma_create_worktree: bool,
     ) -> Result<Self> {
         runner.agent.kind.ensure_supported()?;
         match runner.agent.kind {
@@ -471,15 +510,17 @@ impl AgentBridge {
                 Ok(AgentBridge::MuseCode(b))
             }
             AgentKind::Karma => {
-                // Karma's --worktree requires a valid base commit. Empty
-                // repositories have an unborn HEAD, so prepare it first.
-                crate::workspace::git::ensure_worktree_base(cwd).await?;
+                if karma_create_worktree {
+                    // Karma's --worktree requires a valid base commit. Empty
+                    // repositories have an unborn HEAD, so prepare it first.
+                    crate::workspace::git::ensure_worktree_base(cwd).await?;
+                }
                 let b = crate::karma::bridge::Bridge::spawn_with_resume_options(
                     &runner.karma.binary,
                     cwd,
                     selected_model(model_override, runner.karma.model_default.clone()),
                     resume_session_id,
-                    true,
+                    karma_create_worktree,
                 )
                 .await?;
                 Ok(AgentBridge::Karma(b))

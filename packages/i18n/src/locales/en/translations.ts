@@ -8,8 +8,8 @@ export default {
   "123456": "123456",
   "(default pod)": "(default pod)",
   "(never)": "(never)",
-  "(optional — pin this issue to an existing remote branch)":
-    "(optional — pin this issue to an existing remote branch)",
+  "(optional — use an existing branch or create it if missing)":
+    "(optional — use an existing branch or create it if missing)",
   "{active} active / {total} total": "{active} active / {total} total",
   "{count, plural, one {# install} other {# installs}}": "{count, plural, one {# install} other {# installs}}",
   "{count, plural, one {# project failed} other {# projects failed}}":
@@ -589,6 +589,7 @@ export default {
   "Enter password": "Enter password",
   "Enter project description": "Enter project description",
   "Enter project ID": "Enter project ID",
+  "Enter the branch this work item should use": "Enter the branch this work item should use",
   "Enter your email": "Enter your email",
   Epic: "Epic",
   "Epic created successfully": "Epic created successfully",
@@ -866,7 +867,6 @@ export default {
   Layout: "Layout",
   Lead: "Lead",
   Leave: "Leave",
-  "Leave empty to create a new branch": "Leave empty to create a new branch",
   "Leave empty to use remote default": "Leave empty to use remote default",
   "Leave project": "Leave project",
   Leaving: "Leaving",

@@ -95,9 +95,10 @@ export type TBaseIssue = {
   // title / description editors and surface the "edit disabled" hint.
   is_synced?: boolean;
 
-  // Optional branch name that pins the agent to an existing remote branch for
-  // this work item. Empty string (or missing) = the runner/agent picks the
-  // default per project base_branch → remote HEAD.
+  // Optional branch name that pins the agent to a work branch. The runner uses
+  // the existing remote branch when present, or creates it locally from the
+  // project base_branch / remote HEAD and publishes it after a successful run.
+  // Empty string (or missing) keeps the existing agent-selected branch flow.
   git_work_branch?: string;
 };
 

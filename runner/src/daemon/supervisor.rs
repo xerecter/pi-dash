@@ -1740,6 +1740,8 @@ impl RunnerLoop {
                     project_name,
                     prompt,
                     repo_url,
+                    repo_ref,
+                    git_work_branch,
                     expected_codex_model,
                     ..
                 } => {
@@ -1842,14 +1844,16 @@ impl RunnerLoop {
                             cancel,
                         };
                         if let Err(e) = worker
-                            .run(
+                            .run(AssignedRun {
                                 run_id,
-                                work_item_identifier,
+                                issue_identifier: work_item_identifier,
                                 project_name,
                                 prompt,
                                 repo_url,
+                                repo_ref,
+                                git_work_branch,
                                 expected_codex_model,
-                            )
+                            })
                             .await
                         {
                             tracing::error!("run {run_id} failed: {e:#}");
@@ -3368,6 +3372,17 @@ struct AssignWorker {
     cancel: tokio_util::sync::CancellationToken,
 }
 
+struct AssignedRun {
+    run_id: uuid::Uuid,
+    issue_identifier: Option<String>,
+    project_name: Option<String>,
+    prompt: String,
+    repo_url: Option<String>,
+    repo_ref: Option<String>,
+    git_work_branch: Option<String>,
+    expected_codex_model: Option<String>,
+}
+
 struct RunMetadata {
     tokens: Option<WireTokenUsage>,
     model: Option<String>,
@@ -3403,68 +3418,40 @@ impl AssignWorker {
         }
     }
 
-    async fn run(
-        &mut self,
-        run_id: uuid::Uuid,
-        issue_identifier: Option<String>,
-        project_name: Option<String>,
-        prompt: String,
-        repo_url: Option<String>,
-        expected_codex_model: Option<String>,
-    ) -> Result<()> {
-        self.handle_assign(
-            run_id,
-            issue_identifier,
-            project_name,
-            prompt,
-            repo_url,
-            expected_codex_model,
-        )
-        .await
+    async fn run(&mut self, assignment: AssignedRun) -> Result<()> {
+        self.handle_assign(assignment).await
     }
 
-    async fn handle_assign(
-        &mut self,
-        run_id: uuid::Uuid,
-        issue_identifier: Option<String>,
-        project_name: Option<String>,
-        prompt: String,
-        repo_url: Option<String>,
-        expected_codex_model: Option<String>,
-    ) -> Result<()> {
+    async fn handle_assign(&mut self, assignment: AssignedRun) -> Result<()> {
         // Scope the run id (and issue key) over everything this run does so
         // every agent subprocess the bridges spawn (and re-spawn per turn)
         // inherits the run, work item, and workspace identity — see
         // `util::shell::RUN_ENV`. Login defaults may belong to another workspace.
+        let run_id = assignment.run_id;
         crate::util::shell::RUN_ENV
             .scope(
                 crate::util::shell::RunEnv {
                     run_id,
-                    issue_identifier: issue_identifier.clone(),
+                    issue_identifier: assignment.issue_identifier.clone(),
                     workspace_slug: self.runner_config.workspace_slug.clone(),
                     project_id: self.runner_config.project_id,
                 },
-                self.handle_assign_inner(
-                    run_id,
-                    issue_identifier,
-                    project_name,
-                    prompt,
-                    repo_url,
-                    expected_codex_model,
-                ),
+                self.handle_assign_inner(assignment),
             )
             .await
     }
 
-    async fn handle_assign_inner(
-        &mut self,
-        run_id: uuid::Uuid,
-        work_item_identifier: Option<String>,
-        project_name: Option<String>,
-        prompt: String,
-        repo_url: Option<String>,
-        expected_codex_model: Option<String>,
-    ) -> Result<()> {
+    async fn handle_assign_inner(&mut self, assignment: AssignedRun) -> Result<()> {
+        let AssignedRun {
+            run_id,
+            issue_identifier: work_item_identifier,
+            project_name,
+            prompt,
+            repo_url,
+            repo_ref,
+            git_work_branch,
+            expected_codex_model,
+        } = assignment;
         // Karma owns the project root; repository bootstrap and the agent
         // session both happen from the dedicated operation directory. Other
         // agent bridges retain the historical runner workspace behavior.
@@ -3558,6 +3545,39 @@ impl AssignWorker {
                 }
             }
         };
+
+        // A work item can pin execution to an existing remote branch or name
+        // a new branch that does not exist yet. Prepare that branch before we
+        // report `Accept`, so the cloud sees the exact checkout the agent will
+        // use and the agent never has to race the platform's branch setup.
+        if let Some(branch) = git_work_branch.as_deref()
+            && let Err(err) = crate::workspace::git::prepare_work_branch(
+                &workspace_path,
+                branch,
+                repo_ref.as_deref(),
+            )
+            .await
+        {
+            let detail = format!("preparing git work branch `{branch}`: {err:#}");
+            tracing::warn!(
+                %run_id,
+                git_work_branch = branch,
+                error = %err,
+                "failed to prepare assigned git work branch",
+            );
+            self.send(ClientMsg::RunFailed {
+                run_id,
+                reason: FailureReason::WorkspaceSetup,
+                detail: Some(detail),
+                ended_at: Utc::now(),
+                tokens: None,
+                model: None,
+            })
+            .await;
+            self.state.set_current_run(None).await;
+            return Ok(());
+        }
+
         if let Some(project_ref) = runtime_project_slug
             .as_deref()
             .or(self.runner_config.project_slug.as_deref())
@@ -3573,11 +3593,6 @@ impl AssignWorker {
                 "skipping .karma-team/context.md refresh after workspace resolution",
             );
         }
-
-        // No platform-side branch checkout: the cloud supplies the work branch
-        // in the prompt context and the agent checks it out (or creates one off
-        // the base branch) itself. The platform supplies git information; the
-        // agent performs git operations (PDASHOSS01-136).
 
         let ws_state = crate::workspace::git::workspace_state(&workspace_path)
             .await
@@ -3629,10 +3644,11 @@ impl AssignWorker {
         // Bridge to the configured agent (Codex or Claude Code). `AgentBridge`
         // hides which CLI is actually being driven from the rest of this
         // worker; the event flow below is identical for both.
-        let mut bridge = match AgentBridge::spawn_from_config(
+        let mut bridge = match AgentBridge::spawn_from_config_for_issue(
             &self.runner_config,
             &workspace_path,
             expected_codex_model.clone(),
+            git_work_branch.is_none(),
         )
         .await
         {
@@ -3726,7 +3742,13 @@ impl AssignWorker {
 
         // Pump events until terminal.
         let outcome = self
-            .pump_events(&mut bridge, &mut cursor, &mut hist, &workspace_path)
+            .pump_events(
+                &mut bridge,
+                &mut cursor,
+                &mut hist,
+                &workspace_path,
+                git_work_branch.as_deref(),
+            )
             .await?;
 
         bridge.shutdown(Duration::from_secs(5)).await.ok();
@@ -3766,6 +3788,7 @@ impl AssignWorker {
         cursor: &mut AgentCursor,
         hist: &mut HistoryWriter,
         workspace_root: &std::path::Path,
+        git_work_branch: Option<&str>,
     ) -> Result<Outcome> {
         // Stall watchdog: if the agent emits no frames for this long AND
         // no approval is in flight (a human-wait is legitimate silence),
@@ -3858,7 +3881,14 @@ impl AssignWorker {
                             _ => None,
                         };
                         if let Some(out) = self
-                            .handle_bridge_event(ev, bridge, hist, workspace_root, &mut run_events)
+                            .handle_bridge_event(
+                                ev,
+                                bridge,
+                                hist,
+                                workspace_root,
+                                git_work_branch,
+                                &mut run_events,
+                            )
                             .await?
                         {
                             return Ok(out);
@@ -3946,6 +3976,7 @@ impl AssignWorker {
         bridge: &mut AgentBridge,
         hist: &mut HistoryWriter,
         workspace_root: &std::path::Path,
+        git_work_branch: Option<&str>,
         run_events: &mut RunEventMirror,
     ) -> Result<Option<Outcome>> {
         self.state.incr_current_run_events().await;
@@ -4197,6 +4228,39 @@ impl AssignWorker {
                 done_payload,
             } => {
                 run_events.flush_before_lifecycle(&self.out).await;
+                if let Some(branch) = git_work_branch
+                    && let Err(err) =
+                        crate::workspace::git::push_work_branch(workspace_root, branch).await
+                {
+                    let detail = format!("pushing git work branch `{branch}`: {err:#}");
+                    tracing::warn!(
+                        %run_id,
+                        git_work_branch = branch,
+                        error = %err,
+                        "agent completed but its git work branch could not be pushed",
+                    );
+                    let metadata = self.run_metadata().await;
+                    self.send(ClientMsg::RunFailed {
+                        run_id,
+                        reason: FailureReason::WorkspaceSetup,
+                        detail: Some(detail.clone()),
+                        ended_at: Utc::now(),
+                        tokens: metadata.tokens,
+                        model: metadata.model,
+                    })
+                    .await;
+                    hist.append(&HistoryEntry::Footer {
+                        ts: Utc::now(),
+                        final_status: "failed".into(),
+                        done_payload: None,
+                        error: Some(detail),
+                    })
+                    .await
+                    .ok();
+                    return Ok(Some(Outcome {
+                        status_label: "failed".into(),
+                    }));
+                }
                 let metadata = self.run_metadata().await;
                 self.send(ClientMsg::RunCompleted {
                     run_id,
@@ -4558,14 +4622,16 @@ mod tests {
                     cancel: tokio_util::sync::CancellationToken::new(),
                 };
                 worker
-                    .run(
-                        uuid::Uuid::new_v4(),
-                        None,
-                        None,
-                        "Summarize these notes".into(),
-                        repo_url.map(str::to_string),
-                        None,
-                    )
+                    .run(AssignedRun {
+                        run_id: uuid::Uuid::new_v4(),
+                        issue_identifier: None,
+                        project_name: None,
+                        prompt: "Summarize these notes".into(),
+                        repo_url: repo_url.map(str::to_string),
+                        repo_ref: None,
+                        git_work_branch: None,
+                        expected_codex_model: None,
+                    })
                     .await
                     .unwrap();
                 assert!(matches!(

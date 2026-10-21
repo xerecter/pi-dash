@@ -47,7 +47,7 @@ export function IssueGitAdvanced(props: Props) {
           <label htmlFor="git_work_branch" className="text-11 text-secondary">
             {t("Work branch")}
             <span className="pl-1 text-placeholder">
-              {t("(optional — pin this issue to an existing remote branch)")}
+              {t("(optional — use an existing branch or create it if missing)")}
             </span>
           </label>
           <Controller
@@ -75,7 +75,7 @@ export function IssueGitAdvanced(props: Props) {
                     handleFormChange();
                   }}
                   hasError={Boolean(error)}
-                  placeholder={t("Leave empty to create a new branch")}
+                  placeholder={t("Enter the branch this work item should use")}
                   className="w-full"
                 />
                 {error?.message && <span className="text-11 text-danger-primary">{error.message}</span>}

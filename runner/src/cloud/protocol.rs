@@ -304,11 +304,12 @@ pub enum ServerMsg {
         prompt: String,
         repo_url: Option<String>,
         repo_ref: Option<String>,
-        /// Existing branch for this issue, forwarded to the agent via the
-        /// prompt context. The agent checks it out itself; when `None`, the
-        /// agent creates a fresh feature branch off the base branch. The
-        /// runner no longer acts on this field — it performs no branch
-        /// checkout of its own (PDASHOSS01-136).
+        /// Work branch assigned to this issue. Before accepting the run, the
+        /// runner checks out the existing remote branch or creates a
+        /// same-named local branch from `repo_ref` / the remote default. After
+        /// successful agent completion it performs a final non-forced push
+        /// before reporting `RunCompleted`. When `None`, the agent retains its
+        /// existing branch-management behavior.
         #[serde(default)]
         git_work_branch: Option<String>,
         expected_codex_model: Option<String>,

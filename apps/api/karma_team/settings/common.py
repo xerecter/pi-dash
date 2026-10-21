@@ -399,6 +399,7 @@ CELERY_IMPORTS = (
     "karma_team.bgtasks.email_notification_task",
     "karma_team.bgtasks.cleanup_task",
     "karma_team.bgtasks.git_sync_task",
+    "karma_team.bgtasks.logger_task",
     "karma_team.bgtasks.loop",
     "karma_team.license.bgtasks.tracer",
     # management tasks

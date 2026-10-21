@@ -16,15 +16,22 @@ def test_every_scheduled_task_is_registered_by_worker_loader():
     assert not scheduled - set(app.tasks)
 
 
+def test_api_activity_log_task_is_registered_by_worker_loader():
+    task_module = "karma_team.bgtasks.logger_task"
+    task_name = f"{task_module}.process_logs"
+
+    assert task_module in app.conf.imports
+
+    app.loader.import_default_modules()
+    assert task_name in app.tasks
+
+
 def test_generic_git_sync_reuses_legacy_github_beat_schedule_name():
     schedule = app.conf.beat_schedule
 
     assert "github-issue-sync-every-4h" in schedule
     assert "git-issue-sync-every-4h" not in schedule
-    assert (
-        schedule["github-issue-sync-every-4h"]["task"]
-        == "karma_team.bgtasks.git_sync_task.sync_all_bindings"
-    )
+    assert schedule["github-issue-sync-every-4h"]["task"] == "karma_team.bgtasks.git_sync_task.sync_all_bindings"
 
 
 def test_offline_runner_recovery_tasks_are_scheduled():

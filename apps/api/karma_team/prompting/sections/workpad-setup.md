@@ -35,8 +35,10 @@ This is the first run on this issue — the workpad is empty. You will create it
 6. **If `task_type == code_change`** (per your Step 0.5 analysis), before any code edits, sync with the repository. Skip this entire sub-step for `noncode` tasks — do not run `git fetch`, `git checkout`, or any other git operation here.
    - `git fetch origin`
 {% if repo.work_branch %}
-   - `git checkout {{ repo.work_branch }}` — this is the existing branch for this issue; operate on it directly. If it does not exist locally, `git checkout -b {{ repo.work_branch }} origin/{{ repo.work_branch }}`. Do not create a new feature branch.
-   - `git pull --rebase origin {{ repo.work_branch }}`.
+   - The runner has already prepared and checked out `{{ repo.work_branch }}`. The branch may have been fetched from `origin`, or it may be a new local branch created from the project base because the remote branch did not exist.
+   - Verify that `git branch --show-current` is exactly `{{ repo.work_branch }}`. If it is not, stop and follow "Blocking the run" instead of creating or switching to a different branch.
+   - If `refs/remotes/origin/{{ repo.work_branch }}` exists after the fetch, synchronize only with `git merge --ff-only origin/{{ repo.work_branch }}`. If that remote-tracking ref does not exist, continue on the runner-prepared local branch; do not treat a missing remote branch as an error.
+   - Do not create a second feature branch. Commit and push directly to `{{ repo.work_branch }}`.
 {% else %}
    - Resolve the **base branch** (what your work branches off of):
 {% if parent and parent.work_branch %}

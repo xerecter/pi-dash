@@ -1,5 +1,11 @@
 name: karma-team
 
+# apps/api/.env may use a host-development S3 endpoint. Backend services
+# running in Compose must use the MinIO service name on the Compose network
+# instead of resolving localhost inside their own containers.
+x-api-compose-environment: &api-compose-environment
+  AWS_S3_ENDPOINT_URL: http://karma-team-minio:9000
+
 # Container image sources
 # -----------------------
 # Docker Hub (registry-1.docker.io) is unreachable from the deployment
@@ -58,6 +64,7 @@ services:
     command: ./bin/docker-entrypoint-api.sh
     env_file:
       - ./apps/api/.env
+    environment: *api-compose-environment
     volumes:
       - ${KARMA_TEAM_CLI_ARTIFACTS_HOST_DIR:-./deployments/cli/artifacts}:/code/cli-artifacts:ro
       - ./runner:/code/cli-installers:ro
@@ -76,6 +83,7 @@ services:
     command: ./bin/docker-entrypoint-worker.sh
     env_file:
       - ./apps/api/.env
+    environment: *api-compose-environment
     depends_on:
       - api
       - karma-team-db
@@ -92,6 +100,7 @@ services:
     command: ./bin/docker-entrypoint-beat.sh
     env_file:
       - ./apps/api/.env
+    environment: *api-compose-environment
     depends_on:
       - api
       - karma-team-db
@@ -108,6 +117,7 @@ services:
     command: ./bin/docker-entrypoint-migrator.sh
     env_file:
       - ./apps/api/.env
+    environment: *api-compose-environment
     depends_on:
       - karma-team-db
       - karma-team-redis

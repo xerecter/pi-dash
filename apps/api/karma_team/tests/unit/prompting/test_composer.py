@@ -610,6 +610,26 @@ def test_coding_task_parent_no_branch_routes_through_readiness_not_autofallback(
     assert 'Treat it as a blocker — follow "Blocking the run" instead of creating a branch' in body
 
 
+@pytest.mark.unit
+def test_pinned_work_branch_allows_runner_created_local_branch():
+    """A pinned branch is not necessarily present on the remote yet.
+
+    The runner prepares either the existing remote branch or a new local branch,
+    so the agent prompt must not unconditionally pull a ref that may not exist.
+    """
+    ctx = _ctx()
+    ctx["repo"]["work_branch"] = "feat/runner-created"
+    body = compose(
+        "coding-task", workspace=None, project=None, user=None, context=ctx
+    ).text
+
+    assert "runner has already prepared and checked out `feat/runner-created`" in body
+    assert "git merge --ff-only origin/feat/runner-created" in body
+    assert "do not treat a missing remote branch as an error" in body
+    assert "git pull --rebase origin feat/runner-created" not in body
+    assert "platform performs **no** branch checkout for you" not in body
+
+
 # ----------------------------------------------------------------------
 # Work item relationships section (PDASHOSS01-160): one independent section
 # carrying ancestors, children, and relates_to siblings together.

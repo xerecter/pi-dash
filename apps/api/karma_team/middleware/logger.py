@@ -146,7 +146,14 @@ class APITokenLogMiddleware:
                 "updated_by": user_id,
             }
 
-            process_logs.delay(log_data=log_data, mongo_log=mongo_log)
+            # Celery includes a task's argument representation in its
+            # ``Task received`` log entry. These payloads contain API
+            # credentials and request headers, so keep the serialized task
+            # data intact while replacing only its log/event representation.
+            process_logs.apply_async(
+                kwargs={"log_data": log_data, "mongo_log": mongo_log},
+                kwargsrepr="<redacted>",
+            )
 
         except Exception as e:
             log_exception(e)

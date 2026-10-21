@@ -92,14 +92,16 @@ async fn run_assignment(script: String, issue_identifier: Option<&str>) -> Clien
     };
     tokio::time::timeout(
         Duration::from_secs(30),
-        worker.run(
-            uuid::Uuid::new_v4(),
-            issue_identifier.map(str::to_string),
-            None,
-            "Build the logistics portal".into(),
-            None,
-            None,
-        ),
+        worker.run(AssignedRun {
+            run_id: uuid::Uuid::new_v4(),
+            issue_identifier: issue_identifier.map(str::to_string),
+            project_name: None,
+            prompt: "Build the logistics portal".into(),
+            repo_url: None,
+            repo_ref: None,
+            git_work_branch: None,
+            expected_codex_model: None,
+        }),
     )
     .await
     .expect("run must end on its own instead of looping")
