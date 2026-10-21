@@ -29,6 +29,7 @@ from karma_team.orchestration.agent_phases import (
     is_ticking_state,
     phase_config_for,
 )
+from karma_team.orchestration.blocking import BLOCKED_BY_DEPENDENCY_REASON, is_blocked
 from karma_team.prompting.composer import build_first_turn
 from karma_team.prompting.recipes import RecipeNotFound
 from karma_team.prompting.registry import PromptRegistryError
@@ -225,6 +226,16 @@ def handle_issue_state_transition(
     if not _is_delegation_trigger(to_state):
         return TransitionOutcome(reason="not-a-trigger-state")
 
+    # A dependency gate must run before reconcile: reconcile can queue a
+    # pending entry and re-time the ticker even when no run is created yet.
+    if is_blocked(issue):
+        logger.info(
+            "orchestration: skip state-transition dispatch issue=%s reason=%s",
+            issue.pk,
+            BLOCKED_BY_DEPENDENCY_REASON,
+        )
+        return TransitionOutcome(reason=BLOCKED_BY_DEPENDENCY_REASON)
+
     if from_ticking:
         event = scheduling.TickerEvent.moved_stage(
             moved_by_run=moved_by_run,
@@ -249,6 +260,31 @@ def handle_issue_state_transition(
         return TransitionOutcome(reason="entry-queued")
     if not decision.dispatch_now:
         return TransitionOutcome(reason=decision.reason or "no-dispatch")
+
+    return _dispatch_entry_run(
+        issue,
+        to_state,
+        actor,
+        cross_stage=cross_stage,
+    )
+
+
+def _dispatch_entry_run(
+    issue: Issue,
+    to_state: State,
+    actor=None,
+    *,
+    cross_stage: Optional[bool] = None,
+) -> TransitionOutcome:
+    """Create the entry run selected by a transition or dependency release.
+
+    Callers reconcile the ticker first. The dependency and active-run checks
+    are repeated here to close races between that decision and run creation.
+    """
+    from karma_team.orchestration import scheduling
+
+    if is_blocked(issue):
+        return TransitionOutcome(reason=BLOCKED_BY_DEPENDENCY_REASON)
 
     existing_active = _active_run_for(issue)
     if existing_active is not None:
@@ -380,6 +416,14 @@ def handle_issue_comment(comment: IssueComment) -> ContinuationOutcome:
             state_group,
         )
         return ContinuationOutcome(reason="state-not-eligible")
+
+    if is_blocked(issue):
+        logger.info(
+            "orchestration.continuation: skip issue=%s reason=%s",
+            issue.pk,
+            BLOCKED_BY_DEPENDENCY_REASON,
+        )
+        return ContinuationOutcome(reason=BLOCKED_BY_DEPENDENCY_REASON)
 
     prior = _latest_prior_run(issue)
     if prior is None:

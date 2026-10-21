@@ -86,6 +86,24 @@ skips that cloud step. The script removes only the current user's karma-team
 binary, daemon, state, logs, cache, runtime data, and installer PATH block; it
 does not remove project workspaces, Git checkouts, or other commands.
 
+To update an already installed self-hosted CLI, run the updater as the same
+user that owns the runner:
+
+```bash
+curl -fsSL 'http://172.16.13.81:28000/api/cli/update.sh' | sh
+```
+
+The updater downloads the binary for the current platform, validates it by
+running `karma-team --version`, atomically replaces the installed executable,
+and restarts an active user service only when all runners report idle. Busy
+runners, pending approvals, or an unavailable status defer the restart; run
+`karma-team restart` after tasks finish to load the new daemon code. Automatic
+restart checks use Python 3 or jq when available; without either, the binary
+still updates and the restart is deferred. It does not run login or change
+local configuration. Use `sh -s -- --check` to check for an update without
+changing files, or `sh -s -- --no-restart` to always defer the daemon restart.
+Run it without `sudo`.
+
 ### From a source checkout or a custom binary
 
 `runner/install.sh` defaults to installing an existing local executable. It checks the workspace's release/debug builds, `runner/target`, and the installation directory. If none exists, it builds the release binary from source with Cargo. It does not download a prebuilt binary by default.

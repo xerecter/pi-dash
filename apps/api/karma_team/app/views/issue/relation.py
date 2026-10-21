@@ -30,6 +30,7 @@ from karma_team.db.models import (
     CycleIssue,
 )
 from karma_team.bgtasks.issue_activities_task import issue_activity
+from karma_team.orchestration.signals import schedule_unblocked_issue_wake
 from karma_team.utils.issue_relation_mapper import get_actual_relation
 from karma_team.utils.host import base_host
 
@@ -158,6 +159,7 @@ class IssueRelationViewSet(BaseViewSet):
             "id",
             "name",
             "state_id",
+            "state__group",
             "sort_order",
             "priority",
             "sequence_id",
@@ -267,9 +269,17 @@ class IssueRelationViewSet(BaseViewSet):
         ).filter(
             Q(issue_id=related_issue, related_issue_id=issue_id) | Q(issue_id=issue_id, related_issue_id=related_issue)
         )
-        issue_relations = issue_relations.first()
-        current_instance = json.dumps(IssueRelationSerializer(issue_relations).data, cls=DjangoJSONEncoder)
-        issue_relations.delete()
+        issue_relation = issue_relations.select_related("related_issue").first()
+        current_instance = json.dumps(IssueRelationSerializer(issue_relation).data, cls=DjangoJSONEncoder)
+        blocker = issue_relation.related_issue if issue_relation.relation_type == "blocked_by" else None
+        blocked_issue_id = issue_relation.issue_id
+        issue_relation.delete()
+        if blocker is not None:
+            schedule_unblocked_issue_wake(
+                blocker,
+                actor=request.user,
+                blocked_issue_ids=[blocked_issue_id],
+            )
         issue_activity.delay(
             type="issue_relation.activity.deleted",
             requested_data=json.dumps(request.data, cls=DjangoJSONEncoder),

@@ -66,6 +66,7 @@ from karma_team.db.models import (
     ProjectMember,
     UserRecentVisit,
 )
+from karma_team.orchestration.signals import schedule_unblocked_issue_wake
 from karma_team.utils.filters import ComplexFilterBackend, IssueFilterSet
 from karma_team.utils.global_paginator import paginate
 from karma_team.utils.grouper import (
@@ -793,7 +794,8 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
 
         issues = Issue.issue_objects.filter(workspace__slug=slug, project_id=project_id, pk__in=issue_ids)
 
-        total_issues = len(issues)
+        deleted_issues = list(issues)
+        total_issues = len(deleted_issues)
 
         # First, delete all related cycle issues
         CycleIssue.objects.filter(issue_id__in=issue_ids).delete()
@@ -803,6 +805,8 @@ class BulkDeleteIssuesEndpoint(BaseAPIView):
 
         # Finally, delete the issues themselves
         issues.delete()
+        for issue in deleted_issues:
+            schedule_unblocked_issue_wake(issue, actor=request.user)
 
         return Response(
             {"message": f"{total_issues} issues were deleted"},

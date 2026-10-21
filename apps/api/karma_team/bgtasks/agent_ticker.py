@@ -36,6 +36,7 @@ from karma_team.db.models.issue_agent_ticker import (
 )
 from karma_team.db.models.project import Project
 from karma_team.orchestration.agent_phases import is_ticking_state
+from karma_team.orchestration.blocking import BLOCKED_BY_DEPENDENCY_REASON, is_blocked
 
 logger = logging.getLogger("karma_team.worker")
 
@@ -210,6 +211,13 @@ def fire_tick(ticker_id: str) -> bool:
             logger.info(
                 "agent_ticker.fire_tick: skip issue=%s reason=active-run-exists",
                 issue.pk,
+            )
+            return False
+        if is_blocked(issue):
+            logger.info(
+                "agent_ticker.fire_tick: skip issue=%s reason=%s",
+                issue.pk,
+                BLOCKED_BY_DEPENDENCY_REASON,
             )
             return False
         if orchestration_service._latest_prior_run(issue) is None:

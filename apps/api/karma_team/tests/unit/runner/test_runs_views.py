@@ -869,6 +869,68 @@ def test_run_ai_queues_when_active_run_exists(db, session_client, workspace, pro
 
 
 @pytest.mark.unit
+def test_run_ai_returns_blocked_reason_without_touching_ticker(db, session_client, workspace, project):
+    from crum import impersonate
+    from django.utils import timezone
+
+    from karma_team.db.models import Issue, IssueRelation, State
+    from karma_team.db.models.issue_agent_ticker import IssueAgentTicker
+
+    issue, _parent = _make_in_progress_issue_with_paused_run(workspace)
+    with impersonate(workspace.owner):
+        todo = State.objects.get(project=issue.project, group="unstarted")
+        blocker = Issue.objects.create(
+            name="Blocker",
+            workspace=workspace,
+            project=issue.project,
+            state=todo,
+            created_by=workspace.owner,
+        )
+        IssueRelation.objects.create(
+            issue=issue,
+            related_issue=blocker,
+            relation_type="blocked_by",
+            workspace=workspace,
+            project=issue.project,
+            created_by=workspace.owner,
+        )
+    ticker = IssueAgentTicker.objects.get(issue=issue)
+    marker = timezone.now()
+    ticker.used = 4
+    ticker.next_run_at = marker
+    ticker.pending_entry = False
+    ticker.pending_entry_free = False
+    ticker.save(
+        update_fields=[
+            "used",
+            "next_run_at",
+            "pending_entry",
+            "pending_entry_free",
+            "updated_at",
+        ]
+    )
+
+    resp = session_client.post(
+        "/api/runners/runs/",
+        {
+            "workspace": str(workspace.id),
+            "work_item": str(issue.id),
+            "triggered_by": "run_ai",
+        },
+        format="json",
+    )
+
+    assert resp.status_code == status.HTTP_409_CONFLICT, resp.data
+    assert resp.data["reason"] == "blocked-by-dependency"
+    assert AgentRun.objects.filter(work_item=issue).count() == 1
+    ticker.refresh_from_db()
+    assert ticker.used == 4
+    assert ticker.next_run_at == marker
+    assert ticker.pending_entry is False
+    assert ticker.pending_entry_free is False
+
+
+@pytest.mark.unit
 def test_run_ai_returns_409_when_no_pod_available(db, session_client, workspace):
     """When the issue's project has no default Pod, ``dispatch_run_ai_run``
     returns ``None`` (no-pod) and the endpoint must surface that as 409 —

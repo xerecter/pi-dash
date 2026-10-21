@@ -312,6 +312,7 @@ const AiDevMachinesPage = observer(function AiDevMachinesPage() {
           <>
             <InstallCommand label={t("macOS / Linux")} command={installCommands.unix} />
             <InstallCommand label={t("Windows (PowerShell)")} command={installCommands.powershell} />
+            <InstallCommand label={t("Update existing CLI (macOS / Linux)")} command={installCommands.updateUnix} />
             {installConfig.windows_msi_url && installCommands.msi && (
               <InstallCommand
                 label={t("Windows (MSI)")}

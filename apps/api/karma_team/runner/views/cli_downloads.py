@@ -107,6 +107,7 @@ def cli_install_config(request):
                 "service_url": service_url,
                 "install_sh_url": f"{service_url}/api/cli/install.sh",
                 "install_ps1_url": f"{service_url}/api/cli/install.ps1",
+                "update_sh_url": f"{service_url}/api/cli/update.sh",
                 "uninstall_sh_url": f"{service_url}/api/cli/uninstall.sh",
                 "windows_msi_url": (
                     f"{service_url}/api/cli/windows.msi" if _published_file(artifact_dir, WINDOWS_MSI) else None
@@ -144,7 +145,7 @@ def _published_installer(filename):
 
 @require_safe
 def cli_installer(request, filename):
-    if filename not in ("install.sh", "install.ps1"):
+    if filename not in ("install.sh", "update.sh", "install.ps1"):
         return _uncached(JsonResponse({"error": "Unsupported CLI installer."}, status=404))
     try:
         service_url = _service_url(request)
@@ -160,7 +161,7 @@ def cli_installer(request, filename):
             JsonResponse({"error": "The CLI installer has not been published on this server."}, status=404)
         )
 
-    if filename == "install.sh":
+    if filename in ("install.sh", "update.sh"):
         bootstrap = (
             f'if [ -z "${{KARMA_TEAM_API_URL:-}}" ]; then\n  export KARMA_TEAM_API_URL={shlex.quote(service_url)}\nfi\n'
         )

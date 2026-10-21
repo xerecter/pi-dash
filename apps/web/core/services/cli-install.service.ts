@@ -11,6 +11,7 @@ export type CliInstallConfig = {
   service_url: string;
   install_sh_url: string;
   install_ps1_url: string;
+  update_sh_url: string;
   windows_msi_url: string | null;
   available_targets: string[];
 };

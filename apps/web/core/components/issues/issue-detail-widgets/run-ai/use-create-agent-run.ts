@@ -85,10 +85,11 @@ export function useCreateAgentRun() {
         }
         return run;
       } catch (error: unknown) {
+        const refusal = error as { error?: string; message?: string; reason?: string };
         const message =
-          (error as { error?: string; message?: string })?.error ??
-          (error as Error)?.message ??
-          t("Could not start the agent run. Please try again.");
+          refusal?.reason === "blocked-by-dependency"
+            ? t("This work item is waiting for its blockers to enter In Test.")
+            : (refusal?.error ?? (error as Error)?.message ?? t("Could not start the agent run. Please try again."));
         setToast({
           type: TOAST_TYPE.ERROR,
           title: t("Failed to start agent run"),

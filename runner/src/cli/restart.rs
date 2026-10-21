@@ -11,10 +11,14 @@ pub struct Args {}
 pub async fn run(_args: Args, paths: &Paths) -> Result<()> {
     validate_agent_config(paths)?;
     println!("restarting daemon...");
-    let outcome =
-        crate::service::reload::restart_and_verify_with_progress(paths, |msg| eprintln!("{msg}"))
-            .await;
+    let outcome = crate::service::reload::restart_and_verify_runners_with_progress(paths, |msg| {
+        eprintln!("{msg}")
+    })
+    .await;
     if outcome.ok {
+        if let Some(detail) = &outcome.detail {
+            eprintln!("Warning: some runner connection checks failed:\n{detail}");
+        }
         println!("daemon restarted ({}).", outcome.summary);
         return Ok(());
     }
@@ -25,7 +29,7 @@ pub async fn run(_args: Args, paths: &Paths) -> Result<()> {
     )
 }
 
-/// Validate before `restart_and_verify_with_progress` can rewrite a unit or
+/// Validate before the restart helper can rewrite a unit or
 /// start the service. Missing config remains the service helper's concern.
 fn validate_agent_config(paths: &Paths) -> Result<()> {
     if paths.config_path().exists() {

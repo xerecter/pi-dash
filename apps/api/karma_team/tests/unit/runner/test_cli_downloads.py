@@ -46,6 +46,7 @@ def test_install_config_is_public_and_lists_only_published_targets(api_client, c
         "service_url": "http://172.16.13.81",
         "install_sh_url": "http://172.16.13.81/api/cli/install.sh",
         "install_ps1_url": "http://172.16.13.81/api/cli/install.ps1",
+        "update_sh_url": "http://172.16.13.81/api/cli/update.sh",
         "uninstall_sh_url": "http://172.16.13.81/api/cli/uninstall.sh",
         "windows_msi_url": None,
         "available_targets": ["x86_64-unknown-linux-gnu"],
@@ -73,6 +74,7 @@ def test_service_url_precedence_and_trailing_slash(api_client, public_url, web_u
     assert response.status_code == 200
     assert response.json()["service_url"] == expected
     assert response.json()["install_sh_url"] == f"{expected}/api/cli/install.sh"
+    assert response.json()["update_sh_url"] == f"{expected}/api/cli/update.sh"
 
 
 @pytest.mark.parametrize(
@@ -151,7 +153,7 @@ def test_msi_only_advertised_when_published(api_client, cli_settings):
     response.close()
 
 
-@pytest.mark.parametrize("filename", ["install.sh", "install.ps1"])
+@pytest.mark.parametrize("filename", ["install.sh", "update.sh", "install.ps1"])
 def test_missing_installer_returns_404(api_client, filename):
     response = api_client.get(f"/api/cli/{filename}")
     assert response.status_code == 404
@@ -200,6 +202,27 @@ def test_uninstaller_symlink_cannot_escape_published_directory(api_client, cli_s
     (runner_dir / "uninstall.sh").symlink_to(private_file)
 
     assert api_client.get("/api/cli/uninstall.sh").status_code == 404
+
+
+def test_updater_returns_published_runner_script_without_auth_bootstrap(api_client, cli_settings):
+    _, installers = cli_settings
+    script = b"#!/usr/bin/env sh\nprintf '%s\\n' update\n"
+    runner_dir = installers / "runner"
+    runner_dir.mkdir()
+    (runner_dir / "update.sh").write_bytes(script)
+
+    response = api_client.get("/api/cli/update.sh")
+
+    assert response.status_code == 200
+    expected = (
+        b"#!/usr/bin/env sh\n"
+        b'if [ -z "${KARMA_TEAM_API_URL:-}" ]; then\n'
+        b"  export KARMA_TEAM_API_URL=http://172.16.13.81\n"
+        b"fi\nprintf '%s\\n' update\n"
+    )
+    assert response.content == expected
+    assert response["Content-Disposition"] == 'attachment; filename="update.sh"'
+    assert response["Cache-Control"] == "no-store"
 
 
 @pytest.mark.parametrize("override_url", [None, "https://custom.example.test"])
@@ -256,6 +279,7 @@ def test_installer_symlink_cannot_escape_published_directory(api_client, cli_set
         "install-config/",
         "install.sh",
         "install.ps1",
+        "update.sh",
         "uninstall.sh",
         "bin/x86_64-unknown-linux-gnu/",
         "windows.msi",

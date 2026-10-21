@@ -9,6 +9,7 @@ import React from "react";
 import type { TIssueServiceType, TWorkItemWidgets } from "@karma-team/types";
 // local imports
 import { IssueDetailWidgetActionButtons } from "./action-buttons";
+import { BlockedByNotice } from "./blocked-by-notice";
 import { IssueDetailWidgetCollapsibles } from "./issue-detail-widget-collapsibles";
 import { IssueDetailWidgetModals } from "./issue-detail-widget-modals";
 
@@ -36,6 +37,7 @@ export function IssueDetailWidgets(props: Props) {
   return (
     <>
       <div className="flex flex-col space-y-4">
+        <BlockedByNotice issueId={issueId} issueServiceType={issueServiceType} />
         <IssueDetailWidgetActionButtons
           workspaceSlug={workspaceSlug}
           projectId={projectId}

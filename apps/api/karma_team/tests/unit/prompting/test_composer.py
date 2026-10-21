@@ -638,7 +638,7 @@ def test_pinned_work_branch_allows_runner_created_local_branch():
 RELATIONSHIPS_HEADING = "## Work item relationships"
 
 
-def _relationships_ctx(*, parent=True, children=0, related=0) -> dict:
+def _relationships_ctx(*, parent=True, children=0, blocked_by=0, related=0) -> dict:
     """A coding-task context with the relationship groups dialled independently.
 
     Starts from the parentless minimal sample (so ``parent``/``lineage`` are
@@ -646,7 +646,7 @@ def _relationships_ctx(*, parent=True, children=0, related=0) -> dict:
     the test wants.
     """
     ctx = copy.deepcopy(sample_contexts("coding-task")[1])
-    assert ctx["parent"] is None and ctx["children"] == [] and ctx["related"] == []
+    assert ctx["parent"] is None and ctx["children"] == [] and ctx["blocked_by"] == [] and ctx["related"] == []
     if parent:
         populated = sample_contexts("coding-task")[0]
         ctx["parent"] = copy.deepcopy(populated["parent"])
@@ -654,6 +654,10 @@ def _relationships_ctx(*, parent=True, children=0, related=0) -> dict:
     ctx["children"] = [
         {"identifier": f"SAMPLE-c{i}", "title": f"Child {i}", "state": "Backlog"}
         for i in range(children)
+    ]
+    ctx["blocked_by"] = [
+        {"identifier": f"SAMPLE-b{i}", "title": f"Blocker {i}", "state": "In Test"}
+        for i in range(blocked_by)
     ]
     ctx["related"] = [
         {"identifier": f"SAMPLE-r{i}", "title": f"Related {i}", "state": "Cancelled"}
@@ -704,15 +708,28 @@ def test_relationships_section_renders_related_group():
 
 
 @pytest.mark.unit
-def test_relationships_section_renders_all_three_groups_together():
-    """Ancestors, children, and related render in one contiguous section with a
+def test_relationships_section_renders_blocked_by_group():
+    ctx = _relationships_ctx(parent=False, children=0, blocked_by=1, related=0)
+    body = compose("coding-task", workspace=None, project=None, user=None, context=ctx).text
+
+    assert RELATIONSHIPS_HEADING in body
+    assert "Blocked by:" in body
+    assert "SAMPLE-b0: Blocker 0 (In Test)" in body
+    assert "Children (down):" not in body
+    assert "Related work items (across):" not in body
+
+
+@pytest.mark.unit
+def test_relationships_section_renders_all_groups_together():
+    """Ancestors, children, blockers, and related render in one contiguous section with a
     single required-reading directive."""
-    ctx = _relationships_ctx(parent=True, children=1, related=1)
+    ctx = _relationships_ctx(parent=True, children=1, blocked_by=1, related=1)
     body = compose("coding-task", workspace=None, project=None, user=None, context=ctx).text
 
     assert body.count(RELATIONSHIPS_HEADING) == 1
     assert "Ancestors (up):" in body
     assert "Children (down):" in body
+    assert "Blocked by:" in body
     assert "Related work items (across):" in body
     # Parent keeps its inline description + comment-count hint.
     assert "Parent description." in body

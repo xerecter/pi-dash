@@ -106,6 +106,9 @@ def _issue_sample(kind: str, *, populated: bool) -> Dict[str, Any]:
             "children": [
                 {"identifier": "SAMPLE-2", "title": "Child issue", "state": "Backlog"},
             ],
+            "blocked_by": [
+                {"identifier": "SAMPLE-8", "title": "Blocking issue", "state": "In Test"},
+            ],
             "related": [
                 {"identifier": "SAMPLE-9", "title": "Related issue", "state": "Cancelled"},
             ],
@@ -172,6 +175,7 @@ def _issue_sample(kind: str, *, populated: bool) -> Dict[str, Any]:
         "parent": None,
         "lineage": None,
         "children": [],
+        "blocked_by": [],
         "related": [],
         "run": {
             "id": "00000000-0000-0000-0000-000000000003",

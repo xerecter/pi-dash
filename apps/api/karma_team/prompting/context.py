@@ -146,6 +146,23 @@ def _related_context(issue: Issue) -> list[Dict[str, Any]]:
     return out
 
 
+def _blocked_by_context(issue: Issue) -> list[Dict[str, Any]]:
+    """Direct blockers as ``{identifier, title, state}``, newest first."""
+
+    from karma_team.db.models.issue import IssueRelation, IssueRelationChoices
+
+    relations = (
+        IssueRelation.objects.filter(
+            issue=issue,
+            relation_type=IssueRelationChoices.BLOCKED_BY,
+            related_issue__deleted_at__isnull=True,
+        )
+        .select_related("related_issue__state", "related_issue__project")
+        .order_by("-created_at")
+    )
+    return [_issue_ref(relation.related_issue) for relation in relations[:_MAX_RELATIONSHIP_ITEMS]]
+
+
 def _absolute_issue_url(issue: Issue) -> str:
     """Return a best-effort deep link. Full URL construction lives in the
     web layer; we return a relative path so templates still have something
@@ -485,11 +502,12 @@ def build_context(issue: Issue, run: AgentRun) -> Dict[str, Any]:
             if len(ancestors) > 2
             else None
         ),
-        # Direct children (one level down) and `relates_to` siblings, rendered
+        # Direct children, blockers, and `relates_to` siblings, rendered
         # together with the ancestor chain in the "Work item relationships"
         # section. Empty lists when the issue has none — the template omits the
         # corresponding group so no empty heading or dangling directive renders.
         "children": _children_context(issue),
+        "blocked_by": _blocked_by_context(issue),
         "related": _related_context(issue),
         "run": {
             "id": str(run.id),

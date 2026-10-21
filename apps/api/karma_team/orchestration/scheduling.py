@@ -39,6 +39,7 @@ from karma_team.db.models.issue_agent_ticker import (
 )
 from karma_team.db.models.project import Project
 from karma_team.orchestration.agent_phases import is_ticking_state
+from karma_team.orchestration.blocking import BLOCKED_BY_DEPENDENCY_REASON, is_blocked
 from karma_team.runner.models import (
     AWAITING_HUMAN_INPUT_ERROR_CODE,
     AgentRun,
@@ -1185,6 +1186,15 @@ def dispatch_continuation_run(
         )
         return None
 
+    if is_blocked(issue):
+        logger.info(
+            "agent_ticker: skip dispatch issue=%s reason=%s triggered_by=%s",
+            issue.pk,
+            BLOCKED_BY_DEPENDENCY_REASON,
+            triggered_by,
+        )
+        return None
+
     if orchestration_service._latest_prior_run(issue) is None:
         logger.info(
             "agent_ticker: skip dispatch issue=%s reason=no-prior-run triggered_by=%s",
@@ -1256,6 +1266,7 @@ def dispatch_continuation_run(
 # tell "already running or queued" (retry later) apart from "nothing can run
 # it" (a structural problem to fix).
 RUN_AI_ACTIVE_RUN_EXISTS = "active_run_exists"
+RUN_AI_BLOCKED = BLOCKED_BY_DEPENDENCY_REASON
 RUN_AI_NO_POD = "no_pod"
 RUN_AI_NO_ELIGIBLE_RUNNER = "no_eligible_runner"
 
@@ -1307,6 +1318,15 @@ def dispatch_run_ai_run_with_reason(issue: Issue, *, actor) -> tuple[Optional[Ag
             TRIGGER_RUN_AI,
         )
         return None, RUN_AI_ACTIVE_RUN_EXISTS
+
+    if is_blocked(issue):
+        logger.info(
+            "agent_ticker: skip dispatch issue=%s reason=%s triggered_by=%s",
+            issue.pk,
+            RUN_AI_BLOCKED,
+            TRIGGER_RUN_AI,
+        )
+        return None, RUN_AI_BLOCKED
 
     creator = _resolve_creator_for_trigger(issue, triggered_by=TRIGGER_RUN_AI, actor=actor)
     if creator is None:
@@ -1516,6 +1536,7 @@ __all__ = [
     "OUTCOME_WAITING_ON_HUMAN",
     "PAUSED_STATE_NAME",
     "RUN_AI_ACTIVE_RUN_EXISTS",
+    "RUN_AI_BLOCKED",
     "RUN_AI_NO_ELIGIBLE_RUNNER",
     "RUN_AI_NO_POD",
     "RUN_OUTCOMES",

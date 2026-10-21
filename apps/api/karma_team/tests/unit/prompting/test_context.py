@@ -3,6 +3,7 @@
 # See the LICENSE file for details.
 
 import pytest
+from django.utils import timezone
 
 from karma_team.db.models import (
     GitProviderAccount,
@@ -460,8 +461,8 @@ def test_context_related_merges_both_directions(workspace, project, state, creat
 
 @pytest.mark.unit
 def test_context_related_excludes_other_relation_types(workspace, project, state, create_user, run, issue):
-    # Only relates_to is surfaced; blocked_by / duplicate are not (this issue's
-    # documented assumption).
+    # ``related`` remains specific to relates_to. Blockers have their own
+    # relationship group and duplicates are omitted.
     blocker = Issue.objects.create(
         name="Blocks us", workspace=workspace, project=project, state=state, created_by=create_user
     )
@@ -473,6 +474,26 @@ def test_context_related_excludes_other_relation_types(workspace, project, state
 
     ctx = build_context(issue, run)
     assert ctx["related"] == []
+    assert ctx["blocked_by"] == [
+        {
+            "identifier": f"{project.identifier}-{blocker.sequence_id}",
+            "title": "Blocks us",
+            "state": "Todo",
+        }
+    ]
+
+
+@pytest.mark.unit
+def test_context_blocked_by_excludes_soft_deleted_blocker(workspace, project, state, create_user, run, issue):
+    blocker = Issue.objects.create(
+        name="Deleted blocker", workspace=workspace, project=project, state=state, created_by=create_user
+    )
+    _make_relation(issue, blocker, "blocked_by", create_user)
+    Issue.all_objects.filter(pk=blocker.pk).update(deleted_at=timezone.now())
+
+    ctx = build_context(issue, run)
+
+    assert ctx["blocked_by"] == []
 
 
 @pytest.mark.unit

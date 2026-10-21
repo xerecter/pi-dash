@@ -12,6 +12,7 @@ const CONFIG: CliInstallConfig = {
   service_url: "http://172.16.13.81:28000",
   install_sh_url: "http://172.16.13.81:28000/api/cli/install.sh",
   install_ps1_url: "http://172.16.13.81:28000/api/cli/install.ps1",
+  update_sh_url: "http://172.16.13.81:28000/api/cli/update.sh",
   windows_msi_url: null,
   available_targets: ["x86_64-unknown-linux-gnu"],
 };
@@ -21,6 +22,9 @@ describe("self-hosted CLI installation commands", () => {
     const commands = getCliInstallCommands(CONFIG);
     expect(commands.unix).toBe(
       "curl --proto '=http,https' --tlsv1.2 -fsSL 'http://172.16.13.81:28000/api/cli/install.sh' | sh"
+    );
+    expect(commands.updateUnix).toBe(
+      "curl --proto '=http,https' --tlsv1.2 -fsSL 'http://172.16.13.81:28000/api/cli/update.sh' | sh"
     );
     expect(commands.powershell).toBe("irm 'http://172.16.13.81:28000/api/cli/install.ps1' | iex");
     expect(commands.cmd).toBe(

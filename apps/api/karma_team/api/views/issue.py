@@ -1038,6 +1038,7 @@ def _refuse_agent_retick(request, issue):
 # Human-readable message for each machine-readable Run AI refusal reason.
 _RUN_AI_REASON_MESSAGES = {
     "active_run_exists": "the work item already has an active or queued run",
+    "blocked-by-dependency": "the work item is blocked by unresolved dependencies",
     "no_pod": "no pod is available to run this work item",
     "no_eligible_runner": "no eligible runner or execution principal is available for this work item",
 }
@@ -1056,7 +1057,7 @@ class IssueRunAiAPIEndpoint(BaseAPIView):
     Responses:
     - 201 with ``{id, status, executor}`` when a run was dispatched.
     - 409 with a machine-readable ``reason`` (``active_run_exists`` |
-      ``no_pod`` | ``no_eligible_runner``) when nothing was created; the
+      ``blocked-by-dependency`` | ``no_pod`` | ``no_eligible_runner``) when nothing was created; the
       ticker re-time is rolled back so the clock is untouched.
     - 403 when ``X-karma-team-Run-Id`` names an active run on this issue — an
       agent cannot restart itself and bypass the ticking budget (mirrors

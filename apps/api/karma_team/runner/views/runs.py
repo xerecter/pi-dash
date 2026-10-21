@@ -397,14 +397,19 @@ class AgentRunListEndpoint(APIView):
             queued = self._human_run_clock(issue, actor=request.user, trigger=scheduling.TRIGGER_RUN_AI)
             if queued is not None:
                 return queued
-            run = scheduling.dispatch_run_ai_run(issue, actor=request.user)
+            run, reason = scheduling.dispatch_run_ai_run_with_reason(issue, actor=request.user)
             if run is None:
                 # Undo the clock re-time too: the human's click produced no
                 # run, so the ticker must look exactly as it did before.
                 transaction.set_rollback(True)
         if run is None:
+            error = (
+                "work item is blocked by unresolved dependencies"
+                if reason == scheduling.RUN_AI_BLOCKED
+                else "could not dispatch — issue may already have an active run, or no pod is available"
+            )
             return Response(
-                {"error": ("could not dispatch — issue may already have an active run, or no pod is available")},
+                {"error": error, "reason": reason},
                 status=status.HTTP_409_CONFLICT,
             )
         return Response(
@@ -425,6 +430,18 @@ class AgentRunListEndpoint(APIView):
         """
         from karma_team.orchestration import scheduling
         from karma_team.orchestration.agent_phases import is_ticking_state
+        from karma_team.orchestration.blocking import is_blocked
+
+        # This wrapper can queue a human entry before either dispatch helper
+        # runs, so enforce the dependency gate here as well.
+        if is_blocked(issue):
+            return Response(
+                {
+                    "error": "work item is blocked by unresolved dependencies",
+                    "reason": scheduling.RUN_AI_BLOCKED,
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
 
         if not is_ticking_state(issue.state):
             return None

@@ -21,7 +21,7 @@ from crum import impersonate
 from django.utils import timezone
 from rest_framework import status as http_status
 
-from karma_team.db.models import Issue, Project, ProjectMember, State
+from karma_team.db.models import Issue, IssueRelation, Project, ProjectMember, State
 from karma_team.db.models.issue_agent_ticker import IssueAgentTicker
 from karma_team.prompting.seed import seed_default_template
 from karma_team.runner.models import AgentRun, AgentRunStatus, Pod, Runner, RunnerStatus
@@ -166,6 +166,50 @@ def test_run_ai_409s_when_a_run_is_active_and_leaves_the_ticker_untouched(
     assert AgentRun.objects.filter(work_item=issue).count() == 1
     ticker = IssueAgentTicker.objects.get(issue=issue)
     assert ticker.next_run_at == marker
+
+
+@pytest.mark.unit
+def test_run_ai_409s_when_blocked_and_leaves_the_ticker_untouched(
+    api_key_client,
+    workspace,
+    project,
+    states,
+    issue,
+    create_user,
+):
+    with impersonate(create_user):
+        blocker = Issue.objects.create(
+            name="Blocker",
+            workspace=workspace,
+            project=project,
+            state=states["todo"],
+            created_by=create_user,
+        )
+        IssueRelation.objects.create(
+            issue=issue,
+            related_issue=blocker,
+            relation_type="blocked_by",
+            workspace=workspace,
+            project=project,
+            created_by=create_user,
+        )
+    marker = timezone.now()
+    IssueAgentTicker.objects.create(
+        issue=issue,
+        used=3,
+        enabled=True,
+        next_run_at=marker,
+    )
+
+    resp = api_key_client.post(_run_ai_url(workspace, issue), {}, format="json")
+
+    assert resp.status_code == http_status.HTTP_409_CONFLICT, resp.data
+    assert resp.data["reason"] == "blocked-by-dependency"
+    assert AgentRun.objects.filter(work_item=issue).exists() is False
+    ticker = IssueAgentTicker.objects.get(issue=issue)
+    assert ticker.used == 3
+    assert ticker.next_run_at == marker
+    assert ticker.pending_entry is False
 
 
 @pytest.mark.unit

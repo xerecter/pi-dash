@@ -3,7 +3,7 @@ key: relationships
 title: Work item relationships
 customizable: locked
 ---
-{% if parent or children or related %}
+{% if parent or children or blocked_by or related %}
 ## Work item relationships
 
 This work item is connected to the work items below.
@@ -26,11 +26,17 @@ Children (down):
 - {{ child.identifier }}: {{ child.title }}{% if child.state %} ({{ child.state }}){% endif %}
 {% endfor %}
 {% endif %}
+{% if blocked_by %}
+Blocked by:
+{% for item in blocked_by %}
+- {{ item.identifier }}: {{ item.title }}{% if item.state %} ({{ item.state }}){% endif %}
+{% endfor %}
+{% endif %}
 {% if related %}
 Related work items (across):
 {% for item in related %}
 - {{ item.identifier }}: {{ item.title }}{% if item.state %} ({{ item.state }}){% endif %}
 {% endfor %}
 {% endif %}
-Required reading before you implement: for every work item listed above, run `karma-team issue get <ID>` and `karma-team comment list <ID>`, and fold their framing, acceptance criteria, design decisions and research findings into your workpad. Use the ancestors to judge whether this issue is ready to implement, the children to understand what has already been scoped out of it, and the related items for adjacent context. Do this once, early in analyze-and-scope, and record what you learn so continuation runs do not re-fetch.
+Required reading before you implement: for every work item listed above, run `karma-team issue get <ID>` and `karma-team comment list <ID>`, and fold their framing, acceptance criteria, design decisions and research findings into your workpad. Use the ancestors to judge whether this issue is ready to implement, the children to understand what has already been scoped out of it, the blockers to understand prerequisite work, and the related items for adjacent context. Do this once, early in analyze-and-scope, and record what you learn so continuation runs do not re-fetch.
 {% endif %}

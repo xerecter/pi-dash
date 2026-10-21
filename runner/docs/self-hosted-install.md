@@ -149,8 +149,28 @@ karma-team auth login --url https://new-karma.example.com
 
 The installer can be rerun to upgrade from the self-hosted binary. The existing
 `karma-team update` command uses the upstream release mechanism; use the
-self-hosted installer for this deployment's custom builds. Restart an existing
-daemon when idle to load a newly installed executable.
+self-hosted updater for this deployment's custom builds:
+
+```bash
+curl -fsSL 'http://172.16.13.81:28000/api/cli/update.sh' | sh
+```
+
+The updater selects the current platform, downloads the published binary,
+checks that it is a `karma-team` executable, and atomically replaces the
+current user's `~/.local/bin/karma-team`. An active user service is restarted
+only when all runners report idle, with no current runs or pending approvals.
+If runners are busy or status cannot be confirmed, the binary is still updated
+and the script asks you to run `karma-team restart` after tasks finish.
+Automatic restart checks use Python 3 or jq; without either, restart is deferred.
+These checks are status snapshots, so use `--no-restart` when tasks could arrive
+during the update and an uninterrupted daemon is required.
+
+Existing configuration, credentials, and runner registrations are preserved.
+Pass `sh -s -- --check` to check without replacing the installed binary, or
+`sh -s -- --no-restart` to always defer the daemon restart. Run it as the runner
+owner without `sudo`. For a custom installation directory, pass
+`KARMA_TEAM_INSTALL_DIR` to `sh`, as with the installer. `--force` replaces even
+an identical binary and repeats the idle restart check.
 
 ## Uninstall from the service
 
