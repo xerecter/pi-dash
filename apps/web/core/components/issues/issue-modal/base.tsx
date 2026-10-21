@@ -10,6 +10,7 @@ import { observer } from "mobx-react";
 import { useParams } from "next/navigation";
 // karma-team imports
 import { useTranslation } from "@karma-team/i18n";
+import { Button } from "@karma-team/propel/button";
 import { TOAST_TYPE, setToast } from "@karma-team/propel/toast";
 import type { TBaseIssue, TIssue } from "@karma-team/types";
 import { EIssuesStoreType } from "@karma-team/types";
@@ -59,11 +60,13 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
   }
   // ref
   const issueTitleRef = useRef<HTMLInputElement>(null);
+  const detailRequestId = useRef(0);
   // states
   const [changesMade, setChangesMade] = useState<Partial<TIssue> | null>(null);
   const [createMore, setCreateMore] = useState(false);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
-  const [description, setDescription] = useState<string | undefined>(undefined);
+  const [loadedDetails, setLoadedDetails] = useState<Pick<TIssue, "description_html" | "git_work_branch">>();
+  const [detailLoadFailed, setDetailLoadFailed] = useState(false);
   const [uploadedAssetIds, setUploadedAssetIds] = useState<string[]>([]);
   const [isDuplicateModalOpen, setIsDuplicateModalOpen] = useState(false);
   // store hooks
@@ -85,22 +88,45 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
   const projectId = data?.project_id ?? routerProjectId?.toString() ?? projectIdFromRouter;
 
   const fetchIssueDetail = async (issueId: string | undefined) => {
-    setDescription(undefined);
+    const requestId = ++detailRequestId.current;
+    setLoadedDetails(undefined);
+    setDetailLoadFailed(false);
     if (!workspaceSlug) return;
 
     if (!projectId || issueId === undefined || !fetchIssueDetails) {
-      // Set description to the issue description from the props if available
-      setDescription(data?.description_html || "<p></p>");
+      setLoadedDetails({
+        description_html: data?.description_html || "<p></p>",
+        git_work_branch: data?.git_work_branch,
+      });
       return;
     }
-    const response = await fetchIssue(workspaceSlug.toString(), projectId.toString(), issueId);
-    if (response) setDescription(response?.description_html || "<p></p>");
+    try {
+      const response = await fetchIssue(workspaceSlug.toString(), projectId.toString(), issueId);
+      if (requestId !== detailRequestId.current) return;
+      if (response) {
+        setLoadedDetails({
+          description_html: response.description_html || "<p></p>",
+          git_work_branch: response.git_work_branch,
+        });
+      } else {
+        setDetailLoadFailed(true);
+      }
+    } catch {
+      if (requestId === detailRequestId.current) setDetailLoadFailed(true);
+    }
   };
 
   useEffect(() => {
-    // fetching issue details
     if (isOpen) fetchIssueDetail(data?.id ?? data?.sourceIssueId);
+    else setLoadedDetails(undefined);
 
+    return () => {
+      detailRequestId.current += 1;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.id, data?.sourceIssueId, projectId, isOpen, fetchIssueDetails]);
+
+  useEffect(() => {
     // if modal is closed, reset active project to null
     // and return to avoid activeProjectId being set to some other project
     if (!isOpen) {
@@ -119,16 +145,14 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
     if (allowedProjectIds && allowedProjectIds.length > 0 && !activeProjectId)
       setActiveProjectId(projectId?.toString() ?? allowedProjectIds?.[0]);
 
-    // clearing up the description state when we leave the component
-    return () => setDescription(undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.project_id, data?.id, data?.sourceIssueId, projectId, isOpen, activeProjectId]);
 
-  const addIssueToCycle = async (issue: TIssue, cycleId: string) => {
+  const addIssueToCycle = async (issue: TIssue, targetCycleId: string) => {
     if (!workspaceSlug || !issue.project_id) return;
 
-    await issues.addIssueToCycle(workspaceSlug.toString(), issue.project_id, cycleId, [issue.id]);
-    fetchCycleDetails(workspaceSlug.toString(), issue.project_id, cycleId);
+    await issues.addIssueToCycle(workspaceSlug.toString(), issue.project_id, targetCycleId, [issue.id]);
+    fetchCycleDetails(workspaceSlug.toString(), issue.project_id, targetCycleId);
   };
 
   const addIssueToModule = async (issue: TIssue, moduleIds: string[]) => {
@@ -137,7 +161,8 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
     await Promise.all([
       issues.changeModulesInIssue(workspaceSlug.toString(), issue.project_id, issue.id, moduleIds, []),
       ...moduleIds.map(
-        (moduleId) => issue.project_id && fetchModuleDetails(workspaceSlug.toString(), issue.project_id, moduleId)
+        (targetModuleId) =>
+          issue.project_id && fetchModuleDetails(workspaceSlug.toString(), issue.project_id, targetModuleId)
       ),
     ]);
   };
@@ -247,7 +272,7 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
       });
       if (!createMore) handleClose();
       if (createMore && issueTitleRef) issueTitleRef?.current?.focus();
-      setDescription("<p></p>");
+      setLoadedDetails((details) => ({ ...details, description_html: "<p></p>" }));
       setChangesMade(null);
       return response;
     } catch (error: any) {
@@ -260,20 +285,20 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
     }
   };
 
-  const handleCycleChange = async (data: Partial<TIssue> | undefined, payload: Partial<TIssue>) => {
-    if (!workspaceSlug || !data?.project_id || !data?.id) return;
+  const handleCycleChange = async (currentIssue: Partial<TIssue> | undefined, payload: Partial<TIssue>) => {
+    if (!workspaceSlug || !currentIssue?.project_id || !currentIssue?.id) return;
     // return if user is not trying to change the cycle, i.e
     // - cycle_id is not present in payload
     // - cycle_id is the same as the current cycle id
-    if (!("cycle_id" in payload) || isEqual(data?.cycle_id, payload.cycle_id)) return;
+    if (!("cycle_id" in payload) || isEqual(currentIssue?.cycle_id, payload.cycle_id)) return;
 
     const slug = workspaceSlug.toString();
 
     // Removing the cycle
-    const currentCycleId = data?.cycle_id;
+    const currentCycleId = currentIssue?.cycle_id;
     if (currentCycleId && payload.cycle_id === null) {
-      await issues.removeIssueFromCycle(slug, data.project_id, currentCycleId, data.id);
-      fetchCycleDetails(slug, data.project_id, currentCycleId).catch((error) => {
+      await issues.removeIssueFromCycle(slug, currentIssue.project_id, currentCycleId, currentIssue.id);
+      fetchCycleDetails(slug, currentIssue.project_id, currentCycleId).catch((error) => {
         console.error(error);
       });
     }
@@ -281,12 +306,12 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
     // Adding the cycle
     const newCycleId = payload.cycle_id;
     if (newCycleId && newCycleId !== "" && (payload.cycle_id !== cycleId || storeType !== EIssuesStoreType.CYCLE)) {
-      await addIssueToCycle(data as TBaseIssue, newCycleId);
+      await addIssueToCycle(currentIssue as TBaseIssue, newCycleId);
     }
   };
 
-  const handleModuleChange = async (data: Partial<TIssue>, payload: Partial<TIssue>) => {
-    if (!workspaceSlug || !data?.project_id || !data?.id) return;
+  const handleModuleChange = async (currentIssue: Partial<TIssue>, payload: Partial<TIssue>) => {
+    if (!workspaceSlug || !currentIssue?.project_id || !currentIssue?.id) return;
     // return if user is not trying to change the module, i.e
     // - module_ids is not present in payload
     // - module_ids is not an array
@@ -294,27 +319,27 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
     if (
       !("module_ids" in payload) ||
       !Array.isArray(payload.module_ids) ||
-      isEqual(data?.module_ids, payload.module_ids)
+      isEqual(currentIssue?.module_ids, payload.module_ids)
     )
       return;
 
-    const updatedModuleIds = xor(data.module_ids, payload.module_ids);
+    const updatedModuleIds = xor(currentIssue.module_ids, payload.module_ids);
     const modulesToAdd: string[] = [];
     const modulesToRemove: string[] = [];
 
-    for (const moduleId of updatedModuleIds) {
-      if (data.module_ids?.includes(moduleId)) {
-        modulesToRemove.push(moduleId);
+    for (const changedModuleId of updatedModuleIds) {
+      if (currentIssue.module_ids?.includes(changedModuleId)) {
+        modulesToRemove.push(changedModuleId);
       } else {
-        modulesToAdd.push(moduleId);
+        modulesToAdd.push(changedModuleId);
       }
     }
     // update modules if there are modules to add or remove
     if (modulesToAdd.length > 0 || modulesToRemove.length > 0) {
       await issues.changeModulesInIssue(
         workspaceSlug.toString(),
-        data.project_id,
-        data.id,
+        currentIssue.project_id,
+        currentIssue.id,
         modulesToAdd,
         modulesToRemove
       );
@@ -393,7 +418,8 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
     issueTitleRef: issueTitleRef,
     data: {
       ...data,
-      description_html: description,
+      description_html: loadedDetails?.description_html,
+      git_work_branch: loadedDetails?.git_work_branch ?? data?.git_work_branch,
       cycle_id: data?.cycle_id ? data?.cycle_id : cycleId ? cycleId.toString() : null,
       module_ids: data?.module_ids ? data?.module_ids : moduleId ? [moduleId.toString()] : null,
     },
@@ -419,7 +445,18 @@ export const CreateUpdateIssueModalBase = observer(function CreateUpdateIssueMod
       width={isDuplicateModalOpen ? EModalWidth.VIXL : EModalWidth.XXXXL}
       className="rounded-lg !bg-transparent shadow-none transition-[width] ease-linear"
     >
-      {withDraftIssueWrapper ? (
+      {detailLoadFailed ? (
+        <div role="alert" className="rounded-lg bg-surface-1 p-5 text-secondary">
+          <p>{t("Unable to load work item details. Please try again.")}</p>
+          <Button variant="secondary" onClick={() => fetchIssueDetail(data?.id ?? data?.sourceIssueId)}>
+            {t("Retry")}
+          </Button>
+        </div>
+      ) : !loadedDetails ? (
+        <div role="status" className="rounded-lg bg-surface-1 p-5 text-secondary">
+          {t("Loading...")}
+        </div>
+      ) : withDraftIssueWrapper ? (
         <DraftIssueLayout {...commonIssueModalProps} changesMade={changesMade} onChange={handleFormChange} />
       ) : (
         <IssueFormRoot {...commonIssueModalProps} />

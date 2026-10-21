@@ -28,7 +28,7 @@ export function IssueGitAdvanced(props: Props) {
   // Auto-expand when the issue already carries a value so the user can see /
   // edit it without a disclosure hunt. Kept out of state deps so it only
   // applies on mount; user-driven toggles still win after that.
-  const initialWorkBranch = useWatch({ control, name: "git_work_branch", defaultValue: "" });
+  const initialWorkBranch = useWatch({ control, name: "git_work_branch" });
   const [open, setOpen] = useState(() => Boolean(initialWorkBranch));
 
   return (

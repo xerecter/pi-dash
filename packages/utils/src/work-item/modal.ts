@@ -17,6 +17,7 @@ export const getUpdateFormDataForReset = (projectId: string | null | undefined, 
   priority: formData.priority,
   start_date: formData.start_date,
   target_date: formData.target_date,
+  git_work_branch: formData.git_work_branch ?? "",
 });
 
 export const convertWorkItemDataToSearchResponse = (

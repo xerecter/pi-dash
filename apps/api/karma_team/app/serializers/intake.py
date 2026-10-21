@@ -12,6 +12,7 @@ from .project import ProjectLiteSerializer
 from .state import StateLiteSerializer
 from .user import UserLiteSerializer
 from karma_team.db.models import Intake, IntakeIssue, Issue, StateGroup, State
+from karma_team.utils.issue_update import locked_issue_for_update
 
 
 class IntakeSerializer(BaseSerializer):
@@ -72,14 +73,15 @@ class IntakeIssueSerializer(BaseSerializer):
         # If status is accepted (1), transition the issue state from TRIAGE to default
         if validated_data.get("status") == 1:
             issue = instance.issue
-            if issue.state and issue.state.group == StateGroup.TRIAGE.value:
-                # Get the default project state
-                default_state = State.objects.filter(
-                    workspace=instance.workspace, project=instance.project, default=True
-                ).first()
-                if default_state:
-                    issue.state = default_state
-                    issue.save()
+            with locked_issue_for_update(issue):
+                if issue.state and issue.state.group == StateGroup.TRIAGE.value:
+                    # Get the default project state
+                    default_state = State.objects.filter(
+                        workspace=instance.workspace, project=instance.project, default=True
+                    ).first()
+                    if default_state:
+                        issue.state = default_state
+                        issue.save()
 
         return instance
 

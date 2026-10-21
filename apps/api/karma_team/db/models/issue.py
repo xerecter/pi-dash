@@ -24,6 +24,7 @@ from karma_team.db.mixins import SoftDeletionManager
 from karma_team.utils.exception_logger import log_exception
 from .project import ProjectBaseModel
 from karma_team.utils.uuid import convert_uuid_to_integer
+from karma_team.utils.issue_update import locked_issue_for_update
 from .description import Description
 from karma_team.db.mixins import ChangeTrackerMixin
 from .state import StateGroup
@@ -263,6 +264,12 @@ class Issue(ProjectBaseModel):
                 name="issues_fts_idx",
             ),
         ]
+
+    def delete(self, using=None, soft=True, *args, **kwargs):
+        if soft:
+            with locked_issue_for_update(self, using=using):
+                return super().delete(using=using, soft=True, *args, **kwargs)
+        return super().delete(using=using, soft=False, *args, **kwargs)
 
     def save(self, *args, **kwargs):
         # Auto-resolve assigned_pod to the *project's* default pod for new

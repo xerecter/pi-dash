@@ -3,7 +3,6 @@
 # See the LICENSE file for details.
 
 # Django imports
-from django.utils import timezone
 from django.core.validators import URLValidator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import IntegrityError
@@ -51,6 +50,7 @@ from karma_team.utils.content_validator import (
     validate_html_content,
     validate_binary_data,
 )
+from karma_team.utils.issue_update import locked_issue_for_update
 
 
 # Synced (mirrored from a Git provider) rows are read-only on synced fields.
@@ -513,9 +513,9 @@ class IssueCreateSerializer(BaseSerializer):
             except IntegrityError:
                 pass
 
-        # Time updation occues even when other related models are updated
-        instance.updated_at = timezone.now()
-        return super().update(instance, validated_data)
+        with locked_issue_for_update(instance):
+            # auto_now also touches updated_at for relation-only edits.
+            return super().update(instance, validated_data)
 
 
 class IssueActivitySerializer(BaseSerializer):

@@ -2,9 +2,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-# Django imports
-from django.utils import timezone
-
 # Third Party imports
 from rest_framework import serializers
 
@@ -36,6 +33,7 @@ from karma_team.utils.content_validator import (
     validate_html_content,
     validate_binary_data,
 )
+from karma_team.utils.issue_update import locked_issue_for_update
 
 
 class IssueStateFlatSerializer(BaseSerializer):
@@ -417,9 +415,8 @@ class IssueCreateSerializer(BaseSerializer):
                 batch_size=10,
             )
 
-        # Time updation occues even when other related models are updated
-        instance.updated_at = timezone.now()
-        return super().update(instance, validated_data)
+        with locked_issue_for_update(instance):
+            return super().update(instance, validated_data)
 
 
 class CommentReactionSerializer(BaseSerializer):

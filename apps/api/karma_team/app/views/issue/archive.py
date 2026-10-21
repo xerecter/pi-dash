@@ -38,6 +38,7 @@ from karma_team.utils.grouper import (
     issue_queryset_grouper,
 )
 from karma_team.utils.issue_filters import issue_filters
+from karma_team.utils.issue_update import locked_issue_for_update
 from karma_team.utils.constants import CLOSED_STATE_GROUPS
 from karma_team.utils.order_queryset import order_issue_queryset
 from karma_team.utils.paginator import GroupedOffsetPaginator, SubGroupedOffsetPaginator
@@ -273,8 +274,9 @@ class IssueArchiveViewSet(BaseViewSet):
             notification=True,
             origin=base_host(request=request, is_app=True),
         )
-        issue.archived_at = timezone.now().date()
-        issue.save()
+        with locked_issue_for_update(issue):
+            issue.archived_at = timezone.now().date()
+            issue.save()
 
         return Response({"archived_at": str(issue.archived_at)}, status=status.HTTP_200_OK)
 
@@ -297,8 +299,9 @@ class IssueArchiveViewSet(BaseViewSet):
             notification=True,
             origin=base_host(request=request, is_app=True),
         )
-        issue.archived_at = None
-        issue.save()
+        with locked_issue_for_update(issue):
+            issue.archived_at = None
+            issue.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 

@@ -6,7 +6,6 @@
 import uuid
 
 # Django imports
-from django.utils import timezone
 from lxml import html
 from django.db import IntegrityError
 
@@ -37,6 +36,7 @@ from karma_team.utils.content_validator import (
     validate_binary_data,
 )
 from karma_team.utils.host import issue_web_url
+from karma_team.utils.issue_update import locked_issue_for_update
 
 from .base import BaseSerializer
 from .cycle import CycleLiteSerializer, CycleSerializer
@@ -340,9 +340,9 @@ class IssueSerializer(BaseSerializer):
             except IntegrityError:
                 pass
 
-        # Time updation occues even when other related models are updated
-        instance.updated_at = timezone.now()
-        return super().update(instance, validated_data)
+        with locked_issue_for_update(instance):
+            # auto_now also touches updated_at for relation-only edits.
+            return super().update(instance, validated_data)
 
     def get_url(self, obj):
         return issue_web_url(
