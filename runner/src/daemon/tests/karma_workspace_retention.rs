@@ -13,6 +13,12 @@ enum Ending {
     Cancelled,
 }
 
+fn project_name(project_root: &Path) -> String {
+    // Project discovery takes a per-user/name lock, even across processes.
+    // Independent fixtures must not serialize behind the same project name.
+    format!("Demo Project {}", project_root.display())
+}
+
 fn fake_karma_script(
     project_root: &Path,
     state_file: &Path,
@@ -44,9 +50,10 @@ fn fake_karma_script(
 set -eu
 project_root='{}'
 state_file='{}'
+project_name='{}'
 if [ "$1" = project ] && [ "$2" = list ]; then
   if [ -f "$state_file" ]; then
-    printf 'Fetching projects...\n\n📁 Demo Project\n   ID: demo-id\n   Path: %s\n' "$project_root"
+    printf 'Fetching projects...\n\n📁 %s\n   ID: demo-id\n   Path: %s\n' "$project_name" "$project_root"
   else
     printf 'Fetching projects...\nNo projects found.\n'
   fi
@@ -62,7 +69,7 @@ if [ "$1" = project ] && [ "$2" = create ]; then
   exit 0
 fi
 if [ "$1" = project ] && [ "$2" = info ]; then
-  printf '📁 Demo Project\nPath: %s\n' "$project_root"
+  printf '📁 %s\nPath: %s\n' "$project_name" "$project_root"
   exit 0
 fi
 git rev-parse --verify HEAD >/dev/null 2>&1
@@ -74,6 +81,7 @@ sleep 0.2
 "#,
         project_root.display(),
         state_file.display(),
+        project_name(project_root),
         branch_setup,
         result_event,
     )
@@ -134,7 +142,7 @@ async fn run_case_with_repo_url(
         worker.run(AssignedRun {
             run_id: uuid::Uuid::new_v4(),
             issue_identifier: Some("DEMO-10".into()),
-            project_name: Some("Demo Project".into()),
+            project_name: Some(project_name(&project_root)),
             prompt: "Create a user-visible result".into(),
             repo_url,
             repo_ref: None,
@@ -240,6 +248,7 @@ struct ExplicitBranchRun {
     operation_dir: PathBuf,
     messages: Vec<ClientMsg>,
     completed_tips_at_delivery: Option<(Option<String>, String)>,
+    completed_base_tip_at_delivery: Option<String>,
 }
 
 fn git_output(cwd: &Path, args: &[&str]) -> std::process::Output {
@@ -344,7 +353,11 @@ fn reject_work_branch_pushes(remote: &Path) {
         .expect("make pre-receive hook executable");
 }
 
-async fn run_explicit_branch_case(ending: Ending, reject_push: bool) -> ExplicitBranchRun {
+async fn run_explicit_branch_case(
+    ending: Ending,
+    reject_push: bool,
+    base_branch: &'static str,
+) -> ExplicitBranchRun {
     let temp = tempfile::tempdir().expect("temp dir");
     let root = temp.path().to_path_buf();
     let paths = paths_for(&root);
@@ -402,15 +415,16 @@ async fn run_explicit_branch_case(ending: Ending, reject_push: bool) -> Explicit
         cancel,
     };
     let remote_url = remote.to_string_lossy().into_owned();
+    let project_name = project_name(&project_root);
     let worker_task = tokio::spawn(async move {
         worker
             .run(AssignedRun {
                 run_id: uuid::Uuid::new_v4(),
                 issue_identifier: Some("DEMO-10".into()),
-                project_name: Some("Demo Project".into()),
+                project_name: Some(project_name),
                 prompt: "Create and commit a user-visible result".into(),
                 repo_url: Some(remote_url),
-                repo_ref: Some("main".into()),
+                repo_ref: Some(base_branch.into()),
                 git_work_branch: Some(EXPLICIT_WORK_BRANCH.into()),
                 expected_codex_model: None,
             })
@@ -418,6 +432,7 @@ async fn run_explicit_branch_case(ending: Ending, reject_push: bool) -> Explicit
     });
 
     let mut completed_tips_at_delivery = None;
+    let mut completed_base_tip_at_delivery = None;
     let messages = tokio::time::timeout(Duration::from_secs(90), async {
         let mut messages = Vec::new();
         while let Some(envelope) = rx.recv().await {
@@ -431,8 +446,13 @@ async fn run_explicit_branch_case(ending: Ending, reject_push: bool) -> Explicit
                     Some(EXPLICIT_WORK_BRANCH),
                     "Accept must describe the branch already prepared for the agent"
                 );
+                if base_branch != "main" {
+                    assert_eq!(remote_branch_tip(&root, &remote, base_branch), None);
+                    assert_eq!(git(&operation_dir, &["ls-tree", "-r", base_branch]), "");
+                }
             }
             if matches!(&message, ClientMsg::RunCompleted { .. }) {
+                completed_base_tip_at_delivery = remote_branch_tip(&root, &remote, base_branch);
                 completed_tips_at_delivery = Some((
                     remote_branch_tip(&root, &remote, EXPLICIT_WORK_BRANCH),
                     git(&operation_dir, &["rev-parse", "HEAD"]),
@@ -455,12 +475,13 @@ async fn run_explicit_branch_case(ending: Ending, reject_push: bool) -> Explicit
         operation_dir,
         messages,
         completed_tips_at_delivery,
+        completed_base_tip_at_delivery,
     }
 }
 
 #[tokio::test]
 async fn explicit_work_branch_runs_without_nested_worktree_and_pushes_before_completion() {
-    let run = run_explicit_branch_case(Ending::Completed, false).await;
+    let run = run_explicit_branch_case(Ending::Completed, false, "main").await;
     let completed_count = run
         .messages
         .iter()
@@ -489,7 +510,7 @@ async fn explicit_work_branch_runs_without_nested_worktree_and_pushes_before_com
 
 #[tokio::test]
 async fn rejected_work_branch_push_reports_only_run_failed_and_keeps_local_commit() {
-    let run = run_explicit_branch_case(Ending::Completed, true).await;
+    let run = run_explicit_branch_case(Ending::Completed, true, "main").await;
     assert!(
         run.messages
             .iter()
@@ -520,7 +541,7 @@ async fn rejected_work_branch_push_reports_only_run_failed_and_keeps_local_commi
 #[tokio::test]
 async fn failed_and_cancelled_runs_do_not_push_explicit_work_branch() {
     for ending in [Ending::Failed, Ending::Cancelled] {
-        let run = run_explicit_branch_case(ending, false).await;
+        let run = run_explicit_branch_case(ending, false, "main").await;
         let expected_terminal = match ending {
             Ending::Failed => run
                 .messages
@@ -552,5 +573,53 @@ async fn failed_and_cancelled_runs_do_not_push_explicit_work_branch() {
             run.operation_dir.join("result.txt").is_file(),
             "the fake agent must commit before its {ending:?} terminal event"
         );
+    }
+}
+
+#[tokio::test]
+async fn missing_base_and_work_branch_are_both_published_before_run_completed() {
+    let run = run_explicit_branch_case(Ending::Completed, false, "empty-base").await;
+    let base = run
+        .completed_base_tip_at_delivery
+        .expect("base must be published before completion");
+    let (remote_tip, local_tip) = run.completed_tips_at_delivery.expect("run must complete");
+    assert_eq!(remote_tip.as_deref(), Some(local_tip.as_str()));
+    assert_eq!(git(&run.operation_dir, &["rev-parse", "HEAD^"]), base);
+    assert_eq!(
+        git(&run.operation_dir, &["ls-tree", "-r", "empty-base"]),
+        ""
+    );
+    assert!(!run.operation_dir.join("README.md").exists());
+}
+
+#[tokio::test]
+async fn rejected_atomic_push_keeps_both_new_branches_local_and_reports_failure() {
+    let run = run_explicit_branch_case(Ending::Completed, true, "empty-base").await;
+    assert!(run.messages.iter().any(|message| matches!(message, ClientMsg::RunFailed { detail: Some(detail), .. } if detail.contains("pushing git work branch"))));
+    assert!(
+        !run.messages
+            .iter()
+            .any(|message| matches!(message, ClientMsg::RunCompleted { .. }))
+    );
+    for branch in ["empty-base", EXPLICIT_WORK_BRANCH] {
+        assert!(remote_branch_tip(run._temp.path(), &run.remote, branch).is_none());
+        assert!(!git(&run.operation_dir, &["rev-parse", branch]).is_empty());
+    }
+    assert!(run.operation_dir.join("result.txt").is_file());
+}
+
+#[tokio::test]
+async fn unsuccessful_tasks_never_publish_the_empty_base() {
+    for ending in [Ending::Failed, Ending::Cancelled] {
+        let run = run_explicit_branch_case(ending, false, "empty-base").await;
+        assert!(
+            !run.messages
+                .iter()
+                .any(|message| matches!(message, ClientMsg::RunCompleted { .. }))
+        );
+        for branch in ["empty-base", EXPLICIT_WORK_BRANCH] {
+            assert!(remote_branch_tip(run._temp.path(), &run.remote, branch).is_none());
+        }
+        assert!(run.operation_dir.join("result.txt").is_file());
     }
 }

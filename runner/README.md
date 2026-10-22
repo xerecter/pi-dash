@@ -30,6 +30,28 @@ Codex, Claude Code, Cursor Agent, OpenClaw, Grok, and Muse Code adapters remain
 in the source tree; their CLI entry points are disabled. The Codex-specific
 managed enrollment/rebind path is disabled as well.
 
+## Work item branches
+
+When a work item sets `git_work_branch`, the runner checks it out before
+starting the agent. Existing local commits are preserved, and existing remote
+branches are fetched and fast-forwarded when possible. A new work branch
+starts from the project's configured `base_branch` (or the remote default
+when no base is configured).
+
+If the configured base is absent from the remote, the runner creates it
+locally with one empty root commit and starts the new work branch there.
+The empty base contains no files or history from another branch. Independent
+runners use the same initial commit, so concurrent tasks can share the base.
+A conflicting local base with existing history is preserved and reported as
+an error instead of being replaced.
+
+On successful task completion, the runner publishes the initialized base and
+the work branch before reporting completion. When both need publishing, it
+uses an atomic push; the remote must support atomic pushes. Rejected pushes
+fail the run and retain local commits for retry. Failed or cancelled tasks
+do not trigger this publication. An already-published base is left unchanged;
+publishing a work branch does not merge its changes into the base.
+
 ## Developer-owned agent packages
 
 OSS exposes an optional [agent package seam](docs/agent-packages.md) for

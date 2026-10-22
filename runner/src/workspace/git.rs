@@ -156,6 +156,18 @@ pub fn is_git_repo(path: &Path) -> bool {
     path.join(".git").exists()
 }
 
+#[derive(Debug)]
+pub struct PreparedWorkBranch {
+    pub name: String,
+    base: Option<PreparedBaseBranch>,
+}
+
+#[derive(Debug)]
+struct PreparedBaseBranch {
+    name: String,
+    tip: String,
+}
+
 /// Prepare `branch` as the checked-out work branch for an assigned work item.
 ///
 /// If the branch exists on `origin`, its remote-tracking ref is refreshed and
@@ -164,8 +176,13 @@ pub fn is_git_repo(path: &Path) -> bool {
 /// diverged branch fails rather than discarding either side. If the remote
 /// branch does not exist, an existing local branch is reused (important after
 /// a previous push failure), or a new branch is created from `repo_ref` / the
-/// remote's symbolic default branch.
-pub async fn prepare_work_branch(path: &Path, branch: &str, repo_ref: Option<&str>) -> Result<()> {
+/// remote's symbolic default branch. A missing explicit base is initialized
+/// with an empty root commit, retained locally until successful completion.
+pub async fn prepare_work_branch(
+    path: &Path,
+    branch: &str,
+    repo_ref: Option<&str>,
+) -> Result<PreparedWorkBranch> {
     validate_branch_name(branch)
         .await
         .with_context(|| format!("validating work branch {branch:?}"))?;
@@ -175,41 +192,105 @@ pub async fn prepare_work_branch(path: &Path, branch: &str, repo_ref: Option<&st
             .with_context(|| format!("validating repository base branch {repo_ref:?}"))?;
     }
 
+    // Prepare the base even when the work branch already exists: a retry may
+    // need to publish a base whose previous push never completed.
+    let base = if let Some(name) = repo_ref {
+        if remote_branch_exists(path, name).await?
+            || (name == branch && local_branch_exists(path, branch).await?)
+        {
+            None
+        } else {
+            Some(PreparedBaseBranch {
+                name: name.to_string(),
+                tip: initialize_empty_base_branch(path, name).await?,
+            })
+        }
+    } else {
+        None
+    };
+    let prepared = PreparedWorkBranch {
+        name: branch.to_string(),
+        base,
+    };
+
     if remote_branch_exists(path, branch).await? {
         fetch_remote_branch(path, branch).await?;
         prepare_existing_remote_branch(path, branch).await?;
-        return Ok(());
+        return Ok(prepared);
     }
 
     if local_branch_exists(path, branch).await? {
         checkout_preserved_branch(path, branch)
             .await
             .with_context(|| format!("checking out preserved local work branch {branch:?}"))?;
-        return Ok(());
+        return Ok(prepared);
     }
 
     let base_branch = match repo_ref {
-        Some(base_branch) => {
-            if !remote_branch_exists(path, base_branch).await? {
-                anyhow::bail!(
-                    "remote base branch {base_branch:?} does not exist; refusing to create work branch {branch:?} from an unintended revision"
-                );
-            }
-            base_branch.to_string()
-        }
+        Some(base_branch) => base_branch.to_string(),
         None => remote_default_branch(path).await?,
     };
-    fetch_remote_branch(path, &base_branch).await?;
-    let remote_base = remote_tracking_ref(&base_branch);
-    git_output(
-        path,
-        &["checkout", "--no-track", "-b", branch, &remote_base],
-    )
-    .await
-    .with_context(|| {
-        format!("creating local work branch {branch:?} from remote base branch {base_branch:?}")
-    })?;
-    Ok(())
+    let base_ref = if let Some(base) = &prepared.base {
+        base.tip.clone()
+    } else {
+        fetch_remote_branch(path, &base_branch).await?;
+        remote_tracking_ref(&base_branch)
+    };
+    git_output(path, &["checkout", "--no-track", "-b", branch, &base_ref])
+        .await
+        .with_context(|| {
+            format!("creating local work branch {branch:?} from base branch {base_branch:?}")
+        })?;
+    Ok(prepared)
+}
+
+async fn initialize_empty_base_branch(path: &Path, branch: &str) -> Result<String> {
+    let empty_tree = git_output(path, &["mktree"]).await?;
+    let local_ref = local_branch_ref(branch);
+    if !local_branch_exists(path, branch).await? {
+        // Stable metadata gives independent runners the same root commit for
+        // this base. No parent or index is used, even in a populated checkout.
+        let message = format!("Initialize empty project base branch {branch}");
+        let commit = Command::new("git")
+            .current_dir(path)
+            .env("GIT_AUTHOR_NAME", "karma-team runner")
+            .env("GIT_AUTHOR_EMAIL", "karma-team-runner@localhost")
+            .env("GIT_COMMITTER_NAME", "karma-team runner")
+            .env("GIT_COMMITTER_EMAIL", "karma-team-runner@localhost")
+            .env("GIT_AUTHOR_DATE", "2000-01-01T00:00:00 +0000")
+            .env("GIT_COMMITTER_DATE", "2000-01-01T00:00:00 +0000")
+            .args(["commit-tree", "--no-gpg-sign", &empty_tree, "-m", &message])
+            .stdin(Stdio::null())
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .kill_on_drop(true)
+            .output()
+            .await
+            .context("creating empty project base commit")?;
+        if !commit.status.success() {
+            anyhow::bail!(
+                "creating empty project base commit failed: {}",
+                String::from_utf8_lossy(&commit.stderr).trim()
+            );
+        }
+        let tip = String::from_utf8_lossy(&commit.stdout).trim().to_string();
+        if let Err(error) = git_output(path, &["update-ref", &local_ref, &tip, ""]).await {
+            // Another initializer may have won the compare-and-swap. Validate
+            // its branch below rather than replacing an existing local ref.
+            if !local_branch_exists(path, branch).await? {
+                return Err(error).context("creating local project base branch");
+            }
+        }
+    }
+    let tip = git_output(path, &["rev-parse", &local_ref]).await?;
+    let tree = git_output(path, &["rev-parse", &format!("{tip}^{{tree}}")]).await?;
+    let parents = git_output(path, &["rev-list", "--parents", "-n", "1", &tip]).await?;
+    if tree != empty_tree || parents.split_whitespace().count() != 1 {
+        anyhow::bail!(
+            "remote base branch {branch:?} is missing, but its local branch contains existing history; refusing to replace it with an empty base"
+        );
+    }
+    Ok(tip)
 }
 
 /// Push the checked-out work branch without rewriting remote history.
@@ -219,6 +300,20 @@ pub async fn prepare_work_branch(path: &Path, branch: &str, repo_ref: Option<&st
 /// with uncommitted user work fails instead of silently reporting only the
 /// older HEAD as completed; runner-owned `.karma-team/` metadata is excluded.
 pub async fn push_work_branch(path: &Path, branch: &str) -> Result<()> {
+    push_prepared_work_branch(
+        path,
+        &PreparedWorkBranch {
+            name: branch.to_string(),
+            base: None,
+        },
+    )
+    .await
+}
+
+/// Publish an initialized base and the completed work together. The base uses
+/// its captured empty tip, never the agent's HEAD or an unrelated local ref.
+pub async fn push_prepared_work_branch(path: &Path, prepared: &PreparedWorkBranch) -> Result<()> {
+    let branch = prepared.name.as_str();
     validate_branch_name(branch)
         .await
         .with_context(|| format!("validating work branch {branch:?}"))?;
@@ -256,28 +351,58 @@ pub async fn push_work_branch(path: &Path, branch: &str) -> Result<()> {
     // have advanced the remote from it. In either case all local work is on the
     // remote, and pushing the older/equal local tip is unnecessary (and would
     // be rejected in the remote-ahead case).
-    if remote_branch_contains_head(path, branch).await? {
+    let base = prepared.base.as_ref().filter(|base| base.name != branch);
+    let mut refspecs = Vec::new();
+    if let Some(base) = base
+        && !remote_branch_contains_tip(path, &base.name, &base.tip).await?
+    {
+        refspecs.push(format!("{}:refs/heads/{}", base.tip, base.name));
+    }
+    if !remote_branch_contains_tip(path, branch, "HEAD").await? {
+        refspecs.push(format!("HEAD:refs/heads/{branch}"));
+    }
+    if refspecs.is_empty() {
         set_branch_upstream(path, branch).await?;
         return Ok(());
     }
 
-    let refspec = format!("HEAD:refs/heads/{branch}");
-    let push_error = match git_output(path, &["push", "--set-upstream", "origin", &refspec]).await {
-        Ok(_) => return Ok(()),
+    let mut args = vec!["push", "--set-upstream"];
+    if refspecs.len() > 1 {
+        args.push("--atomic");
+    }
+    args.push("origin");
+    args.extend(refspecs.iter().map(String::as_str));
+    let push_error = match git_output(path, &args).await {
+        Ok(_) => {
+            set_branch_upstream(path, branch).await?;
+            return Ok(());
+        }
         Err(error) => error,
     };
 
     // Close the race between the containment check and push: another process
     // can publish this exact commit immediately before our push is rejected.
     // Preserve the original push error if the follow-up check itself fails.
-    if remote_branch_contains_head(path, branch)
-        .await
-        .unwrap_or(false)
+    let base_published = match base {
+        Some(base) => remote_branch_contains_tip(path, &base.name, &base.tip)
+            .await
+            .unwrap_or(false),
+        None => true,
+    };
+    if base_published
+        && remote_branch_contains_tip(path, branch, "HEAD")
+            .await
+            .unwrap_or(false)
     {
         set_branch_upstream(path, branch).await?;
         return Ok(());
     }
-    Err(push_error).with_context(|| format!("pushing work branch {branch:?} to origin"))
+    Err(push_error).with_context(|| {
+        format!(
+            "pushing work branch {branch:?} and initialized base {:?} to origin",
+            base.map(|base| base.name.as_str())
+        )
+    })
 }
 
 async fn prepare_existing_remote_branch(path: &Path, branch: &str) -> Result<()> {
@@ -336,12 +461,12 @@ async fn set_branch_upstream(path: &Path, branch: &str) -> Result<()> {
     Ok(())
 }
 
-async fn remote_branch_contains_head(path: &Path, branch: &str) -> Result<bool> {
+async fn remote_branch_contains_tip(path: &Path, branch: &str, tip: &str) -> Result<bool> {
     if !remote_branch_exists(path, branch).await? {
         return Ok(false);
     }
     fetch_remote_branch(path, branch).await?;
-    is_ancestor(path, "HEAD", &remote_tracking_ref(branch)).await
+    is_ancestor(path, tip, &remote_tracking_ref(branch)).await
 }
 
 async fn remote_branch_exists(path: &Path, branch: &str) -> Result<bool> {
@@ -658,6 +783,7 @@ async fn git_command_output(path: &Path, args: &[&str]) -> Result<std::process::
         // credentials are unavailable instead of waiting for an interactive
         // prompt that can never be answered.
         .env("GIT_TERMINAL_PROMPT", "0")
+        .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .kill_on_drop(true)
@@ -1335,20 +1461,312 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn rejects_a_missing_explicit_base_branch() {
+    async fn initializes_an_empty_base_and_publishes_both_branches_on_completion() {
         let repositories = TestRepositories::new().await;
+        let original = repositories.remote_ref("trunk").await.unwrap();
 
-        let error =
+        let prepared =
             prepare_work_branch(&repositories.workspace, "feature/new", Some("missing-base"))
                 .await
-                .unwrap_err();
-
-        assert!(error.to_string().contains("does not exist"), "{error:#}");
+                .unwrap();
+        let base = prepared.base.as_ref().unwrap();
+        assert_eq!(
+            git_output(&repositories.workspace, &["rev-parse", "HEAD"])
+                .await
+                .unwrap(),
+            base.tip
+        );
+        assert_eq!(
+            git_output(&repositories.workspace, &["ls-tree", "-r", "HEAD"])
+                .await
+                .unwrap(),
+            ""
+        );
+        assert_eq!(
+            git_output(&repositories.workspace, &["rev-list", "--count", "HEAD"])
+                .await
+                .unwrap(),
+            "1"
+        );
+        assert!(!repositories.workspace.join("base.txt").exists());
+        assert!(repositories.remote_ref("missing-base").await.is_none());
         assert!(repositories.remote_ref("feature/new").await.is_none());
-        assert!(
-            !local_branch_exists(&repositories.workspace, "feature/new")
+
+        let work_tip = repositories
+            .commit_in(&repositories.workspace, "result.txt", "task result\n")
+            .await;
+        push_prepared_work_branch(&repositories.workspace, &prepared)
+            .await
+            .unwrap();
+        assert_eq!(
+            repositories.remote_ref("missing-base").await.unwrap(),
+            base.tip
+        );
+        assert_eq!(
+            repositories.remote_ref("feature/new").await.unwrap(),
+            work_tip
+        );
+        assert_eq!(repositories.remote_ref("trunk").await.unwrap(), original);
+        assert_eq!(
+            git_output(&repositories.remote, &["rev-parse", "feature/new^"])
+                .await
+                .unwrap(),
+            base.tip
+        );
+        assert_eq!(
+            git_output(&repositories.remote, &["ls-tree", "-r", "missing-base"])
+                .await
+                .unwrap(),
+            ""
+        );
+    }
+
+    #[tokio::test]
+    async fn initializes_branches_in_an_empty_remote_repository() {
+        let temp = tempdir().unwrap();
+        let remote = temp.path().join("empty.git");
+        let workspace = temp.path().join("workspace");
+        git_output(
+            temp.path(),
+            &[
+                "init",
+                "--bare",
+                "--initial-branch=main",
+                remote.to_str().unwrap(),
+            ],
+        )
+        .await
+        .unwrap();
+        clone(remote.to_str().unwrap(), &workspace).await.unwrap();
+        let prepared = prepare_work_branch(&workspace, "feature/first", Some("main"))
+            .await
+            .unwrap();
+        assert_eq!(git_output(&workspace, &["ls-files"]).await.unwrap(), "");
+        push_prepared_work_branch(&workspace, &prepared)
+            .await
+            .unwrap();
+        assert_eq!(
+            git_output(&remote, &["rev-parse", "main"]).await.unwrap(),
+            git_output(&remote, &["rev-parse", "feature/first"])
                 .await
                 .unwrap()
+        );
+    }
+
+    #[tokio::test]
+    async fn retries_reuse_the_empty_base_without_losing_work_commits() {
+        let repositories = TestRepositories::new().await;
+        let first = prepare_work_branch(&repositories.workspace, "feature/retry", Some("new-base"))
+            .await
+            .unwrap();
+        let tip = repositories
+            .commit_in(&repositories.workspace, "result.txt", "retain work\n")
+            .await;
+        let retry = prepare_work_branch(&repositories.workspace, "feature/retry", Some("new-base"))
+            .await
+            .unwrap();
+        assert_eq!(first.base.unwrap().tip, retry.base.as_ref().unwrap().tip);
+        assert_eq!(
+            git_output(&repositories.workspace, &["rev-parse", "HEAD"])
+                .await
+                .unwrap(),
+            tip
+        );
+        push_prepared_work_branch(&repositories.workspace, &retry)
+            .await
+            .unwrap();
+        assert_eq!(repositories.remote_ref("feature/retry").await.unwrap(), tip);
+    }
+
+    #[tokio::test]
+    async fn independent_workspaces_share_the_same_empty_base_commit() {
+        let repositories = TestRepositories::new().await;
+        let other = repositories.remote.with_file_name("other");
+        clone(repositories.remote.to_str().unwrap(), &other)
+            .await
+            .unwrap();
+        configure_test_identity(&other).await;
+        let (first, second) = tokio::join!(
+            prepare_work_branch(&repositories.workspace, "feature/one", Some("new-base")),
+            prepare_work_branch(&other, "feature/two", Some("new-base")),
+        );
+        let first = first.unwrap();
+        let second = second.unwrap();
+        assert_eq!(
+            first.base.as_ref().unwrap().tip,
+            second.base.as_ref().unwrap().tip
+        );
+        repositories
+            .commit_in(&repositories.workspace, "one.txt", "one\n")
+            .await;
+        repositories.commit_in(&other, "two.txt", "two\n").await;
+        push_prepared_work_branch(&repositories.workspace, &first)
+            .await
+            .unwrap();
+        push_prepared_work_branch(&other, &second).await.unwrap();
+        assert_eq!(
+            git_output(
+                &repositories.remote,
+                &["merge-base", "feature/one", "feature/two"]
+            )
+            .await
+            .unwrap(),
+            repositories.remote_ref("new-base").await.unwrap()
+        );
+    }
+
+    #[tokio::test]
+    async fn preserves_an_existing_remote_work_branch_when_initializing_its_base() {
+        let repositories = TestRepositories::new().await;
+        let tip = repositories.create_remote_branch("feature/existing").await;
+        let prepared = prepare_work_branch(
+            &repositories.workspace,
+            "feature/existing",
+            Some("new-base"),
+        )
+        .await
+        .unwrap();
+        assert_eq!(
+            git_output(&repositories.workspace, &["rev-parse", "HEAD"])
+                .await
+                .unwrap(),
+            tip
+        );
+        push_prepared_work_branch(&repositories.workspace, &prepared)
+            .await
+            .unwrap();
+        assert_eq!(
+            repositories.remote_ref("feature/existing").await.unwrap(),
+            tip
+        );
+        assert_eq!(
+            repositories.remote_ref("new-base").await.unwrap(),
+            prepared.base.unwrap().tip
+        );
+    }
+
+    #[tokio::test]
+    async fn base_and_work_may_be_the_same_branch_even_on_retry() {
+        let repositories = TestRepositories::new().await;
+        prepare_work_branch(&repositories.workspace, "new-base", Some("new-base"))
+            .await
+            .unwrap();
+        let tip = repositories
+            .commit_in(&repositories.workspace, "result.txt", "same branch\n")
+            .await;
+        let retry = prepare_work_branch(&repositories.workspace, "new-base", Some("new-base"))
+            .await
+            .unwrap();
+        push_prepared_work_branch(&repositories.workspace, &retry)
+            .await
+            .unwrap();
+        assert_eq!(repositories.remote_ref("new-base").await.unwrap(), tip);
+    }
+
+    #[tokio::test]
+    async fn missing_base_never_replaces_a_local_branch_with_existing_history() {
+        let repositories = TestRepositories::new().await;
+        git_output(&repositories.workspace, &["branch", "local-base"])
+            .await
+            .unwrap();
+        let original = git_output(&repositories.workspace, &["rev-parse", "local-base"])
+            .await
+            .unwrap();
+        let error = prepare_work_branch(&repositories.workspace, "feature/new", Some("local-base"))
+            .await
+            .unwrap_err();
+        assert!(error.to_string().contains("existing history"), "{error:#}");
+        assert_eq!(
+            git_output(&repositories.workspace, &["rev-parse", "local-base"])
+                .await
+                .unwrap(),
+            original
+        );
+        assert!(repositories.remote_ref("feature/new").await.is_none());
+    }
+
+    #[tokio::test]
+    async fn empty_base_setup_does_not_discard_staged_changes() {
+        let repositories = TestRepositories::new().await;
+        std::fs::write(
+            repositories.workspace.join("base.txt"),
+            "staged user work\n",
+        )
+        .unwrap();
+        git_output(&repositories.workspace, &["add", "base.txt"])
+            .await
+            .unwrap();
+        assert!(
+            prepare_work_branch(&repositories.workspace, "feature/new", Some("new-base"))
+                .await
+                .is_err()
+        );
+        assert_eq!(
+            git_output(&repositories.workspace, &["show", ":base.txt"])
+                .await
+                .unwrap(),
+            "staged user work"
+        );
+        assert_eq!(
+            std::fs::read_to_string(repositories.workspace.join("base.txt")).unwrap(),
+            "staged user work\n"
+        );
+        assert_eq!(
+            git_output(&repositories.workspace, &["ls-tree", "-r", "new-base"])
+                .await
+                .unwrap(),
+            ""
+        );
+        assert!(repositories.remote_ref("new-base").await.is_none());
+    }
+
+    #[tokio::test]
+    async fn conflicting_remote_base_rejects_both_pushes_without_losing_local_work() {
+        let repositories = TestRepositories::new().await;
+        let prepared =
+            prepare_work_branch(&repositories.workspace, "feature/new", Some("new-base"))
+                .await
+                .unwrap();
+        let tip = repositories
+            .commit_in(&repositories.workspace, "result.txt", "local work\n")
+            .await;
+        let other_tip = repositories.create_remote_branch("new-base").await;
+        assert!(
+            push_prepared_work_branch(&repositories.workspace, &prepared)
+                .await
+                .is_err()
+        );
+        assert_eq!(
+            repositories.remote_ref("new-base").await.unwrap(),
+            other_tip
+        );
+        assert!(repositories.remote_ref("feature/new").await.is_none());
+        assert_eq!(
+            git_output(&repositories.workspace, &["rev-parse", "HEAD"])
+                .await
+                .unwrap(),
+            tip
+        );
+    }
+
+    #[tokio::test]
+    async fn dirty_work_is_not_published_with_its_new_base() {
+        let repositories = TestRepositories::new().await;
+        let prepared =
+            prepare_work_branch(&repositories.workspace, "feature/new", Some("new-base"))
+                .await
+                .unwrap();
+        std::fs::write(repositories.workspace.join("unfinished.txt"), "keep me\n").unwrap();
+        assert!(
+            push_prepared_work_branch(&repositories.workspace, &prepared)
+                .await
+                .is_err()
+        );
+        assert!(repositories.remote_ref("new-base").await.is_none());
+        assert!(repositories.remote_ref("feature/new").await.is_none());
+        assert_eq!(
+            std::fs::read_to_string(repositories.workspace.join("unfinished.txt")).unwrap(),
+            "keep me\n"
         );
     }
 

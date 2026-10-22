@@ -3550,33 +3550,39 @@ impl AssignWorker {
         // a new branch that does not exist yet. Prepare that branch before we
         // report `Accept`, so the cloud sees the exact checkout the agent will
         // use and the agent never has to race the platform's branch setup.
-        if let Some(branch) = git_work_branch.as_deref()
-            && let Err(err) = crate::workspace::git::prepare_work_branch(
+        let prepared_work_branch = if let Some(branch) = git_work_branch.as_deref() {
+            match crate::workspace::git::prepare_work_branch(
                 &workspace_path,
                 branch,
                 repo_ref.as_deref(),
             )
             .await
-        {
-            let detail = format!("preparing git work branch `{branch}`: {err:#}");
-            tracing::warn!(
-                %run_id,
-                git_work_branch = branch,
-                error = %err,
-                "failed to prepare assigned git work branch",
-            );
-            self.send(ClientMsg::RunFailed {
-                run_id,
-                reason: FailureReason::WorkspaceSetup,
-                detail: Some(detail),
-                ended_at: Utc::now(),
-                tokens: None,
-                model: None,
-            })
-            .await;
-            self.state.set_current_run(None).await;
-            return Ok(());
-        }
+            {
+                Ok(prepared) => Some(prepared),
+                Err(err) => {
+                    let detail = format!("preparing git work branch `{branch}`: {err:#}");
+                    tracing::warn!(
+                        %run_id,
+                        git_work_branch = branch,
+                        error = %err,
+                        "failed to prepare assigned git work branch",
+                    );
+                    self.send(ClientMsg::RunFailed {
+                        run_id,
+                        reason: FailureReason::WorkspaceSetup,
+                        detail: Some(detail),
+                        ended_at: Utc::now(),
+                        tokens: None,
+                        model: None,
+                    })
+                    .await;
+                    self.state.set_current_run(None).await;
+                    return Ok(());
+                }
+            }
+        } else {
+            None
+        };
 
         if let Some(project_ref) = runtime_project_slug
             .as_deref()
@@ -3747,7 +3753,7 @@ impl AssignWorker {
                 &mut cursor,
                 &mut hist,
                 &workspace_path,
-                git_work_branch.as_deref(),
+                prepared_work_branch.as_ref(),
             )
             .await?;
 
@@ -3788,7 +3794,7 @@ impl AssignWorker {
         cursor: &mut AgentCursor,
         hist: &mut HistoryWriter,
         workspace_root: &std::path::Path,
-        git_work_branch: Option<&str>,
+        git_work_branch: Option<&crate::workspace::git::PreparedWorkBranch>,
     ) -> Result<Outcome> {
         // Stall watchdog: if the agent emits no frames for this long AND
         // no approval is in flight (a human-wait is legitimate silence),
@@ -3976,7 +3982,7 @@ impl AssignWorker {
         bridge: &mut AgentBridge,
         hist: &mut HistoryWriter,
         workspace_root: &std::path::Path,
-        git_work_branch: Option<&str>,
+        git_work_branch: Option<&crate::workspace::git::PreparedWorkBranch>,
         run_events: &mut RunEventMirror,
     ) -> Result<Option<Outcome>> {
         self.state.incr_current_run_events().await;
@@ -4230,14 +4236,15 @@ impl AssignWorker {
                 run_events.flush_before_lifecycle(&self.out).await;
                 if let Some(branch) = git_work_branch
                     && let Err(err) =
-                        crate::workspace::git::push_work_branch(workspace_root, branch).await
+                        crate::workspace::git::push_prepared_work_branch(workspace_root, branch)
+                            .await
                 {
-                    let detail = format!("pushing git work branch `{branch}`: {err:#}");
+                    let detail = format!("pushing git work branch `{}`: {err:#}", branch.name);
                     tracing::warn!(
                         %run_id,
-                        git_work_branch = branch,
+                        git_work_branch = %branch.name,
                         error = %err,
-                        "agent completed but its git work branch could not be pushed",
+                        "agent completed but its git branches could not be pushed",
                     );
                     let metadata = self.run_metadata().await;
                     self.send(ClientMsg::RunFailed {
