@@ -58,6 +58,7 @@ export function ChatComposer({
   // Keep the latest draft reachable from the (stable) onResult callback so the
   // transcript appends to whatever is in the box when recording finishes.
   const draftRef = useRef(draft);
+  const composingRef = useRef(false);
   draftRef.current = draft;
 
   const handleTranscript = useCallback(
@@ -143,10 +144,21 @@ export function ChatComposer({
         <textarea
           value={draft}
           onChange={(e) => onDraftChange(e.target.value)}
+          onCompositionStart={() => {
+            composingRef.current = true;
+          }}
+          onCompositionEnd={() => {
+            composingRef.current = false;
+          }}
+          onBlur={() => {
+            composingRef.current = false;
+          }}
           onKeyDown={(e) => {
+            // Safari can end composition before the confirming Enter keydown.
+            if (composingRef.current || e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) return;
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
-              if (!disabled && draft.trim()) onSend();
+              if (!disabled && !sending && !e.repeat && draft.trim()) onSend();
             }
           }}
           disabled={disabled || sending}

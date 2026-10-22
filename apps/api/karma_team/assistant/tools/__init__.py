@@ -8,6 +8,6 @@ Each tool module decorates its functions with ``@assistant.tool`` at import
 time, so importing the package (done in ``AssistantConfig.ready``) wires them up.
 """
 
-from karma_team.assistant.tools import comments, github, issues, projects, runs  # noqa: F401
+from karma_team.assistant.tools import comments, github, issues, labels, projects, relations, runs  # noqa: F401
 
-__all__ = ["projects", "issues", "comments", "runs", "github"]
+__all__ = ["projects", "issues", "comments", "runs", "github", "labels", "relations"]

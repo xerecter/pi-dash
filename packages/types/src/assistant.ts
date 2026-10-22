@@ -21,7 +21,7 @@ export interface IAssistantLink {
   type: string;
   workspace_slug: string;
   project_id: string;
-  issue_id: string;
+  issue_id?: string;
   url_path: string;
 }
 

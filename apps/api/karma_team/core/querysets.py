@@ -40,12 +40,12 @@ def user_issues_queryset(user, workspace_slug, *, scope: str = "all"):
     base = member_project_issues(user, workspace_slug)
     user_id = user.id
     if scope == "assigned":
-        involvement = Q(assignees__id=user_id)
+        involvement = Q(issue_assignee__assignee_id=user_id, issue_assignee__deleted_at__isnull=True)
     elif scope == "created":
         involvement = Q(created_by_id=user_id)
     else:
         involvement = (
-            Q(assignees__id=user_id)
+            Q(issue_assignee__assignee_id=user_id, issue_assignee__deleted_at__isnull=True)
             | Q(created_by_id=user_id)
             | Q(issue_subscribers__subscriber_id=user_id)
         )

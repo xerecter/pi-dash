@@ -50,7 +50,10 @@ def member_projects(deps):
 
 
 def get_project(deps, project_id) -> Project:
-    project = member_projects(deps).filter(id=project_id).first()
+    try:
+        project = member_projects(deps).filter(id=project_id).first()
+    except (ValidationError, ValueError):
+        project = None
     if project is None:
         raise ToolNotFound(f"Project {project_id} not found or not accessible.")
     return project
@@ -101,3 +104,15 @@ def require_project_write(deps, project_id) -> None:
         raise ToolPermissionError(
             "You don't have permission to make changes in this project."
         )
+
+
+def require_project_admin(deps, project_id) -> None:
+    if not core_permissions.check_project_role(
+        user_for(deps), deps.workspace_slug, project_id, [core_permissions.ROLE_ADMIN]
+    ):
+        raise ToolPermissionError("This action requires a project administrator.")
+
+
+def require_interactive_delete(deps) -> None:
+    if deps.mode == "loop":
+        raise ToolPermissionError("Deletion is not allowed in unattended mode.")

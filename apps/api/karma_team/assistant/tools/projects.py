@@ -11,6 +11,7 @@ from pydantic_ai import RunContext
 from karma_team.assistant.runtime.agent import assistant
 from karma_team.assistant.runtime.deps import AssistantDeps
 from karma_team.assistant.tools import _scoping
+from karma_team.assistant.tools.labels import label_data
 from karma_team.db.models import Label, ProjectMember
 
 
@@ -41,12 +42,13 @@ def list_labels(ctx: RunContext[AssistantDeps], project_id: str) -> list[dict]:
     labels = Label.objects.filter(
         project_id=project_id, workspace__slug=ctx.deps.workspace_slug
     ).order_by("name")
-    return [{"id": str(label.id), "name": label.name} for label in labels]
+    return [label_data(label) for label in labels]
 
 
 @assistant.tool
 def list_project_members(ctx: RunContext[AssistantDeps], project_id: str) -> list[dict]:
-    """List the members of a project (id, name, role)."""
+    """List project members by user_id, display_name, email, role and can_assign.
+    Only users with can_assign=true may be added as work item assignees."""
     _scoping.get_project(ctx.deps, project_id)  # scope check
     members = ProjectMember.objects.filter(
         project_id=project_id, workspace__slug=ctx.deps.workspace_slug, is_active=True
@@ -59,7 +61,9 @@ def list_project_members(ctx: RunContext[AssistantDeps], project_id: str) -> lis
             {
                 "user_id": str(m.member_id),
                 "display_name": m.member.display_name or m.member.email or "",
+                "email": m.member.email,
                 "role": m.role,
+                "can_assign": m.role >= 15 and m.member.is_active,
             }
         )
     return out

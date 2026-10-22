@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Literal, Optional
 
 from crum import impersonate
 from django.db import transaction
@@ -16,7 +16,7 @@ from pydantic_ai import ModelRetry, RunContext
 from karma_team.assistant.runtime.agent import assistant
 from karma_team.assistant.runtime.deps import AssistantDeps
 from karma_team.assistant.runtime.markdown import to_safe_html
-from karma_team.assistant.tools import _results, _scoping
+from karma_team.assistant.tools import _issue_fields, _results, _scoping
 from karma_team.db.models import Issue
 from karma_team.search.issue import issue_search_queryset
 
@@ -49,6 +49,7 @@ def _brief(issue) -> dict:
         "state": issue.state.name if issue.state_id else None,
         "state_group": issue.state.group if issue.state_id else None,
         "priority": issue.priority,
+        **_issue_fields.metadata(issue),
     }
 
 
@@ -109,8 +110,10 @@ def get_issue(ctx: RunContext[AssistantDeps], issue_id: str) -> dict:
     comments = []
     for c in issue.issue_comments.select_related("actor").order_by("-created_at")[:10]:
         body, body_trunc = _results.truncate(c.comment_stripped or "", _COMMENT_CAP)
-        author = "karma-team AI" if c.speaker_type == "agent" else (
-            (c.actor.display_name or c.actor.email) if c.actor_id else "Unknown"
+        author = (
+            "karma-team AI"
+            if c.speaker_type == "agent"
+            else ((c.actor.display_name or c.actor.email) if c.actor_id else "Unknown")
         )
         comments.append(
             {
@@ -121,11 +124,14 @@ def get_issue(ctx: RunContext[AssistantDeps], issue_id: str) -> dict:
             }
         )
     data = _brief(issue)
+    from karma_team.assistant.tools.relations import list_issue_relations
+
     data.update(
         {
             "description": _results.wrap_untrusted(desc),
             "description_truncated": desc_trunc,
             "recent_comments": list(reversed(comments)),
+            "relations": list_issue_relations(ctx, issue_id),
         }
     )
     return data
@@ -166,11 +172,7 @@ def _resolve_parent(deps, project_id, parent_issue_id, child_id=None) -> Issue:
             if ancestor_parent_id in seen:
                 break
             seen.add(ancestor_parent_id)
-            ancestor_parent_id = (
-                Issue.objects.filter(pk=ancestor_parent_id)
-                .values_list("parent_id", flat=True)
-                .first()
-            )
+            ancestor_parent_id = Issue.objects.filter(pk=ancestor_parent_id).values_list("parent_id", flat=True).first()
     return parent
 
 
@@ -183,10 +185,14 @@ def create_issue(
     state_id: Optional[str] = None,
     priority: Optional[str] = None,
     parent_issue_id: Optional[str] = None,
+    git_work_branch: str = "",
+    assignee_ids: Optional[list[str]] = None,
+    label_ids: Optional[list[str]] = None,
 ) -> dict:
     """Create an issue. Requires Member or Admin role. Pass parent_issue_id to
-    link it as a sub-issue of another issue in the same project. (Assignees/labels:
-    set them afterwards in the UI — not yet supported by this tool.)"""
+    link it as a sub-issue of another issue in the same project. Optionally set
+    git_work_branch, assignee_ids and label_ids. Resolve IDs with
+    list_project_members and list_labels first."""
     deps = ctx.deps
     project = _scoping.get_project(deps, project_id)
     _scoping.require_project_write(deps, project_id)
@@ -199,6 +205,10 @@ def create_issue(
     state = _resolve_state(deps, project_id, state_id)
     parent = _resolve_parent(deps, project_id, parent_issue_id) if parent_issue_id else None
     user = _scoping.user_for(deps)
+    branch = _issue_fields.branch_name(git_work_branch)
+    assignees = _issue_fields.assignees_for(project, assignee_ids or [])
+    labels = _issue_fields.labels_for(project, label_ids or [])
+    dispatch_result = {}
 
     # impersonate so BaseModel.save() attributes created_by to the acting user
     # (the tool runs in Celery with no request, so crum's current user is None).
@@ -208,10 +218,9 @@ def create_issue(
 
         Project.objects.select_for_update().get(pk=project_id)
         next_seq = (
-            Issue.objects.filter(project_id=project_id).aggregate(Max("sequence_id"))["sequence_id__max"]
-            or 0
+            Issue.objects.filter(project_id=project_id).aggregate(Max("sequence_id"))["sequence_id__max"] or 0
         ) + 1
-        issue = Issue.objects.create(
+        issue = Issue(
             name=name.strip()[:255],
             description_html=to_safe_html(description_md),
             description_json={},
@@ -223,14 +232,37 @@ def create_issue(
             parent=parent,
             created_by=user,
             created_via=deps.created_via,
+            git_work_branch=branch,
         )
+        from karma_team.orchestration.signals import _DISPATCH_IMMEDIATE_ATTR, _record_orchestration_error
+        from karma_team.orchestration import service as orchestration
+
+        # Finish metadata before a state transition can build the agent prompt.
+        setattr(issue, _DISPATCH_IMMEDIATE_ATTR, False)
+        issue.save()
+        _issue_fields.set_links(issue, user, "assignees", assignees)
+        _issue_fields.set_links(issue, user, "labels", labels)
+        try:
+            with transaction.atomic():
+                outcome = orchestration.handle_issue_state_transition(issue, None, issue.state, actor=user)
+                if outcome.created_run is not None:
+                    dispatch_result["dispatched_run_id"] = str(outcome.created_run.id)
+        except Exception:
+            # Match the normal save signal: dispatch failure must not discard the issue.
+            _record_orchestration_error(f"assistant creation dispatch failed for issue={issue.pk}")
+            dispatch_result["dispatch_error"] = "Issue created, but the automatic coding run could not be dispatched."
 
     _results.record_write(
         deps,
         f"Created issue {_identifier(issue)} — {issue.name}",
         links=[_results.issue_link(deps, issue)],
     )
-    return {"created": True, **_brief(issue), "url_path": _results.issue_link(deps, issue)["url_path"]}
+    return {
+        "created": True,
+        **_brief(issue),
+        **dispatch_result,
+        "url_path": _results.issue_link(deps, issue)["url_path"],
+    }
 
 
 @assistant.tool
@@ -242,15 +274,27 @@ def update_issue(
     state_id: Optional[str] = None,
     priority: Optional[str] = None,
     parent_issue_id: Optional[str] = _PARENT_UNSET,
+    git_work_branch: Optional[str] = None,
+    assignee_ids: Optional[list[str]] = None,
+    label_ids: Optional[list[str]] = None,
 ) -> dict:
     """Update an issue's name, description, state, or priority. Requires write access.
     Changing the state may dispatch a coding run if it moves the issue into a
     delegated/ticking state (same as moving it in the UI). Pass parent_issue_id to
     re-parent the issue (must be another issue in the same project); pass null to
-    unlink it from its current parent; omit it to leave the parent unchanged."""
+    unlink it from its current parent; omit it to leave the parent unchanged.
+    Set git_work_branch to a branch name, or an empty string to clear it.
+    assignee_ids and label_ids replace the complete set; [] clears it.
+    Omit these fields (or pass null) to preserve them. For incremental changes,
+    use update_issue_assignees or update_issue_labels."""
     deps = ctx.deps
     issue = _scoping.get_issue(deps, issue_id)
     _scoping.require_project_write(deps, str(issue.project_id))
+    branch = _issue_fields.branch_name(git_work_branch) if git_work_branch is not None else None
+    assignees = _issue_fields.assignees_for(issue.project, assignee_ids) if assignee_ids is not None else None
+    labels = _issue_fields.labels_for(issue.project, label_ids) if label_ids is not None else None
+    if name is not None and not name.strip():
+        raise ModelRetry("An issue name cannot be empty.")
 
     # Validate inputs before taking any lock.
     prio = None
@@ -272,6 +316,9 @@ def update_issue(
         and prio is None
         and to_state is None
         and not parent_touched
+        and branch is None
+        and assignees is None
+        and labels is None
     ):
         raise ModelRetry("Nothing to update — provide at least one field to change.")
 
@@ -305,6 +352,14 @@ def update_issue(
             locked.parent = new_parent
             changed.append("parent")
             update_fields.append("parent")
+        if branch is not None:
+            locked.git_work_branch = branch
+            changed.append("git_work_branch")
+            update_fields.append("git_work_branch")
+        for field, ids in (("assignees", assignees), ("labels", labels)):
+            if ids is not None:
+                _issue_fields.set_links(locked, user, field, ids)
+                changed.append(field)
         # include audit columns so update_fields doesn't drop them (BaseModel.save
         # sets updated_by from the impersonated user; updated_at is auto_now).
         update_fields += ["updated_at", "updated_by"]
@@ -338,3 +393,78 @@ def update_issue(
     if run_id:
         result["dispatched_run_id"] = run_id
     return result
+
+
+def _update_links(ctx, issue_id: str, ids: list[str], field: str, operation: str) -> dict:
+    deps = ctx.deps
+    issue = _scoping.get_issue(deps, issue_id)
+    _scoping.require_project_write(deps, str(issue.project_id))
+    if operation not in {"add", "remove", "set"}:
+        raise ModelRetry("Operation must be add, remove, or set.")
+    resolver = _issue_fields.assignees_for if field == "assignees" else _issue_fields.labels_for
+    resolved = _issue_fields.uuid_list(ids) if operation == "remove" else resolver(issue.project, ids)
+    user = _scoping.user_for(deps)
+    with impersonate(user), transaction.atomic():
+        issue = Issue.objects.select_for_update().get(pk=issue.pk)
+        _issue_fields.set_links(issue, user, field, resolved, operation)
+        issue.save(update_fields=["updated_at", "updated_by"])
+    _results.record_write(
+        deps, f"Updated issue {_identifier(issue)} ({field}: {operation})", links=[_results.issue_link(deps, issue)]
+    )
+    return {"updated": True, "changed": [field], **_brief(issue)}
+
+
+@assistant.tool
+def update_issue_assignees(
+    ctx: RunContext[AssistantDeps],
+    issue_id: str,
+    assignee_ids: list[str],
+    operation: Literal["add", "remove", "set"] = "set",
+) -> dict:
+    """Add, remove, or replace issue assignees. set with [] clears all assignees.
+    Use list_project_members to find eligible users and get_issue to read assignments.
+    Adding/removing preserves other assignees and requires project write access."""
+    return _update_links(ctx, issue_id, assignee_ids, "assignees", operation)
+
+
+@assistant.tool
+def update_issue_labels(
+    ctx: RunContext[AssistantDeps],
+    issue_id: str,
+    label_ids: list[str],
+    operation: Literal["add", "remove", "set"] = "set",
+) -> dict:
+    """Add, remove, or replace an issue's label attachments. set with [] clears all.
+    Use list_labels for project labels and get_issue to read current attachments.
+    Removing an attachment does not delete the project label."""
+    return _update_links(ctx, issue_id, label_ids, "labels", operation)
+
+
+@assistant.tool
+def delete_issue(ctx: RunContext[AssistantDeps], issue_id: str) -> dict:
+    """Soft-delete a work item. Only its creator or a project Admin may delete it.
+    Git-synced issues must be unbound before deletion. To clear metadata, use
+    update_issue or the attachment tools instead of deleting the work item."""
+    from karma_team.db.models import GitIssueSync, GithubIssueSync, UserRecentVisit
+
+    deps = ctx.deps
+    _scoping.require_interactive_delete(deps)
+    issue = _scoping.get_issue(deps, issue_id)
+    if issue.created_by_id != deps.user_id:
+        _scoping.require_project_admin(deps, str(issue.project_id))
+    with impersonate(_scoping.user_for(deps)), transaction.atomic():
+        issue = Issue.objects.select_for_update().get(pk=issue.pk)
+        if GitIssueSync.objects.filter(issue=issue).exists() or GithubIssueSync.objects.filter(issue=issue).exists():
+            raise ModelRetry(
+                "This issue is synced from a Git provider. Unbind the project's repository before deleting it."
+            )
+        result = _brief(issue)
+        issue.delete()
+        UserRecentVisit.objects.filter(
+            workspace_id=deps.workspace_id,
+            project_id=issue.project_id,
+            entity_identifier=issue.id,
+            entity_name="issue",
+        ).delete(soft=False)
+    _results.record_write(deps, f"Deleted issue {_identifier(issue)}", links=[_results.issue_link(deps, issue)])
+    return {"deleted": True, **result}
