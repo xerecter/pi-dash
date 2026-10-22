@@ -107,14 +107,11 @@ class OffsetPaginator:
         on_results=None,
         total_count_queryset=None,
     ):
-        # Key tuple and remove `-` if descending order by
-        self.key = (
-            order_by
-            if order_by is None or isinstance(order_by, (list, tuple, set))
-            else (order_by[1::] if order_by.startswith("-") else order_by,)
-        )
-        # Set desc to true when `-` exists in the order by
-        self.desc = True if order_by and order_by.startswith("-") else False
+        # Keep every sort key through pagination, including grouped windows.
+        keys = [order_by, "-created_at"] if isinstance(order_by, str) else (order_by or [])
+        self.ordering = [
+            F(key[1:]).desc(nulls_last=True) if key.startswith("-") else F(key).asc(nulls_last=True) for key in keys
+        ]
         self.queryset = queryset
         self.max_limit = max_limit
         self.max_offset = max_offset
@@ -132,11 +129,8 @@ class OffsetPaginator:
 
         # queryset
         queryset = self.queryset
-        if self.key:
-            queryset = queryset.order_by(
-                (F(*self.key).desc(nulls_last=True) if self.desc else F(*self.key).asc(nulls_last=True)),
-                "-created_at",
-            )
+        if self.ordering:
+            queryset = queryset.order_by(*self.ordering)
         # The current page
         page = cursor.offset
         # The offset - use limit instead of cursor.value for consistent pagination
@@ -250,21 +244,11 @@ class GroupedOffsetPaginator(OffsetPaginator):
             row_number=Window(
                 expression=RowNumber(),
                 partition_by=[F(self.group_by_field_name)],
-                order_by=(
-                    (
-                        F(*self.key).desc(nulls_last=True)  # order by desc if desc is set
-                        if self.desc
-                        else F(*self.key).asc(nulls_last=True)  # Order by asc if set
-                    ),
-                    F("created_at").desc(),
-                ),
+                order_by=self.ordering,
             )
         )
         # Filter the results by row number
-        results = queryset.filter(row_number__gt=offset, row_number__lt=stop).order_by(
-            (F(*self.key).desc(nulls_last=True) if self.desc else F(*self.key).asc(nulls_last=True)),
-            F("created_at").desc(),
-        )
+        results = queryset.filter(row_number__gt=offset, row_number__lt=stop).order_by(*self.ordering)
 
         # Adjust cursors based on the grouped results for pagination
         next_cursor = Cursor(limit, page + 1, False, queryset.filter(row_number__gte=stop).exists())
@@ -458,18 +442,12 @@ class SubGroupedOffsetPaginator(OffsetPaginator):
                     F(self.group_by_field_name),
                     F(self.sub_group_by_field_name),
                 ],
-                order_by=(
-                    (F(*self.key).desc(nulls_last=True) if self.desc else F(*self.key).asc(nulls_last=True)),
-                    "-created_at",
-                ),
+                order_by=self.ordering,
             )
         )
 
         # Filter the results
-        results = queryset.filter(row_number__gt=offset, row_number__lt=stop).order_by(
-            (F(*self.key).desc(nulls_last=True) if self.desc else F(*self.key).asc(nulls_last=True)),
-            F("created_at").desc(),
-        )
+        results = queryset.filter(row_number__gt=offset, row_number__lt=stop).order_by(*self.ordering)
 
         # Adjust cursors based on the grouped results for pagination
         next_cursor = Cursor(limit, page + 1, False, queryset.filter(row_number__gte=stop).exists())

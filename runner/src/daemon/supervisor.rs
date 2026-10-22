@@ -3452,6 +3452,24 @@ impl AssignWorker {
             git_work_branch,
             expected_codex_model,
         } = assignment;
+        let cancel = self.cancel.clone();
+        // Before a bridge owns the agent process, dropping setup is sufficient
+        // to stop the pending CLI/Git command (they use kill_on_drop).
+        macro_rules! before_agent {
+            ($operation:expr) => {
+                tokio::select! {
+                    biased;
+                    _ = cancel.cancelled() => {
+                        self.state.set_current_run(None).await;
+                        self.send(ClientMsg::RunCancelled {
+                            run_id, cancelled_at: Utc::now(), tokens: None, model: None,
+                        }).await;
+                        return Ok(());
+                    }
+                    result = $operation => result,
+                }
+            };
+        }
         // Karma owns the project root; repository bootstrap and the agent
         // session both happen from the dedicated operation directory. Other
         // agent bridges retain the historical runner workspace behavior.
@@ -3463,15 +3481,13 @@ impl AssignWorker {
                 .or(runtime_project_slug.as_deref())
                 .or(self.runner_config.project_slug.as_deref())
                 .unwrap_or(self.runner_config.name.as_str());
-            let operation_dir = match crate::karma::project::prepare_operation_dir(
+            let operation_dir = match before_agent!(crate::karma::project::prepare_operation_dir(
                 &self.runner_config.karma.binary,
                 project_name,
                 &self.runner_config.name,
                 work_item_identifier.as_deref(),
                 run_id,
-            )
-            .await
-            {
+            )) {
                 Ok(path) => path,
                 Err(e) => {
                     self.send(ClientMsg::RunFailed {
@@ -3490,7 +3506,10 @@ impl AssignWorker {
             // Bootstrap the repository inside the isolated operation
             // directory. Karma's bridge starts the session directly from
             // this already-bound checkout.
-            match crate::workspace::resolve(&operation_dir, repo_url.as_deref()).await {
+            match before_agent!(crate::workspace::resolve(
+                &operation_dir,
+                repo_url.as_deref()
+            )) {
                 Ok(crate::workspace::Resolution::ExistingRepo(path))
                 | Ok(crate::workspace::Resolution::Cloned(path))
                 | Ok(crate::workspace::Resolution::Directory(path)) => path,
@@ -3518,7 +3537,7 @@ impl AssignWorker {
             // exclusive `workspace.working_dir`. Clone-bootstrap it once if a
             // repo url is provided (`resolve` tolerates a non-git task folder).
             let wd = self.runner_config.workspace.working_dir.clone();
-            match crate::workspace::resolve(&wd, repo_url.as_deref()).await {
+            match before_agent!(crate::workspace::resolve(&wd, repo_url.as_deref())) {
                 Ok(crate::workspace::Resolution::ExistingRepo(p))
                 | Ok(crate::workspace::Resolution::Cloned(p))
                 | Ok(crate::workspace::Resolution::Directory(p)) => p,
@@ -3551,13 +3570,11 @@ impl AssignWorker {
         // report `Accept`, so the cloud sees the exact checkout the agent will
         // use and the agent never has to race the platform's branch setup.
         let prepared_work_branch = if let Some(branch) = git_work_branch.as_deref() {
-            match crate::workspace::git::prepare_work_branch(
+            match before_agent!(crate::workspace::git::prepare_work_branch(
                 &workspace_path,
                 branch,
                 repo_ref.as_deref(),
-            )
-            .await
-            {
+            )) {
                 Ok(prepared) => Some(prepared),
                 Err(err) => {
                     let detail = format!("preparing git work branch `{branch}`: {err:#}");
@@ -3587,12 +3604,11 @@ impl AssignWorker {
         if let Some(project_ref) = runtime_project_slug
             .as_deref()
             .or(self.runner_config.project_slug.as_deref())
-            && let Err(err) = crate::cli::context::write_context_for_project(
+            && let Err(err) = before_agent!(crate::cli::context::write_context_for_project(
                 &self.daemon_paths,
                 &workspace_path,
                 project_ref,
-            )
-            .await
+            ))
         {
             tracing::debug!(
                 error = %err,
@@ -3650,14 +3666,12 @@ impl AssignWorker {
         // Bridge to the configured agent (Codex or Claude Code). `AgentBridge`
         // hides which CLI is actually being driven from the rest of this
         // worker; the event flow below is identical for both.
-        let mut bridge = match AgentBridge::spawn_from_config_for_issue(
+        let mut bridge = match before_agent!(AgentBridge::spawn_from_config_for_issue(
             &self.runner_config,
             &workspace_path,
             expected_codex_model.clone(),
             git_work_branch.is_none(),
-        )
-        .await
-        {
+        )) {
             Ok(b) => b,
             Err(e) => {
                 hist.append(&HistoryEntry::Footer {
@@ -3697,7 +3711,33 @@ impl AssignWorker {
             prompt,
             model: expected_codex_model,
         };
-        let mut cursor = match bridge.run_one_shot(&payload, &workspace_path).await {
+        let startup = tokio::select! {
+            biased;
+            _ = cancel.cancelled() => None,
+            result = bridge.run_one_shot(&payload, &workspace_path) => Some(result),
+        };
+        let Some(startup) = startup else {
+            let _ = tokio::time::timeout(Duration::from_secs(2), bridge.interrupt()).await;
+            bridge.shutdown(Duration::from_secs(5)).await?;
+            hist.append(&HistoryEntry::Footer {
+                ts: Utc::now(),
+                final_status: "cancelled".into(),
+                done_payload: None,
+                error: Some("cancelled during agent startup".into()),
+            })
+            .await
+            .ok();
+            self.state.set_current_run(None).await;
+            self.send(ClientMsg::RunCancelled {
+                run_id,
+                cancelled_at: Utc::now(),
+                tokens: None,
+                model: None,
+            })
+            .await;
+            return Ok(());
+        };
+        let mut cursor = match startup {
             Ok(c) => c,
             Err(e) => {
                 let detail = self.build_failure_detail(&format!("{e:#}"), &bridge).await;
@@ -3755,9 +3795,10 @@ impl AssignWorker {
                 &workspace_path,
                 prepared_work_branch.as_ref(),
             )
-            .await?;
+            .await;
 
-        bridge.shutdown(Duration::from_secs(5)).await.ok();
+        bridge.shutdown(Duration::from_secs(5)).await?;
+        let outcome = outcome?;
 
         let summary = RunSummary {
             run_id,
@@ -3832,19 +3873,15 @@ impl AssignWorker {
                     bridge.interrupt().await.ok();
                 }
                 _ = cancel.cancelled(), if !cancelled => {
-                    run_events.flush_before_lifecycle(&self.out).await;
-                    bridge.interrupt().await.ok();
+                    let _ = tokio::time::timeout(Duration::from_secs(2), bridge.interrupt()).await;
+                    let _ = tokio::time::timeout(Duration::from_secs(2), run_events.flush_before_lifecycle(&self.out)).await;
                     hist.append(&HistoryEntry::Lifecycle {
                         ts: Utc::now(),
                         state: "cancelled".into(),
                         detail: None,
                     }).await.ok();
-                    // Give the agent a short grace to wind down; if it doesn't, we
-                    // exit and rely on the bridge's shutdown to SIGKILL.
-                    let _ = tokio::time::timeout(
-                        Duration::from_secs(10),
-                        bridge.next_events(cursor),
-                    ).await;
+                    // Shutdown below waits for actual process exit, then kills
+                    // the process group if the grace period expires.
                     return Ok(Outcome { status_label: "cancelled".into() });
                 }
                 _ = async {
@@ -4234,39 +4271,52 @@ impl AssignWorker {
                 done_payload,
             } => {
                 run_events.flush_before_lifecycle(&self.out).await;
-                if let Some(branch) = git_work_branch
-                    && let Err(err) =
-                        crate::workspace::git::push_prepared_work_branch(workspace_root, branch)
-                            .await
-                {
-                    let detail = format!("pushing git work branch `{}`: {err:#}", branch.name);
-                    tracing::warn!(
-                        %run_id,
-                        git_work_branch = %branch.name,
-                        error = %err,
-                        "agent completed but its git branches could not be pushed",
-                    );
-                    let metadata = self.run_metadata().await;
-                    self.send(ClientMsg::RunFailed {
-                        run_id,
-                        reason: FailureReason::WorkspaceSetup,
-                        detail: Some(detail.clone()),
-                        ended_at: Utc::now(),
-                        tokens: metadata.tokens,
-                        model: metadata.model,
-                    })
-                    .await;
-                    hist.append(&HistoryEntry::Footer {
-                        ts: Utc::now(),
-                        final_status: "failed".into(),
-                        done_payload: None,
-                        error: Some(detail),
-                    })
-                    .await
-                    .ok();
-                    return Ok(Some(Outcome {
-                        status_label: "failed".into(),
-                    }));
+                if let Some(branch) = git_work_branch {
+                    // Completion still owns a cancellable Git subprocess: a
+                    // remote or hook can hang after the agent has finished.
+                    let pushed = tokio::select! {
+                        biased;
+                        _ = self.cancel.cancelled() => {
+                            let _ = tokio::time::timeout(Duration::from_secs(2), bridge.interrupt()).await;
+                            hist.append(&HistoryEntry::Lifecycle {
+                                ts: Utc::now(),
+                                state: "cancelled".into(),
+                                detail: Some("cancelled while pushing work branch".into()),
+                            }).await.ok();
+                            return Ok(Some(Outcome { status_label: "cancelled".into() }));
+                        }
+                        result = crate::workspace::git::push_prepared_work_branch(workspace_root, branch) => result,
+                    };
+                    if let Err(err) = pushed {
+                        let detail = format!("pushing git work branch `{}`: {err:#}", branch.name);
+                        tracing::warn!(
+                            %run_id,
+                            git_work_branch = %branch.name,
+                            error = %err,
+                            "agent completed but its git branches could not be pushed",
+                        );
+                        let metadata = self.run_metadata().await;
+                        self.send(ClientMsg::RunFailed {
+                            run_id,
+                            reason: FailureReason::WorkspaceSetup,
+                            detail: Some(detail.clone()),
+                            ended_at: Utc::now(),
+                            tokens: metadata.tokens,
+                            model: metadata.model,
+                        })
+                        .await;
+                        hist.append(&HistoryEntry::Footer {
+                            ts: Utc::now(),
+                            final_status: "failed".into(),
+                            done_payload: None,
+                            error: Some(detail),
+                        })
+                        .await
+                        .ok();
+                        return Ok(Some(Outcome {
+                            status_label: "failed".into(),
+                        }));
+                    }
                 }
                 let metadata = self.run_metadata().await;
                 self.send(ClientMsg::RunCompleted {

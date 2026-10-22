@@ -28,6 +28,7 @@ mod stop;
 mod tui;
 mod uninstall;
 pub mod update;
+mod uploaded_body;
 mod workpad;
 mod workspace;
 

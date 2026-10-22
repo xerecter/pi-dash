@@ -168,6 +168,7 @@ class IssueListEndpoint(BaseAPIView):
             issues = issue_queryset.values(
                 "id",
                 "name",
+                "git_work_branch",
                 "state_id",
                 "sort_order",
                 "completed_at",
@@ -265,7 +266,9 @@ class IssueViewSet(BaseViewSet):
         query_params = request.query_params.copy()
 
         filters = issue_filters(query_params, "GET")
-        order_by_param = request.GET.get("order_by", "-created_at")
+        order_by_param = (
+            "parent_sequence" if request.GET.get("layout") == "list" else request.GET.get("order_by", "-created_at")
+        )
 
         issue_queryset = self.get_queryset()
 
@@ -888,6 +891,7 @@ class IssuePaginatedViewSet(BaseViewSet):
         required_fields = [
             "id",
             "name",
+            "git_work_branch",
             "state_id",
             "state__group",
             "sort_order",

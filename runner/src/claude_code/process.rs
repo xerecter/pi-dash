@@ -15,6 +15,7 @@ use crate::agent::{
     AgentProcessHandle, ExitSnapshot, STDERR_RING_LINES, StderrBuffer, StderrRing, StderrSnapshot,
 };
 use crate::claude_code::schema::StreamEvent;
+use crate::util::process::kill_process_group;
 use crate::util::shell::{is_benign_login_shell_warning, login_shell_command};
 
 /// Handles the `claude --print --output-format stream-json` subprocess
@@ -102,6 +103,10 @@ impl ClaudeProcess {
     /// stream-JSON to stdout works (e.g. a shell script fake). Forces the
     /// stdio disposition that the reader task expects.
     pub async fn spawn_command(mut cmd: Command) -> Result<Self> {
+        // Karma wraps Claude, which can itself spawn tools. Isolate the whole
+        // invocation so cancellation never targets the daemon's process group.
+        #[cfg(unix)]
+        cmd.process_group(0);
         cmd.stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
@@ -166,13 +171,13 @@ impl ClaudeProcess {
     pub async fn interrupt(&mut self) -> Result<()> {
         #[cfg(unix)]
         {
-            use nix::sys::signal::{Signal, kill};
+            use nix::sys::signal::{Signal, killpg};
             use nix::unistd::Pid;
             if let Some(pid) = self.pid {
                 let pid_t = Pid::from_raw(pid as i32);
                 // SIGINT is usually enough; the kill_on_drop on the child
                 // catches any process that ignores it when we later drop.
-                match kill(pid_t, Signal::SIGINT) {
+                match killpg(pid_t, Signal::SIGINT) {
                     Ok(()) => return Ok(()),
                     Err(e) => {
                         // Reaped, permission denied, PID-namespace mismatch —
@@ -194,7 +199,11 @@ impl ClaudeProcess {
     pub async fn shutdown(mut self, grace: std::time::Duration) -> Result<()> {
         self.close_stdin();
         let _ = self.kill_tx.send(KillRequest::Graceful).await;
-        match tokio::time::timeout(grace, self.exit_rx.changed()).await {
+        let exited = tokio::time::timeout(grace, async {
+            self.exit_rx.wait_for(Option::is_some).await.map(|_| ())
+        })
+        .await;
+        match exited {
             Ok(Ok(())) => {
                 let snap = self.exit_rx.borrow().clone();
                 tracing::debug!(?snap, "claude exited gracefully");
@@ -202,7 +211,10 @@ impl ClaudeProcess {
             _ => {
                 tracing::warn!("claude did not exit within grace; sending SIGKILL");
                 let _ = self.kill_tx.send(KillRequest::Force).await;
-                let _ = self.exit_rx.changed().await;
+                self.exit_rx
+                    .wait_for(Option::is_some)
+                    .await
+                    .context("claude wait task stopped before confirming process exit")?;
             }
         }
         Ok(())
@@ -217,23 +229,24 @@ async fn wait_task(
     mut kill_rx: mpsc::Receiver<KillRequest>,
     exit_tx: watch::Sender<Option<ExitSnapshot>>,
 ) {
+    let pid = child.id();
     let snapshot = loop {
         tokio::select! {
             biased;
             req = kill_rx.recv() => {
                 match req {
                     Some(KillRequest::Force) => {
+                        kill_process_group(pid);
                         let _ = child.start_kill();
                     }
                     Some(KillRequest::Graceful) => {
                         // No-op: wait for natural exit.
                     }
                     None => {
-                        // All senders dropped — recv will resolve to None
-                        // synchronously every iteration. Stop polling the
-                        // recv arm and just await natural exit, otherwise
-                        // the biased select! would spin on the closed
-                        // channel without ever polling child.wait().
+                        // Dropping a cancelled startup future must not leave
+                        // its subprocess running without an owner.
+                        kill_process_group(pid);
+                        let _ = child.start_kill();
                         let res = child.wait().await;
                         break exit_snapshot_from(res.ok());
                     }
@@ -244,6 +257,9 @@ async fn wait_task(
             }
         }
     };
+    // A wrapper may exit on SIGINT while its child ignores it and keeps stdout
+    // open. Signal any surviving descendants before publishing the exit.
+    kill_process_group(pid);
     let _ = exit_tx.send(Some(snapshot));
 }
 

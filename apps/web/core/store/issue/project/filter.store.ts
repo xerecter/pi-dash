@@ -28,6 +28,7 @@ import { IssueFilterHelperStore } from "../helpers/issue-filter-helper.store";
 // types
 import type { IIssueRootStore } from "../root.store";
 import { ProjectService } from "@/services/project";
+import { withProjectListOrder } from "@/helpers/issue-list-order";
 // constants
 // services
 
@@ -101,7 +102,7 @@ export class ProjectIssuesFilter extends IssueFilterHelperStore implements IProj
     const displayFilters = this.filters[projectId] || undefined;
     if (isEmpty(displayFilters)) return undefined;
 
-    return this.computedIssueFilters(displayFilters);
+    return withProjectListOrder(this.computedIssueFilters(displayFilters));
   }
 
   getAppliedFilters(projectId: string) {

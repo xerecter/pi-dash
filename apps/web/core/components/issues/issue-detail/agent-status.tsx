@@ -4,7 +4,8 @@
  * See the LICENSE file for details.
  */
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { observer } from "mobx-react";
 import type { LucideIcon } from "lucide-react";
 import { CircleAlert, CircleCheck, CirclePause, CircleX, Clock3, LoaderCircle, RotateCw } from "lucide-react";
 import { useTranslation } from "@karma-team/i18n";
@@ -13,7 +14,6 @@ import { Badge } from "@karma-team/propel/badge";
 import type { TBadgeVariant } from "@karma-team/propel/badge";
 import { Button } from "@karma-team/propel/button";
 import type { TAgentRunStatus, TIssue, TIssueAgentRunSummary, TIssueAgentTicker } from "@karma-team/types";
-import { AlertModalCore } from "@karma-team/ui";
 import { cn } from "@karma-team/utils";
 // local imports
 import type { TIssueOperations } from "./root";
@@ -200,7 +200,7 @@ function getRunView(
     case "cancel_requested":
       return {
         title: t("Stopping the AI agent"),
-        detail: runnerDetail ?? t("Waiting for the runner to confirm cancellation."),
+        detail: t("Waiting for the runner to confirm cancellation."),
         badge: t("Stopping"),
         badgeVariant: "warning",
         icon: LoaderCircle,
@@ -359,19 +359,35 @@ function getAgentStatusView(issue: TIssue, now: number, t: TranslationFn): Agent
   return null;
 }
 
-export function IssueAgentStatusPanel({ workspaceSlug, projectId, issueId, issue, issueOperations }: Props) {
+export const IssueAgentStatusPanel = observer(function IssueAgentStatusPanel({
+  workspaceSlug,
+  projectId,
+  issueId,
+  issue,
+  issueOperations,
+}: Props) {
   const { t } = useTranslation();
   const [now, setNow] = useState(() => Date.now());
   const status = issue.agent_status;
   const ticker = status?.ticker ?? issue.agent_ticker;
   const activeRun = status?.active_run;
-  const activeRunStatus = activeRun?.status;
+  const [abortAcknowledged, setAbortAcknowledged] = useState<{ id: string; status: TAgentRunStatus } | null>(null);
+  const activeRunStatus =
+    activeRun && ACTIVE_RUN_STATUSES.has(activeRun.status) && abortAcknowledged?.id === activeRun.id
+      ? abortAcknowledged.status
+      : activeRun?.status;
   const hasActiveAgentRun = Boolean(activeRunStatus && ACTIVE_RUN_STATUSES.has(activeRunStatus));
   const canAbortActiveRun = hasActiveAgentRun && activeRunStatus !== "cancel_requested";
-  const view = useMemo(() => getAgentStatusView(issue, now, t), [issue, now, t]);
+  // MobX updates the existing issue object in place; memoizing on its identity
+  // leaves the run badge stale even after a successful status fetch.
+  const displayIssue =
+    activeRun && activeRunStatus && status
+      ? { ...issue, agent_status: { ...status, active_run: { ...activeRun, status: activeRunStatus } } }
+      : issue;
+  const view = getAgentStatusView(displayIssue, now, t);
   const canReTick = Boolean(ticker?.can_re_tick);
   const { reTick, isSubmitting: isReTicking } = useReTick();
-  const { abortRun, isSubmitting: isAborting } = useAbortRun();
+  const { abortRun, isSubmitting: isAborting, errorMessage: abortError } = useAbortRun();
   const [showAbortConfirm, setShowAbortConfirm] = useState(false);
 
   const handleReTick = useCallback(async () => {
@@ -385,11 +401,20 @@ export function IssueAgentStatusPanel({ workspaceSlug, projectId, issueId, issue
     if (!activeRun?.id) return;
     const aborted = await abortRun(activeRun.id);
     if (aborted) {
+      setAbortAcknowledged({
+        id: aborted.id,
+        status: aborted.status === "cancelled" ? "cancelled" : "cancel_requested",
+      });
       setShowAbortConfirm(false);
       // Refresh so the card reflects the cancellation-in-progress state.
-      void issueOperations.fetch(workspaceSlug, projectId, issueId);
+      void issueOperations.fetch(workspaceSlug, projectId, issueId).catch(() => undefined);
     }
   }, [abortRun, activeRun?.id, issueOperations, workspaceSlug, projectId, issueId]);
+
+  useEffect(() => {
+    setShowAbortConfirm(false);
+    setAbortAcknowledged(null);
+  }, [activeRun?.id]);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 60_000);
@@ -398,11 +423,14 @@ export function IssueAgentStatusPanel({ workspaceSlug, projectId, issueId, issue
 
   useEffect(() => {
     if (!hasActiveAgentRun) return;
-    const timer = window.setInterval(() => {
-      void issueOperations.fetch(workspaceSlug, projectId, issueId);
-    }, AGENT_STATUS_POLL_INTERVAL_MS);
+    const timer = window.setInterval(
+      () => {
+        void issueOperations.fetch(workspaceSlug, projectId, issueId).catch(() => undefined);
+      },
+      activeRunStatus === "cancel_requested" ? 2_000 : AGENT_STATUS_POLL_INTERVAL_MS
+    );
     return () => window.clearInterval(timer);
-  }, [hasActiveAgentRun, issueId, issueOperations, projectId, workspaceSlug]);
+  }, [activeRunStatus, hasActiveAgentRun, issueId, issueOperations, projectId, workspaceSlug]);
 
   useEffect(() => {
     if (hasActiveAgentRun || !ticker?.enabled || !ticker.next_run_at) return;
@@ -424,7 +452,7 @@ export function IssueAgentStatusPanel({ workspaceSlug, projectId, issueId, issue
   const tickBudget = formatTickBudget(ticker, t);
 
   return (
-    <section className="mt-5 rounded border border-subtle bg-surface-2 px-3 py-3">
+    <section data-prevent-outside-click className="mt-5 rounded border border-subtle bg-surface-2 px-3 py-3">
       <div className="flex items-start gap-2.5">
         <div className="flex size-7 shrink-0 items-center justify-center rounded-sm bg-layer-2">
           <Icon className={cn("size-4", view.iconClassName)} />
@@ -490,7 +518,7 @@ export function IssueAgentStatusPanel({ workspaceSlug, projectId, issueId, issue
         </div>
       )}
 
-      {canAbortActiveRun && activeRun?.id && (
+      {canAbortActiveRun && activeRun?.id && !showAbortConfirm && (
         <div className="mt-3 flex flex-col gap-1.5">
           <Button
             variant="error-outline"
@@ -509,15 +537,28 @@ export function IssueAgentStatusPanel({ workspaceSlug, projectId, issueId, issue
         </div>
       )}
 
-      <AlertModalCore
-        isOpen={showAbortConfirm}
-        handleClose={() => (isAborting ? null : setShowAbortConfirm(false))}
-        handleSubmit={handleAbort}
-        isSubmitting={isAborting}
-        title={t("Abort run?")}
-        content={t("The runner will stop this run as soon as it gets the signal.")}
-        primaryButtonText={{ default: t("Abort run"), loading: t("Aborting") }}
-      />
+      {canAbortActiveRun && showAbortConfirm && (
+        <div className="mt-3 space-y-2" role="group" aria-label={t("Abort run?")}>
+          <p className="text-body-xs-medium">{t("Abort run?")}</p>
+          <p className="text-caption-sm-regular text-tertiary">
+            {t("Stop this run's AI agent process. The runner service will remain available for other tasks.")}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" onClick={() => setShowAbortConfirm(false)} disabled={isAborting}>
+              {t("Keep running")}
+            </Button>
+            <Button variant="error-fill" onClick={handleAbort} disabled={isAborting} loading={isAborting}>
+              {isAborting ? <LoaderCircle className="size-3.5 animate-spin" /> : <CircleX className="size-3.5" />}
+              {isAborting ? t("Aborting") : t("Abort run")}
+            </Button>
+          </div>
+        </div>
+      )}
+      {abortError && (
+        <p role="alert" className="mt-2 text-caption-sm-regular text-danger-primary">
+          {abortError}
+        </p>
+      )}
     </section>
   );
-}
+});

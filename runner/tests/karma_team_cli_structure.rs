@@ -138,6 +138,21 @@ fn workpad_update_has_keep_flag() {
 }
 
 #[test]
+fn comment_cleanup_requires_a_file_and_is_available_for_add_and_update() {
+    for action in ["add", "update"] {
+        let mut args = vec!["karma-team", "comment", action, "ENG-42"];
+        if action == "update" {
+            args.push("comment-1");
+        }
+        let mut file_args = args.clone();
+        file_args.extend(["--body-file", "comment.md", "--remove-body-file"]);
+        assert!(Cli::try_parse_from(file_args).is_ok());
+        args.extend(["--body", "inline", "--remove-body-file"]);
+        assert!(Cli::try_parse_from(args).is_err());
+    }
+}
+
+#[test]
 fn binary_help_omits_hidden_commands() {
     // Render long help the way clap would print it on `karma-team --help`, then
     // scan for hidden commands. Hidden subcommands are excluded from both

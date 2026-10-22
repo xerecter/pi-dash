@@ -26,6 +26,7 @@ export type TIssueGroupByOptions =
   | null;
 
 export type TIssueOrderByOptions =
+  | "parent_sequence"
   | "-created_at"
   | "created_at"
   | "updated_at"

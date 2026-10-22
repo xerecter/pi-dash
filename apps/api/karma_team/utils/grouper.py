@@ -108,6 +108,7 @@ def issue_on_results(
     required_fields: List[str] = [
         "id",
         "name",
+        "git_work_branch",
         "state_id",
         "sort_order",
         "completed_at",

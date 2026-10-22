@@ -163,6 +163,7 @@ describe("AddRunnerModal", () => {
       install_sh_url: "http://172.16.13.81:28000/api/cli/install.sh",
       install_ps1_url: "http://172.16.13.81:28000/api/cli/install.ps1",
       update_sh_url: "http://172.16.13.81:28000/api/cli/update.sh",
+      uninstall_sh_url: "http://172.16.13.81:28000/api/cli/uninstall.sh",
       windows_msi_url: null,
       available_targets: ["x86_64-unknown-linux-gnu"],
     };

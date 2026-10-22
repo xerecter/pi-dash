@@ -52,6 +52,14 @@ fail the run and retain local commits for retry. Failed or cancelled tasks
 do not trigger this publication. An already-published base is left unchanged;
 publishing a work branch does not merge its changes into the base.
 
+Comment drafts are not source code. Keep them outside the checkout (for
+example, in a file created with `mktemp`) and use `karma-team comment add`
+or `comment update` with `--body-file <path> --remove-body-file`. Cleanup is
+opt-in and runs only after a successful upload; changed files and symlinks
+are retained. Without the flag, comments keep their source file as before.
+Root-level `.karma-team-comment.md` drafts still count as uncommitted work;
+the runner does not silently ignore or delete them, even if HEAD was pushed.
+
 ## Developer-owned agent packages
 
 OSS exposes an optional [agent package seam](docs/agent-packages.md) for

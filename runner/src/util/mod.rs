@@ -4,6 +4,7 @@ pub mod confirm;
 pub mod hostname;
 pub mod logging;
 pub mod paths;
+pub(crate) mod process;
 pub mod runner_id;
 pub mod runner_name;
 pub mod shell;

@@ -483,3 +483,192 @@ async fn run_yield_without_a_run_id_fails_before_any_request() {
     assert_eq!(err.exit_code, EXIT_INVALID);
     assert!(fake.recorded.lock().unwrap().is_empty());
 }
+
+async fn comment_upload(
+    fake: &Fake,
+    action: &str,
+    path: &std::path::Path,
+    remove_body_file: bool,
+) -> std::process::Output {
+    let config = tempfile::tempdir().unwrap();
+    let mut command = tokio::process::Command::new(env!("CARGO_BIN_EXE_karma-team"));
+    command
+        .arg("--config-dir")
+        .arg(config.path().join("config"))
+        .arg("--data-dir")
+        .arg(config.path().join("data"))
+        .args(["comment", action, "ENG-42"])
+        .env("KARMA_TEAM_API_URL", format!("http://{}", fake.addr))
+        .env("KARMA_TEAM_WORKSPACE_SLUG", "acme")
+        .env("KARMA_TEAM_TOKEN", "test-token")
+        .env_remove("KARMA_TEAM_RUN_WORKSPACE_SLUG")
+        .env_remove("KARMA_TEAM_RUN_ID")
+        .kill_on_drop(true);
+    if action == "update" {
+        command.arg("comment-1");
+    }
+    command.arg("--body-file").arg(path);
+    if remove_body_file {
+        command.arg("--remove-body-file");
+    }
+    tokio::time::timeout(Duration::from_secs(10), command.output())
+        .await
+        .unwrap()
+        .unwrap()
+}
+
+#[tokio::test]
+async fn comment_body_cleanup_is_opt_in_and_requires_success() {
+    for action in ["add", "update"] {
+        for (remove, status) in [(false, 200), (true, 200), (true, 400)] {
+            let dir = tempfile::tempdir().unwrap();
+            let path = dir.path().join(".karma-team-comment.md");
+            std::fs::write(&path, "Completion report\n\n108 tests passed\n").unwrap();
+            let fake = start_fake(Box::new(move |req| {
+                if req.method == "GET" {
+                    return CannedResponse::ok(r#"{"id":"i","project":"p"}"#);
+                }
+                CannedResponse {
+                    status,
+                    status_text: "Test",
+                    body: r#"{"id":"comment-1"}"#.into(),
+                }
+            }))
+            .await;
+
+            let output = comment_upload(&fake, action, &path, remove).await;
+            assert_eq!(
+                output.status.success(),
+                status == 200,
+                "{}",
+                String::from_utf8_lossy(&output.stderr)
+            );
+            assert_eq!(path.exists(), !remove || status != 200);
+            let recorded = fake.recorded.lock().unwrap();
+            assert_eq!(recorded.len(), 2);
+            assert_eq!(
+                recorded[1].method,
+                if action == "add" { "POST" } else { "PATCH" }
+            );
+            let payload: serde_json::Value = serde_json::from_str(&recorded[1].body).unwrap();
+            assert_eq!(
+                payload["comment_html"],
+                "Completion report\n\n108 tests passed\n"
+            );
+        }
+    }
+}
+
+#[tokio::test]
+async fn comment_cleanup_preserves_edits_made_during_upload() {
+    for action in ["add", "update"] {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join(".karma-team-comment.md");
+        std::fs::write(&path, "uploaded report").unwrap();
+        let server_path = path.clone();
+        let fake = start_fake(Box::new(move |req| {
+            if req.method == "GET" {
+                return CannedResponse::ok(r#"{"id":"i","project":"p"}"#);
+            }
+            std::fs::write(&server_path, "newer local draft").unwrap();
+            CannedResponse::ok(r#"{"id":"comment-1"}"#)
+        }))
+        .await;
+
+        let output = comment_upload(&fake, action, &path, true).await;
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert_eq!(std::fs::read_to_string(&path).unwrap(), "newer local draft");
+        assert!(
+            String::from_utf8_lossy(&output.stderr)
+                .contains("changed while the upload was in flight")
+        );
+    }
+}
+
+#[tokio::test]
+async fn comment_cleanup_preserves_draft_when_issue_cannot_be_resolved() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().join(".karma-team-comment.md");
+    std::fs::write(&path, "keep for retry").unwrap();
+    let fake = start_fake(Box::new(|_| CannedResponse {
+        status: 404,
+        status_text: "Not Found",
+        body: "{}".into(),
+    }))
+    .await;
+    let output = comment_upload(&fake, "add", &path, true).await;
+    assert!(!output.status.success());
+    assert_eq!(std::fs::read_to_string(&path).unwrap(), "keep for retry");
+    assert_eq!(fake.recorded.lock().unwrap().len(), 1);
+}
+
+#[tokio::test]
+async fn uploaded_comment_draft_no_longer_blocks_work_branch_push() {
+    let dir = tempfile::tempdir().unwrap();
+    let remote = dir.path().join("origin.git");
+    let workspace = dir.path().join("workspace");
+    std::fs::create_dir(&workspace).unwrap();
+    let git = |cwd: &std::path::Path, args: &[&str]| {
+        let output = std::process::Command::new("git")
+            .current_dir(cwd)
+            .args(args)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout).unwrap().trim().to_string()
+    };
+    git(dir.path(), &["init", "--bare", remote.to_str().unwrap()]);
+    git(&workspace, &["init", "-b", "download_avatar"]);
+    git(&workspace, &["config", "user.name", "Test"]);
+    git(&workspace, &["config", "user.email", "test@example.com"]);
+    git(
+        &workspace,
+        &["remote", "add", "origin", remote.to_str().unwrap()],
+    );
+    git(
+        &workspace,
+        &["commit", "--allow-empty", "-m", "Completed implementation"],
+    );
+    let path = workspace.join(".karma-team-comment.md");
+    std::fs::write(&path, "Already completed and tested").unwrap();
+    let error = karma_team::workspace::git::push_work_branch(&workspace, "download_avatar")
+        .await
+        .unwrap_err();
+    assert!(error.to_string().contains(".karma-team-comment.md"));
+    let fake = start_fake(Box::new(|req| {
+        CannedResponse::ok(if req.method == "GET" {
+            r#"{"id":"i","project":"p"}"#
+        } else {
+            r#"{"id":"comment-1"}"#
+        })
+    }))
+    .await;
+    let output = comment_upload(&fake, "add", &path, true).await;
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    karma_team::workspace::git::push_work_branch(&workspace, "download_avatar")
+        .await
+        .unwrap();
+    assert_eq!(git(&workspace, &["status", "--porcelain"]), "");
+    assert_eq!(
+        git(&workspace, &["rev-parse", "HEAD"]),
+        git(&remote, &["rev-parse", "refs/heads/download_avatar"])
+    );
+
+    std::fs::write(workspace.join("unfinished.py"), "unfinished code\n").unwrap();
+    let error = karma_team::workspace::git::push_work_branch(&workspace, "download_avatar")
+        .await
+        .unwrap_err();
+    assert!(error.to_string().contains("unfinished.py"));
+}

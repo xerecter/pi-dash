@@ -286,10 +286,13 @@ async fn run_cli(binary: &str, args: &[&str]) -> Result<Output> {
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .kill_on_drop(true);
-    tokio::time::timeout(Duration::from_secs(30), command.output())
-        .await
-        .with_context(|| format!("timed out running {binary} {}", args.join(" ")))?
-        .with_context(|| format!("running {binary} {}", args.join(" ")))
+    tokio::time::timeout(
+        Duration::from_secs(30),
+        crate::util::process::command_output(command),
+    )
+    .await
+    .with_context(|| format!("timed out running {binary} {}", args.join(" ")))?
+    .with_context(|| format!("running {binary} {}", args.join(" ")))
 }
 
 fn parse_project_list(stdout: &[u8]) -> Vec<ProjectRecord> {

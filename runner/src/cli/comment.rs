@@ -12,6 +12,7 @@ use serde_json::{Map, Value};
 use crate::api_client::{ApiClient, CliEnv, CliError, EXIT_INVALID, EXIT_UNKNOWN, report_error};
 
 use super::resolve::resolve_issue;
+use super::uploaded_body::{cleanup_body_file, cleanup_warning};
 
 #[derive(Debug, Args)]
 pub struct CommentArgs {
@@ -53,6 +54,9 @@ pub enum CommentCommand {
         identifier: String,
         #[command(flatten)]
         comment_body: CommentBodyArgs,
+        /// Delete an unchanged regular body file only after a successful upload.
+        #[arg(long, requires = "body_file", conflicts_with = "body")]
+        remove_body_file: bool,
         #[command(flatten)]
         speaker: CommentSpeakerArgs,
         /// Fold this low-value status comment in the UI and omit it from future agent prompts.
@@ -68,6 +72,9 @@ pub enum CommentCommand {
         comment_id: String,
         #[command(flatten)]
         comment_body: CommentBodyArgs,
+        /// Delete an unchanged regular body file only after a successful upload.
+        #[arg(long, requires = "body_file", conflicts_with = "body")]
+        remove_body_file: bool,
     },
 }
 
@@ -86,14 +93,35 @@ pub async fn run(args: CommentArgs, paths: &crate::util::paths::Paths) -> i32 {
         CommentCommand::Add {
             identifier,
             comment_body,
+            remove_body_file,
             speaker,
             fold,
-        } => cmd_add(&client, &identifier, comment_body, speaker, fold).await,
+        } => {
+            cmd_add(
+                &client,
+                &identifier,
+                comment_body,
+                speaker,
+                fold,
+                remove_body_file,
+            )
+            .await
+        }
         CommentCommand::Update {
             identifier,
             comment_id,
             comment_body,
-        } => cmd_update(&client, &identifier, &comment_id, comment_body).await,
+            remove_body_file,
+        } => {
+            cmd_update(
+                &client,
+                &identifier,
+                &comment_id,
+                comment_body,
+                remove_body_file,
+            )
+            .await
+        }
     };
     match result {
         Ok(()) => 0,
@@ -121,18 +149,20 @@ async fn cmd_add(
     comment_body: CommentBodyArgs,
     speaker: CommentSpeakerArgs,
     fold: bool,
+    remove_body_file: bool,
 ) -> Result<(), CliError> {
-    let body = load_comment_body(comment_body)?;
+    let body = load_comment_body(&comment_body)?;
     let issue = resolve_issue(client, identifier).await?;
     let path = format!(
         "workspaces/{}/projects/{}/work-items/{}/comments/",
         client.env.workspace_slug, issue.project_id, issue.id
     );
     let mut payload: Map<String, Value> = Map::new();
-    payload.insert("comment_html".into(), Value::String(body));
+    payload.insert("comment_html".into(), Value::String(body.clone()));
     add_fold_label(&mut payload, fold);
     add_speaker_metadata(&mut payload, speaker)?;
     let resp = client.post(&path, &Value::Object(payload)).await?;
+    cleanup_comment_body(&comment_body, &body, remove_body_file);
     println!(
         "{}",
         serde_json::to_string(&resp).expect("serialize JSON value")
@@ -188,16 +218,18 @@ async fn cmd_update(
     identifier: &str,
     comment_id: &str,
     comment_body: CommentBodyArgs,
+    remove_body_file: bool,
 ) -> Result<(), CliError> {
-    let body = load_comment_body(comment_body)?;
+    let body = load_comment_body(&comment_body)?;
     let issue = resolve_issue(client, identifier).await?;
     let path = format!(
         "workspaces/{}/projects/{}/work-items/{}/comments/{}/",
         client.env.workspace_slug, issue.project_id, issue.id, comment_id
     );
     let mut payload: Map<String, Value> = Map::new();
-    payload.insert("comment_html".into(), Value::String(body));
+    payload.insert("comment_html".into(), Value::String(body.clone()));
     let resp = client.patch(&path, &Value::Object(payload)).await?;
+    cleanup_comment_body(&comment_body, &body, remove_body_file);
     println!(
         "{}",
         serde_json::to_string(&resp).expect("serialize JSON value")
@@ -205,15 +237,27 @@ async fn cmd_update(
     Ok(())
 }
 
-fn load_comment_body(args: CommentBodyArgs) -> Result<String, CliError> {
-    match (args.body, args.body_file) {
-        (Some(body), None) => Ok(body),
-        (None, Some(path)) => std::fs::read_to_string(&path).map_err(|e| {
+fn cleanup_comment_body(args: &CommentBodyArgs, uploaded: &str, remove_body_file: bool) {
+    if let Some(path) = &args.body_file
+        && let Some(warning) = cleanup_warning(cleanup_body_file(
+            path,
+            !remove_body_file,
+            uploaded.as_bytes(),
+        ))
+    {
+        eprintln!("{warning}");
+    }
+}
+
+fn load_comment_body(args: &CommentBodyArgs) -> Result<String, CliError> {
+    match (&args.body, &args.body_file) {
+        (Some(body), None) => Ok(body.clone()),
+        (None, Some(path)) => std::fs::read_to_string(path).map_err(|e| {
             CliError::new(
                 EXIT_UNKNOWN,
                 format!(
                     "failed reading comment body file {}: {e}",
-                    display_path(&path)
+                    display_path(path)
                 ),
             )
         }),
@@ -244,7 +288,7 @@ mod tests {
 
     #[test]
     fn load_comment_body_prefers_inline_body() {
-        let body = load_comment_body(CommentBodyArgs {
+        let body = load_comment_body(&CommentBodyArgs {
             body: Some("hello".into()),
             body_file: None,
         })
@@ -258,7 +302,7 @@ mod tests {
         let path = dir.path().join("comment.md");
         std::fs::write(&path, "from file\n").expect("write file");
 
-        let body = load_comment_body(CommentBodyArgs {
+        let body = load_comment_body(&CommentBodyArgs {
             body: None,
             body_file: Some(path),
         })

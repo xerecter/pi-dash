@@ -29,6 +29,7 @@ export function getCliInstallCommands(config: CliInstallConfig) {
   return {
     unix: `curl --proto '=http,https' --tlsv1.2 -fsSL ${shellQuote(config.install_sh_url)} | sh`,
     updateUnix: `curl --proto '=http,https' --tlsv1.2 -fsSL ${shellQuote(config.update_sh_url)} | sh`,
+    uninstallUnix: `curl --proto '=http,https' --tlsv1.2 -fsSL ${shellQuote(config.uninstall_sh_url)} | sh`,
     powershell,
     cmd,
     msi: config.windows_msi_url

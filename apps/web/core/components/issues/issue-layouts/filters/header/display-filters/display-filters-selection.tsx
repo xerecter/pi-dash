@@ -118,7 +118,11 @@ export const DisplayFiltersSelection = observer(function DisplayFiltersSelection
                 order_by: val,
               })
             }
-            orderByOptions={layoutDisplayFiltersOptions?.display_filters.order_by ?? []}
+            orderByOptions={
+              displayFilters?.order_by === "parent_sequence"
+                ? ["parent_sequence"]
+                : (layoutDisplayFiltersOptions?.display_filters.order_by ?? [])
+            }
           />
         </div>
       )}

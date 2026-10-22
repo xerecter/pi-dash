@@ -286,8 +286,18 @@ def test_reaper_fails_unreported_waiting_run(db, create_user, workspace, pod, en
 
 
 @pytest.mark.unit
-def test_cancel_from_waiting_for_worktree(db, api_client, create_user, assigned_run):
-    assigned_run.status = AgentRunStatus.WAITING_FOR_WORKTREE
+@pytest.mark.parametrize(
+    "run_status",
+    [
+        AgentRunStatus.ASSIGNED,
+        AgentRunStatus.RUNNING,
+        AgentRunStatus.AWAITING_APPROVAL,
+        AgentRunStatus.AWAITING_REAUTH,
+        AgentRunStatus.WAITING_FOR_WORKTREE,
+    ],
+)
+def test_cancel_active_run_waits_for_runner_ack(db, api_client, create_user, assigned_run, run_status, runner_token):
+    assigned_run.status = run_status
     assigned_run.queue_position = 1
     assigned_run.save(update_fields=["status", "queue_position"])
 
@@ -311,6 +321,51 @@ def test_cancel_from_waiting_for_worktree(db, api_client, create_user, assigned_
     sent = send.call_args[0][1]
     assert sent["type"] == "cancel"
     assert sent["run_id"] == str(assigned_run.id)
+    requested_at = assigned_run.cancel_requested_at
+    assert requested_at is not None
+
+    with (
+        patch("karma_team.runner.views.runs.send_to_runner") as retry_send,
+        patch("django.db.transaction.on_commit", side_effect=lambda fn, **kw: fn()),
+    ):
+        retry = api_client.post(f"/api/runners/runs/{assigned_run.id}/cancel/", {}, format="json")
+    assert retry.status_code == 200
+    assigned_run.refresh_from_db()
+    assert assigned_run.cancel_requested_at == requested_at
+    assert assigned_run.ended_at is None
+    assert retry_send.call_args.args[1]["type"] == "cancel"
+
+    api_client.force_authenticate(user=None)
+    ack = api_client.post(
+        f"/api/v1/runner/runs/{assigned_run.id}/cancelled/",
+        {},
+        format="json",
+        HTTP_AUTHORIZATION=f"Bearer {runner_token}",
+    )
+    assert ack.status_code == 200, ack.data
+    assigned_run.refresh_from_db()
+    assert assigned_run.status == AgentRunStatus.CANCELLED
+    assert assigned_run.ended_at is not None
+
+
+@pytest.mark.unit
+def test_cancel_rejects_unrelated_user_and_terminal_run(db, api_client, create_user, create_bot_user, assigned_run):
+    api_client.force_authenticate(user=create_bot_user)
+    with patch("karma_team.runner.views.runs.send_to_runner") as send:
+        response = api_client.post(f"/api/runners/runs/{assigned_run.id}/cancel/", {}, format="json")
+    assert response.status_code == 404
+    send.assert_not_called()
+    assigned_run.refresh_from_db()
+    assert assigned_run.cancel_requested_at is None
+
+    assigned_run.status = AgentRunStatus.COMPLETED
+    assigned_run.save(update_fields=["status"])
+    api_client.force_authenticate(user=create_user)
+    with patch("karma_team.runner.views.runs.send_to_runner") as send:
+        response = api_client.post(f"/api/runners/runs/{assigned_run.id}/cancel/", {}, format="json")
+    assert response.status_code == 409
+    assert response.data["code"] == "run_already_terminal"
+    send.assert_not_called()
 
 
 @pytest.mark.unit

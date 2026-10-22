@@ -5,7 +5,7 @@
  */
 
 import type { ComponentProps, ReactNode } from "react";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { CliInstallConfig } from "@/services/cli-install.service";
@@ -64,6 +64,7 @@ const CONFIG: CliInstallConfig = {
   install_sh_url: "http://172.16.13.81:28000/api/cli/install.sh",
   install_ps1_url: "http://172.16.13.81:28000/api/cli/install.ps1",
   update_sh_url: "http://172.16.13.81:28000/api/cli/update.sh",
+  uninstall_sh_url: "http://172.16.13.81:28000/api/cli/uninstall.sh",
   windows_msi_url: null,
   available_targets: ["x86_64-unknown-linux-gnu"],
 };
@@ -109,4 +110,19 @@ it("offers the service-hosted MSI only when the backend supplies its URL", () =>
   configState.data = { ...CONFIG, windows_msi_url: "http://172.16.13.81:28000/api/cli/download/windows.msi" };
   render(<AiDevMachinesPage />);
   expect(screen.getByRole("link", { name: "Download MSI" })).toHaveAttribute("href", configState.data.windows_msi_url);
+});
+
+it("shows and copies the service-hosted uninstall command on dev machines", async () => {
+  configState.data = { ...CONFIG };
+  configState.error = undefined;
+  const user = userEvent.setup();
+  const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+  render(<AiDevMachinesPage />);
+  const label = screen.getByText("Uninstall karma-team (macOS / Linux)");
+  const commandBlock = label.parentElement!.parentElement!;
+  const command = "curl --proto '=http,https' --tlsv1.2 -fsSL 'http://172.16.13.81:28000/api/cli/uninstall.sh' | sh";
+  expect(within(commandBlock).getByText(command)).toBeVisible();
+  await user.click(within(commandBlock).getByRole("button", { name: "Copy command" }));
+  expect(writeText).toHaveBeenCalledWith(command);
+  expect(within(commandBlock).getByRole("button", { name: "Copied!" })).toBeVisible();
 });

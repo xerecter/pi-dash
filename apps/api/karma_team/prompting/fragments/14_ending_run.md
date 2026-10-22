@@ -1,5 +1,9 @@
 ## Ending the run
 
+### Final workspace check
+
+After uploading the final workpad and comments, check `git status --short` if this workspace is a Git checkout. A previous successful push does not bypass the runner's final uncommitted-file check. Remove only unchanged temporary drafts from this run that are confirmed uploaded; preserve failed uploads, newer local edits, and unrelated files. Use comment `--remove-body-file` and the outside-checkout temporary-file recipe from the CLI instructions. Do not commit comment drafts, run `git clean`, or blanket-ignore `.karma-team-*` to make the check pass. Resolve outstanding code changes before reporting success.
+
 There is no fenced `karma-team-done` block. The cloud does not parse your final turn message. A run ends when the agent process exits; karma-team learns the outcome by looking at the issue itself. Before your final turn ends you must have already done all of the following via `karma-team`:
 
 ### Workpad completeness — verify before exit (always, regardless of outcome)

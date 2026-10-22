@@ -13,6 +13,208 @@ enum Ending {
     Cancelled,
 }
 
+#[cfg(target_os = "linux")]
+async fn cancel_at_phase(phase: &str) {
+    let temp = tempfile::tempdir().unwrap();
+    let paths = paths_for(temp.path());
+    paths.ensure().unwrap();
+    let project_root = temp.path().join("project");
+    std::fs::create_dir(&project_root).unwrap();
+    let ready = temp.path().join("ready.pid");
+    let descendant = temp.path().join("child.pid");
+    let binary = temp.path().join("fake-karma");
+    let repo_url = if phase == "push" {
+        let (remote, operation_dir) = seed_explicit_branch_workspace(
+            temp.path(),
+            &project_root,
+            &temp.path().join("project-created"),
+        );
+        let hook = operation_dir.join(".git/hooks/pre-push");
+        std::fs::write(
+            &hook,
+            format!(
+                "#!/bin/sh\ntrap '' INT TERM\nsh -c 'trap \"\" INT TERM; echo $$ > \"$1\"; exec sleep 300' child '{}' &\necho $$ > '{}'\nwait\n",
+                descendant.display(), ready.display()
+            ),
+        ).unwrap();
+        std::fs::set_permissions(&hook, std::fs::Permissions::from_mode(0o755)).unwrap();
+        Some(remote.to_string_lossy().into_owned())
+    } else {
+        None
+    };
+    let script = format!(
+        r#"#!/bin/sh
+set -eu
+block() {{
+  trap '' INT TERM
+  sh -c 'trap "" INT TERM; echo $$ > "$1"; exec sleep 300' child '{}' &
+  echo $$ > '{}'
+  wait
+}}
+if [ "$1" = project ]; then
+  if [ '{}' = setup ]; then block; fi
+  if [ "$2" = list ]; then
+    printf '📁 %s\n   ID: demo\n' '{}'
+  else
+    printf '📁 %s\nPath: %s\n' '{}' '{}'
+  fi
+  exit 0
+fi
+IFS= read -r input
+if [ '{phase}' = push ]; then
+  printf '%s\n' '{{"type":"system","subtype":"init","session_id":"abort-test"}}'
+  printf '%s\n' '{{"type":"result","subtype":"success","session_id":"abort-test","result":"done"}}'
+  exit 0
+fi
+if [ '{phase}' = running ]; then
+  printf '%s\n' '{{"type":"system","subtype":"init","session_id":"abort-test"}}'
+fi
+block
+"#,
+        descendant.display(),
+        ready.display(),
+        phase,
+        project_name(&project_root),
+        project_name(&project_root),
+        project_root.display()
+    );
+    std::fs::write(&binary, script).unwrap();
+    std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o755)).unwrap();
+    let mut config = runner_config("main", "DEMO", temp.path().join("unused"));
+    config.project_slug = None;
+    config.agent.kind = AgentKind::Karma;
+    config.karma.binary = binary.to_string_lossy().into_owned();
+    let runner_paths = paths.for_runner(config.runner_id);
+    runner_paths.ensure().unwrap();
+    let state = StateHandle::new(Config {
+        version: 2,
+        daemon: Default::default(),
+        runners: vec![config.clone()],
+        cli: None,
+    });
+    let cancel = tokio_util::sync::CancellationToken::new();
+    let (tx, mut rx) = mpsc::channel(64);
+    let mut worker = AssignWorker {
+        runner_paths,
+        daemon_paths: paths,
+        runner_config: config.clone(),
+        state: state.clone(),
+        approvals: ApprovalRouter::new(),
+        out: RunnerOut::new(config.runner_id, tx),
+        cancel: cancel.clone(),
+    };
+    let name = project_name(&project_root);
+    let task = tokio::spawn(async move {
+        worker
+            .run(AssignedRun {
+                run_id: uuid::Uuid::new_v4(),
+                issue_identifier: Some("DEMO-10".into()),
+                project_name: Some(name),
+                prompt: "test cancellation".into(),
+                repo_ref: repo_url.as_ref().map(|_| "main".into()),
+                git_work_branch: repo_url.as_ref().map(|_| EXPLICIT_WORK_BRANCH.into()),
+                repo_url,
+                expected_codex_model: None,
+            })
+            .await
+    });
+    let pids: Vec<u32> = tokio::time::timeout(Duration::from_secs(60), async {
+        loop {
+            let read_pid = |path: &Path| {
+                std::fs::read_to_string(path)
+                    .ok()?
+                    .trim()
+                    .parse::<u32>()
+                    .ok()
+            };
+            if let (Some(parent), Some(child)) = (read_pid(&ready), read_pid(&descendant)) {
+                break vec![parent, child];
+            }
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .expect("fake Karma did not reach cancellation phase");
+    let mut messages = Vec::new();
+    if phase == "running" {
+        tokio::time::timeout(Duration::from_secs(5), async {
+            while let Some(envelope) = rx.recv().await {
+                let started = matches!(envelope.body, ClientMsg::RunStarted { .. });
+                messages.push(envelope.body);
+                if started {
+                    break;
+                }
+            }
+        })
+        .await
+        .unwrap();
+    }
+    cancel.cancel();
+    tokio::time::timeout(Duration::from_secs(10), task)
+        .await
+        .expect("abort did not stop the assignment promptly")
+        .unwrap()
+        .unwrap();
+    while let Ok(envelope) = rx.try_recv() {
+        messages.push(envelope.body);
+    }
+    assert_eq!(
+        messages
+            .iter()
+            .filter(|msg| matches!(msg, ClientMsg::RunCancelled { .. }))
+            .count(),
+        1
+    );
+    assert!(!messages.iter().any(|msg| matches!(
+        msg,
+        ClientMsg::RunCompleted { .. } | ClientMsg::RunFailed { .. }
+    )));
+    assert!(state.runner_snapshot().await.current_run.is_none());
+    tokio::time::timeout(Duration::from_secs(2), async {
+        loop {
+            let any_running = pids.iter().any(|pid| {
+                std::fs::read_to_string(format!("/proc/{pid}/stat"))
+                    .ok()
+                    .and_then(|stat| {
+                        stat.rsplit_once(") ")
+                            .map(|(_, rest)| !rest.starts_with('Z'))
+                    })
+                    .unwrap_or(false)
+            });
+            if !any_running {
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+    })
+    .await
+    .expect("Karma or its descendant survived abort");
+}
+
+#[cfg(target_os = "linux")]
+#[tokio::test]
+async fn abort_interrupts_workspace_preparation() {
+    cancel_at_phase("setup").await;
+}
+
+#[cfg(target_os = "linux")]
+#[tokio::test]
+async fn abort_interrupts_agent_initialization() {
+    cancel_at_phase("startup").await;
+}
+
+#[cfg(target_os = "linux")]
+#[tokio::test]
+async fn abort_stops_running_agent_and_descendants_before_acknowledging() {
+    cancel_at_phase("running").await;
+}
+
+#[cfg(target_os = "linux")]
+#[tokio::test]
+async fn abort_interrupts_git_push_after_agent_completion() {
+    cancel_at_phase("push").await;
+}
+
 fn project_name(project_root: &Path) -> String {
     // Project discovery takes a per-user/name lock, even across processes.
     // Independent fixtures must not serialize behind the same project name.
@@ -29,7 +231,8 @@ fn fake_karma_script(
         Ending::Failed => {
             r#"{"type":"result","subtype":"error_during_execution","session_id":"sess_retention","is_error":true,"result":"intentional failure"}"#
         }
-        Ending::Completed | Ending::Cancelled => {
+        Ending::Cancelled => "",
+        Ending::Completed => {
             r#"{"type":"result","subtype":"success","session_id":"sess_retention","result":"done","usage":{"input_tokens":1,"output_tokens":1}}"#
         }
     };
@@ -77,13 +280,18 @@ git rev-parse --verify HEAD >/dev/null 2>&1
 (cat >/dev/null) &
 printf '%s\n' '{{"type":"system","subtype":"init","session_id":"sess_retention","model":"claude-sonnet-4-6"}}'
 printf '%s\n' '{}'
-sleep 0.2
+sleep {}
 "#,
         project_root.display(),
         state_file.display(),
         project_name(project_root),
         branch_setup,
         result_event,
+        if matches!(ending, Ending::Cancelled) {
+            "300"
+        } else {
+            "0.2"
+        },
     )
 }
 
@@ -115,9 +323,6 @@ async fn run_case_with_repo_url(
     runner_paths.ensure().expect("runner data paths");
 
     let cancel = tokio_util::sync::CancellationToken::new();
-    if matches!(ending, Ending::Cancelled) {
-        cancel.cancel();
-    }
     let (tx, mut rx) = mpsc::channel(32);
     let mut worker = AssignWorker {
         runner_paths,
@@ -131,32 +336,41 @@ async fn run_case_with_repo_url(
         }),
         approvals: ApprovalRouter::new(),
         out: RunnerOut::new(config.runner_id, tx),
-        cancel,
+        cancel: cancel.clone(),
     };
-    tokio::time::timeout(
-        // Karma invokes several CLI commands through the login shell before
-        // the assignment starts. This can exceed 30 seconds on machines with
-        // slow shell initialization (e.g. conda hooks), so leave room for the
-        // actual workspace/clone path instead of timing out during setup.
-        Duration::from_secs(90),
-        worker.run(AssignedRun {
-            run_id: uuid::Uuid::new_v4(),
-            issue_identifier: Some("DEMO-10".into()),
-            project_name: Some(project_name(&project_root)),
-            prompt: "Create a user-visible result".into(),
-            repo_url,
-            repo_ref: None,
-            git_work_branch: None,
-            expected_codex_model: None,
-        }),
-    )
+    let name = project_name(&project_root);
+    let worker_task = tokio::spawn(async move {
+        worker
+            .run(AssignedRun {
+                run_id: uuid::Uuid::new_v4(),
+                issue_identifier: Some("DEMO-10".into()),
+                project_name: Some(name),
+                prompt: "Create a user-visible result".into(),
+                repo_url,
+                repo_ref: None,
+                git_work_branch: None,
+                expected_codex_model: None,
+            })
+            .await
+    });
+    let messages = tokio::time::timeout(Duration::from_secs(90), async {
+        let mut messages = Vec::new();
+        while let Some(envelope) = rx.recv().await {
+            if matches!(ending, Ending::Cancelled)
+                && matches!(envelope.body, ClientMsg::RunStarted { .. })
+            {
+                cancel.cancel();
+            }
+            messages.push(envelope.body);
+        }
+        messages
+    })
     .await
-    .expect("Karma assignment timed out")
-    .expect("Karma assignment failed internally");
-
-    let messages: Vec<_> = std::iter::from_fn(|| rx.try_recv().ok())
-        .map(|envelope| envelope.body)
-        .collect();
+    .expect("Karma assignment timed out");
+    worker_task
+        .await
+        .unwrap()
+        .expect("Karma assignment failed internally");
     assert!(
         messages
             .iter()
@@ -393,9 +607,6 @@ async fn run_explicit_branch_case(
     runner_paths.ensure().expect("runner data paths");
 
     let cancel = tokio_util::sync::CancellationToken::new();
-    if matches!(ending, Ending::Cancelled) {
-        cancel.cancel();
-    }
     // Capacity one plus live consumption makes a lifecycle send observable at
     // the instant it occurs. In particular, a RunCompleted cannot hide a
     // later push attempt behind a fully buffered worker execution.
@@ -412,7 +623,7 @@ async fn run_explicit_branch_case(
         }),
         approvals: ApprovalRouter::new(),
         out: RunnerOut::new(config.runner_id, tx),
-        cancel,
+        cancel: cancel.clone(),
     };
     let remote_url = remote.to_string_lossy().into_owned();
     let project_name = project_name(&project_root);
@@ -437,6 +648,11 @@ async fn run_explicit_branch_case(
         let mut messages = Vec::new();
         while let Some(envelope) = rx.recv().await {
             let message = envelope.body;
+            if matches!(ending, Ending::Cancelled)
+                && matches!(message, ClientMsg::RunStarted { .. })
+            {
+                cancel.cancel();
+            }
             if let ClientMsg::Accept {
                 workspace_state, ..
             } = &message

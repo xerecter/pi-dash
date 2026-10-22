@@ -4,7 +4,10 @@
  * See the LICENSE file for details.
  */
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { useRef, useState } from "react";
+import { observable, runInAction } from "mobx";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { TIssue } from "@karma-team/types";
 
@@ -53,17 +56,6 @@ vi.mock("@karma-team/propel/button", () => ({
   ),
 }));
 
-// Surface the confirmation dialog's submit affordance only while open so the
-// test can drive the confirm path without the real modal implementation.
-vi.mock("@karma-team/ui", () => ({
-  AlertModalCore: ({ isOpen, handleSubmit }: { isOpen: boolean; handleSubmit: () => void }) =>
-    isOpen ? (
-      <button type="button" onClick={handleSubmit}>
-        confirm-abort
-      </button>
-    ) : null,
-}));
-
 // Both use-abort-run and use-re-tick construct an AgentRunService at module
 // load; mock the shared service so the hooks call our spies.
 vi.mock("@/services/runner", () => ({
@@ -74,6 +66,8 @@ vi.mock("@/services/runner", () => ({
 }));
 
 import { IssueAgentStatusPanel } from "../../core/components/issues/issue-detail/agent-status";
+import usePeekOverviewOutsideClickDetector from "../../core/hooks/use-peek-overview-outside-click";
+import { setToast } from "@karma-team/propel/toast";
 
 const ISSUE_OPS = { fetch: vi.fn() };
 
@@ -105,28 +99,40 @@ function makeIssue(status: string): TIssue {
   } as unknown as TIssue;
 }
 
-function renderPanel(issue: TIssue) {
-  return render(
-    <IssueAgentStatusPanel
-      workspaceSlug="acme"
-      projectId="proj-1"
-      issueId="issue-1"
-      issue={issue}
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      issueOperations={ISSUE_OPS as any}
-    />
+function PeekPanel({ issue }: { issue: TIssue }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(true);
+  usePeekOverviewOutsideClickDetector(ref, () => setOpen(false), issue.id);
+  return open ? (
+    <div ref={ref} data-testid="peek">
+      <IssueAgentStatusPanel
+        workspaceSlug="acme"
+        projectId="proj-1"
+        issueId="issue-1"
+        issue={issue}
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        issueOperations={ISSUE_OPS as any}
+      />
+    </div>
+  ) : (
+    <span>Peek closed</span>
   );
+}
+
+function renderPanel(issue: TIssue) {
+  return render(<PeekPanel issue={issue} />);
 }
 
 describe("IssueAgentStatusPanel abort run", () => {
   beforeEach(() => {
     abortRun.mockReset();
     reTick.mockReset();
-    ISSUE_OPS.fetch.mockReset();
+    ISSUE_OPS.fetch.mockReset().mockResolvedValue(undefined);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it("shows the abort button while a run is active", () => {
@@ -138,15 +144,96 @@ describe("IssueAgentStatusPanel abort run", () => {
     abortRun.mockResolvedValue({ id: "run-1", status: "cancelled" });
     renderPanel(makeIssue("running"));
 
-    fireEvent.click(screen.getByText("Abort run"));
-    fireEvent.click(screen.getByText("confirm-abort"));
+    const user = userEvent.setup();
+    await user.click(screen.getByRole("button", { name: "Abort run" }));
+    await user.click(
+      within(screen.getByRole("group", { name: "Abort run?" })).getByRole("button", { name: "Abort run" })
+    );
 
     await waitFor(() => expect(abortRun).toHaveBeenCalledWith("run-1", "user"));
     await waitFor(() => expect(ISSUE_OPS.fetch).toHaveBeenCalledWith("acme", "proj-1", "issue-1"));
+    expect(screen.getByTestId("peek")).toBeTruthy();
+    expect(screen.getByText("AI agent run was cancelled")).toBeTruthy();
+    expect(setToast).toHaveBeenCalledWith(expect.objectContaining({ title: "Run cancelled" }));
   });
 
   it("hides the abort button once the run is terminal", () => {
     renderPanel(makeIssue("cancelled"));
     expect(screen.queryByText("Abort run")).toBeNull();
+  });
+
+  it("keeps running when confirmation is dismissed", async () => {
+    const user = userEvent.setup();
+    renderPanel(makeIssue("running"));
+    await user.click(screen.getByRole("button", { name: "Abort run" }));
+    await user.click(screen.getByRole("button", { name: "Keep running" }));
+    expect(abortRun).not.toHaveBeenCalled();
+    expect(screen.queryByRole("group", { name: "Abort run?" })).toBeNull();
+    expect(screen.getByTestId("peek")).toBeTruthy();
+  });
+
+  it("shows submission feedback and blocks repeated requests", async () => {
+    let resolve!: (value: unknown) => void;
+    abortRun.mockImplementation(
+      () =>
+        new Promise((r) => {
+          resolve = r;
+        })
+    );
+    renderPanel(makeIssue("running"));
+    fireEvent.click(screen.getByRole("button", { name: "Abort run" }));
+    fireEvent.click(screen.getByRole("button", { name: "Abort run" }));
+    expect(screen.getByRole("button", { name: "Aborting" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Keep running" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Aborting" }));
+    expect(abortRun).toHaveBeenCalledTimes(1);
+    await act(async () => resolve({ id: "run-1", status: "cancel_requested" }));
+    expect(screen.getByText("Stopping the AI agent")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Abort run" })).toBeNull();
+    expect(setToast).toHaveBeenCalledWith(expect.objectContaining({ title: "Abort requested" }));
+  });
+
+  it("shows a persistent error and allows a retry", async () => {
+    abortRun
+      .mockRejectedValueOnce({ error: "Runner request failed" })
+      .mockResolvedValueOnce({ id: "run-1", status: "cancel_requested" });
+    renderPanel(makeIssue("running"));
+    fireEvent.click(screen.getByRole("button", { name: "Abort run" }));
+    fireEvent.click(screen.getByRole("button", { name: "Abort run" }));
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("Runner request failed"));
+    expect(screen.getByRole("button", { name: "Abort run" })).not.toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Abort run" }));
+    await waitFor(() => expect(screen.getByText("Stopping the AI agent")).toBeTruthy());
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(abortRun).toHaveBeenCalledTimes(2);
+  });
+
+  it("updates the badge when MobX changes the same issue object", async () => {
+    const issue = observable(makeIssue("running"));
+    renderPanel(issue);
+    act(() =>
+      runInAction(() => {
+        issue.agent_status!.active_run!.status = "cancel_requested";
+      })
+    );
+    expect(screen.getByText("Stopping the AI agent")).toBeTruthy();
+    act(() =>
+      runInAction(() => {
+        issue.agent_status!.latest_run = { ...issue.agent_status!.active_run!, status: "cancelled" };
+        issue.agent_status!.active_run = null;
+      })
+    );
+    expect(screen.getByText("AI agent run was cancelled")).toBeTruthy();
+  });
+
+  it("polls a pending cancellation every two seconds even if refresh fails", async () => {
+    vi.useFakeTimers();
+    ISSUE_OPS.fetch.mockRejectedValue(new Error("temporary refresh failure"));
+    renderPanel(makeIssue("cancel_requested"));
+    await act(async () => vi.advanceTimersByTime(2_000));
+    expect(ISSUE_OPS.fetch).toHaveBeenCalledTimes(1);
+    await act(async () => vi.advanceTimersByTime(2_000));
+    expect(ISSUE_OPS.fetch).toHaveBeenCalledTimes(2);
+    expect(screen.getByText("Stopping the AI agent")).toBeTruthy();
   });
 });

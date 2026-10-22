@@ -18,8 +18,7 @@ pub async fn clone(url: &str, target: &Path) -> Result<()> {
     // `--` separator is required: a hostile `url` like `--upload-pack=...` would
     // otherwise be interpreted as a flag and execute arbitrary commands.
     let use_first_use_trust = should_accept_new_host(url).await;
-    let out = clone_command(url, target, use_first_use_trust)
-        .output()
+    let out = crate::util::process::command_output(clone_command(url, target, use_first_use_trust))
         .await
         .context("spawning git clone")?;
     if !out.status.success() {
@@ -776,7 +775,8 @@ async fn git_output(path: &Path, args: &[&str]) -> Result<String> {
 }
 
 async fn git_command_output(path: &Path, args: &[&str]) -> Result<std::process::Output> {
-    Command::new("git")
+    let mut command = Command::new("git");
+    command
         .current_dir(path)
         .args(args)
         // Runner commands execute without a terminal. Fail promptly when
@@ -786,8 +786,8 @@ async fn git_command_output(path: &Path, args: &[&str]) -> Result<std::process::
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
-        .kill_on_drop(true)
-        .output()
+        .kill_on_drop(true);
+    crate::util::process::command_output(command)
         .await
         .with_context(|| format!("spawning git {args:?}"))
 }

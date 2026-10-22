@@ -313,6 +313,7 @@ const AiDevMachinesPage = observer(function AiDevMachinesPage() {
             <InstallCommand label={t("macOS / Linux")} command={installCommands.unix} />
             <InstallCommand label={t("Windows (PowerShell)")} command={installCommands.powershell} />
             <InstallCommand label={t("Update existing CLI (macOS / Linux)")} command={installCommands.updateUnix} />
+            <InstallCommand label={t("Uninstall karma-team (macOS / Linux)")} command={installCommands.uninstallUnix} />
             {installConfig.windows_msi_url && installCommands.msi && (
               <InstallCommand
                 label={t("Windows (MSI)")}
@@ -438,7 +439,7 @@ function InstallCommand({ label, command, href, hrefLabel }: InstallCommandProps
           </Button>
         </div>
       </div>
-      <pre className="font-mono rounded border border-subtle bg-layer-2 p-2 text-11 whitespace-pre-wrap text-primary select-all">
+      <pre className="font-mono rounded border border-subtle bg-layer-2 p-2 text-11 break-all whitespace-pre-wrap text-primary select-all">
         {command}
       </pre>
     </div>

@@ -13,6 +13,7 @@ const CONFIG: CliInstallConfig = {
   install_sh_url: "http://172.16.13.81:28000/api/cli/install.sh",
   install_ps1_url: "http://172.16.13.81:28000/api/cli/install.ps1",
   update_sh_url: "http://172.16.13.81:28000/api/cli/update.sh",
+  uninstall_sh_url: "http://172.16.13.81:28000/api/cli/uninstall.sh",
   windows_msi_url: null,
   available_targets: ["x86_64-unknown-linux-gnu"],
 };
@@ -25,6 +26,9 @@ describe("self-hosted CLI installation commands", () => {
     );
     expect(commands.updateUnix).toBe(
       "curl --proto '=http,https' --tlsv1.2 -fsSL 'http://172.16.13.81:28000/api/cli/update.sh' | sh"
+    );
+    expect(commands.uninstallUnix).toBe(
+      "curl --proto '=http,https' --tlsv1.2 -fsSL 'http://172.16.13.81:28000/api/cli/uninstall.sh' | sh"
     );
     expect(commands.powershell).toBe("irm 'http://172.16.13.81:28000/api/cli/install.ps1' | iex");
     expect(commands.cmd).toBe(
@@ -39,9 +43,11 @@ describe("self-hosted CLI installation commands", () => {
       ...CONFIG,
       install_sh_url: "https://example.test/team's/api/cli/install.sh",
       install_ps1_url: "https://example.test/team's/api/cli/install.ps1",
+      uninstall_sh_url: "https://example.test/team's/api/cli/uninstall.sh",
     };
     const commands = getCliInstallCommands(config);
     expect(commands.unix).toContain("'https://example.test/team'\\''s/api/cli/install.sh'");
+    expect(commands.uninstallUnix).toContain("'https://example.test/team'\\''s/api/cli/uninstall.sh'");
     expect(commands.powershell).toBe("irm 'https://example.test/team''s/api/cli/install.ps1' | iex");
   });
 

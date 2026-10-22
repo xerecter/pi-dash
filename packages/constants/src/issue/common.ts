@@ -33,9 +33,9 @@ export enum EIssueGroupByToServerOptions {
   "cycle" = "cycle_id",
   "module" = "issue_module__module_id",
   "target_date" = "target_date",
+  // oxlint-disable-next-line typescript/no-duplicate-enum-values -- Both project grouping modes use the same API field.
   "project" = "project_id",
   "created_by" = "created_by",
-  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   "team_project" = "project_id",
 }
 
@@ -131,6 +131,7 @@ export const ISSUE_ORDER_BY_OPTIONS: {
   key: TIssueOrderByOptions;
   titleTranslationKey: string;
 }[] = [
+  { key: "parent_sequence", titleTranslationKey: "Parent first, ID ascending" },
   { key: "sort_order", titleTranslationKey: "Manual" },
   { key: "-created_at", titleTranslationKey: "Last created" },
   { key: "-updated_at", titleTranslationKey: "Last updated" },

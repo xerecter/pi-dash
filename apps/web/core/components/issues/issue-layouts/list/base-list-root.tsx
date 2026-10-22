@@ -21,6 +21,7 @@ import { useUserPermissions } from "@/hooks/store/user";
 import { useGroupIssuesDragNDrop } from "@/hooks/use-group-dragndrop";
 import { useIssueStoreType } from "@/hooks/use-issue-layout-store";
 import { useIssuesActions } from "@/hooks/use-issues-actions";
+import { sortIssueIdsByParentAndSequence } from "@/helpers/issue-list-order";
 // components
 import { IssueLayoutHOC } from "../issue-layout-HOC";
 import { List } from "./default";
@@ -90,7 +91,13 @@ export const BaseListRoot = observer(function BaseListRoot(props: IBaseListRoot)
     fetchIssues("init-loader", { canGroup: true, perPageCount: group_by ? 50 : 100 }, viewId);
   }, [fetchIssues, storeType, group_by, viewId]);
 
-  const groupedIssueIds = issues?.groupedIssueIds as TGroupedIssues | undefined;
+  const sourceGroups = issues?.groupedIssueIds as TGroupedIssues | undefined;
+  const groupedIssueIds =
+    orderBy === "parent_sequence" && sourceGroups
+      ? Object.fromEntries(
+          Object.entries(sourceGroups).map(([group, ids]) => [group, sortIssueIdsByParentAndSequence(ids, issueMap)])
+        )
+      : sourceGroups;
   // auth
   const isEditingAllowed = allowPermissions(
     [EUserPermissions.ADMIN, EUserPermissions.MEMBER],
@@ -99,9 +106,11 @@ export const BaseListRoot = observer(function BaseListRoot(props: IBaseListRoot)
   const { enableInlineEditing, enableQuickAdd, enableIssueCreation } = issues?.viewFlags || {};
 
   const canEditProperties = useCallback(
-    (projectId: string | undefined) => {
+    (targetProjectId: string | undefined) => {
       const isEditingAllowedBasedOnProject =
-        canEditPropertiesBasedOnProject && projectId ? canEditPropertiesBasedOnProject(projectId) : isEditingAllowed;
+        canEditPropertiesBasedOnProject && targetProjectId
+          ? canEditPropertiesBasedOnProject(targetProjectId)
+          : isEditingAllowed;
 
       return !!enableInlineEditing && isEditingAllowedBasedOnProject;
     },
@@ -138,14 +147,14 @@ export const BaseListRoot = observer(function BaseListRoot(props: IBaseListRoot)
   const handleCollapsedGroups = useCallback(
     (value: string) => {
       if (workspaceSlug) {
-        let collapsedGroups = issuesFilter?.issueFilters?.kanbanFilters?.group_by || [];
-        if (collapsedGroups.includes(value)) {
-          collapsedGroups = collapsedGroups.filter((_value) => _value != value);
+        let updatedCollapsedGroups = issuesFilter?.issueFilters?.kanbanFilters?.group_by || [];
+        if (updatedCollapsedGroups.includes(value)) {
+          updatedCollapsedGroups = updatedCollapsedGroups.filter((_value) => _value != value);
         } else {
-          collapsedGroups.push(value);
+          updatedCollapsedGroups.push(value);
         }
         updateFilters(projectId?.toString() ?? "", EIssueFilterType.KANBAN_FILTERS, {
-          group_by: collapsedGroups,
+          group_by: updatedCollapsedGroups,
         } as TIssueKanbanFilters);
       }
     },

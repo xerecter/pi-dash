@@ -127,14 +127,15 @@ export class AgentRunService extends APIService {
 
   /**
    * Abort an in-flight run. Signals the associated runner to stop the run
-   * and marks the AgentRun terminal (``cancelled``) server-side. The server
-   * enforces authorization and rejects an already-terminal run.
+   * and returns ``cancel_requested`` until the runner confirms it stopped.
+   * Queued runs can become ``cancelled`` immediately. The server enforces
+   * authorization and rejects an already-terminal run.
    *
    * Server-side wiring: ``apps/api/karma_team/runner/views/runs.py``
    * ``AgentRunCancelEndpoint``.
    */
   async abortRun(runId: string, reason?: string): Promise<TAgentRun> {
-    return this.post(`/api/runners/runs/${runId}/cancel/`, { reason: reason ?? "" })
+    return this.post(`/api/runners/runs/${runId}/cancel/`, { reason: reason ?? "" }, { timeout: 15_000 })
       .then((response) => response?.data)
       .catch((error) => {
         throw error?.response?.data ?? error;

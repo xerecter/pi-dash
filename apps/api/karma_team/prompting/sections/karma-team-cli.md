@@ -38,8 +38,10 @@ On success every command prints a single JSON document to stdout and exits `0`. 
 Comments are the human ↔ agent conversation channel. Use them to ask clarifying questions, post blocker notices, share PR links, and announce completion. **Comments are not for tracking your own progress — that's what the workpad is for.**
 
 - `karma-team comment list <identifier>` — list comments on the issue. Each entry has `id` (UUID), `comment_html`, `comment_stripped`, `labels`, `actor_detail`, `speaker_type`, `speaker_label`, `speaker_agent_run_id`, and timestamps. Read these in chronological order to pick up any human replies since your last run.
-- `karma-team comment add <identifier> --body-file <path> --as-agent "<agent name>" --agent-run-id "{{ run.id }}" [--fold]` — post a new comment from a file and mark it as spoken by this AI agent run. `--body <markdown>` works for one-liners. Prefer `--body-file` for anything multi-line — shell quoting of markdown is error-prone. When you post any issue comment during this run, always include `--as-agent` and `--agent-run-id`; use your actual runtime name if you know it (`Codex`, `Claude Code`, etc.), otherwise use `AI Agent`.
-- `karma-team comment update <identifier> <comment-id> --body-file <path>` — edit a comment you own. Both the issue identifier and the comment UUID are required. Rarely needed — prefer posting a fresh comment for new information.
+- `karma-team comment add <identifier> --body-file <path> --as-agent "<agent name>" --agent-run-id "{{ run.id }}" [--fold] [--remove-body-file]` — post a new comment from a file and mark it as spoken by this AI agent run. `--body <markdown>` works for one-liners. Prefer `--body-file` for anything multi-line — shell quoting of markdown is error-prone. When you post any issue comment during this run, always include `--as-agent` and `--agent-run-id`; use your actual runtime name if you know it (`Codex`, `Claude Code`, etc.), otherwise use `AI Agent`.
+- `karma-team comment update <identifier> <comment-id> --body-file <path> [--remove-body-file]` — edit a comment you own. Both the issue identifier and the comment UUID are required. Rarely needed — prefer posting a fresh comment for new information.
+
+**Comment draft files:** create drafts outside the Git checkout with `COMMENT_FILE=$(mktemp "${TMPDIR:-/tmp}/karma-team-comment.XXXXXX")`, then write the complete comment there. Use `--body-file "$COMMENT_FILE" --remove-body-file` to delete that draft only after a successful upload. Unlike workpad updates, comment commands keep body files by default; cleanup is opt-in. Failed uploads and files changed during the upload are retained for retry. Do not leave root-level `.karma-team-comment.md` or `.karma-team-blocked.md` files behind: they are untracked files and the runner refuses successful completion while they remain. On an older CLI whose `comment add --help` does not list `--remove-body-file`, omit the flag and remove only your own unchanged draft after confirming the comment was uploaded. Never post a duplicate comment just to retry cleanup, and never delete unrelated files or add broad Git ignore rules to bypass the final check.
 
 Use `--fold` only for low-value status/noop updates that should remain available to humans without cluttering the thread. Folded comments are collapsed by default in the UI and omitted from future agent-run task prompts, though `karma-team comment list` still returns them. karma-team never folds comments automatically. Do not fold questions, blockers, decisions, results, or other context a future run needs.
 
@@ -81,7 +83,9 @@ karma-team workpad update --body-file ./.karma-team-workpad.md   # file is remov
 {% if run.kind != "scheduler" %}Post a blocker and move the issue to "Blocked":
 
 ```sh
-karma-team comment add {{ issue.identifier }} --body-file ./.karma-team-blocked.md --as-agent "AI Agent" --agent-run-id "{{ run.id }}"
+COMMENT_FILE=$(mktemp "${TMPDIR:-/tmp}/karma-team-comment.XXXXXX")
+# Write the blocker explanation to "$COMMENT_FILE" before uploading.
+karma-team comment add {{ issue.identifier }} --body-file "$COMMENT_FILE" --as-agent "AI Agent" --agent-run-id "{{ run.id }}" --remove-body-file
 karma-team issue patch {{ issue.identifier }} --state "Blocked"
 ```
 

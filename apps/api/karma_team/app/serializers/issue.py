@@ -1077,6 +1077,7 @@ class IssueSerializer(DynamicBaseSerializer):
             "cycle_id",
             "assigned_pod_id",
             "agent_executor",
+            "git_work_branch",
             "module_ids",
             "label_ids",
             "assignee_ids",
@@ -1135,6 +1136,7 @@ class IssueListDetailSerializer(serializers.Serializer):
             # Basic fields
             "id": instance.id,
             "name": instance.name,
+            "git_work_branch": instance.git_work_branch,
             "state_id": instance.state_id,
             "sort_order": instance.sort_order,
             "completed_at": instance.completed_at,

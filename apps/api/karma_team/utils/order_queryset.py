@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # See the LICENSE file for details.
 
-from django.db.models import Case, CharField, Min, Value, When
+from django.db.models import Case, CharField, IntegerField, Min, Value, When
 
 from karma_team.utils.constants import STATE_GROUP_ORDER
 
@@ -12,6 +12,17 @@ STATE_ORDER = list(STATE_GROUP_ORDER)
 
 
 def order_issue_queryset(issue_queryset, order_by_param="-created_at"):
+    if order_by_param == "parent_sequence":
+        ordering = ("is_sub_issue", "sequence_id", "id")
+        issue_queryset = issue_queryset.annotate(
+            is_sub_issue=Case(
+                When(parent_id__isnull=True, then=Value(0)),
+                default=Value(1),
+                output_field=IntegerField(),
+            )
+        ).order_by(*ordering)
+        return issue_queryset, ordering
+
     # Priority Ordering
     if order_by_param == "priority" or order_by_param == "-priority":
         issue_queryset = issue_queryset.annotate(

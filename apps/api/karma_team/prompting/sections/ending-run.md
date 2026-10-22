@@ -7,6 +7,10 @@ customizable: locked
 
 There is no fenced `karma-team-done` block. The cloud does not parse your final turn message. A run ends when the agent process exits; karma-team learns the outcome from the issue itself and from the one report you make with `karma-team run yield`. Before your final turn ends you must have already done all of the following via `karma-team`:
 
+### Final workspace check
+
+After uploading the final workpad and comments, check `git status --short` if this workspace is a Git checkout. A previous successful push does not bypass the runner's final uncommitted-file check. Remove only unchanged temporary drafts from this run that are confirmed uploaded; preserve failed uploads, newer local edits, and unrelated files. Use comment `--remove-body-file` and the outside-checkout temporary-file recipe from the CLI instructions. Do not commit comment drafts, run `git clean`, or blanket-ignore `.karma-team-*` to make the check pass. Resolve outstanding code changes before reporting success.
+
 ### Report the outcome — `karma-team run yield` (always, as your last `karma-team` call)
 
 The ticking clock reads exactly one signal from a run: the outcome you report. Without it the clock guesses (it keeps ticking for In Progress; it stops for review / test). Report it after the state move, as the last thing you do:
